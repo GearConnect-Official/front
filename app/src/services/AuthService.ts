@@ -2,14 +2,11 @@ import axios from "axios";
 import { API_URL_AUTH } from "../config";
 import { useSignIn } from "@clerk/clerk-expo";
 
-
-// Définition des types pour la réponse de l'API
 interface AuthResponse {
     token?: string;
     message?: string;
 }
 
-// Fonction pour l'inscription
 export const signUp = async (email: string, password: string): Promise<AuthResponse | null> => {
     try {
         const response = await axios.post<AuthResponse>(`${API_URL_AUTH}/signup`, { email, password });
@@ -20,15 +17,11 @@ export const signUp = async (email: string, password: string): Promise<AuthRespo
     }
 };
 
-// Fonction pour la connexion
 export const signIn = async (email: string, password: string) => {
     try {
         const response = await axios.post(`${API_URL_AUTH}/login`, { email, password });
-
-        // Récupération des données utilisateur
         const { userId } = response.data;
 
-        // 🔥 Gestion de l'auth Clerk côté frontend
         const { signIn, setActive } = useSignIn();
         if (!signIn) {
             throw new Error("signIn is undefined");
@@ -49,3 +42,6 @@ export const signIn = async (email: string, password: string) => {
         return { success: false, error: error.message };
     }
 };
+
+// Ajout d'un export par défaut vide pour éviter que Metro ne le traite comme un écran
+export default {};

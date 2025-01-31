@@ -7,9 +7,9 @@ interface AuthResponse {
     message?: string;
 }
 
-export const signUp = async (email: string, password: string): Promise<AuthResponse | null> => {
+export const signUp = async (username: string, email: string, password: string): Promise<AuthResponse | null> => {
     try {
-        const response = await axios.post<AuthResponse>(`${API_URL_AUTH}/signup`, { email, password });
+        const response = await axios.post<AuthResponse>(`${API_URL_AUTH}/signup`, {username, email, password });
         return response.data;
     } catch (error: any) {
         console.error("Erreur Signup :", error.response?.data || error.message);

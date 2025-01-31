@@ -24,7 +24,12 @@ const BottomNav: React.FC<BottomTabBarProps> = ({ navigation, state }) => {
             size={24}
             color={state.index === index ? "#000" : "#6A707C"}
           />
-          <Text style={[styles.tabText, state.index === index && styles.activeTabText]}>
+          <Text
+            style={[
+              styles.tabText,
+              state.index === index && styles.activeTabText,
+            ]}
+          >
             {route}
           </Text>
         </TouchableOpacity>

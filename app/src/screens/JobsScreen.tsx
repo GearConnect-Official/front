@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 
 const JobsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,12 +21,9 @@ const JobsScreen: React.FC = () => {
       {/* Top Bar */}
       <View style={styles.topBar}>
         <View style={styles.topBarContent}>
-          <Image
-            source={{
-              uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/67ee966503a61745c0ce64ec83fec583bb846b8ba31b8abb28bad351cb715d67",
-            }}
-            style={styles.backIcon}
-          />
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <FontAwesome name="arrow-left" size={24} color="#1E232C" />
+          </TouchableOpacity>
           <Text style={styles.topBarTitle}>Job offers</Text>
         </View>
       </View>
@@ -146,7 +144,10 @@ const JobsScreen: React.FC = () => {
         </View>
 
         {/* Create Job Button */}
-        <TouchableOpacity style={styles.createButton}>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => navigation.navigate("CreateJobOffer")}
+        >
           <Text style={styles.createButtonText}>Create a job offer</Text>
         </TouchableOpacity>
       </ScrollView>

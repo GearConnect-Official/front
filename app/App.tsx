@@ -13,6 +13,7 @@ import HomeScreen from "./src/screens/HomeScreen";
 import EventsScreen from "./src/screens/EventsScreen";
 import BottomNav from "./src/components/BottomNav";
 import { NavigationContainer } from "@react-navigation/native";
+import CreateJobOfferScreen from "./src/screens/CreateJobOfferScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,6 +28,8 @@ export type RootStackParamList = {
   Network: undefined;
   Publication: undefined;
   Jobs: undefined;
+  FriendRequest: undefined;
+  CreateJobOffer: undefined;
 };
 
 // **✅ Navigation des onglets (avec `BottomNav` en tant que `tabBar`)**
@@ -52,6 +55,7 @@ const MainNavigator = () => (
     <Stack.Screen name="Register" component={RegisterScreen} />
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
+    <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
   </Stack.Navigator>
 );
 

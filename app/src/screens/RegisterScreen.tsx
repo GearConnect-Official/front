@@ -39,12 +39,15 @@ const RegisterScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Header avec bouton de retour */}
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
         <FontAwesome name="arrow-left" size={24} color="#1E232C" />
       </TouchableOpacity>
 
       {/* Titre */}
-      <Text style={styles.title}>Welcome back! Glad to see you, Again!</Text>
+      <Text style={styles.title}>Welcome! Glad to see you!</Text>
 
       {/* Champs d'entrée */}
       <TextInput

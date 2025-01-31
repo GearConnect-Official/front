@@ -17,7 +17,7 @@ const RegisterScreen: React.FC = () => {
 
   // ✅ Fonction de gestion de l'inscription
   const handleRegister = async () => {
-    if (!email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs.");
       return;
     }
@@ -26,7 +26,7 @@ const RegisterScreen: React.FC = () => {
       return;
     }
 
-    const response = await signUp(email, password); // ✅ Appel à AuthService
+    const response = await signUp(username, email, password); // ✅ Appel à AuthService
 
     if (response && response.token) {
       Alert.alert("Succès", "Inscription réussie !");

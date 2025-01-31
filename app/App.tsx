@@ -10,25 +10,27 @@ const Stack = createStackNavigator();
 
 // ✅ Définition des types pour la navigation
 export type RootStackParamList = {
-    Welcome: undefined;
-    Auth: undefined;
-    Register: undefined;
+  Welcome: undefined;
+  Auth: undefined;
+  Register: undefined;
 };
 
-const CLERK_PUBLISHABLE_KEY = "pk_test_b2JsaWdpbmctcHl0aG9uLTgzLmNsZXJrLmFjY291bnRzLmRldiQ"; 
+const CLERK_PUBLISHABLE_KEY =
+  "pk_test_b2JsaWdpbmctcHl0aG9uLTgzLmNsZXJrLmFjY291bnRzLmRldiQ";
 
 const App: React.FC = () => {
-    return (
-        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-            <NavigationContainer>
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="Welcome" component={WelcomeScreen} />
-                    <Stack.Screen name="Auth" component={AuthScreen} />
-                    <Stack.Screen name="Register" component={RegisterScreen} />
-                </Stack.Navigator>
-            </NavigationContainer>
-        </ClerkProvider>
-    );
+  return (
+    <NavigationContainer>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+        </Stack.Navigator>
+      </ClerkProvider>
+    </NavigationContainer>
+
+  );
 };
 
 export default App;

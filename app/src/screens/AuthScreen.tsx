@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet } from "rea
 import { signUp, signIn } from "../services/AuthService";
 
 const AuthScreen: React.FC = () => {
+    const [username, setUsername] = useState<string>(""); // ⚡ Ajout du nom d'utilisateur
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [isSignUp, setIsSignUp] = useState<boolean>(true); // ⚡ Basculer entre Signup et Login
@@ -10,6 +11,12 @@ const AuthScreen: React.FC = () => {
 
     const handleAuth = async () => {
         setMessage(""); // Reset message d'erreur/succès
+
+        // Vérification nom d'utilisateur
+        if (isSignUp && !username) {
+            setMessage("❌ Veuillez saisir un nom d'utilisateur.");
+            return;
+        }
     
         // Vérification email
         if (!email.includes("@") || !email.includes(".")) {
@@ -24,7 +31,7 @@ const AuthScreen: React.FC = () => {
         }
     
         if (isSignUp) {
-            const result = await signUp(email, password);
+            const result = await signUp(username, email, password);
             if (result) {
                 setMessage("✅ Compte créé avec succès !");
             } else {

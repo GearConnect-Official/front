@@ -20,7 +20,6 @@ const CLERK_PUBLISHABLE_KEY =
 
 const App: React.FC = () => {
   return (
-    <NavigationContainer>
       <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -28,7 +27,6 @@ const App: React.FC = () => {
           <Stack.Screen name="Register" component={RegisterScreen} />
         </Stack.Navigator>
       </ClerkProvider>
-    </NavigationContainer>
 
   );
 };

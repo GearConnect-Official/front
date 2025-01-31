@@ -5,6 +5,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Platform } from "react-native";
 import AuthScreen from "./src/screens/AuthScreen";
 import WelcomeScreen from "./src/screens/WelcomeScreen";
+import JobsScreen from "./src/screens/JobsScreen";
 import RegisterScreen from "./src/screens/RegisterScreen";
 import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import FriendRequestScreen from "./src/screens/FriendRequestScreen";
@@ -38,7 +39,7 @@ const BottomTabNavigator = () => (
     <Tab.Screen name="Network" component={FriendRequestScreen} />
     <Tab.Screen name="Publication" component={WelcomeScreen} />
     <Tab.Screen name="Events" component={EventsScreen} />
-    <Tab.Screen name="Jobs" component={WelcomeScreen} />
+    <Tab.Screen name="Jobs" component={JobsScreen} />
   </Tab.Navigator>
 );
 

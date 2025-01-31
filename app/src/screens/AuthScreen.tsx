@@ -8,8 +8,13 @@ import {
   StyleSheet,
 } from "react-native";
 import { signUp, signIn } from "../services/AuthService";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App"; // Vérifie bien le chemin
+
 
 const AuthScreen: React.FC = () => {
+  const navigation = useNavigation();
   const [username, setUsername] = useState<string>(""); // ⚡ Ajout du nom d'utilisateur
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");

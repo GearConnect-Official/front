@@ -7,6 +7,7 @@ import AuthScreen from "./src/screens/AuthScreen";
 import WelcomeScreen from "./src/screens/WelcomeScreen";
 import RegisterScreen from "./src/screens/RegisterScreen";
 import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
+import FriendRequestScreen from "./src/screens/FriendRequestScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import EventsScreen from "./src/screens/EventsScreen";
 import BottomNav from "./src/components/BottomNav";
@@ -34,7 +35,7 @@ const BottomTabNavigator = () => (
     tabBar={(props) => <BottomNav {...props} />} // Ajout de la BottomNav ici
   >
     <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Network" component={WelcomeScreen} />
+    <Tab.Screen name="Network" component={FriendRequestScreen} />
     <Tab.Screen name="Publication" component={WelcomeScreen} />
     <Tab.Screen name="Events" component={EventsScreen} />
     <Tab.Screen name="Jobs" component={WelcomeScreen} />
@@ -49,6 +50,7 @@ const MainNavigator = () => (
     <Stack.Screen name="Auth" component={AuthScreen} />
     <Stack.Screen name="Register" component={RegisterScreen} />
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
   </Stack.Navigator>
 );
 

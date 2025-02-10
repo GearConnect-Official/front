@@ -13,23 +13,27 @@ import styles from "../styles/eventsStyles";
 import EventItem from "../components/EventItem";
 import { RootStackParamList } from "@/app/App";
 import { NavigationProp } from "@react-navigation/native";
-import { useNavigation } from "expo-router";
+import { useNavigation } from "@react-navigation/native"; // Ensure correct import
 
 const EventsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("events");
   const [searchQuery, setSearchQuery] = useState("");
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Ensure correct type
+
+  const handleEventPress = (eventId: number) => {
+    navigation.navigate("EventDetail", { eventId });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.topBarContent}>
-        <TouchableOpacity
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
-        </TouchableOpacity>
+          </TouchableOpacity>
           <Text style={styles.title}>Events</Text>
           <Image
             source={{
@@ -95,18 +99,21 @@ const EventsScreen: React.FC = () => {
             title="Open circuit Débutant Val de Vienne"
             subtitle="Category: Open day, Free Entry"
             date="January 26, 2025"
+            onPress={() => handleEventPress(1)} // Pass the event ID
           />
           <EventItem
             emoji="📅"
             title="Workshop"
             subtitle="Learn new skills"
             date="May 20, 2023"
+            onPress={() => handleEventPress(2)} // Pass the event ID
           />
           <EventItem
             emoji="🎉"
             title="Music Concert"
             subtitle="Live performance"
             date="June 5, 2023"
+            onPress={() => handleEventPress(3)} // Pass the event ID
           />
         </View>
 
@@ -117,18 +124,21 @@ const EventsScreen: React.FC = () => {
             title="Theatre Play"
             subtitle="Dramatic performance"
             date="August 15, 2023"
+            onPress={() => handleEventPress(4)} // Pass the event ID
           />
           <EventItem
             emoji="🌟"
             title="Art Exhibition"
             subtitle="Local artists' works"
             date="July 10, 2023"
+            onPress={() => handleEventPress(5)} // Pass the event ID
           />
           <EventItem
             emoji="🎭"
             title="Theatre Play"
             subtitle="Dramatic performance"
             date="August 15, 2023"
+            onPress={() => handleEventPress(6)} // Pass the event ID
           />
         </View>
 
@@ -139,18 +149,21 @@ const EventsScreen: React.FC = () => {
             title="Course karting RKC"
             subtitle="Category : Race, French Championship"
             date="January 17, 2025"
+            onPress={() => handleEventPress(7)} // Pass the event ID
           />
           <EventItem
             emoji="🌟"
             title="Art Exhibition"
             subtitle="Local artists' works"
             date="July 10, 2023"
+            onPress={() => handleEventPress(8)} // Pass the event ID
           />
           <EventItem
             emoji="🎭"
             title="Theatre Play"
             subtitle="Dramatic performance"
             date="August 15, 2023"
+            onPress={() => handleEventPress(9)} // Pass the event ID
           />
         </View>
       </ScrollView>

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import styles from "../styles/eventsStyles";
 
 interface EventItemProps {
@@ -8,6 +8,7 @@ interface EventItemProps {
   date: string;
   icon?: string;
   emoji?: string;
+  onPress: () => void; // Add onPress prop
 }
 
 const EventItem: React.FC<EventItemProps> = ({
@@ -16,9 +17,10 @@ const EventItem: React.FC<EventItemProps> = ({
   date,
   icon,
   emoji,
+  onPress, // Destructure onPress prop
 }) => {
   return (
-    <View style={styles.eventItem}>
+    <TouchableOpacity onPress={onPress} style={styles.eventItem}>
       {icon ? (
         <Image source={{ uri: icon }} style={styles.eventIcon} />
       ) : emoji ? (
@@ -33,7 +35,7 @@ const EventItem: React.FC<EventItemProps> = ({
       </View>
 
       <Text style={styles.eventDate}>{date}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 

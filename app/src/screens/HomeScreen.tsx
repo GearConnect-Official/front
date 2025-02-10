@@ -36,6 +36,22 @@ const MOCK_POSTS = [
       hashtags: ["ferrari", "pitstop"],
     },
   },
+  {
+    id: "3",
+    user: {
+      name: "Esteban Dardillac",
+      avatar:
+        "https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true",
+      location: "Barcelona, Spain",
+      timeAgo: "12 hours",
+    },
+    content: {
+      text: "A big Win this Week-end in Barcelona !!! 🥇😍",
+      image: 
+        "https://cdn.builder.io/api/v1/image/assets/TEMP/fe6ee81c77dd4b7f4be2bdec60e98e4cbdeb5388a90a17afadaf28c723d48c5d?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/fe6ee81c77dd4b7f4be2bdec60e98e4cbdeb5388a90a17afadaf28c723d48c5d?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/fe6ee81c77dd4b7f4be2bdec60e98e4cbdeb5388a90a17afadaf28c723d48c5d?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/fe6ee81c77dd4b7f4be2bdec60e98e4cbdeb5388a90a17afadaf28c723d48c5d?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/fe6ee81c77dd4b7f4be2bdec60e98e4cbdeb5388a90a17afadaf28c723d48c5d?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/fe6ee81c77dd4b7f4be2bdec60e98e4cbdeb5388a90a17afadaf28c723d48c5d?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/fe6ee81c77dd4b7f4be2bdec60e98e4cbdeb5388a90a17afadaf28c723d48c5d?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/fe6ee81c77dd4b7f4be2bdec60e98e4cbdeb5388a90a17afadaf28c723d48c5d?placeholderIfAbsent=true",
+      hashtags: ["f3", "barcelona"],
+    },
+  },
 ];
 
 const HomeScreen: React.FC = () => {
@@ -120,7 +136,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 0,
   },
 });
 

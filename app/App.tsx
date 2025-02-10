@@ -11,6 +11,7 @@ import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import FriendRequestScreen from "./src/screens/FriendRequestScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import EventsScreen from "./src/screens/EventsScreen";
+import EventDetailScreen from "./src/screens/EventDetailScreen";
 import BottomNav from "./src/components/BottomNav";
 import { NavigationContainer } from "@react-navigation/native";
 
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   Network: undefined;
   Publication: undefined;
   Jobs: undefined;
+  EventDetail: { eventId: number };
 };
 
 // **✅ Navigation des onglets (avec `BottomNav` en tant que `tabBar`)**
@@ -52,6 +54,7 @@ const MainNavigator = () => (
     <Stack.Screen name="Register" component={RegisterScreen} />
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
+    <Stack.Screen name="EventDetail" component={EventDetailScreen} />
   </Stack.Navigator>
 );
 

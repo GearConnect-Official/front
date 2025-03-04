@@ -84,19 +84,24 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
+    flexDirection: "column",
     borderWidth: 1,
     borderColor: "rgba(0, 0, 0, 0.1)",
     borderRadius: 6,
-    padding: 4,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+
+  tabIcon: {
+    width: 24,
+    height: 24,
+    justifyContent: "center",
     alignItems: "center",
   },
-  tabIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
+
   tabText: {
-    marginTop: 4,
     fontSize: 16,
     textAlign: "center",
   },
@@ -146,6 +151,15 @@ const styles = StyleSheet.create({
   },
   emojiText: {
     fontSize: 20,
+  },
+  activeTab: {
+    backgroundColor: "#000",
+    borderRadius: 10,
+  },
+
+  activeTabText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
 });
 

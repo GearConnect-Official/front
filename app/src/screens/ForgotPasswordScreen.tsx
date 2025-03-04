@@ -44,8 +44,7 @@ const ForgotPasswordScreen: React.FC = () => {
       <Text style={styles.title}>Forgot Password?</Text>
 
       <Text style={styles.subtitle}>
-        Don't worry! It occurs. Please enter the email address linked with your
-        account.
+        Don't worry! It happens. Please enter the email address associated with your account.
       </Text>
 
       <TextInput

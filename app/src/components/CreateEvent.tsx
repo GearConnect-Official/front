@@ -30,8 +30,8 @@ const CreateEvent: React.FC<CreateEventProps> = ({
     location: initialData.location || "",
     date: initialData.date || "",
     sponsors: initialData.sponsors || "",
-    website: initialData.website || "www.circuit-valdevienne.com",
-    rankings: initialData.rankings || "Classement_Val_de_Vienne_2025.xls",
+    website: initialData.website || "www.valdevienne-circuit.com",
+    rankings: initialData.rankings || "Val_de_Vienne_Rankings_2025.xls",
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -97,7 +97,7 @@ const CreateEvent: React.FC<CreateEventProps> = ({
 
       <InputField
         title="Organizer's website"
-        placeholder="www.circuit-valdevienne.com"
+        placeholder="www.valdevienne-circuit.com"
         info="Add link to organizer's website if available"
         value={formData.website}
         onChangeText={(text) => handleInputChange("website", text)}
@@ -105,7 +105,7 @@ const CreateEvent: React.FC<CreateEventProps> = ({
 
       <InputField
         title="Rankings"
-        placeholder="Classement_Val_de_Vienne_2025.xls"
+        placeholder="Val_de_Vienne_Rankings_2025.xls"
         info="Download or modify the rankings file here"
         value={formData.rankings}
         onChangeText={(text) => handleInputChange("rankings", text)}

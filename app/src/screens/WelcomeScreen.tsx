@@ -5,14 +5,14 @@ import { RootStackParamList } from "../../App";
 import styles from "../styles/welcomeStyles";
 
 const WelcomeScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // ✅ Utilisation du type correct
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Use correct type
 
   return (
     <View style={styles.container}>
       {/* Logo */}
       <Image source={require("../../../assets/images/logo-rounded.png")} style={styles.logo} />
 
-      {/* Boutons d'authentification */}
+      {/* Authentication buttons */}
       <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("Auth")}>
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
@@ -21,7 +21,7 @@ const WelcomeScreen: React.FC = () => {
         <Text style={styles.registerText}>Register</Text>
       </TouchableOpacity>
 
-      {/* Lien "Continuer en tant qu'invité" */}
+      {/* Continue as guest link */}
       <Text style={styles.guestText}>Continue as a guest</Text>
     </View>
   );

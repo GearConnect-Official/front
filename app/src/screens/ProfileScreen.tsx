@@ -152,9 +152,9 @@ const ProfileScreen: React.FC = () => {
             />
             <View style={styles.eventInfo}>
               <Text style={styles.eventTitle}>
-                Open circuit Débutant Val de Vienne
+                Val de Vienne Beginner Open Circuit
               </Text>
-              <Text style={styles.eventVenue}>Circuit Val de Vienne</Text>
+              <Text style={styles.eventVenue}>Val de Vienne Circuit</Text>
             </View>
           </View>
         </View>

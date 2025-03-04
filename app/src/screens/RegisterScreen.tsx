@@ -1,44 +1,44 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "../../App"; // ✅ Import des types de navigation
+import { RootStackParamList } from "../../App"; // Import navigation types
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import styles from "../styles/registerStyles";
-import { signUp } from "../services/AuthService"; // ✅ Import de la fonction signUp
+import { signUp } from "../services/AuthService"; // Import signUp function
 
 const RegisterScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // ✅ Typage de la navigation
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Type navigation
 
-  // États pour les inputs
+  // Input states
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // ✅ Fonction de gestion de l'inscription
+  // Handle registration
   const handleRegister = async () => {
     if (!username || !email || !password || !confirmPassword) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      Alert.alert("Error", "Please fill in all fields.");
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert("Erreur", "Les mots de passe ne correspondent pas.");
+      Alert.alert("Error", "Passwords do not match.");
       return;
     }
 
-    const response = await signUp(username, email, password); // ✅ Appel à AuthService
+    const response = await signUp(username, email, password); // Call AuthService
 
     if (response && response.token) {
-      Alert.alert("Succès", "Inscription réussie !");
-      navigation.navigate("Auth"); // ✅ Redirection vers AuthScreen après inscription
+      Alert.alert("Success", "Registration successful!");
+      navigation.navigate("Auth"); // Redirect to AuthScreen after registration
     } else {
-      Alert.alert("Erreur", "Inscription échouée. Veuillez réessayer.");
+      Alert.alert("Error", "Registration failed. Please try again.");
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Header avec bouton de retour */}
+      {/* Back button header */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -46,10 +46,10 @@ const RegisterScreen: React.FC = () => {
         <FontAwesome name="arrow-left" size={24} color="#1E232C" />
       </TouchableOpacity>
 
-      {/* Titre */}
+      {/* Title */}
       <Text style={styles.title}>Welcome! Glad to see you!</Text>
 
-      {/* Champs d'entrée */}
+      {/* Input fields */}
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -78,12 +78,12 @@ const RegisterScreen: React.FC = () => {
         onChangeText={setConfirmPassword}
       />
 
-      {/* Bouton d'inscription */}
+      {/* Register button */}
       <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
         <Text style={styles.registerButtonText}>Agree and Register</Text>
       </TouchableOpacity>
 
-      {/* Connexion avec des réseaux sociaux */}
+      {/* Social network registration */}
       <Text style={styles.orText}>Or Register with</Text>
       <View style={styles.socialButtonsContainer}>
         <TouchableOpacity style={styles.socialButton}>

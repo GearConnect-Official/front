@@ -19,11 +19,11 @@ const MOCK_POSTS = [
       name: "Benjamin Tisserand",
       avatar:
         "https://cdn.builder.io/api/v1/image/assets/TEMP/59578035b2529a8b6527913374e8ea84a83d97f531c0c7dc081d7e0011ac79fc?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/59578035b2529a8b6527913374e8ea84a83d97f531c0c7dc081d7e0011ac79fc?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/59578035b2529a8b6527913374e8ea84a83d97f531c0c7dc081d7e0011ac79fc?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/59578035b2529a8b6527913374e8ea84a83d97f531c0c7dc081d7e0011ac79fc?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/59578035b2529a8b6527913374e8ea84a83d97f531c0c7dc081d7e0011ac79fc?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/59578035b2529a8b6527913374e8ea84a83d97f531c0c7dc081d7e0011ac79fc?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/59578035b2529a8b6527913374e8ea84a83d97f531c0c7dc081d7e0011ac79fc?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/59578035b2529a8b6527913374e8ea84a83d97f531c0c7dc081d7e0011ac79fc?placeholderIfAbsent=true",
-      location: "Val de Vienne, France",
+      location: "Val de Vienne Circuit, France",
       timeAgo: "2 hours ago",
     },
     content: {
-      text: "Pole position and Winner of Open Circuit Debutant Val de Vienne !!! 🏁🥇🔛🔝",
+      text: "Pole position and Winner of Val de Vienne Beginner Open Circuit!!! 🏁🥇🔛🔝",
       image:
         "https://cdn.builder.io/api/v1/image/assets/TEMP/30264f1652771c8cd0e2b3807c3b5672ecc12d3e9a755488f02bc94b317b63a0?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/30264f1652771c8cd0e2b3807c3b5672ecc12d3e9a755488f02bc94b317b63a0?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/30264f1652771c8cd0e2b3807c3b5672ecc12d3e9a755488f02bc94b317b63a0?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/30264f1652771c8cd0e2b3807c3b5672ecc12d3e9a755488f02bc94b317b63a0?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/30264f1652771c8cd0e2b3807c3b5672ecc12d3e9a755488f02bc94b317b63a0?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/30264f1652771c8cd0e2b3807c3b5672ecc12d3e9a755488f02bc94b317b63a0?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/30264f1652771c8cd0e2b3807c3b5672ecc12d3e9a755488f02bc94b317b63a0?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/30264f1652771c8cd0e2b3807c3b5672ecc12d3e9a755488f02bc94b317b63a0?placeholderIfAbsent=true",
       hashtags: ["kart", "poleposition"],
@@ -36,7 +36,7 @@ const MOCK_POSTS = [
       avatar:
         "https://cdn.builder.io/api/v1/image/assets/TEMP/08fab03da4410e0c912c207be5fcb8d4b98279630642d79a9c97ce869d62bd65?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/08fab03da4410e0c912c207be5fcb8d4b98279630642d79a9c97ce869d62bd65?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/08fab03da4410e0c912c207be5fcb8d4b98279630642d79a9c97ce869d62bd65?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/08fab03da4410e0c912c207be5fcb8d4b98279630642d79a9c97ce869d62bd65?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/08fab03da4410e0c912c207be5fcb8d4b98279630642d79a9c97ce869d62bd65?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/08fab03da4410e0c912c207be5fcb8d4b98279630642d79a9c97ce869d62bd65?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/08fab03da4410e0c912c207be5fcb8d4b98279630642d79a9c97ce869d62bd65?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/08fab03da4410e0c912c207be5fcb8d4b98279630642d79a9c97ce869d62bd65?placeholderIfAbsent=true",
       location: "Paris, France",
-      timeAgo: "2 days",
+      timeAgo: "2 days ago",
     },
     content: {
       text: "The Ferraris' pit stop were on fire this week-end 🔥🔥",

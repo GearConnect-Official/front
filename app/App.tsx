@@ -35,11 +35,11 @@ export type RootStackParamList = {
   Profile: undefined;
 };
 
-// **✅ Navigation des onglets (avec `BottomNav` en tant que `tabBar`)**
+// Bottom tab navigation (with `BottomNav` as `tabBar`)
 const BottomTabNavigator = () => (
   <Tab.Navigator
     screenOptions={{ headerShown: false }}
-    tabBar={(props) => <BottomNav {...props} />} // Ajout de la BottomNav ici
+    tabBar={(props) => <BottomNav {...props} />} // Add BottomNav here
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Network" component={FriendRequestScreen} />
@@ -49,7 +49,7 @@ const BottomTabNavigator = () => (
   </Tab.Navigator>
 );
 
-// **✅ Navigation principale (Stack)**
+// Main navigation (Stack)
 const MainNavigator = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
@@ -67,7 +67,7 @@ const MainNavigator = () => (
 const CLERK_PUBLISHABLE_KEY =
   "pk_test_b2JsaWdpbmctcHl0aG9uLTgzLmNsZXJrLmFjY291bnRzLmRldiQ";
 
-// **✅ NavigationContainer uniquement sur Web**
+// NavigationContainer only on Web
 const App: React.FC = () => {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>

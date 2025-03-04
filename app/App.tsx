@@ -15,6 +15,7 @@ import BottomNav from "./src/components/BottomNav";
 import { NavigationContainer } from "@react-navigation/native";
 import CreateJobOfferScreen from "./src/screens/CreateJobOfferScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
+import CreateEventScreen from "./src/screens/CreateEventScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -59,6 +60,7 @@ const MainNavigator = () => (
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
   </Stack.Navigator>
 );
 

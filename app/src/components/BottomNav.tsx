@@ -11,13 +11,21 @@ const BottomNav: React.FC<BottomTabBarProps> = ({ navigation, state }) => {
 
   const routes = ["Home", "Network", "Publication", "Events", "Jobs"];
 
+  const handleNavigation = (route: string) => {
+    if (route === "Publication") {
+      navigation.navigate("PublicationScreen");
+    } else {
+      navigation.navigate(route);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {routes.map((route, index) => (
         <TouchableOpacity
           key={route}
           style={styles.tab}
-          onPress={() => navigation.navigate(route)}
+          onPress={() => handleNavigation(route)}
         >
           <FontAwesome
             name={getIconName(route)}

@@ -18,10 +18,10 @@ const FriendRequestItem: React.FC<FriendRequestItemProps> = ({
   return (
     <View style={styles.itemContainer}>
       <View style={styles.avatarContainer}>
-        <Text style={styles.avatarText}>{emoji}</Text>
+        <Text style={styles.avatarText}>{emoji || "👤"}</Text>
       </View>
       <View style={styles.nameContainer}>
-        <Text style={styles.name}>{name}</Text>
+        <Text style={styles.name}>{name || "Unknown"}</Text>
       </View>
       <TouchableOpacity style={styles.actionButton} onPress={onAction}>
         <Text style={styles.actionButtonText}>

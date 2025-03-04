@@ -16,6 +16,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import CreateJobOfferScreen from "./src/screens/CreateJobOfferScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import CreateEventScreen from "./src/screens/CreateEventScreen";
+import PublicationScreen from "./src/screens/PublicationScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -33,6 +34,7 @@ export type RootStackParamList = {
   FriendRequest: undefined;
   CreateJobOffer: undefined;
   Profile: undefined;
+  PublicationScreen: undefined;
 };
 
 // Bottom tab navigation (with `BottomNav` as `tabBar`)
@@ -43,7 +45,7 @@ const BottomTabNavigator = () => (
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Network" component={FriendRequestScreen} />
-    <Tab.Screen name="Publication" component={WelcomeScreen} />
+    <Tab.Screen name="Publication" component={PublicationScreen} />
     <Tab.Screen name="Events" component={EventsScreen} />
     <Tab.Screen name="Jobs" component={JobsScreen} />
   </Tab.Navigator>
@@ -61,6 +63,7 @@ const MainNavigator = () => (
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
+    <Stack.Screen name="PublicationScreen" component={PublicationScreen} />
   </Stack.Navigator>
 );
 

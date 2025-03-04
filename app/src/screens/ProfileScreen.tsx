@@ -23,7 +23,7 @@ const ProfileScreen: React.FC = () => {
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>User profile</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity>
             <FontAwesome name="bell" size={24} color="#1E232C" />
           </TouchableOpacity>
         </View>

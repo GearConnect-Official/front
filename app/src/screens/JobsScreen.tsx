@@ -26,7 +26,7 @@ const JobsScreen: React.FC = () => {
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>Job offers</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity>
             <FontAwesome name="bell" size={24} color="#1E232C" />
           </TouchableOpacity>
         </View>

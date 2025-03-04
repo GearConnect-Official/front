@@ -24,24 +24,26 @@ const EventsScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.topBarContent}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
           <Text style={styles.title}>Events</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('CreateEvent' as never)}
-          >
-            <FontAwesome name="plus" size={24} color="#1E232C" />
-          </TouchableOpacity>
+          <View style={styles.topBarIcons}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("CreateEvent" as never)}
+            >
+              <FontAwesome name="plus" size={24} color="#1E232C" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <FontAwesome name="bell" size={24} color="#1E232C" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
       <ScrollView>
-        <View style={styles.searchContainer}>
-          <View style={styles.searchField}>
+        <View style={styles.searchSection}>
+          <View style={styles.searchBar}>
             <TextInput
               style={styles.searchInput}
               placeholder="Enter name to search for event"

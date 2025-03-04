@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import FriendRequestItem from "../components/FriendRequestItem";
@@ -27,8 +33,10 @@ const FriendRequestScreen: React.FC = () => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
-          <Text style={styles.title}>Friend Requests</Text>
-          <View style={{ width: 24 }} />
+          <Text style={styles.topBarTitle}>Network</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <FontAwesome name="bell" size={24} color="#1E232C" />
+          </TouchableOpacity>
         </View>
       </View>
 

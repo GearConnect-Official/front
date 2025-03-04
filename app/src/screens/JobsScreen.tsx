@@ -14,7 +14,7 @@ import styles from "../styles/jobsStyles";
 
 const JobsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("People we follow");
+  const [activeTab, setActiveTab] = useState("Following");
   const navigation = useNavigation();
 
   return (
@@ -38,7 +38,7 @@ const JobsScreen: React.FC = () => {
           <View style={styles.searchBar}>
             <TextInput
               style={styles.searchInput}
-              placeholder="Enter name to search for job"
+              placeholder="Search for jobs"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -54,29 +54,29 @@ const JobsScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               styles.tab,
-              activeTab === "People we follow" && styles.activeTab,
+              activeTab === "Following" && styles.activeTab,
             ]}
-            onPress={() => setActiveTab("People we follow")}
+            onPress={() => setActiveTab("Following")}
           >
-            <Text style={styles.tabText}>People we follow</Text>
+            <Text style={styles.tabText}>Following</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.tab,
-              activeTab === "Suggested offers" && styles.activeTab,
+              activeTab === "Suggested" && styles.activeTab,
             ]}
-            onPress={() => setActiveTab("Suggested offers")}
+            onPress={() => setActiveTab("Suggested")}
           >
-            <Text style={styles.tabText}>Suggested offers</Text>
+            <Text style={styles.tabText}>Suggested</Text>
           </TouchableOpacity>
         </View>
 
         {/* People We Follow Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>People we follow</Text>
+            <Text style={styles.sectionTitle}>Following</Text>
             <Text style={styles.sectionSubtitle}>
-              List of job offers from people you follow
+              Job offers from people you follow
             </Text>
           </View>
 
@@ -86,10 +86,10 @@ const JobsScreen: React.FC = () => {
               <Text style={styles.emoji}>👤</Text>
             </View>
             <View style={styles.jobInfo}>
-              <Text style={styles.jobTitle}>Seul Offre qui marche</Text>
-              <Text style={styles.jobDescription}>Cliquez dessus pls</Text>
+              <Text style={styles.jobTitle}>F1 Driver Position</Text>
+              <Text style={styles.jobDescription}>Click to learn more</Text>
             </View>
-            <Text style={styles.jobType}>Devenir Pilote de F1</Text>
+            <Text style={styles.jobType}>F1 Driver Career</Text>
           </View>
 
           <View style={styles.jobItem}>
@@ -97,21 +97,21 @@ const JobsScreen: React.FC = () => {
               <Text style={styles.emoji}>🏢</Text>
             </View>
             <View style={styles.jobInfo}>
-              <Text style={styles.jobTitle}>Titre de l'offre 2</Text>
+              <Text style={styles.jobTitle}>Job Title 2</Text>
               <Text style={styles.jobDescription}>
-                Description de l'offre 2
+                Job Description 2
               </Text>
             </View>
-            <Text style={styles.jobType}>Additional data</Text>
+            <Text style={styles.jobType}>Additional Info</Text>
           </View>
         </View>
 
         {/* Suggested Offers Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Suggested offers</Text>
+            <Text style={styles.sectionTitle}>Suggested</Text>
             <Text style={styles.sectionSubtitle}>
-              List of recommended job offers
+              Recommended job opportunities
             </Text>
           </View>
 
@@ -120,12 +120,12 @@ const JobsScreen: React.FC = () => {
               <Text style={styles.emoji}>🌟</Text>
             </View>
             <View style={styles.jobInfo}>
-              <Text style={styles.jobTitle}>Titre de l'offre 3</Text>
+              <Text style={styles.jobTitle}>Job Title 3</Text>
               <Text style={styles.jobDescription}>
-                Description de l'offre 3
+                Job Description 3
               </Text>
             </View>
-            <Text style={styles.jobType}>Additional data</Text>
+            <Text style={styles.jobType}>Additional Info</Text>
           </View>
 
           <View style={styles.jobItem}>
@@ -133,12 +133,12 @@ const JobsScreen: React.FC = () => {
               <Text style={styles.emoji}>💼</Text>
             </View>
             <View style={styles.jobInfo}>
-              <Text style={styles.jobTitle}>Titre de l'offre 4</Text>
+              <Text style={styles.jobTitle}>Job Title 4</Text>
               <Text style={styles.jobDescription}>
-                Description de l'offre 4
+                Job Description 4
               </Text>
             </View>
-            <Text style={styles.jobType}>Additional data</Text>
+            <Text style={styles.jobType}>Additional Info</Text>
           </View>
         </View>
 
@@ -147,7 +147,7 @@ const JobsScreen: React.FC = () => {
           style={styles.createButton}
           onPress={() => navigation.navigate("CreateJobOffer" as never)}
         >
-          <Text style={styles.createButtonText}>Create a job offer</Text>
+          <Text style={styles.createButtonText}>Create Job Offer</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

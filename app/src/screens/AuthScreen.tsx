@@ -48,7 +48,7 @@ const AuthScreen: React.FC = () => {
           style={styles.logo}
         />
 
-        <Text style={styles.title}>Welcome back! Glad to see you, Again!</Text>
+        <Text style={styles.title}>Welcome back! Glad to see you again!</Text>
 
         <TextInput
           style={styles.input}

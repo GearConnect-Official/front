@@ -263,3 +263,4 @@ expo-env.d.ts
 # @end expo-cli
 
 bun.lockb
+package-lock.json

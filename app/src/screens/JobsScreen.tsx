@@ -146,7 +146,7 @@ const JobsScreen: React.FC = () => {
         {/* Create Job Button */}
         <TouchableOpacity
           style={styles.createButton}
-          onPress={() => navigation.navigate("CreateJobOffer")}
+          onPress={() => navigation.navigate("CreateJobOffer" as never)}
         >
           <Text style={styles.createButtonText}>Create a job offer</Text>
         </TouchableOpacity>

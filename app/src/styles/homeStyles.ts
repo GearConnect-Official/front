@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   },
   topBarIcons: {
     flexDirection: "row",
-    gap: 8,
+    gap: 20,
   },
   topBarIcon: {
     width: 24,

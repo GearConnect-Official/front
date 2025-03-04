@@ -34,6 +34,10 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
+  topBarIcons: {
+    flexDirection: "row",
+    gap: 20,
+  },
   title: {
     fontSize: 20,
     fontWeight: "500",

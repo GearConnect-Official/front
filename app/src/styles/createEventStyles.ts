@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   uploadButton: {
-    backgroundColor: "#3B82F6",
+    backgroundColor: "#1E232C",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   submitButton: {
-    backgroundColor: "#3B82F6",
+    backgroundColor: "#1E232C",
     marginLeft: 8,
   },
   cancelButtonText: {
@@ -131,4 +131,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles; 
+export default styles;

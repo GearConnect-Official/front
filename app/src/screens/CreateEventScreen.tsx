@@ -1,0 +1,32 @@
+import * as React from "react";
+import { View, ScrollView } from "react-native";
+import TopBar from "../components/CreateEvent/TopBar";
+import CreateEvent from "../components/CreateEvent";
+import styles from "../styles/createEventStyles";
+import { useNavigation } from "@react-navigation/native";
+
+const CreateEventScreen: React.FC = () => {
+  const navigation = useNavigation();
+
+  const handleCancel = () => {
+    navigation.goBack();
+  };
+
+  const handleCreate = (formData: any) => {
+    console.log("Create pressed", formData);
+    // Add form submission logic here
+    // This could include API calls, navigation, etc.
+  };
+
+  return (
+    <View style={styles.container}>
+      <TopBar title="Create Event" onBackPress={handleCancel} />
+      <ScrollView style={styles.contentContainer}>
+        <CreateEvent onCancel={handleCancel} onSubmit={handleCreate} />
+        <View style={styles.spacer} />
+      </ScrollView>
+    </View>
+  );
+};
+
+export default CreateEventScreen;

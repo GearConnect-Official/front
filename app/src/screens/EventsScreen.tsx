@@ -24,19 +24,18 @@ const EventsScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.topBarContent}>
-        <TouchableOpacity
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
-        </TouchableOpacity>
+          </TouchableOpacity>
           <Text style={styles.title}>Events</Text>
-          <Image
-            source={{
-              uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/43626c4467817d5c97a941ca2aa49658b61e2881710abcbf8801ae2a3234ff60",
-            }}
-            style={{ width: 24, height: 24 }}
-          />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CreateEvent' as never)}
+          >
+            <FontAwesome name="plus" size={24} color="#1E232C" />
+          </TouchableOpacity>
         </View>
       </View>
 

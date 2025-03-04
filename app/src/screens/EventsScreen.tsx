@@ -32,9 +32,9 @@ const EventsScreen: React.FC = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate("CreateEvent" as never)}
             >
-              <FontAwesome name="plus" size={24} color="#1E232C" />
+              <FontAwesome name="plus" size={28} color="#1E232C" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+            <TouchableOpacity>
               <FontAwesome name="bell" size={24} color="#1E232C" />
             </TouchableOpacity>
           </View>

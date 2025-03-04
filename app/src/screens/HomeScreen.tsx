@@ -72,12 +72,12 @@ const HomeScreen: React.FC = () => {
           onChangeText={setSearchQuery}
         />
         <View style={styles.topBarIcons}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity>
             <FontAwesome name="bell" size={24} color="#1E232C" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          {/* <TouchableOpacity onPress={() => navigation.goBack()}>
             <FontAwesome name="comment" size={24} color="#1E232C" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 

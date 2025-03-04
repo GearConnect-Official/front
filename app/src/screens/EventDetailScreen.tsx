@@ -9,7 +9,7 @@ const MOCK_EVENT = {
   description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
   tags: ["Open", "France"],
   images: [
-    "https://cdn.builder.io/api/v1/image/assets/TEMP/1f7b0c5c6c3b4d5c9a4f8a8b8c9a5b5a",
+    "../../../assets/images/thierry-neuville-2024-wrc-world-champion.png",
   ],
   details: {
     location: "Val de Vienne",
@@ -21,14 +21,14 @@ const MOCK_EVENT = {
       id: 1,
       title: "Apprendre à piloter",
       price: "10€",
-      image: "https://via.placeholder.com/100",
+      image: "../../../assets/images/superbike-930715_640.png",
       tag: "New Arrival",
     },
     {
       id: 2,
       title: "Comment Battre Max Verstappen",
       price: "1 000 000€",
-      image: "https://via.placeholder.com/100",
+      image: "../../../assets/images/motorsport-images-highlights.png",
       tag: "Best Seller",
     },
   ],
@@ -58,13 +58,13 @@ const EventDetailScreen = () => {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Event Details</Text>
-        <TouchableOpacity style={styles.reviewButton}>
-          <Text style={styles.reviewText}>Review</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.eventInfo}>
         <Text style={styles.eventTitle}>{MOCK_EVENT.title}</Text>
+        <TouchableOpacity style={styles.reviewButton}>
+          <Text style={styles.reviewText}>Review</Text>
+        </TouchableOpacity>
         <Text style={styles.eventCategory}>{MOCK_EVENT.category}</Text>
       </View>
 
@@ -111,7 +111,6 @@ const EventDetailScreen = () => {
         )}
       />
 
-      {/* Customer Reviews */}
       <Text style={styles.sectionTitle}>Customer Reviews</Text>
       <FlatList
         horizontal
@@ -131,7 +130,7 @@ const EventDetailScreen = () => {
         <Text>Share</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.addCalendarButton}>
-        <Text>Add to Calendar</Text>
+        <Text style={{ color: "black", fontWeight: "bold"}}>Add to Calendar</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.buyButton}>
         <Text style={{ color: "white", fontWeight: "bold" }}>Buy a Ticket</Text>
@@ -142,11 +141,11 @@ const EventDetailScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: "#fff" },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
+  header: { flexDirection: "row", gap: 4, borderBottomWidth: 1, paddingBottom: 10, marginBottom: 10 },
   headerTitle: { fontSize: 18, fontWeight: "bold" },
   reviewButton: { backgroundColor: "black", padding: 8, borderRadius: 5 },
   reviewText: { color: "white" },
-  eventInfo: { marginBottom: 10 },
+  eventInfo: { flex: 1, flexDirection: "row", marginBottom: 10 },
   eventTitle: { fontSize: 20, fontWeight: "bold" },
   eventCategory: { color: "gray" },
   descriptionContainer: { flexDirection: "row", marginBottom: 10 },
@@ -165,7 +164,8 @@ const styles = StyleSheet.create({
   productTitle: { fontWeight: "bold" },
   reviewCard: { padding: 10, borderWidth: 1, borderRadius: 10, marginRight: 10 },
   reviewAvatar: { width: 30, height: 30, borderRadius: 15 },
-  buyButton: { backgroundColor: "black", padding: 15, borderRadius: 10, alignItems: "center", marginTop: 10 },
+  buyButton: { backgroundColor: "black", padding: 15, borderRadius: 10, alignItems: "center", marginTop: 10, marginBottom: 10 },
+  addCalendarButton: { backgroundColor: "#ddd", padding: 15, borderRadius: 10, alignItems: "center", marginTop: 10 },
 });
 
 export default EventDetailScreen;

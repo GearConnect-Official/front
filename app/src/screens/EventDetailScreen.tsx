@@ -1,56 +1,26 @@
 import React from "react";
 import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, FlatList } from "react-native";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { RouteProp, useRoute } from "@react-navigation/native";
+import { RootStackParamList } from "@/app/App";
+import { MOCK_EVENTS } from "../data/mock"; // Import mock events
 
-const MOCK_EVENT = {
-  id: 1,
-  title: "Open Circuit Débutant Val de Vienne",
-  category: "Open day, Free Entry",
-  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  tags: ["Open", "France"],
-  images: [
-    "../../../assets/images/thierry-neuville-2024-wrc-world-champion.png",
-  ],
-  details: {
-    location: "Val de Vienne",
-    date: "16/01/25",
-    time: "08:00 - 18:00",
-  },
-  relatedProducts: [
-    {
-      id: 1,
-      title: "Apprendre à piloter",
-      price: "10€",
-      image: "../../../assets/images/superbike-930715_640.png",
-      tag: "New Arrival",
-    },
-    {
-      id: 2,
-      title: "Comment Battre Max Verstappen",
-      price: "1 000 000€",
-      image: "../../../assets/images/motorsport-images-highlights.png",
-      tag: "Best Seller",
-    },
-  ],
-  reviews: [
-    {
-      id: 1,
-      user: "Rapheal",
-      rating: 5,
-      comment: "Great event, highly recommend!",
-      avatar: "https://via.placeholder.com/50",
-    },
-    {
-      id: 2,
-      user: "André(Romain)",
-      rating: 3,
-      comment: "Average experience, could be better.",
-      avatar: "https://via.placeholder.com/50",
-    },
-  ],
-};
+type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
-const EventDetailScreen = () => {
+const EventDetailScreen: React.FC = () => {
+  const route = useRoute<EventDetailScreenRouteProp>();
+  const { eventId } = route.params;
+
+  const event = MOCK_EVENTS.find(event => event.id === eventId);
+
+  if (!event) {
+    return (
+      <View style={styles.container}>
+        <Text>Event not found</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -61,45 +31,45 @@ const EventDetailScreen = () => {
       </View>
 
       <View style={styles.eventInfo}>
-        <Text style={styles.eventTitle}>{MOCK_EVENT.title}</Text>
+        <Text style={styles.eventTitle}>{event.title}</Text>
         <TouchableOpacity style={styles.reviewButton}>
           <Text style={styles.reviewText}>Review</Text>
         </TouchableOpacity>
-        <Text style={styles.eventCategory}>{MOCK_EVENT.category}</Text>
+        <Text style={styles.eventCategory}>{event.category}</Text>
       </View>
 
       <View style={styles.descriptionContainer}>
-        <Image source={{ uri: MOCK_EVENT.images[0] }} style={styles.eventImage} />
+        <Image source={{ uri: event.images[0] }} style={styles.eventImage} />
         <View style={styles.aboutContainer}>
           <Text style={styles.aboutTitle}>About</Text>
           <View style={styles.tagContainer}>
-            {MOCK_EVENT.tags.map((tag, index) => (
+            {event.tags.map((tag, index) => (
               <Text key={index} style={styles.tag}>{tag}</Text>
             ))}
           </View>
-          <Text style={styles.description}>{MOCK_EVENT.description}</Text>
+          <Text style={styles.description}>{event.description}</Text>
         </View>
       </View>
 
       <Text style={styles.sectionTitle}>Best of Images</Text>
-      <Image source={{ uri: MOCK_EVENT.images[0] }} style={styles.mainEventImage} />
+      <Image source={{ uri: event.images[0] }} style={styles.mainEventImage} />
 
       <Text style={styles.sectionTitle}>Event Details</Text>
       <View style={styles.detailRow}>
         <Ionicons name="location-outline" size={20} color="gray" />
-        <Text style={styles.detailText}>{MOCK_EVENT.details.location}</Text>
+        <Text style={styles.detailText}>{event.details.location}</Text>
       </View>
       <View style={styles.detailRow}>
         <Ionicons name="calendar-outline" size={20} color="gray" />
-        <Text style={styles.detailText}>{MOCK_EVENT.details.date}</Text>
+        <Text style={styles.detailText}>{event.details.date}</Text>
         <Ionicons name="time-outline" size={20} color="gray" style={{ marginLeft: 10 }} />
-        <Text style={styles.detailText}>{MOCK_EVENT.details.time}</Text>
+        <Text style={styles.detailText}>{event.details.time}</Text>
       </View>
 
       <Text style={styles.sectionTitle}>Related Products</Text>
       <FlatList
         horizontal
-        data={MOCK_EVENT.relatedProducts}
+        data={event.relatedProducts}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.productCard}>
@@ -114,7 +84,7 @@ const EventDetailScreen = () => {
       <Text style={styles.sectionTitle}>Customer Reviews</Text>
       <FlatList
         horizontal
-        data={MOCK_EVENT.reviews}
+        data={event.reviews}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.reviewCard}>

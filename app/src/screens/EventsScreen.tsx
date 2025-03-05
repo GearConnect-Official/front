@@ -13,12 +13,13 @@ import styles from "../styles/eventsStyles";
 import EventItem from "../components/EventItem";
 import { RootStackParamList } from "@/app/App";
 import { NavigationProp } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native"; // Ensure correct import
+import { useNavigation } from "@react-navigation/native";
+import { MOCK_EVENTS } from "../data/mock"; // Import mock events
 
 const EventsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("events");
   const [searchQuery, setSearchQuery] = useState("");
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Ensure correct type
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleEventPress = (eventId: number) => {
     navigation.navigate("EventDetail", { eventId });
@@ -94,77 +95,16 @@ const EventsScreen: React.FC = () => {
 
         <View>
           <Text style={styles.sectionTitle}>Events from Followed</Text>
-          <EventItem
-            icon="https://cdn.builder.io/api/v1/image/assets/TEMP/195e688422d05c9500d42aa0c3cae55c033638dbc5d497a4a86fb4a31b4d5a46?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/195e688422d05c9500d42aa0c3cae55c033638dbc5d497a4a86fb4a31b4d5a46?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/195e688422d05c9500d42aa0c3cae55c033638dbc5d497a4a86fb4a31b4d5a46?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/195e688422d05c9500d42aa0c3cae55c033638dbc5d497a4a86fb4a31b4d5a46?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/195e688422d05c9500d42aa0c3cae55c033638dbc5d497a4a86fb4a31b4d5a46?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/195e688422d05c9500d42aa0c3cae55c033638dbc5d497a4a86fb4a31b4d5a46?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/195e688422d05c9500d42aa0c3cae55c033638dbc5d497a4a86fb4a31b4d5a46?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/195e688422d05c9500d42aa0c3cae55c033638dbc5d497a4a86fb4a31b4d5a46?placeholderIfAbsent=true"
-            title="Open circuit Débutant Val de Vienne"
-            subtitle="Category: Open day, Free Entry"
-            date="January 26, 2025"
-            onPress={() => handleEventPress(1)} // Pass the event ID
-          />
-          <EventItem
-            emoji="📅"
-            title="Workshop"
-            subtitle="Learn new skills"
-            date="May 20, 2023"
-            onPress={() => handleEventPress(2)} // Pass the event ID
-          />
-          <EventItem
-            emoji="🎉"
-            title="Music Concert"
-            subtitle="Live performance"
-            date="June 5, 2023"
-            onPress={() => handleEventPress(3)} // Pass the event ID
-          />
-        </View>
-
-        <View>
-          <Text style={styles.sectionTitle}>Recommended Events</Text>
-          <EventItem
-            emoji="🎭"
-            title="Theatre Play"
-            subtitle="Dramatic performance"
-            date="August 15, 2023"
-            onPress={() => handleEventPress(4)} // Pass the event ID
-          />
-          <EventItem
-            emoji="🌟"
-            title="Art Exhibition"
-            subtitle="Local artists' works"
-            date="July 10, 2023"
-            onPress={() => handleEventPress(5)} // Pass the event ID
-          />
-          <EventItem
-            emoji="🎭"
-            title="Theatre Play"
-            subtitle="Dramatic performance"
-            date="August 15, 2023"
-            onPress={() => handleEventPress(6)} // Pass the event ID
-          />
-        </View>
-
-        <View>
-          <Text style={styles.sectionTitle}>Passed Events</Text>
-          <EventItem
-            icon="https://cdn.builder.io/api/v1/image/assets/TEMP/1ae1df285602cf46cd4ba3b1b4a0a29ef7376257d3eeb0eef5f42599d72d904b?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/1ae1df285602cf46cd4ba3b1b4a0a29ef7376257d3eeb0eef5f42599d72d904b?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/1ae1df285602cf46cd4ba3b1b4a0a29ef7376257d3eeb0eef5f42599d72d904b?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/1ae1df285602cf46cd4ba3b1b4a0a29ef7376257d3eeb0eef5f42599d72d904b?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/1ae1df285602cf46cd4ba3b1b4a0a29ef7376257d3eeb0eef5f42599d72d904b?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/1ae1df285602cf46cd4ba3b1b4a0a29ef7376257d3eeb0eef5f42599d72d904b?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/1ae1df285602cf46cd4ba3b1b4a0a29ef7376257d3eeb0eef5f42599d72d904b?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/1ae1df285602cf46cd4ba3b1b4a0a29ef7376257d3eeb0eef5f42599d72d904b?placeholderIfAbsent=true"
-            title="Course karting RKC"
-            subtitle="Category : Race, French Championship"
-            date="January 17, 2025"
-            onPress={() => handleEventPress(7)} // Pass the event ID
-          />
-          <EventItem
-            emoji="🌟"
-            title="Art Exhibition"
-            subtitle="Local artists' works"
-            date="July 10, 2023"
-            onPress={() => handleEventPress(8)} // Pass the event ID
-          />
-          <EventItem
-            emoji="🎭"
-            title="Theatre Play"
-            subtitle="Dramatic performance"
-            date="August 15, 2023"
-            onPress={() => handleEventPress(9)} // Pass the event ID
-          />
+          {MOCK_EVENTS.map((event) => (
+            <EventItem
+              key={event.id}
+              icon={event.images[0]}
+              title={event.title}
+              subtitle={event.category}
+              date={event.details.date}
+              onPress={() => handleEventPress(event.id)}
+            />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

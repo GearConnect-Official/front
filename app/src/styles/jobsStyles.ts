@@ -4,10 +4,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "rgba(251, 249, 250, 1)",
-    maxWidth: 480,
-    width: "100%",
-    marginLeft: "auto",
-    marginRight: "auto",
   },
   topBar: {
     backgroundColor: "#fff",
@@ -34,15 +30,8 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-  topBarIcons: {
-    flexDirection: "row",
-    gap: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "rgba(0, 0, 0, 1)",
-    fontFamily: "Roboto",
+  content: {
+    flex: 1,
   },
   searchSection: {
     padding: 12,
@@ -78,88 +67,85 @@ const styles = StyleSheet.create({
   },
   tabGroup: {
     flexDirection: "row",
-    paddingHorizontal: 12,
-    marginTop: 12,
+    padding: 12,
     gap: 8,
   },
   tab: {
     flex: 1,
-    flexDirection: "column",
     borderWidth: 1,
     borderColor: "rgba(0, 0, 0, 0.1)",
     borderRadius: 6,
-    paddingVertical: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-
-  tabIcon: {
-    width: 24,
-    height: 24,
-    justifyContent: "center",
+    padding: 8,
     alignItems: "center",
   },
-
+  activeTab: {
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+  },
   tabText: {
-    fontSize: 16,
-    textAlign: "center",
+    fontSize: 14,
+    color: "#000",
+  },
+  section: {
+    padding: 12,
+  },
+  sectionHeader: {
+    paddingVertical: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "500",
-    color: "black",
-    paddingHorizontal: 12,
-    paddingTop: 16,
+    color: "#000",
   },
-  eventItem: {
+  sectionSubtitle: {
+    fontSize: 14,
+    color: "rgba(0, 0, 0, 0.5)",
+  },
+  jobItem: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
     gap: 8,
   },
-  eventIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  eventContent: {
-    flex: 1,
-  },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "black",
-  },
-  eventSubtitle: {
-    fontSize: 14,
-    color: "rgba(0, 0, 0, 0.5)",
-  },
-  eventDate: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "black",
-    textAlign: "right",
-  },
   emojiContainer: {
     width: 32,
     height: 32,
-    borderRadius: 16,
     backgroundColor: "rgba(0, 0, 0, 0.05)",
-    alignItems: "center",
+    borderRadius: 16,
     justifyContent: "center",
+    alignItems: "center",
   },
-  emojiText: {
+  emoji: {
     fontSize: 20,
   },
-  activeTab: {
-    backgroundColor: "#000",
-    borderRadius: 10,
+  jobInfo: {
+    flex: 1,
   },
-
-  activeTabText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
+  jobTitle: {
+    fontSize: 16,
+    color: "#000",
+  },
+  jobDescription: {
+    fontSize: 14,
+    color: "rgba(0, 0, 0, 0.5)",
+  },
+  jobType: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#000",
+    width: 90,
+    textAlign: "right",
+  },
+  createButton: {
+    backgroundColor: "#000",
+    borderRadius: 8,
+    margin: 12,
+    padding: 10,
+    alignItems: "center",
+  },
+  createButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 

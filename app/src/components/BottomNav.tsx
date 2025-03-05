@@ -4,12 +4,20 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 
 const BottomNav: React.FC<BottomTabBarProps> = ({ navigation, state }) => {
-  // Vérification : S'assurer que `state` est défini avant d'accéder à `state.index`
+  // Check: Ensure that `state` is defined before accessing `state.index`
   if (!state) {
     return null;
   }
 
   const routes = ["Home", "Network", "Publication", "Events", "Jobs"];
+
+  const handleNavigation = (route: string) => {
+    if (route === "Publication") {
+      navigation.navigate("PublicationScreen");
+    } else {
+      navigation.navigate(route);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -17,7 +25,7 @@ const BottomNav: React.FC<BottomTabBarProps> = ({ navigation, state }) => {
         <TouchableOpacity
           key={route}
           style={styles.tab}
-          onPress={() => navigation.navigate(route)}
+          onPress={() => handleNavigation(route)}
         >
           <FontAwesome
             name={getIconName(route)}
@@ -38,7 +46,7 @@ const BottomNav: React.FC<BottomTabBarProps> = ({ navigation, state }) => {
   );
 };
 
-// Fonction pour associer les icônes aux pages
+// Function to associate icons with pages
 const getIconName = (routeName: string) => {
   switch (routeName) {
     case "Home":

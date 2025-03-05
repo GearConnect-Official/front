@@ -12,7 +12,7 @@ export const signUp = async (username: string, email: string, password: string):
         const response = await axios.post<AuthResponse>(`${API_URL_AUTH}/signup`, {username, email, password });
         return response.data;
     } catch (error: any) {
-        console.error("Erreur Signup :", error.response?.data || error.message);
+        console.error("Signup Error:", error.response?.data || error.message);
         return null;
     }
 };
@@ -35,13 +35,13 @@ export const signIn = async (email: string, password: string) => {
             await setActive({ session: signInAttempt.createdSessionId });
             return { success: true, userId };
         } else {
-            return { success: false, error: "Erreur lors de l'authentification Clerk." };
+            return { success: false, error: "Clerk authentication failed." };
         }
     } catch (error: any) {
-        console.error("❌ Erreur Login :", error.response?.data || error.message);
+        console.error("❌ Login Error:", error.response?.data || error.message);
         return { success: false, error: error.message };
     }
 };
 
-// Ajout d'un export par défaut vide pour éviter que Metro ne le traite comme un écran
+// Empty default export to prevent Metro from treating this as a screen
 export default {};

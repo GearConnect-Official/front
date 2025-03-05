@@ -16,6 +16,8 @@ import BottomNav from "./src/components/BottomNav";
 import { NavigationContainer } from "@react-navigation/native";
 import CreateJobOfferScreen from "./src/screens/CreateJobOfferScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
+import CreateEventScreen from "./src/screens/CreateEventScreen";
+import PublicationScreen from "./src/screens/PublicationScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -34,23 +36,24 @@ export type RootStackParamList = {
   FriendRequest: undefined;
   CreateJobOffer: undefined;
   Profile: undefined;
+  PublicationScreen: undefined;
 };
 
-// **✅ Navigation des onglets (avec `BottomNav` en tant que `tabBar`)**
+// Bottom tab navigation (with `BottomNav` as `tabBar`)
 const BottomTabNavigator = () => (
   <Tab.Navigator
     screenOptions={{ headerShown: false }}
-    tabBar={(props) => <BottomNav {...props} />} // Ajout de la BottomNav ici
+    tabBar={(props) => <BottomNav {...props} />} // Add BottomNav here
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Network" component={FriendRequestScreen} />
-    <Tab.Screen name="Publication" component={WelcomeScreen} />
+    <Tab.Screen name="Publication" component={PublicationScreen} />
     <Tab.Screen name="Events" component={EventsScreen} />
     <Tab.Screen name="Jobs" component={JobsScreen} />
   </Tab.Navigator>
 );
 
-// **✅ Navigation principale (Stack)**
+// Main navigation (Stack)
 const MainNavigator = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
@@ -62,13 +65,15 @@ const MainNavigator = () => (
     <Stack.Screen name="EventDetail" component={EventDetailScreen} />
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
+    <Stack.Screen name="PublicationScreen" component={PublicationScreen} />
   </Stack.Navigator>
 );
 
 const CLERK_PUBLISHABLE_KEY =
   "pk_test_b2JsaWdpbmctcHl0aG9uLTgzLmNsZXJrLmFjY291bnRzLmRldiQ";
 
-// **✅ NavigationContainer uniquement sur Web**
+// NavigationContainer only on Web
 const App: React.FC = () => {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>

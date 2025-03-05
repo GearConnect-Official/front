@@ -17,7 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import { MOCK_EVENTS } from "../data/mock"; // Import mock events
 
 const EventsScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("events");
+  const [activeTab, setActiveTab] = useState("recommended");
   const [searchQuery, setSearchQuery] = useState("");
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -35,19 +35,24 @@ const EventsScreen: React.FC = () => {
           >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
+          </TouchableOpacity>
           <Text style={styles.title}>Events</Text>
-          <Image
-            source={{
-              uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/43626c4467817d5c97a941ca2aa49658b61e2881710abcbf8801ae2a3234ff60",
-            }}
-            style={{ width: 24, height: 24 }}
-          />
+          <View style={styles.topBarIcons}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("CreateEvent" as never)}
+            >
+              <FontAwesome name="plus" size={28} color="#1E232C" />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <FontAwesome name="bell" size={24} color="#1E232C" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
       <ScrollView>
-        <View style={styles.searchContainer}>
-          <View style={styles.searchField}>
+        <View style={styles.searchSection}>
+          <View style={styles.searchBar}>
             <TextInput
               style={styles.searchInput}
               placeholder="Enter name to search for event"
@@ -62,35 +67,31 @@ const EventsScreen: React.FC = () => {
         </View>
 
         <View style={styles.tabGroup}>
-          <TouchableOpacity style={styles.tab}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/e5b8fcc042d5d563e5476d082ed6310f68a06d3f12bbebb37bfc6229bc160a72",
-              }}
-              style={styles.tabIcon}
-            />
-            <Text style={styles.tabText}>Events from Followed</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.tab}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/1d9095950120850a446df3be385deadd007e47887f6ef267f2a4349ef3389f19",
-              }}
-              style={styles.tabIcon}
-            />
-            <Text style={styles.tabText}>Recommended Events</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.tab}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/82962f34b9d95c74114173326d8f23d375293ebf5f78fa77fda3cd880dec7b16",
-              }}
-              style={styles.tabIcon}
-            />
-            <Text style={styles.tabText}>Passed Events</Text>
-          </TouchableOpacity>
+          {tabs.map((tab: TabItem) => (
+            <TouchableOpacity
+              key={tab.key}
+              onPress={() => setActiveTab(tab.key)}
+              style={[
+                styles.tab,
+                activeTab === tab.key ? styles.activeTab : {},
+              ]}
+            >
+              <FontAwesome
+                name={tab.icon}
+                size={20}
+                color={activeTab === tab.key ? "#FFFFFF" : "#1E232C"}
+                style={styles.tabIcon}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab.key ? styles.activeTabText : {},
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         <View>

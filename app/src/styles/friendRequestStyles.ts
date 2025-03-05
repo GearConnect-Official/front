@@ -6,24 +6,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#FBF9FA",
   },
   topBar: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#fff",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 3,
     elevation: 4,
-    zIndex: 1,
-    minHeight: 104,
+    minHeight: 60,
   },
   topBarContent: {
-    paddingHorizontal: 16,
-    paddingTop: 50,
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     justifyContent: "space-between",
+  },
+  topBarTitle: {
+    fontSize: 20,
+    fontWeight: "500",
+    color: "#000",
+  },
+  topBarIcon: {
+    width: 24,
+    height: 24,
   },
   title: {
     fontSize: 20,

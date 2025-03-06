@@ -7,6 +7,7 @@ interface ActionButtonsProps {
   onSubmit: () => void;
   cancelText?: string;
   submitText?: string;
+  disabled?: boolean;
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -14,21 +15,30 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   onSubmit,
   cancelText = "Cancel",
   submitText = "Create",
+  disabled = false,
 }) => {
   return (
     <View style={styles.actionButtonsContainer}>
       <TouchableOpacity
         onPress={onCancel}
         style={[styles.actionButton, styles.cancelButton]}
+        disabled={disabled}
       >
         <Text style={styles.cancelButtonText}>{cancelText}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={onSubmit}
-        style={[styles.actionButton, styles.submitButton]}
+        style={[
+          styles.actionButton,
+          styles.submitButton,
+          disabled && styles.disabledButton,
+        ]}
+        disabled={disabled}
       >
-        <Text style={styles.submitButtonText}>{submitText}</Text>
+        <Text style={[styles.submitButtonText, disabled && styles.disabledButtonText]}>
+          {submitText}
+        </Text>
       </TouchableOpacity>
     </View>
   );

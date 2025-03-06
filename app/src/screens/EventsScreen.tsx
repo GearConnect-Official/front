@@ -122,7 +122,6 @@ const EventsScreen: React.FC = () => {
           >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
-          </TouchableOpacity>
           <Text style={styles.title}>Events</Text>
           <View style={styles.topBarIcons}>
             <TouchableOpacity

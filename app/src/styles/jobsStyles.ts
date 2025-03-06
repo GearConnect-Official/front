@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "rgba(251, 249, 250, 1)",
+    backgroundColor: "#FBF9FA",
   },
   topBar: {
     backgroundColor: "#fff",
@@ -24,14 +24,7 @@ const styles = StyleSheet.create({
   topBarTitle: {
     fontSize: 20,
     fontWeight: "500",
-    color: "#000",
-  },
-  topBarIcon: {
-    width: 24,
-    height: 24,
-  },
-  content: {
-    flex: 1,
+    color: "#1E232C",
   },
   searchSection: {
     padding: 12,
@@ -42,6 +35,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0, 0, 0, 0.1)",
     borderRadius: 6,
     padding: 4,
+    alignItems: "center",
   },
   searchInput: {
     flex: 1,
@@ -56,10 +50,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  searchIcon: {
-    width: 20,
-    height: 20,
-  },
   searchInfo: {
     fontSize: 14,
     color: "rgba(0, 0, 0, 0.5)",
@@ -67,85 +57,89 @@ const styles = StyleSheet.create({
   },
   tabGroup: {
     flexDirection: "row",
-    padding: 12,
+    paddingHorizontal: 12,
+    marginTop: 12,
     gap: 8,
   },
   tab: {
     flex: 1,
+    flexDirection: "column",
     borderWidth: 1,
     borderColor: "rgba(0, 0, 0, 0.1)",
     borderRadius: 6,
-    padding: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabIcon: {
+    justifyContent: "center",
     alignItems: "center",
   },
-  activeTab: {
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
-  },
   tabText: {
-    fontSize: 14,
-    color: "#000",
+    fontSize: 16,
+    textAlign: "center",
   },
-  section: {
-    padding: 12,
+  activeTab: {
+    backgroundColor: "#000",
+    borderRadius: 10,
   },
-  sectionHeader: {
-    paddingVertical: 16,
+  activeTabText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "500",
     color: "#000",
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 12,
+    paddingVertical: 16,
   },
   jobItem: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
-    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.1)",
   },
-  emojiContainer: {
-    width: 32,
-    height: 32,
+
+  jobIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "rgba(0, 0, 0, 0.05)",
-    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 12,
   },
-  emoji: {
-    fontSize: 20,
-  },
-  jobInfo: {
+
+  jobContent: {
     flex: 1,
   },
+
   jobTitle: {
     fontSize: 16,
+    fontWeight: "bold",
     color: "#000",
   },
-  jobDescription: {
+
+  jobSubtitle: {
     fontSize: 14,
-    color: "rgba(0, 0, 0, 0.5)",
+    color: "rgba(0, 0, 0, 0.6)",
+    marginTop: 2,
   },
+
   jobType: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "500",
     color: "#000",
-    width: 90,
     textAlign: "right",
   },
-  createButton: {
-    backgroundColor: "#000",
-    borderRadius: 8,
-    margin: 12,
-    padding: 10,
-    alignItems: "center",
-  },
-  createButtonText: {
-    color: "#fff",
+
+  noJobsText: {
+    textAlign: "center",
     fontSize: 16,
-    fontWeight: "500",
+    color: "rgba(0, 0, 0, 0.5)",
+    paddingVertical: 20,
   },
 });
 

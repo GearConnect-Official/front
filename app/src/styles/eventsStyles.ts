@@ -9,6 +9,9 @@ const styles = StyleSheet.create({
     marginLeft: "auto",
     marginRight: "auto",
   },
+  scrollView: {
+    flex: 1,
+  },
   topBar: {
     backgroundColor: "#fff",
     shadowColor: "#000",

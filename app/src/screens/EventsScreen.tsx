@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/eventsStyles";
@@ -32,6 +33,7 @@ const EventsScreen: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   interface TabItem {
@@ -104,6 +106,12 @@ const EventsScreen: React.FC = () => {
     }
   };
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchEvents();
+    setRefreshing(false);
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
@@ -125,7 +133,12 @@ const EventsScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView>
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.searchSection}>
           <View style={styles.searchBar}>
             <TextInput

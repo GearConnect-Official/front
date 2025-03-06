@@ -12,17 +12,15 @@ const CreateEventScreen: React.FC = () => {
     navigation.goBack();
   };
 
-  const handleCreate = (formData: any) => {
-    console.log("Create pressed", formData);
-    // Add form submission logic here
-    // This could include API calls, navigation, etc.
+  const handleSuccess = () => {
+    navigation.goBack(); // Naviguer après succès
   };
 
   return (
     <View style={styles.container}>
       <TopBar title="Create Event" onBackPress={handleCancel} />
       <ScrollView style={styles.contentContainer}>
-        <CreateEvent onCancel={handleCancel} onSubmit={handleCreate} />
+        <CreateEvent onCancel={handleCancel} onSuccess={handleSuccess} />
         <View style={styles.spacer} />
       </ScrollView>
     </View>

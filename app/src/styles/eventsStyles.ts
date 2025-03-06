@@ -9,6 +9,9 @@ const styles = StyleSheet.create({
     marginLeft: "auto",
     marginRight: "auto",
   },
+  scrollView: {
+    flex: 1,
+  },
   topBar: {
     backgroundColor: "#fff",
     shadowColor: "#000",
@@ -160,6 +163,33 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: "#FFFFFF",
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#FF0000",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  retryButton: {
+    backgroundColor: "#1E232C",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 

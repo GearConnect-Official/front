@@ -1,29 +1,116 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
-  Image,
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/eventsStyles";
 import EventItem from "../components/EventItem";
 import { RootStackParamList } from "@/app/App";
 import { NavigationProp } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
-import { MOCK_EVENTS } from "../data/mock"; // Import mock events
+import { useNavigation } from "expo-router";
+import eventService, { Event } from "../services/eventService";
 
 const EventsScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("recommended");
+  const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [events, setEvents] = useState<{ [key: string]: Event[] }>({
+    all: [],
+    upcoming: [],
+    passed: [],
+  });
+  const [filteredEvents, setFilteredEvents] = useState<{ [key: string]: Event[] }>({
+    all: [],
+    upcoming: [],
+    passed: [],
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  const handleEventPress = (eventId: number) => {
-    navigation.navigate("EventDetail", { eventId });
+  interface TabItem {
+    key: string;
+    label: string;
+    icon: keyof typeof FontAwesome.glyphMap;
+  }
+
+  const tabs: TabItem[] = [
+    { key: "all", label: "All Events", icon: "calendar" },
+    { key: "upcoming", label: "Upcoming Events", icon: "star" },
+    { key: "passed", label: "Passed Events", icon: "history" },
+  ];
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const allEvents = await eventService.getAllEvents();
+      
+      const now = new Date();
+      const upcomingEvents = allEvents.filter(
+        (event: Event) => new Date(event.date) >= now
+      );
+      const passedEvents = allEvents.filter(
+        (event: Event) => new Date(event.date) < now
+      );
+
+      setEvents({
+        all: allEvents,
+        upcoming: upcomingEvents,
+        passed: passedEvents,
+      });
+
+      setFilteredEvents({
+        all: allEvents,
+        upcoming: upcomingEvents,
+        passed: passedEvents,
+      });
+
+    } catch (err) {
+      setError("Erreur lors du chargement des événements");
+      console.error("Error fetching events:", err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const handleSearch = () => {
+    if (searchQuery.length >= 3) {
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      const filtered = {
+        all: events.all.filter(event =>
+          event.name.toLowerCase().includes(lowerCaseQuery)
+        ),
+        upcoming: events.upcoming.filter(event =>
+          event.name.toLowerCase().includes(lowerCaseQuery)
+        ),
+        passed: events.passed.filter(event =>
+          event.name.toLowerCase().includes(lowerCaseQuery)
+        ),
+      };
+      setFilteredEvents(filtered);
+    } else {
+      setFilteredEvents(events);
+    }
+  };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchEvents();
+    setRefreshing(false);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,7 +137,12 @@ const EventsScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView>
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.searchSection}>
           <View style={styles.searchBar}>
             <TextInput
@@ -58,8 +150,9 @@ const EventsScreen: React.FC = () => {
               placeholder="Enter name to search for event"
               value={searchQuery}
               onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
             />
-            <TouchableOpacity style={styles.searchButton}>
+            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
               <FontAwesome name="search" size={20} color="white" />
             </TouchableOpacity>
           </View>
@@ -94,19 +187,35 @@ const EventsScreen: React.FC = () => {
           ))}
         </View>
 
-        <View>
-          <Text style={styles.sectionTitle}>Events from Followed</Text>
-          {MOCK_EVENTS.map((event) => (
-            <EventItem
-              key={event.id}
-              icon={event.images[0]}
-              title={event.title}
-              subtitle={event.category}
-              date={event.details.date}
-              onPress={() => handleEventPress(event.id)}
-            />
-          ))}
-        </View>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1E232C" />
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={fetchEvents}>
+              <Text style={styles.retryButtonText}>Réessayer</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View>
+            <Text style={styles.sectionTitle}>
+              {activeTab === "all" && "All Events"}
+              {activeTab === "upcoming" && "Upcoming Events"}
+              {activeTab === "passed" && "Passed Events"}
+            </Text>
+            {filteredEvents[activeTab]?.map((event, index) => (
+              <EventItem
+                key={event.id || index}
+                title={event.name}
+                subtitle={`Location: ${event.location}`}
+                date={new Date(event.date).toLocaleDateString()}
+                emoji="🎉"
+              />
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

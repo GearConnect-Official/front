@@ -61,34 +61,34 @@ const styles = StyleSheet.create({
   },
   // ImageUpload styles
   imageUploadContainer: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    padding: 16,
-  },
-  imageUploadHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    marginBottom: 16,
   },
   imageUploadTitle: {
     fontSize: 16,
-  },
-  uploadButton: {
-    backgroundColor: "#1E232C",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  uploadButtonText: {
-    color: "#FFFFFF",
     fontWeight: "500",
+    marginBottom: 8,
+    color: "#1E232C",
+  },
+  imageUploadButton: {
+    backgroundColor: "#F7F8F9",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E8ECF4",
+    borderStyle: "dashed",
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 150,
+  },
+  imageUploadButtonText: {
+    color: "#1E232C",
+    marginTop: 8,
+    fontSize: 14,
   },
   uploadedImage: {
     width: "100%",
-    height: 160,
+    height: "100%",
     borderRadius: 8,
-    marginTop: 16,
   },
   // Section styles
   section: {
@@ -128,6 +128,20 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: "#FFFFFF",
     fontWeight: "500",
+  },
+  disabledButton: {
+    backgroundColor: "#A0A0A0",
+    opacity: 0.7,
+  },
+  disabledButtonText: {
+    color: "#FFFFFF",
+    opacity: 0.7,
+  },
+  errorText: {
+    color: "#FF0000",
+    fontSize: 14,
+    textAlign: "center",
+    marginVertical: 10,
   },
 });
 

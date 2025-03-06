@@ -1,49 +1,75 @@
 import * as React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Alert } from "react-native";
 import InputField from "./CreateEvent/InputField";
 import ImageUpload from "./CreateEvent/ImageUpload";
 import ActionButtons from "./CreateEvent/ActionButtons";
 import styles from "../styles/createEventStyles";
+import eventService, { Event } from "../services/eventService";
 
 interface CreateEventProps {
   onCancel: () => void;
-  onSubmit: (formData: any) => void;
-  initialData?: {
-    eventName?: string;
-    creators?: string;
-    location?: string;
-    date?: string;
-    sponsors?: string;
-    website?: string;
-    rankings?: string;
-  };
+  onSuccess: () => void;
+  initialData?: Partial<Event>;
 }
 
 const CreateEvent: React.FC<CreateEventProps> = ({
   onCancel,
-  onSubmit,
+  onSuccess,
   initialData = {},
 }) => {
-  const [formData, setFormData] = React.useState({
-    eventName: initialData.eventName || "",
+  const [formData, setFormData] = React.useState<Event>({
+    name: initialData.name || "",
     creators: initialData.creators || "",
     location: initialData.location || "",
-    date: initialData.date || "",
+    date: initialData.date ? new Date(initialData.date) : new Date(),
     sponsors: initialData.sponsors || "",
-    website: initialData.website || "www.valdevienne-circuit.com",
-    rankings: initialData.rankings || "Val_de_Vienne_Rankings_2025.xls",
+    website: initialData.website || "",
+    rankings: initialData.rankings || "",
+    logo: initialData.logo,
+    images: initialData.images || [],
   });
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const handleSubmit = () => {
-    onSubmit(formData);
+  const handleInputChange = (field: keyof Event, value: any) => {
+    setFormData((prev) => {
+      const updatedForm = { ...prev, [field]: value };
+      return updatedForm;
+    });
+  };  
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+  
+    // Vérification si tous les champs obligatoires sont remplis
+    if (!formData.name.trim()) {
+      setError("Event name is required");
+      setLoading(false);
+      return;
+    }
+  
+    try {
+      const eventData: Event = {
+        ...formData,
+        date: new Date(formData.date),
+      };
+    
+      const createdEvent = await eventService.createEvent(eventData);
+  
+      Alert.alert("Success", "The event has been created successfully!", [
+        { text: "OK", onPress: onSuccess },
+      ]);
+    } catch (err) {
+      setError("Erreur lors de la création de l'événement");
+      console.error("Error creating event:", err);
+      Alert.alert("Error", "Failed to create event. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+  
 
   return (
     <View>
@@ -52,6 +78,7 @@ const CreateEvent: React.FC<CreateEventProps> = ({
         <ImageUpload
           title="Upload the logo for the Event"
           buttonText="Upload"
+          onImageSelected={(uri) => handleInputChange("logo", uri)}
         />
       </View>
 
@@ -59,8 +86,8 @@ const CreateEvent: React.FC<CreateEventProps> = ({
         title="Event name"
         placeholder="Enter event name"
         info="Edit event name here"
-        value={formData.eventName}
-        onChangeText={(text) => handleInputChange("eventName", text)}
+        value={formData.name}
+        onChangeText={(text) => handleInputChange("name", text)}
       />
 
       <InputField
@@ -83,8 +110,13 @@ const CreateEvent: React.FC<CreateEventProps> = ({
         title="Date"
         placeholder="Select event date"
         info="Change event date here"
-        value={formData.date}
-        onChangeText={(text) => handleInputChange("date", text)}
+        value={formData.date.toISOString().split("T")[0]} // Affichage en YYYY-MM-DD
+        onChangeText={(text) => {
+          const newDate = new Date(text);
+          if (!isNaN(newDate.getTime())) {
+            handleInputChange("date", newDate);
+          }
+        }}
       />
 
       <InputField
@@ -113,10 +145,26 @@ const CreateEvent: React.FC<CreateEventProps> = ({
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Images</Text>
-        <ImageUpload title="Upload your image" buttonText="Upload" />
+        <ImageUpload
+          title="Upload your image"
+          buttonText="Upload"
+          onImageSelected={(uri) =>
+            setFormData((prev) => ({
+              ...prev,
+              images: [...(prev.images || []), uri],
+            }))
+          }
+        />
       </View>
 
-      <ActionButtons onCancel={onCancel} onSubmit={handleSubmit} />
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
+      <ActionButtons
+        onCancel={onCancel}
+        onSubmit={handleSubmit}
+        submitText={loading ? "Creating..." : "Create"}
+        disabled={loading}
+      />
     </View>
   );
 };

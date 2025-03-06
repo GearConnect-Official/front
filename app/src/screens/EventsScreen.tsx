@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
-  Image,
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/eventsStyles";
@@ -14,10 +15,23 @@ import EventItem from "../components/EventItem";
 import { RootStackParamList } from "@/app/App";
 import { NavigationProp } from "@react-navigation/native";
 import { useNavigation } from "expo-router";
+import eventService, { Event } from "../services/eventService";
 
 const EventsScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("recommended");
+  const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [events, setEvents] = useState<{ [key: string]: Event[] }>({
+    all: [],
+    upcoming: [],
+    passed: [],
+  });
+  const [filteredEvents, setFilteredEvents] = useState<{ [key: string]: Event[] }>({
+    all: [],
+    upcoming: [],
+    passed: [],
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   interface TabItem {
@@ -26,61 +40,69 @@ const EventsScreen: React.FC = () => {
     icon: keyof typeof FontAwesome.glyphMap;
   }
 
-  const eventsData = {
-    followed: [
-      {
-        icon: "🎤",
-        title: "Open circuit Débutant Val de Vienne",
-        subtitle: "Category: Open day, Free Entry",
-        date: "January 26, 2025",
-      },
-      {
-        icon: "📅",
-        title: "Workshop",
-        subtitle: "Learn new skills",
-        date: "May 20, 2023",
-      },
-      {
-        icon: "🎉",
-        title: "Music Concert",
-        subtitle: "Live performance",
-        date: "June 5, 2023",
-      },
-    ],
-    recommended: [
-      {
-        icon: "🎭",
-        title: "Theatre Play",
-        subtitle: "Dramatic performance",
-        date: "August 15, 2023",
-      },
-      {
-        icon: "🌟",
-        title: "Art Exhibition",
-        subtitle: "Local artists' works",
-        date: "July 10, 2023",
-      },
-    ],
-    passed: [
-      {
-        icon: "🏎️",
-        title: "Course karting RKC",
-        subtitle: "Category : Race, French Championship",
-        date: "January 17, 2025",
-      },
-      {
-        icon: "🌟",
-        title: "Art Exhibition",
-        subtitle: "Local artists' works",
-        date: "July 10, 2023",
-      },
-    ],
-  };
   const tabs: TabItem[] = [
-    { key: "followed", label: "Events from Followed", icon: "users" },
-    { key: "recommended", label: "Recommended Events", icon: "star" },
+    { key: "all", label: "All Events", icon: "calendar" },
+    { key: "upcoming", label: "Upcoming Events", icon: "star" },
     { key: "passed", label: "Passed Events", icon: "history" },
   ];
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const allEvents = await eventService.getAllEvents();
+      
+      const now = new Date();
+      const upcomingEvents = allEvents.filter(
+        (event: Event) => new Date(event.date) >= now
+      );
+      const passedEvents = allEvents.filter(
+        (event: Event) => new Date(event.date) < now
+      );
+
+      setEvents({
+        all: allEvents,
+        upcoming: upcomingEvents,
+        passed: passedEvents,
+      });
+
+      setFilteredEvents({
+        all: allEvents,
+        upcoming: upcomingEvents,
+        passed: passedEvents,
+      });
+
+    } catch (err) {
+      setError("Erreur lors du chargement des événements");
+      console.error("Error fetching events:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const handleSearch = () => {
+    if (searchQuery.length >= 3) {
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      const filtered = {
+        all: events.all.filter(event =>
+          event.name.toLowerCase().includes(lowerCaseQuery)
+        ),
+        upcoming: events.upcoming.filter(event =>
+          event.name.toLowerCase().includes(lowerCaseQuery)
+        ),
+        passed: events.passed.filter(event =>
+          event.name.toLowerCase().includes(lowerCaseQuery)
+        ),
+      };
+      setFilteredEvents(filtered);
+    } else {
+      setFilteredEvents(events);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -111,8 +133,9 @@ const EventsScreen: React.FC = () => {
               placeholder="Enter name to search for event"
               value={searchQuery}
               onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
             />
-            <TouchableOpacity style={styles.searchButton}>
+            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
               <FontAwesome name="search" size={20} color="white" />
             </TouchableOpacity>
           </View>
@@ -147,24 +170,35 @@ const EventsScreen: React.FC = () => {
           ))}
         </View>
 
-        <View>
-          <Text style={styles.sectionTitle}>
-            {activeTab === "followed" && "Events from Followed"}
-            {activeTab === "recommended" && "Recommended Events"}
-            {activeTab === "passed" && "Passed Events"}
-          </Text>
-          {eventsData[activeTab as keyof typeof eventsData].map(
-            (event, index) => (
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1E232C" />
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={fetchEvents}>
+              <Text style={styles.retryButtonText}>Réessayer</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View>
+            <Text style={styles.sectionTitle}>
+              {activeTab === "all" && "All Events"}
+              {activeTab === "upcoming" && "Upcoming Events"}
+              {activeTab === "passed" && "Passed Events"}
+            </Text>
+            {filteredEvents[activeTab]?.map((event, index) => (
               <EventItem
-                key={index}
-                icon={event.icon}
-                title={event.title}
-                subtitle={event.subtitle}
-                date={event.date}
+                key={event.id || index}
+                title={event.name}
+                subtitle={`Location: ${event.location}`}
+                date={new Date(event.date).toLocaleDateString()}
+                emoji="🎉"
               />
-            )
-          )}
-        </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

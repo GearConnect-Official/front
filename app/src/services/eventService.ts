@@ -28,7 +28,7 @@ const eventService = {
   },
 
   // Récupérer un événement par ID
-  getEventById: async (id: string) => {
+  getEventById: async (id: number) => {
     try {
       const response = await axios.get(`${API_URL}/events/${id}`);
       return response.data;

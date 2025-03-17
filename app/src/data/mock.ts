@@ -93,4 +93,51 @@ export const MOCK_EVENTS = [
       },
     ],
   },
+  {
+    id: 3,
+    title: "Formula 1 Grand Prix",
+    category: "Race, Paid Entry",
+    description: "Experience the thrill of Formula 1 racing at its finest.",
+    tags: ["Formula 1", "Race"],
+    images: [
+      "https://cdn.builder.io/api/v1/image/assets/TEMP/formula1-grand-prix.png",
+    ],
+    details: {
+      location: "Monaco",
+      date: "25/05/25",
+      time: "14:00 - 16:00",
+    },
+    relatedProducts: [
+      {
+        id: 5,
+        title: "Pit Lane Access",
+        price: "200€",
+        image: "https://cdn.builder.io/api/v1/image/assets/TEMP/pit-lane-access.png",
+        tag: "Exclusive",
+      },
+      {
+        id: 6,
+        title: "Official Team Merchandise",
+        price: "50€",
+        image: "https://cdn.builder.io/api/v1/image/assets/TEMP/team-merchandise.png",
+        tag: "Merchandise",
+      },
+    ],
+    reviews: [
+      {
+        id: 5,
+        user: "Lewis Hamilton",
+        rating: 5,
+        comment: "An incredible experience, highly recommend!",
+        avatar: "https://via.placeholder.com/50",
+      },
+      {
+        id: 6,
+        user: "Sebastian Vettel",
+        rating: 4,
+        comment: "Great race, but the weather could have been better.",
+        avatar: "https://via.placeholder.com/50",
+      },
+    ],
+  },
 ];

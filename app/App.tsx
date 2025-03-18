@@ -17,6 +17,9 @@ import CreateJobOfferScreen from "./src/screens/CreateJobOfferScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import CreateEventScreen from "./src/screens/CreateEventScreen";
 import PublicationScreen from "./src/screens/PublicationScreen";
+import { AuthProvider, useAuth } from "./src/context/AuthContext";
+import LoadingScreen from "./src/screens/LoadingScreen";
+import VerifyScreen from "./src/screens/VerifyScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -35,6 +38,8 @@ export type RootStackParamList = {
   CreateJobOffer: undefined;
   Profile: undefined;
   PublicationScreen: undefined;
+  BottomTabs: undefined;
+  Verify: undefined;
 };
 
 // Bottom tab navigation (with `BottomNav` as `tabBar`)
@@ -51,14 +56,21 @@ const BottomTabNavigator = () => (
   </Tab.Navigator>
 );
 
-// Main navigation (Stack)
-const MainNavigator = () => (
+// Auth Stack for unauthenticated users
+const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
     <Stack.Screen name="Welcome" component={WelcomeScreen} />
     <Stack.Screen name="Auth" component={AuthScreen} />
     <Stack.Screen name="Register" component={RegisterScreen} />
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+  </Stack.Navigator>
+);
+
+// App Stack for authenticated users
+const AppStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
+    <Stack.Screen name="Verify" component={VerifyScreen} />
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
@@ -67,6 +79,17 @@ const MainNavigator = () => (
   </Stack.Navigator>
 );
 
+// Main navigation handler that conditionally renders Auth or App stack
+const MainNavigator = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return isAuthenticated ? <AppStack /> : <AuthStack />;
+};
+
 const CLERK_PUBLISHABLE_KEY =
   "pk_test_b2JsaWdpbmctcHl0aG9uLTgzLmNsZXJrLmFjY291bnRzLmRldiQ";
 
@@ -74,13 +97,15 @@ const CLERK_PUBLISHABLE_KEY =
 const App: React.FC = () => {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-      {Platform.OS === "web" ? (
-        <NavigationContainer>
+      <AuthProvider>
+        {Platform.OS === "web" ? (
+          <NavigationContainer>
+            <MainNavigator />
+          </NavigationContainer>
+        ) : (
           <MainNavigator />
-        </NavigationContainer>
-      ) : (
-        <MainNavigator />
-      )}
+        )}
+      </AuthProvider>
     </ClerkProvider>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   TextInput,
@@ -6,11 +6,14 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Text,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Post from "../components/Post";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import styles from "../styles/homeStyles";
+import { useAuth } from "../context/AuthContext";
 
 const MOCK_POSTS = [
   {
@@ -51,19 +54,68 @@ const HomeScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
   const navigation = useNavigation();
+  const { user, logout, getCurrentUser } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Refresh user info when component mounts
+  useEffect(() => {
+    const refreshUserInfo = async () => {
+      await getCurrentUser();
+    };
+    refreshUserInfo();
+  }, []);
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          onPress: async () => {
+            await logout();
+          },
+          style: "destructive"
+        }
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity
-          onPress={() => navigation.navigate("Profile" as never)}
+          onPress={() => setShowUserMenu(!showUserMenu)}
+          style={styles.profileButton}
         >
           <Image
             source={{
-              uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true",
+              uri: user?.photoURL|| "https://cdn.builder.io/api/v1/image/assets/TEMP/f3d67917c6442fafa158ab0bdb706f7194e5a329b13b72692715ec90abbf8ce7?placeholderIfAbsent=true"
             }}
             style={styles.topBarImg}
           />
+          {showUserMenu && (
+            <View style={styles.userMenu}>
+              <TouchableOpacity 
+                style={styles.userMenuItem}
+                onPress={() => navigation.navigate("Profile" as never)}
+              >
+                <FontAwesome name="user" size={16} color="#1E232C" />
+                <Text style={styles.userMenuItemText}>Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.userMenuItem}
+                onPress={handleLogout}
+              >
+                <FontAwesome name="sign-out" size={16} color="#1E232C" />
+                <Text style={styles.userMenuItemText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </TouchableOpacity>
         <TextInput
           style={styles.topBarSearchInput}
@@ -75,9 +127,6 @@ const HomeScreen: React.FC = () => {
           <TouchableOpacity>
             <FontAwesome name="bell" size={24} color="#1E232C" />
           </TouchableOpacity>
-          {/* <TouchableOpacity onPress={() => navigation.goBack()}>
-            <FontAwesome name="comment" size={24} color="#1E232C" />
-          </TouchableOpacity> */}
         </View>
       </View>
 

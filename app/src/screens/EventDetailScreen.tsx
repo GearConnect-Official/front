@@ -4,7 +4,6 @@ import {
   Text,
   Image,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   FlatList,
 } from 'react-native';
@@ -18,7 +17,7 @@ type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
 interface Event {
   id: string;
-  title: string;
+  name: string;
   category: string;
   description: string;
   images: string[];
@@ -86,7 +85,7 @@ const EventDetailScreen: React.FC = () => {
         </View>
 
         <View style={styles.eventInfo}>
-          <Text style={styles.eventTitle}>{event.title}</Text>
+          <Text style={styles.eventTitle}>{event.name}</Text>
           <TouchableOpacity style={styles.reviewButton}>
             <Text style={styles.reviewText}>Review</Text>
           </TouchableOpacity>
@@ -196,7 +195,5 @@ const EventDetailScreen: React.FC = () => {
     );
   }
 };
-
-
 
 export default EventDetailScreen;

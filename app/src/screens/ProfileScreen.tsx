@@ -90,10 +90,10 @@ const ProfileScreen: React.FC = () => {
           </Text>
 
           <View style={styles.infoItem}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/63a7272b9eed65bad6d9ed7ad98ae93c2a47fe496fe72285ff1bb9c4e7a66cb7",
-              }}
+            <FontAwesome
+              name="clock-o"
+              size={24}
+              color="#1E232C"
               style={styles.infoIcon}
             />
             <Text style={styles.infoTitle}>2015 - Present</Text>
@@ -101,10 +101,10 @@ const ProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.infoItem}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/6c8ad329f4c2055e00c9dc01db19466f7d2d34876cc380be7b72f442b41dc284",
-              }}
+            <FontAwesome
+              name="map-marker"
+              size={24}
+              color="#1E232C"
               style={styles.infoIcon}
             />
             <Text style={styles.infoTitle}>Location</Text>

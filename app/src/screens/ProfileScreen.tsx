@@ -11,9 +11,25 @@ import {
 import styles from "../styles/profileStyles";
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import * as DocumentPicker from "expo-document-picker";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
+
+  const handleUploadCV = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+      });
+      if (result.canceled) {
+        console.log("Upload cancelled");
+      } else if (result.assets && result.assets.length > 0) {
+        console.log("Uploaded file URI:", result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("Error picking document:", error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,39 +66,19 @@ const ProfileScreen: React.FC = () => {
 
         <View style={styles.tabGroup}>
           <TouchableOpacity style={styles.tab}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/dca4c5bba01002d2d65a77915ada12862f517ea66050949c8b8b8d24487bb250",
-              }}
-              style={styles.tabIcon}
-            />
+            <FontAwesome name="users" size={24} color="#1E232C" />
             <Text style={styles.tabText}>FriendList</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.tab}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/77af5aef860e3e7103ab3175c8bf0d426865ecccc3771d02a312fb31dc17eaae",
-              }}
-              style={styles.tabIcon}
-            />
+            <FontAwesome name="briefcase" size={24} color="#1E232C" />
             <Text style={styles.tabText}>Experience</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.tab}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/315acbe16b6c672c56469bfc0dee1ed52c620f2eeda576d7b174cd9ecaf9065c",
-              }}
-              style={styles.tabIcon}
-            />
+            <FontAwesome name="calendar" size={24} color="#1E232C" />
             <Text style={styles.tabText}>My Events</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.tab}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/9d8a6d559734f34467ff9622156821ff3572dbd873bbee0e410d265aa9a226e0?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/9d8a6d559734f34467ff9622156821ff3572dbd873bbee0e410d265aa9a226e0?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/9d8a6d559734f34467ff9622156821ff3572dbd873bbee0e410d265aa9a226e0?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/9d8a6d559734f34467ff9622156821ff3572dbd873bbee0e410d265aa9a226e0?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/9d8a6d559734f34467ff9622156821ff3572dbd873bbee0e410d265aa9a226e0?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/9d8a6d559734f34467ff9622156821ff3572dbd873bbee0e410d265aa9a226e0?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/9d8a6d559734f34467ff9622156821ff3572dbd873bbee0e410d265aa9a226e0?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/9d8a6d559734f34467ff9622156821ff3572dbd873bbee0e410d265aa9a226e0?placeholderIfAbsent=true",
-              }}
-              style={styles.tabIcon}
-            />
+            <FontAwesome name="trophy" size={24} color="#1E232C" />
             <Text style={styles.tabText}>My Results</Text>
           </TouchableOpacity>
         </View>
@@ -162,17 +158,16 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>CV</Text>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/15bdba380251bf0ea6f2e242a6d57bc644bbb6c7d984338cda01f102a3174439",
-              }}
-              style={styles.sectionIcon}
-            />
+            <FontAwesome name="file-pdf-o" size={24} color="#1E232C" />
           </View>
 
-          <View style={styles.cvCard}>
-            <Text style={styles.cvText}>Add your CV</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={handleUploadCV}
+          >
+            <FontAwesome name="upload" size={24} color="#FFF" />
+            <Text style={styles.uploadButtonText}>Upload Your CV</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

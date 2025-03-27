@@ -194,6 +194,21 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#000",
   },
+  uploadButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1E232C",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  uploadButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
 });
 
 export default styles;

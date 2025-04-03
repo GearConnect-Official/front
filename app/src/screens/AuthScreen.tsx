@@ -7,14 +7,16 @@ import {
   Image,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../App";
-import { signIn } from "../services/AuthService";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { useAuth } from "../context/AuthContext";
 
 const AuthScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,10 +27,8 @@ const AuthScreen: React.FC = () => {
       return;
     }
 
-    const result = await signIn(email, password);
-    if (result.success) {
-      navigation.navigate("Home");
-    } else {
+    const result = await login(email, password);
+    if (!result.success) {
       Alert.alert("Error", result.error || "Login failed");
     }
   };
@@ -88,8 +88,16 @@ const AuthScreen: React.FC = () => {
           <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
+        <TouchableOpacity 
+          style={styles.loginButton} 
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.loginButtonText}>Login</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.dividerContainer}>

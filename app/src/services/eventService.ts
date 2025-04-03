@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.86.33:3001/api';
+const API_URL = 'http://10.57.32.251:3001/api';
 
 export interface Event {
   id?: string;

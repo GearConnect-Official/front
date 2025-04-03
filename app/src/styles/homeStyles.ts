@@ -40,6 +40,52 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  
+  // User menu styles
+  profileButton: {
+    position: 'relative',
+  },
+  userMenu: {
+    position: 'absolute',
+    top: 55,
+    left: 0,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 100,
+    width: 150,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  userMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  userMenuItemText: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#1E232C',
+  },
+  
+  // Welcome section
+  welcomeSection: {
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  welcomeText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1E232C',
+  },
 });
 
 export default styles;

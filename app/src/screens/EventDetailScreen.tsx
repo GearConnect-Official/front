@@ -10,48 +10,28 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '@/app/App';
-import eventService from '../services/eventService';
+import { EventInterface } from '../services/EventInterface';
 import styles from '../styles/eventDetailStyles';
+import { API_URL } from '../config'; //until we have a .env file working
 
 type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
-
-interface Event {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  images: string[];
-  tags: string[];
-  details: {
-    location: string;
-    date: string;
-    time: string;
-  };
-  relatedProducts: {
-    id: string;
-    tag: string;
-    image: string;
-    title: string;
-    price: string;
-  }[];
-  reviews: {
-    id: string;
-    user: string;
-    comment: string;
-    avatar: string;
-  }[];
-}
 
 const EventDetailScreen: React.FC = () => {
   const route = useRoute<EventDetailScreenRouteProp>();
   const navigation = useNavigation();
   const { eventId } = route.params;
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
-      const fetchedEvent = await eventService.getEventById(eventId);
+      const response = await fetch(`${API_URL}/events/${eventId}`);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch events: ${response.status} ${response.statusText}`
+        );
+      }
+      const fetchedEvent: EventInterface = await response.json();
       setEvent(fetchedEvent);
       setError(null);
     } catch (error) {
@@ -59,22 +39,29 @@ const EventDetailScreen: React.FC = () => {
       setError('Failed to fetch event data');
     }
   };
+  console.log('eventId:', eventId);
+  console.log('event:', event);
 
   useEffect(() => {
+    if (!eventId) {
+      setError('Invalid event ID.');
+      return;
+    }
     fetchData();
   }, [eventId]);
 
   if (error) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>Event not found or failed to load.</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.goBackText}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
   }
-  if (event) {
+
+  if (event !== null) {
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header}>
@@ -89,37 +76,39 @@ const EventDetailScreen: React.FC = () => {
           <TouchableOpacity style={styles.reviewButton}>
             <Text style={styles.reviewText}>Review</Text>
           </TouchableOpacity>
-          <Text style={styles.eventCategory}>{event.category}</Text>
+          {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
         </View>
 
-        <View style={styles.descriptionContainer}>
-          {event.images[0] ? (
+        {/* 
+         <View style={styles.descriptionContainer}>
+           {event?.images?.[0] ? (
             <Image
-              source={{ uri: event.images[0] }}
-              style={styles.eventImage}
-            />
-          ) : (
-            <View style={styles.placeholderImage}>
-              <Text>No Image Available</Text>
-            </View>
-          )}
-          <View style={styles.aboutContainer}>
-            <Text style={styles.aboutTitle}>About</Text>
-            <View style={styles.tagContainer}>
-              {event.tags.map((tag, index) => (
+               source={{ uri: event.images[0] }}
+               style={styles.eventImage}
+             />
+           ) : (
+             <View style={styles.placeholderImage}>
+               <Text>No Image Available</Text>
+             </View>
+           )}
+           <View style={styles.aboutContainer}>
+             <Text style={styles.aboutTitle}>About</Text>
+             <View style={styles.tagContainer}>
+               {event?.tags?.map((tag, index) => (
                 <Text key={index} style={styles.tag}>
                   {tag}
                 </Text>
-              ))}
+               ))}
             </View>
-            <Text style={styles.description}>{event.description}</Text>
+             <Text style={styles.description}>{event.description}</Text>
           </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Best of Images</Text>
-        {event.images[0] ? (
+         </View>
+          */}
+        {/*
+         <Text style={styles.sectionTitle}>Best of Images</Text>
+         {event.images[0] ? (
           <Image
-            source={{ uri: event.images[0] }}
+            source={{ uri: event?.images[0] }}
             style={styles.mainEventImage}
           />
         ) : (
@@ -127,26 +116,31 @@ const EventDetailScreen: React.FC = () => {
             <Text>No Image Available</Text>
           </View>
         )}
+            */}
 
         <Text style={styles.sectionTitle}>Event Details</Text>
         <View style={styles.detailRow}>
           <Ionicons name="location-outline" size={20} color="gray" />
-          <Text style={styles.detailText}>{event.details.location}</Text>
+          <Text style={styles.detailText}>
+            {event.location || 'No location available'}
+          </Text>
         </View>
         <View style={styles.detailRow}>
           <Ionicons name="calendar-outline" size={20} color="gray" />
-          <Text style={styles.detailText}>{event.details.date}</Text>
+          <Text style={styles.detailText}>
+            {event.date || 'No date available'}
+          </Text>
           <Ionicons
             name="time-outline"
             size={20}
             color="gray"
             style={{ marginLeft: 10 }}
           />
-          <Text style={styles.detailText}>{event.details.time}</Text>
+          {/* <Text style={styles.detailText}>{event.meteo}</Text> */}
         </View>
-
-        <Text style={styles.sectionTitle}>Related Products</Text>
-        <FlatList
+        {/*
+         <Text style={styles.sectionTitle}>Related Products</Text>
+         <FlatList
           horizontal
           data={event.relatedProducts}
           keyExtractor={(item) => item.id.toString()}
@@ -159,6 +153,8 @@ const EventDetailScreen: React.FC = () => {
             </View>
           )}
         />
+*/}
+        {/* 
 
         <Text style={styles.sectionTitle}>Customer Reviews</Text>
         <FlatList
@@ -166,18 +162,20 @@ const EventDetailScreen: React.FC = () => {
           data={event.reviews}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={styles.reviewCard}>
-              <Image
-                source={{ uri: item.avatar }}
-                style={styles.reviewAvatar}
-              />
-              <Text style={styles.reviewUser}>{item.user}</Text>
-              <Text>{item.comment}</Text>
-            </View>
-          )}
-        />
+              <View style={styles.reviewCard}>
+                <Image
+                  source={{ uri: item.avatar }}
+                  style={styles.reviewAvatar}
+                />
+                <Text style={styles.reviewUser}>{item.user}</Text>
+                <Text>{item.comment}</Text>
+              </View>
+            )}
+          />
+  */}
 
         {/* Buttons */}
+
         <TouchableOpacity style={styles.shareButton}>
           <Text>Share</Text>
         </TouchableOpacity>

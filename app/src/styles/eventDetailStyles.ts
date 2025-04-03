@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: '#fff' },
@@ -9,10 +9,16 @@ export const styles = StyleSheet.create({
     paddingBottom: 10,
     marginBottom: 10,
   },
+  eventInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Ensures items are separated to the left and right
+    alignItems: 'center', // Aligns items vertically in the center
+    marginBottom: 10,
+  },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
   reviewButton: { backgroundColor: 'black', padding: 8, borderRadius: 5 },
   reviewText: { color: 'white' },
-  eventInfo: { flex: 1, flexDirection: 'row', marginBottom: 10 },
   eventTitle: { fontSize: 20, fontWeight: 'bold' },
   eventCategory: { color: 'gray' },
   descriptionContainer: { flexDirection: 'row', marginBottom: 10 },

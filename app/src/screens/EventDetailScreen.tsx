@@ -12,7 +12,6 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '@/app/App';
 import { EventInterface } from '../services/EventInterface';
 import styles from '../styles/eventDetailStyles';
-import { API_URL } from '../config'; //until we have a .env file working
 
 type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
@@ -25,7 +24,7 @@ const EventDetailScreen: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch(`${API_URL}/events/${eventId}`);
+      const response = await fetch(`${process.env.API_PROTOCOLE}://${process.env.API_HOST}:${process.env.PORT}/events/${eventId}`);
       if (!response.ok) {
         throw new Error(
           `Failed to fetch events: ${response.status} ${response.statusText}`

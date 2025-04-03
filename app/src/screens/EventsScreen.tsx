@@ -16,7 +16,6 @@ import EventItem from '../components/EventItem';
 import { RootStackParamList } from '@/app/App';
 import { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
-import { API_URL } from '../config';
 
 const EventsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -54,7 +53,7 @@ const EventsScreen: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/events`);
+      const response = await fetch(`${process.env.API_PROTOCOLE}://${process.env.API_HOST}:${process.env.PORT}/events`);
       if (!response.ok) {
         throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
       }

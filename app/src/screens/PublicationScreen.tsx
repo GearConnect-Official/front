@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../styles/publicationStyles';
+import postService from '../services/postService';
 
 import Header from '../components/Publication/Header';
 import MediaSection from '../components/Publication/MediaSection';
@@ -15,6 +16,8 @@ const PublicationScreen: React.FC = () => {
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleGoBack = () => {
     if (step !== 'select') {
@@ -31,6 +34,7 @@ const PublicationScreen: React.FC = () => {
               setCroppedImage(null);
               setTitle('');
               setDescription('');
+              setTags([]);
               setStep('select');
               navigation.goBack();
             }
@@ -51,22 +55,88 @@ const PublicationScreen: React.FC = () => {
     }
 
     try {
-      // TODO: Implement your API call here
-      console.log('Sharing post:', {
+      setIsLoading(true);
+      
+      // Préparation du modèle de données selon le schéma Prisma
+      // Correspondant au modèle Post { id, title, body, user, userId, image, imageId, tags, interactions, createdAt }
+      const post = {
+        title: title,
+        body: description,
+        userId: 1, // Remplacer par l'ID de l'utilisateur connecté
         image: imageToShare,
-        title,
-        description,
-      });
+        tags: tags.length > 0 ? tags.map(tag => ({ name: tag })) : undefined,
+      };
+      
+      console.log("\n\n=========== DONNÉES À ENVOYER VERS LE BACKEND ===========");
+      console.log("Format attendu par le modèle Prisma:");
+      console.log(`
+model Post {
+  id            Int           @id @default(autoincrement())
+  title         String
+  body          String
+  user          User          @relation(fields: [userId], references: [id])
+  userId        Int
+  image         Photo?        @relation(fields: [imageId], references: [id])
+  imageId       Int?
+  tags          PostTag[]
+  interactions  Interaction[]
+  createdAt     DateTime      @default(now())
+}
+      `);
+      
+      // Appel de l'API pour créer le post
+      const response = await postService.createPost(post);
+      console.log('Post created:', response);
+      
+      // Si le post a des tags, les ajouter
+      if (tags.length > 0 && response.id) {
+        console.log('\nAjout des tags au post:');
+        await Promise.all(
+          tags.map(tag => {
+            console.log(`- Tag: ${tag}`);
+            return postService.addTagToPost(response.id, { name: tag });
+          })
+        );
+      }
       
       setSelectedImage(null);
       setCroppedImage(null);
       setTitle('');
       setDescription('');
+      setTags([]);
       setStep('select');
+      
+      Alert.alert('Success', 'Your post has been shared successfully!');
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to share post');
+      console.error('\n❌ ERREUR LORS DE LA CRÉATION DU POST:');
       console.error(error);
+      console.log('\n📋 INSTRUCTIONS POUR LE BACKEND:');
+      console.log(`
+Pour que cette fonctionnalité fonctionne, vous devez implémenter les routes suivantes:
+
+1. POST /api/posts
+   - Crée un nouveau post
+   - Corps de la requête: { title, body, userId, image, tags? }
+   - Retourne: Le post créé avec son ID
+
+2. POST /api/posts/:postId/tags 
+   - Ajoute un tag à un post existant
+   - Corps de la requête: { name }
+   - Retourne: Le tag créé
+
+3. GET /api/posts
+   - Récupère tous les posts
+   - Retourne: Liste de posts
+
+4. POST /api/posts/:postId/interactions
+   - Ajoute une interaction (like, comment, share) à un post
+   - Corps de la requête: { type, userId, content?, createdAt }
+   - Retourne: L'interaction créée
+`);
+      Alert.alert('Error', 'Failed to share post');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -103,6 +173,10 @@ const PublicationScreen: React.FC = () => {
     }
   };
 
+  const handleTagsChange = (newTags: string[]) => {
+    setTags(newTags);
+  };
+
   const renderContent = () => {
     switch (step) {
       case 'select':
@@ -126,10 +200,13 @@ const PublicationScreen: React.FC = () => {
             imageUri={imageToShow}
             title={title}
             description={description}
+            tags={tags}
             setTitle={setTitle}
             setDescription={setDescription}
+            setTags={handleTagsChange}
             username="Username" // À remplacer par le vrai username
             userAvatar="https://via.placeholder.com/32" // À remplacer par le vrai avatar
+            isLoading={isLoading}
           />
         ) : null;
       
@@ -147,6 +224,7 @@ const PublicationScreen: React.FC = () => {
         onConfirm={handleNext}
         onNext={step === 'form' ? handleShare : handleNext}
         onGoBack={handleGoBack}
+        isLoading={isLoading}
       />
       {renderContent()}
     </View>

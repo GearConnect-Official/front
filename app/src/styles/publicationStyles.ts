@@ -78,6 +78,12 @@ const styles = StyleSheet.create({
   nextButtonDisabled: {
     opacity: 0.5,
   },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  buttonLoader: {
+    marginHorizontal: 8,
+  },
 
   // Media Section styles
   mediaSectionContainer: {
@@ -461,6 +467,75 @@ const styles = StyleSheet.create({
   cropImage: {
     width: '100%',
     height: '100%',
+  },
+
+  tagsContainer: {
+    marginTop: 16,
+    borderTopWidth: 0.5,
+    borderTopColor: '#262626',
+    paddingTop: 16,
+  },
+  tagsLabel: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  tagsInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  tagInput: {
+    flex: 1,
+    color: '#fff',
+    backgroundColor: '#262626',
+    borderRadius: 4,
+    padding: 8,
+    marginRight: 8,
+  },
+  addTagButton: {
+    backgroundColor: '#0095F6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
+  },
+  addTagButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  tagsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 16,
+  },
+  tagItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0095F6',
+    borderRadius: 16,
+    padding: 8,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  tagText: {
+    color: '#fff',
+    marginRight: 8,
+  },
+  removeTagButton: {
+    color: '#fff',
+    fontSize: 18,
+    lineHeight: 18,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  loadingText: {
+    color: '#fff',
+    marginTop: 8,
+    fontSize: 16,
   },
 });
 

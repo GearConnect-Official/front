@@ -16,7 +16,7 @@ import EventItem from '../components/EventItem';
 import { RootStackParamList } from '@/app/App';
 import { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
-import eventService, { Event } from '../services/eventService';
+import { API_URL } from '../config';
 
 const EventsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -54,8 +54,11 @@ const EventsScreen: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const allEvents = await eventService.getAllEvents();
-
+      const response = await fetch(`${API_URL}/events`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
+      }
+      const allEvents = await response.json();
       const now = new Date();
       const upcomingEvents = allEvents.filter(
         (event: Event) => new Date(event.date) >= now
@@ -75,8 +78,12 @@ const EventsScreen: React.FC = () => {
         upcoming: upcomingEvents,
         passed: passedEvents,
       });
-    } catch (err) {
-      setError('Erreur lors du chargement des événements');
+    } catch (err: any) {
+      if (err.message === 'Network request failed') {
+        setError('Network error: Please check your internet connection.');
+      } else {
+        setError(err.message || 'An unexpected error occurred.');
+      }
       console.error('Error fetching events:', err);
     } finally {
       setLoading(false);

@@ -1,3 +1,4 @@
+// Every commented properties are missing fields from the database
 export interface EventInterface {
   id: string;
   name: string;

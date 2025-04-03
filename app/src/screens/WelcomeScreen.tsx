@@ -20,9 +20,6 @@ const WelcomeScreen: React.FC = () => {
       <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate("Register")}>
         <Text style={styles.registerText}>Register</Text>
       </TouchableOpacity>
-
-      {/* Continue as guest link */}
-      <Text style={styles.guestText}>Continue as a guest</Text>
     </View>
   );
 };

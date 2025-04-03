@@ -1,17 +1,23 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 30,
   },
   backButton: {
     position: "absolute",
     top: 50,
     left: 20,
+    zIndex: 10,
   },
   backIcon: {
     width: 24,
@@ -24,6 +30,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 30,
   },
+  inputContainer: {
+    width: "100%",
+    marginBottom: 15,
+  },
   input: {
     width: "100%",
     height: 56,
@@ -32,8 +42,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 15,
-    marginBottom: 15,
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: "#FF3B30",
+  },
+  errorText: {
+    color: "#FF3B30",
+    fontSize: 12,
+    marginTop: 5,
+    marginLeft: 5,
   },
   registerButton: {
     backgroundColor: "#1E232C",

@@ -125,12 +125,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(0, 0, 0, 0.1)",
+    gap: 12,
   },
   infoIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: 8,
+    marginTop: 5,
   },
   infoTitle: {
     flex: 1,
@@ -193,6 +194,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "500",
     color: "#000",
+  },
+  uploadButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1E232C",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  uploadButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
 });
 

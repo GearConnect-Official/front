@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,9 +12,14 @@ import styles from "../styles/profileStyles";
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import * as DocumentPicker from "expo-document-picker";
+import UserProfile from "../components/UserProfile";
+import { useAuth } from "../context/AuthContext";
+
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<string>("profile");
 
   const handleUploadCV = async () => {
     try {
@@ -38,13 +43,10 @@ const ProfileScreen: React.FC = () => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
-          <Text style={styles.topBarTitle}>User profile</Text>
-          <TouchableOpacity>
-            <FontAwesome name="bell" size={24} color="#1E232C" />
-          </TouchableOpacity>
+          <Text style={styles.topBarTitle}>Profile</Text>
+          <View style={{ width: 24 }} />
         </View>
       </View>
-
       <ScrollView style={styles.content}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
@@ -111,46 +113,41 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.infoSubtitle}>San Francisco, CA</Text>
           </View>
         </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+        
+      <ScrollView style={styles.content}>
+        {activeTab === 'profile' ? (
+          <UserProfile />
+        ) : activeTab === 'events' ? (
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Events I attended</Text>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/ee6824f3fe83ab73781604f7b0d311455952afa15f2f220845c45dd3c1074335",
-              }}
-              style={styles.sectionIcon}
-            />
-          </View>
-
-          <View style={styles.eventCard}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true",
-              }}
-              style={styles.eventImage}
-            />
-            <View style={styles.eventInfo}>
-              <Text style={styles.eventTitle}>Course Karting RKC</Text>
-              <Text style={styles.eventResult}>Victory</Text>
+            
+            <View style={styles.eventCard}>
+              <Image
+                source={{
+                  uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/be16d124c072203f4c7e4964e1c65b26abecafb8b6dff77d49b8076a20a0703f?placeholderIfAbsent=true",
+                }}
+                style={styles.eventImage}
+              />
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventTitle}>Course Karting RKC</Text>
+                <Text style={styles.eventResult}>Victory</Text>
+              </View>
             </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Events I've organized</Text>
-          <View style={styles.eventCard}>
-            <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true",
-              }}
-              style={styles.eventImage}
-            />
-            <View style={styles.eventInfo}>
-              <Text style={styles.eventTitle}>
-                Val de Vienne Beginner Open Circuit
-              </Text>
-              <Text style={styles.eventVenue}>Val de Vienne Circuit</Text>
+            
+            <Text style={styles.sectionTitle}>Events I've organized</Text>
+            <View style={styles.eventCard}>
+              <Image
+                source={{
+                  uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/59769d4a5ce342f7171b3d99e95d2ab9ee8b2590995a3882c02db3205cf60a92?placeholderIfAbsent=true",
+                }}
+                style={styles.eventImage}
+              />
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventTitle}>
+                  Val de Vienne Beginner Open Circuit
+                </Text>
+                <Text style={styles.eventVenue}>Val de Vienne Circuit</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -169,6 +166,7 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.uploadButtonText}>Upload Your CV</Text>
           </TouchableOpacity>
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );

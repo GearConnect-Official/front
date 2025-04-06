@@ -20,6 +20,7 @@ import PublicationScreen from "./src/screens/PublicationScreen";
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import LoadingScreen from "./src/screens/LoadingScreen";
 import VerifyScreen from "./src/screens/VerifyScreen";
+import ThemeProvider from "./src/styles/ThemeProvider";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -97,15 +98,17 @@ const CLERK_PUBLISHABLE_KEY =
 const App: React.FC = () => {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-      <AuthProvider>
-        {Platform.OS === "web" ? (
-          <NavigationContainer>
+      <ThemeProvider>
+        <AuthProvider>
+          {Platform.OS === "web" ? (
+            <NavigationContainer>
+              <MainNavigator />
+            </NavigationContainer>
+          ) : (
             <MainNavigator />
-          </NavigationContainer>
-        ) : (
-          <MainNavigator />
-        )}
-      </AuthProvider>
+          )}
+        </AuthProvider>
+      </ThemeProvider>
     </ClerkProvider>
   );
 };

@@ -16,6 +16,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { FontAwesome } from "@expo/vector-icons";
 import { PinchGestureHandler, State, PinchGestureHandlerStateChangeEvent } from "react-native-gesture-handler";
 import styles from "../../styles/publicationStyles";
+import imageViewerStyles from "../../styles/imageViewerStyles";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -183,7 +184,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                     onGestureEvent={onFullscreenPinchGestureEvent}
                     onHandlerStateChange={onFullscreenPinchHandlerStateChange}
                 >
-                    <Animated.View style={{ flex: 1, width: '100%' }}>
+                    <Animated.View style={imageViewerStyles.animatedView}>
                         <Animated.Image
                             source={{ uri: displayedImage }}
                             style={[
@@ -208,7 +209,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             <StatusBar barStyle="light-content" backgroundColor="#000" />
             {isCropping ? (
                 <View style={styles.cropFrameContainer}>
-                    <View style={[styles.cropFrame, { aspectRatio: aspectRatio === "square" ? 1 : 4/5 }]}>
+                    <View style={[styles.cropFrame, aspectRatio === "square" ? imageViewerStyles.cropFrameSquare : imageViewerStyles.cropFramePortrait]}>
                         <PinchGestureHandler
                             onGestureEvent={onPinchGestureEvent}
                             onHandlerStateChange={onPinchHandlerStateChange}

@@ -14,6 +14,7 @@ import Post from "../components/Post";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import styles from "../styles/homeStyles";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../styles/ThemeProvider";
 
 const MOCK_POSTS = [
   {
@@ -56,6 +57,7 @@ const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user, logout, getCurrentUser } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const { theme, isDarkMode, toggleTheme } = useTheme();
 
   // Refresh user info when component mounts
   useEffect(() => {
@@ -85,6 +87,35 @@ const HomeScreen: React.FC = () => {
     );
   };
 
+  // Styles spécifiques pour le thème
+  const themeCardStyle = {
+    padding: 16,
+    marginBottom: 16,
+    backgroundColor: isDarkMode ? theme.colors.background.paper : '#F7F8F9',
+    borderRadius: 8,
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+  };
+
+  const themeTextStyle = { 
+    fontSize: 16, 
+    fontWeight: '500' as const, 
+    color: isDarkMode ? theme.colors.text.primary : '#1E232C' 
+  };
+
+  const themeButtonStyle = {
+    backgroundColor: theme.colors.primary.main,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+  };
+
+  const themeButtonTextStyle = { 
+    color: '#FFFFFF', 
+    fontWeight: '500' as const 
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
@@ -109,6 +140,13 @@ const HomeScreen: React.FC = () => {
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.userMenuItem}
+                onPress={() => navigation.navigate("ThemeExample" as never)}
+              >
+                <FontAwesome name="paint-brush" size={16} color="#1E232C" />
+                <Text style={styles.userMenuItemText}>Thème</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.userMenuItem}
                 onPress={handleLogout}
               >
                 <FontAwesome name="sign-out" size={16} color="#1E232C" />
@@ -117,6 +155,7 @@ const HomeScreen: React.FC = () => {
             </View>
           )}
         </TouchableOpacity>
+        
         <TextInput
           style={styles.topBarSearchInput}
           placeholder="Search..."

@@ -9,6 +9,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import styles from "../styles/profileStyles";
+import componentStyles from "../styles/profileComponentStyles";
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import * as DocumentPicker from "expo-document-picker";
@@ -44,7 +45,7 @@ const ProfileScreen: React.FC = () => {
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>Profile</Text>
-          <View style={{ width: 24 }} />
+          <View style={componentStyles.spacerView} />
         </View>
       </View>
       <ScrollView style={styles.content}>
@@ -114,7 +115,6 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
         
-      <ScrollView style={styles.content}>
         {activeTab === 'profile' ? (
           <UserProfile />
         ) : activeTab === 'events' ? (
@@ -150,7 +150,7 @@ const ProfileScreen: React.FC = () => {
               </View>
             </View>
           </View>
-        </View>
+        ) : null}
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -166,7 +166,6 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.uploadButtonText}>Upload Your CV</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );

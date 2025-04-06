@@ -1,18 +1,20 @@
 import { StyleSheet } from "react-native";
+import theme from './config/theme';
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "rgba(251, 248, 249, 1)",
+    ...theme.common.container,
   },
 
   topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.1)",
+    ...theme.common.row,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.background.paper,
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.border.medium, 
+      radius: 'none'
+    }),
   },
   topBarImg: {
     width: 47,
@@ -21,16 +23,18 @@ const styles = StyleSheet.create({
   },
   topBarSearchInput: {
     flex: 1,
-    marginHorizontal: 12,
-    height: 40,
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.3)",
-    borderRadius: 6,
-    paddingHorizontal: 12,
+    marginHorizontal: theme.spacing.xs + 4,
+    height: theme.spacing.height.smallButton,
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.border.dark, 
+      radius: 'xs'
+    }),
+    paddingHorizontal: theme.spacing.xs + 4,
   },
   topBarIcons: {
     flexDirection: "row",
-    gap: 20,
+    gap: theme.spacing.lg,
   },
   topBarIcon: {
     width: 24,
@@ -38,7 +42,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: theme.spacing.md,
   },
   
   // User menu styles
@@ -49,42 +53,41 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 55,
     left: 0,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    backgroundColor: theme.colors.background.paper,
+    borderRadius: theme.borders.radius.md,
+    ...theme.shadows.apply({}, 'sm'),
     zIndex: 100,
     width: 150,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    ...theme.borders.apply({}, { 
+      preset: 'thin', 
+      color: theme.colors.border.medium
+    }),
   },
   userMenuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
+    ...theme.common.row,
+    padding: theme.spacing.xs + 4,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    borderBottomColor: theme.colors.border.light,
   },
   userMenuItemText: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#1E232C',
+    marginLeft: theme.spacing.xs + 2,
+    fontSize: theme.typography.body1.fontSize,
+    color: theme.colors.text.primary,
   },
   
   // Welcome section
   welcomeSection: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.background.paper,
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.border.medium, 
+      radius: 'none'
+    }),
   },
   welcomeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E232C',
+    ...theme.typography.h5,
+    color: theme.colors.text.primary,
   },
 });
 

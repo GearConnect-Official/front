@@ -1,51 +1,46 @@
 import { StyleSheet } from "react-native";
+import theme from "./config";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    ...theme.common.container,
+    backgroundColor: theme.colors.background.paper,
+    ...theme.common.centerContent,
   },
   logo: {
     width: 171,
     height: 171,
-    marginBottom: 50,
+    marginBottom: theme.spacing.xxxl + 2,
   },
   loginButton: {
-    backgroundColor: "#1E232C",
+    backgroundColor: theme.colors.primary.main,
     width: 330,
-    height: 56,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 15,
+    height: theme.spacing.height.button,
+    borderRadius: theme.borders.radius.md,
+    ...theme.common.centerContent,
+    marginBottom: theme.spacing.sm + 3,
   },
   loginText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#fff",
+    ...theme.typography.button,
+    color: theme.colors.common.white,
   },
   registerButton: {
-    backgroundColor: "#fff",
-    borderColor: "#1E232C",
+    backgroundColor: theme.colors.background.paper,
+    borderColor: theme.colors.primary.main,
     borderWidth: 1,
     width: 330,
-    height: 56,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
+    height: theme.spacing.height.button,
+    borderRadius: theme.borders.radius.md,
+    ...theme.common.centerContent,
   },
   registerText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#1E232C",
+    ...theme.typography.button,
+    color: theme.colors.primary.main,
   },
   guestText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#8B01F4",
-    marginTop: 20,
+    ...theme.typography.subtitle2,
+    color: theme.colors.secondary.main,
+    marginTop: theme.spacing.lg,
   },
 });
 

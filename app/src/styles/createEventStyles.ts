@@ -1,147 +1,150 @@
 import { StyleSheet } from "react-native";
+import theme from "./config";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
+    ...theme.common.container,
+    backgroundColor: theme.colors.background.paper,
   },
   contentContainer: {
-    padding: 16,
+    padding: theme.spacing.md,
   },
   spacer: {
-    height: 32,
+    height: theme.spacing.xl,
   },
   // TopBar styles
   topBar: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.colors.background.paper,
   },
   statusBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 40,
-    paddingBottom: 8,
+    ...theme.common.spaceBetween,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.multiply(5), // 40/8
+    paddingBottom: theme.spacing.xs,
   },
   titleBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    ...theme.common.row,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs + 4,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: theme.colors.grey[200],
   },
   backButton: {
-    marginRight: 16,
+    marginRight: theme.spacing.md,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: theme.typography.h4.fontSize,
+    fontWeight: theme.typography.h4.fontWeight,
   },
   // InputField styles
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.xl,
   },
   inputTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 4,
+    fontSize: theme.typography.h5.fontSize,
+    fontWeight: theme.typography.h5.fontWeight,
+    marginBottom: theme.spacing.xxs,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 16,
-    marginBottom: 4,
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.grey[300], 
+      radius: 'md' 
+    }),
+    paddingHorizontal: theme.spacing.xs + 4,
+    paddingVertical: theme.spacing.xs,
+    fontSize: theme.typography.body1.fontSize,
+    fontWeight: theme.typography.body1.fontWeight,
+    marginBottom: theme.spacing.xxs,
   },
   inputInfo: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: theme.typography.caption.fontSize,
+    fontWeight: theme.typography.caption.fontWeight,
+    color: theme.colors.grey[600],
   },
   // ImageUpload styles
   imageUploadContainer: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
   },
   imageUploadTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 8,
-    color: "#1E232C",
+    fontSize: theme.typography.subtitle1.fontSize,
+    fontWeight: theme.typography.subtitle1.fontWeight,
+    marginBottom: theme.spacing.xs,
+    color: theme.colors.text.primary,
   },
   imageUploadButton: {
-    backgroundColor: "#F7F8F9",
-    borderRadius: 8,
+    backgroundColor: theme.colors.background.input,
+    borderRadius: theme.borders.radius.md,
     borderWidth: 1,
-    borderColor: "#E8ECF4",
+    borderColor: theme.colors.grey[100],
     borderStyle: "dashed",
-    padding: 16,
-    alignItems: "center",
-    justifyContent: "center",
+    padding: theme.spacing.md,
+    ...theme.common.centerContent,
     height: 150,
   },
   imageUploadButtonText: {
-    color: "#1E232C",
-    marginTop: 8,
-    fontSize: 14,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.xs,
+    fontSize: theme.typography.caption.fontSize,
+    fontWeight: theme.typography.caption.fontWeight,
   },
   uploadedImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 8,
+    borderRadius: theme.borders.radius.md,
   },
   // Section styles
   section: {
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xl,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
+    fontSize: theme.typography.h5.fontSize,
+    fontWeight: theme.typography.h5.fontWeight,
+    marginBottom: theme.spacing.xs,
   },
   // Action buttons styles
   actionButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 24,
-    marginBottom: 16,
+    ...theme.common.spaceBetween,
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.md,
   },
   actionButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: theme.spacing.xs + 4,
+    borderRadius: theme.borders.radius.md,
     alignItems: "center",
   },
   cancelButton: {
-    backgroundColor: "#E5E7EB",
-    marginRight: 8,
+    backgroundColor: theme.colors.grey[200],
+    marginRight: theme.spacing.xs,
   },
   submitButton: {
-    backgroundColor: "#1E232C",
-    marginLeft: 8,
+    backgroundColor: theme.colors.primary.main,
+    marginLeft: theme.spacing.xs,
   },
   cancelButtonText: {
-    color: "#1F2937",
+    color: theme.colors.grey[800],
     fontWeight: "500",
   },
   submitButtonText: {
-    color: "#FFFFFF",
+    color: theme.colors.common.white,
     fontWeight: "500",
   },
   disabledButton: {
-    backgroundColor: "#A0A0A0",
+    backgroundColor: theme.colors.grey[400],
     opacity: 0.7,
   },
   disabledButtonText: {
-    color: "#FFFFFF",
+    color: theme.colors.common.white,
     opacity: 0.7,
   },
   errorText: {
-    color: "#FF0000",
-    fontSize: 14,
+    color: theme.colors.status.error,
+    fontSize: theme.typography.caption.fontSize,
+    fontWeight: theme.typography.caption.fontWeight,
     textAlign: "center",
-    marginVertical: 10,
+    marginVertical: theme.spacing.xs + 2,
   },
 });
 

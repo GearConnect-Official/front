@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import styles from "../styles/bottomNavStyles";
 
 const BottomNav: React.FC<BottomTabBarProps> = ({ navigation, state }) => {
   // Check: Ensure that `state` is defined before accessing `state.index`
@@ -63,30 +64,5 @@ const getIconName = (routeName: string) => {
       return "circle";
   }
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0, 0, 0, 0.1)",
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-  },
-  tabText: {
-    fontSize: 12,
-    marginTop: 4,
-    color: "#6A707C",
-  },
-  activeTabText: {
-    color: "#000",
-    fontWeight: "bold",
-  },
-});
 
 export default BottomNav;

@@ -12,10 +12,11 @@ export interface Event {
   rankings: string;
   logo?: string;
   images?: string[];
+  description?: string;
 }
 
 const eventService = {
-  // Récupérer tous les événements
+  // Get all events
   getAllEvents: async () => {
     try {
       const response = await axios.get(API_URL_EVENTS);
@@ -26,7 +27,7 @@ const eventService = {
     }
   },
 
-  // Récupérer un événement par ID
+  // Get event by ID
   getEventById: async (id: string) => {
     try {
       const response = await axios.get(`${API_URL_EVENTS}/${id}`);
@@ -37,18 +38,54 @@ const eventService = {
     }
   },
 
-  // Créer un nouvel événement
+  // Create a new event
   createEvent: async (eventData: Event) => {
     try {
-      const response = await axios.post(API_URL_EVENTS, eventData);
-      return response.data;
+      // Extraire le nom du fichier d'une URL d'image locale
+      const extractFilename = (uri: string): string => {
+        if (!uri) return '';
+        // Extraire le nom du fichier après le dernier /
+        const parts = uri.split('/');
+        return parts[parts.length - 1];
+      };
+
+      // Formater les données avant envoi
+      const processedData = {
+        ...eventData,
+        // Renommer creators en creatorId pour le backend
+        creatorId: eventData.creators ? parseInt(eventData.creators) : undefined,
+        // Ne pas envoyer le champ creators au backend
+        creators: undefined,
+        date: eventData.date ? new Date(eventData.date).toISOString() : new Date().toISOString(),
+        // Extraire seulement les noms de fichiers des URLs d'images
+        logo: eventData.logo ? extractFilename(eventData.logo) : '',
+        images: eventData.images && Array.isArray(eventData.images) 
+          ? eventData.images.map(img => extractFilename(img))
+          : []
+      };
+      
+      console.log('Processed data avant envoi:', JSON.stringify(processedData, null, 2));
+      
+      try {
+        const response = await axios.post(API_URL_EVENTS, processedData);
+        console.log('Réponse succès:', response.status);
+        return response.data;
+      } catch (axiosError: any) {
+        console.error('Erreur axios détaillée:', axiosError.message);
+        if (axiosError.response) {
+          console.error('Status:', axiosError.response.status);
+          console.error('Data:', JSON.stringify(axiosError.response.data, null, 2));
+          console.error('Headers:', axiosError.response.headers);
+        }
+        throw axiosError;
+      }
     } catch (error) {
       console.error('Error creating event:', error);
       throw error;
     }
   },
 
-  // Mettre à jour un événement
+  // Update an event
   updateEvent: async (id: string, eventData: Partial<Event>) => {
     try {
       const formattedEvent = {

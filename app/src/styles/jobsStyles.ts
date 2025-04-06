@@ -1,73 +1,95 @@
 import { StyleSheet } from "react-native";
+import theme from "./config";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#FBF9FA",
+    ...theme.common.container,
   },
   topBar: {
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 4,
-    minHeight: 60,
+    backgroundColor: theme.colors.background.paper,
+    ...theme.shadows.apply({}, 'topBar'),
+    minHeight: theme.spacing.height.toolbar,
   },
   topBarContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: "space-between",
+    ...theme.common.spaceBetween,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
   },
   topBarTitle: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "#1E232C",
+    ...theme.typography.h4,
+    color: theme.colors.text.primary,
+  },
+  topBarIcon: {
+    width: 24,
+    height: 24,
+  },
+  topBarIcons: {
+    ...theme.common.row,
+    gap: theme.spacing.lg,
+  },
+  title: {
+    ...theme.typography.h4,
+    color: theme.colors.text.primary,
+  },
+  createButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   searchSection: {
-    padding: 12,
+    padding: theme.spacing.xs + 4,
   },
   searchBar: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
-    borderRadius: 6,
-    padding: 4,
+    ...theme.common.row,
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.border.medium, 
+      radius: 'sm' 
+    }),
+    padding: theme.spacing.xxs,
     alignItems: "center",
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: "#000",
-    paddingHorizontal: 12,
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
+    paddingHorizontal: theme.spacing.xs + 4,
   },
   searchButton: {
-    backgroundColor: "#000",
-    borderRadius: 4,
-    padding: 8,
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: theme.borders.radius.xs,
+    padding: theme.spacing.xs,
     justifyContent: "center",
     alignItems: "center",
   },
   searchInfo: {
-    fontSize: 14,
-    color: "rgba(0, 0, 0, 0.5)",
-    marginTop: 4,
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xxs,
   },
   tabGroup: {
-    flexDirection: "row",
-    paddingHorizontal: 12,
-    marginTop: 12,
-    gap: 8,
+    ...theme.common.row,
+    paddingHorizontal: theme.spacing.xs + 4,
+    marginTop: theme.spacing.xs + 4,
+    gap: theme.spacing.xs,
   },
   tab: {
     flex: 1,
     flexDirection: "column",
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
-    borderRadius: 6,
-    paddingVertical: 8,
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.border.medium, 
+      radius: 'sm' 
+    }),
+    paddingVertical: theme.spacing.xs,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -76,40 +98,39 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   tabText: {
-    fontSize: 16,
+    ...theme.typography.body1,
     textAlign: "center",
   },
   activeTab: {
-    backgroundColor: "#000",
-    borderRadius: 10,
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: theme.borders.radius.lg - 2,
   },
   activeTabText: {
-    color: "#FFFFFF",
+    color: theme.colors.common.white,
     fontWeight: "bold",
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "500",
-    color: "#000",
-    paddingHorizontal: 12,
-    paddingVertical: 16,
+    ...theme.typography.h5,
+    color: theme.colors.text.primary,
+    paddingHorizontal: theme.spacing.xs + 4,
+    paddingVertical: theme.spacing.md,
   },
   jobItem: {
-    flexDirection: "row",
+    ...theme.common.row,
     alignItems: "center",
-    padding: 12,
+    padding: theme.spacing.xs + 4,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.1)",
+    borderBottomColor: theme.colors.border.medium,
   },
 
   jobIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
+    borderRadius: theme.borders.radius.round,
+    backgroundColor: theme.colors.grey[50],
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: theme.spacing.xs + 4,
   },
 
   jobContent: {
@@ -117,29 +138,28 @@ const styles = StyleSheet.create({
   },
 
   jobTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
+    ...theme.typography.subtitle1,
+    color: theme.colors.text.primary,
   },
 
   jobSubtitle: {
-    fontSize: 14,
-    color: "rgba(0, 0, 0, 0.6)",
-    marginTop: 2,
+    ...theme.typography.body2,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xxs,
   },
 
   jobType: {
-    fontSize: 14,
+    ...theme.typography.body2,
     fontWeight: "500",
-    color: "#000",
+    color: theme.colors.text.primary,
     textAlign: "right",
   },
 
   noJobsText: {
     textAlign: "center",
-    fontSize: 16,
-    color: "rgba(0, 0, 0, 0.5)",
-    paddingVertical: 20,
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
+    paddingVertical: theme.spacing.lg,
   },
 });
 

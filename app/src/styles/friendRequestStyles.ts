@@ -1,101 +1,180 @@
 import { StyleSheet } from "react-native";
 
+// Palette de couleurs inspirée du monde automobile et du racing
+const THEME_COLORS = {
+  primary: '#E10600', // Rouge Racing
+  secondary: '#1E1E1E', // Noir Racing
+  tertiary: '#2D9CDB', // Bleu pour accent
+  quaternary: '#F0C419', // Jaune pour accent
+  background: '#FFFFFF',
+  card: '#F2F2F2',
+  cardLight: '#F8F8F8',
+  textPrimary: '#1E1E1E',
+  textSecondary: '#6E6E6E',
+  border: '#E0E0E0',
+  success: '#27AE60', // Vert pour badges positifs
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FBF9FA",
+    backgroundColor: THEME_COLORS.background,
   },
-  topBar: {
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 4,
-    minHeight: 60,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: THEME_COLORS.background,
+    borderBottomWidth: 0,
   },
-  topBarContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: "space-between",
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
-  topBarTitle: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "#000",
+  menuButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
-  topBarIcon: {
-    width: 24,
-    height: 24,
+  placeholderRight: {
+    width: 40,
+    height: 40,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "#000000",
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: THEME_COLORS.secondary,
   },
-  mainContent: {
+  content: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingTop: 20,
+  },
+  mainContainer: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.background,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: THEME_COLORS.background,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.border,
+    paddingVertical: 10,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: THEME_COLORS.primary,
+  },
+  section: {
+    padding: 15,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "500",
-    color: "#000000",
-    marginBottom: 16,
-    marginTop: 16,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textPrimary,
+    marginBottom: 15,
   },
-  addNewButton: {
-    backgroundColor: "#000000",
-    borderRadius: 8,
-    padding: 12,
-    marginHorizontal: 12,
-    marginVertical: 12,
+  requestCard: {
+    flexDirection: 'row',
+    backgroundColor: THEME_COLORS.cardLight,
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+    shadowColor: THEME_COLORS.secondary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  addNewButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "500",
-    textAlign: "center",
+  avatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    marginRight: 15,
   },
-  itemContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.1)",
-  },
-  avatarContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: 20,
-  },
-  nameContainer: {
+  requestInfo: {
     flex: 1,
-    marginLeft: 8,
   },
-  name: {
+  requestName: {
     fontSize: 16,
-    color: "#000000",
+    fontWeight: '600',
+    color: THEME_COLORS.textPrimary,
+    marginBottom: 4,
   },
-  actionButton: {
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "#000000",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+  requestMutual: {
+    fontSize: 14,
+    color: THEME_COLORS.textSecondary,
+    marginBottom: 10,
   },
-  actionButtonText: {
-    fontSize: 12,
-    color: "#000000",
+  requestActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  acceptButton: {
+    backgroundColor: THEME_COLORS.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  acceptButtonText: {
+    color: THEME_COLORS.background,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  declineButton: {
+    backgroundColor: THEME_COLORS.card,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  declineButtonText: {
+    color: THEME_COLORS.textPrimary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textPrimary,
+    marginTop: 15,
+    marginBottom: 5,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: THEME_COLORS.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: THEME_COLORS.primary,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
 

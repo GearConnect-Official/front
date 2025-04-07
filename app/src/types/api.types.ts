@@ -27,4 +27,11 @@ export interface ApiConfig {
  */
 export type ApiEndpoints = {
   [key in ApiRoutes]: string;
-}; 
+};
+
+// Default export to avoid Expo Router warnings
+const apiTypes = {
+  ApiRoutes
+};
+
+export default apiTypes; 

@@ -1,90 +1,176 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from 'react-native';
+import theme from './config';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "rgba(251, 248, 249, 1)",
+    backgroundColor: '#FFFFFF',
   },
-
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.1)",
+  header: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#DBDBDB',
+    zIndex: 1000,
   },
-  topBarImg: {
-    width: 47,
-    height: 47,
-    borderRadius: 33.5,
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: 44,
+    paddingHorizontal: 16,
   },
-  topBarSearchInput: {
-    flex: 1,
-    marginHorizontal: 12,
-    height: 40,
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.3)",
-    borderRadius: 6,
-    paddingHorizontal: 12,
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#262626',
   },
-  topBarIcons: {
-    flexDirection: "row",
-    gap: 20,
-  },
-  topBarIcon: {
-    width: 24,
-    height: 24,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  
-  // User menu styles
-  profileButton: {
-    position: 'relative',
-  },
-  userMenu: {
-    position: 'absolute',
-    top: 55,
-    left: 0,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-    zIndex: 100,
-    width: 150,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  userMenuItem: {
+  headerIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
-  userMenuItemText: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#1E232C',
+  headerIcon: {
+    marginLeft: 20,
   },
-  
-  // Welcome section
-  welcomeSection: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  headerProfileImage: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#DBDBDB',
   },
-  welcomeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E232C',
+  storiesList: {
+    paddingVertical: 10,
+  },
+  storiesListContent: {
+    paddingHorizontal: 8,
+  },
+  storyContainer: {
+    alignItems: 'center',
+    marginHorizontal: 8,
+    width: 80,
+  },
+  storyRing: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    padding: 2,
+    marginBottom: 4,
+  },
+  storyRingUnviewed: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#E1306C',
+  },
+  storyRingViewed: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#DBDBDB',
+  },
+  storyAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  storyUsername: {
+    fontSize: 12,
+    color: '#262626',
+    textAlign: 'center',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#EFEFEF',
+  },
+  postContainer: {
+    marginBottom: 12,
+  },
+  postHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  postHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  postAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 10,
+  },
+  postUsername: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#262626',
+  },
+  postSingleImage: {
+    width: '100%',
+    height: undefined,
+    aspectRatio: 1,
+  },
+  postMultipleImage: {
+    width: 420,
+    height: 420,
+  },
+  postActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  postActionsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  postAction: {
+    marginRight: 16,
+  },
+  postFooter: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  likesCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#262626',
+    marginBottom: 4,
+  },
+  captionContainer: {
+    marginBottom: 4,
+  },
+  caption: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#262626',
+    lineHeight: 18,
+  },
+  captionUsername: {
+    fontWeight: '600',
+    color: '#262626',
+  },
+  commentsLink: {
+    marginVertical: 4,
+  },
+  commentsLinkText: {
+    fontSize: 14,
+    color: '#8E8E8E',
+  },
+  postTime: {
+    fontSize: 12,
+    color: '#8E8E8E',
+    marginTop: 4,
+  },
+  activityIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

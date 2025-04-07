@@ -1,9 +1,9 @@
 import { StyleSheet } from "react-native";
+import theme from "./config";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "rgba(251, 249, 250, 1)",
+    ...theme.common.container,
     maxWidth: 480,
     width: "100%",
     marginLeft: "auto",
@@ -13,60 +13,162 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 4,
-    minHeight: 60,
+    backgroundColor: theme.colors.background.paper,
+    ...theme.shadows.apply({}, 'topBar'),
+    minHeight: theme.spacing.height.toolbar,
   },
   topBarContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: "space-between",
+    ...theme.common.spaceBetween,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
   },
   topBarTitle: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "#000",
+    ...theme.typography.h4,
+    color: theme.colors.text.primary,
   },
   topBarIcon: {
     width: 24,
     height: 24,
   },
   topBarIcons: {
-    flexDirection: "row",
-    gap: 20,
+    ...theme.common.row,
+    gap: theme.spacing.lg,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "rgba(0, 0, 0, 1)",
-    fontFamily: "Roboto",
+    ...theme.typography.h4,
+    color: theme.colors.text.primary,
   },
+  
+  // Hero section
+  heroSection: {
+    padding: theme.spacing.lg,
+    backgroundColor: '#f0f7ff',
+    marginBottom: theme.spacing.md,
+  },
+  heroTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.primary.dark,
+    fontWeight: 'bold',
+    marginBottom: theme.spacing.xs,
+  },
+  heroSubtitle: {
+    ...theme.typography.subtitle1,
+    color: theme.colors.text.secondary,
+    maxWidth: '80%',
+  },
+  
+  // Featured events section
+  featuredSection: {
+    marginBottom: theme.spacing.md,
+  },
+  featuredCard: {
+    height: 220,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...theme.shadows.apply({}, 'md'),
+    marginBottom: theme.spacing.md,
+  },
+  featuredImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  featuredGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '70%',
+    justifyContent: 'flex-end',
+    padding: theme.spacing.md,
+  },
+  featuredDate: {
+    color: '#fff',
+    ...theme.typography.caption,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    backgroundColor: 'rgba(58, 134, 255, 0.7)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  featuredTitle: {
+    color: '#fff',
+    ...theme.typography.h5,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  featuredLocation: {
+    color: '#fff',
+    ...theme.typography.body2,
+    marginBottom: 12,
+  },
+  featuredActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  featuredButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: 20,
+  },
+  featuredButtonText: {
+    color: theme.colors.primary.main,
+    fontWeight: '600',
+  },
+  featuredIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  // Create button
+  createButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  
+  // Search section
   searchSection: {
-    padding: 12,
+    padding: theme.spacing.md,
   },
   searchBar: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
-    borderRadius: 6,
-    padding: 4,
+    ...theme.common.row,
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.border.medium, 
+      radius: 'sm' 
+    }),
+    padding: theme.spacing.xxs,
+    backgroundColor: '#fff',
+    ...theme.shadows.apply({}, 'xs'),
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: "#000",
-    paddingHorizontal: 12,
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
+    paddingHorizontal: theme.spacing.xs + 4,
   },
   searchButton: {
-    backgroundColor: "#000",
-    borderRadius: 4,
-    padding: 8,
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: theme.borders.radius.xs,
+    padding: theme.spacing.xs,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -75,121 +177,201 @@ const styles = StyleSheet.create({
     height: 20,
   },
   searchInfo: {
-    fontSize: 14,
-    color: "rgba(0, 0, 0, 0.5)",
-    marginTop: 4,
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xxs,
   },
+  
+  // Tabs section
   tabGroup: {
-    flexDirection: "row",
-    paddingHorizontal: 12,
-    marginTop: 12,
-    gap: 8,
+    ...theme.common.row,
+    paddingHorizontal: theme.spacing.md,
+    marginVertical: theme.spacing.md,
+    gap: theme.spacing.xs,
   },
   tab: {
     flex: 1,
     flexDirection: "column",
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
-    borderRadius: 6,
-    paddingVertical: 8,
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.border.medium, 
+      radius: 'sm' 
+    }),
+    paddingVertical: theme.spacing.xs,
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
+    gap: theme.spacing.xxs,
+    backgroundColor: '#fff',
   },
-
   tabIcon: {
     width: 24,
     height: 24,
     justifyContent: "center",
     alignItems: "center",
   },
-
   tabText: {
-    fontSize: 16,
+    ...theme.typography.body2,
     textAlign: "center",
   },
+  
+  // Events list section
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "500",
-    color: "black",
-    paddingHorizontal: 12,
-    paddingTop: 16,
+    ...theme.typography.h5,
+    color: theme.colors.text.primary,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.md,
+    fontWeight: 'bold',
+  },
+  eventsContainer: {
+    marginBottom: theme.spacing.lg,
   },
   eventItem: {
-    flexDirection: "row",
+    ...theme.common.row,
     alignItems: "center",
-    padding: 12,
-    gap: 8,
+    padding: theme.spacing.xs + 4,
+    gap: theme.spacing.xs,
   },
   eventIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: theme.borders.radius.round,
   },
   eventContent: {
     flex: 1,
   },
   eventTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "black",
+    ...theme.typography.subtitle1,
+    color: theme.colors.text.primary,
   },
   eventSubtitle: {
-    fontSize: 14,
-    color: "rgba(0, 0, 0, 0.5)",
+    ...theme.typography.body2,
+    color: theme.colors.text.secondary,
   },
   eventDate: {
-    fontSize: 14,
+    ...theme.typography.body2,
     fontWeight: "500",
-    color: "black",
+    color: theme.colors.text.primary,
     textAlign: "right",
   },
   emojiContainer: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
+    borderRadius: theme.borders.radius.round,
+    backgroundColor: theme.colors.grey[50],
     alignItems: "center",
     justifyContent: "center",
   },
   emojiText: {
     fontSize: 20,
   },
-  activeTab: {
-    backgroundColor: "#000",
-    borderRadius: 10,
+  
+  // CTA Section
+  ctaSection: {
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...theme.shadows.apply({}, 'md'),
   },
-
+  ctaGradient: {
+    padding: theme.spacing.lg,
+  },
+  ctaTitle: {
+    ...theme.typography.h5,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: theme.spacing.xs,
+  },
+  ctaText: {
+    ...theme.typography.body1,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: theme.spacing.md,
+  },
+  ctaButton: {
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    alignSelf: 'flex-start',
+  },
+  ctaButtonText: {
+    color: theme.colors.primary.main,
+    fontWeight: 'bold',
+  },
+  
+  // Empty state
+  emptyContainer: {
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: theme.spacing.lg,
+  },
+  emptyText: {
+    ...theme.typography.h6,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+  },
+  emptySubtext: {
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  createEventButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: theme.spacing.md,
+  },
+  createEventButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  
+  // State styles
+  activeTab: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: theme.borders.radius.lg - 2,
+  },
   activeTabText: {
-    color: "#FFFFFF",
+    color: theme.colors.common.white,
     fontWeight: "bold",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+    ...theme.common.centerContent,
+    padding: theme.spacing.lg,
   },
   errorContainer: {
-    padding: 20,
+    padding: theme.spacing.lg,
     alignItems: "center",
   },
   errorText: {
-    fontSize: 16,
-    color: "#FF0000",
-    marginBottom: 10,
+    ...theme.typography.body1,
+    color: theme.colors.status.error,
+    marginBottom: theme.spacing.xs + 2,
     textAlign: "center",
   },
   retryButton: {
-    backgroundColor: "#1E232C",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 6,
+    backgroundColor: theme.colors.primary.main,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xs + 2,
+    borderRadius: theme.borders.radius.sm,
   },
   retryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "500",
+    color: theme.colors.common.white,
+    ...theme.typography.button,
   },
 });
 

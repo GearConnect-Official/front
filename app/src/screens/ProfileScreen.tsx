@@ -11,13 +11,30 @@ import {
 import styles from "../styles/profileStyles";
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import * as DocumentPicker from "expo-document-picker";
 import UserProfile from "../components/UserProfile";
 import { useAuth } from "../context/AuthContext";
+
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("profile");
+
+  const handleUploadCV = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+      });
+      if (result.canceled) {
+        console.log("Upload cancelled");
+      } else if (result.assets && result.assets.length > 0) {
+        console.log("Uploaded file URI:", result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("Error picking document:", error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -30,28 +47,73 @@ const ProfileScreen: React.FC = () => {
           <View style={{ width: 24 }} />
         </View>
       </View>
+      <ScrollView style={styles.content}>
+        <View style={styles.profileSection}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName}>Esteban Dardillac</Text>
+              <Text style={styles.profileRole}>Driver in f3</Text>
+              <Text style={styles.profileChampionship}>
+                Karting Fr championship
+              </Text>
+            </View>
+            <Image
+              source={{
+                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/1700bd4f8231f8853f0a5973513a1c8fbd6fb0764f71cc78d7743b4bd71c79ee",
+              }}
+              style={styles.profileAvatar}
+            />
+          </View>
+        </View>
 
-      <View style={styles.tabBar}>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'profile' && styles.activeTab]} 
-          onPress={() => setActiveTab('profile')}
-        >
-          <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'events' && styles.activeTab]} 
-          onPress={() => setActiveTab('events')}
-        >
-          <Text style={[styles.tabText, activeTab === 'events' && styles.activeTabText]}>Events</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'results' && styles.activeTab]} 
-          onPress={() => setActiveTab('results')}
-        >
-          <Text style={[styles.tabText, activeTab === 'results' && styles.activeTabText]}>Results</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.tabGroup}>
+          <TouchableOpacity style={styles.tab}>
+            <FontAwesome name="users" size={24} color="#1E232C" />
+            <Text style={styles.tabText}>FriendList</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tab}>
+            <FontAwesome name="briefcase" size={24} color="#1E232C" />
+            <Text style={styles.tabText}>Experience</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tab}>
+            <FontAwesome name="calendar" size={24} color="#1E232C" />
+            <Text style={styles.tabText}>My Events</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tab}>
+            <FontAwesome name="trophy" size={24} color="#1E232C" />
+            <Text style={styles.tabText}>My Results</Text>
+          </TouchableOpacity>
+        </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Pilot</Text>
+          <Text style={styles.sectionSubtitle}>
+            Software Engineer at ABC Inc.
+          </Text>
+
+          <View style={styles.infoItem}>
+            <FontAwesome
+              name="clock-o"
+              size={24}
+              color="#1E232C"
+              style={styles.infoIcon}
+            />
+            <Text style={styles.infoTitle}>2015 - Present</Text>
+            <Text style={styles.infoSubtitle}>Full-time</Text>
+          </View>
+
+          <View style={styles.infoItem}>
+            <FontAwesome
+              name="map-marker"
+              size={24}
+              color="#1E232C"
+              style={styles.infoIcon}
+            />
+            <Text style={styles.infoTitle}>Location</Text>
+            <Text style={styles.infoSubtitle}>San Francisco, CA</Text>
+          </View>
+        </View>
+        
       <ScrollView style={styles.content}>
         {activeTab === 'profile' ? (
           <UserProfile />
@@ -88,53 +150,23 @@ const ProfileScreen: React.FC = () => {
               </View>
             </View>
           </View>
-        ) : (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>My Results</Text>
-            
-            <View style={styles.resultCard}>
-              <View style={styles.resultHeader}>
-                <Text style={styles.resultEvent}>Course Karting RKC</Text>
-                <Text style={styles.resultDate}>March 15, 2023</Text>
-              </View>
-              <View style={styles.resultDetails}>
-                <View style={styles.resultItem}>
-                  <Text style={styles.resultLabel}>Position:</Text>
-                  <Text style={styles.resultValue}>1st</Text>
-                </View>
-                <View style={styles.resultItem}>
-                  <Text style={styles.resultLabel}>Best Lap:</Text>
-                  <Text style={styles.resultValue}>1:23.456</Text>
-                </View>
-                <View style={styles.resultItem}>
-                  <Text style={styles.resultLabel}>Championship Points:</Text>
-                  <Text style={styles.resultValue}>25</Text>
-                </View>
-              </View>
-            </View>
-            
-            <View style={styles.resultCard}>
-              <View style={styles.resultHeader}>
-                <Text style={styles.resultEvent}>Val de Vienne Circuit</Text>
-                <Text style={styles.resultDate}>February 28, 2023</Text>
-              </View>
-              <View style={styles.resultDetails}>
-                <View style={styles.resultItem}>
-                  <Text style={styles.resultLabel}>Position:</Text>
-                  <Text style={styles.resultValue}>3rd</Text>
-                </View>
-                <View style={styles.resultItem}>
-                  <Text style={styles.resultLabel}>Best Lap:</Text>
-                  <Text style={styles.resultValue}>1:24.789</Text>
-                </View>
-                <View style={styles.resultItem}>
-                  <Text style={styles.resultLabel}>Championship Points:</Text>
-                  <Text style={styles.resultValue}>15</Text>
-                </View>
-              </View>
-            </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>CV</Text>
+            <FontAwesome name="file-pdf-o" size={24} color="#1E232C" />
           </View>
-        )}
+
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={handleUploadCV}
+          >
+            <FontAwesome name="upload" size={24} color="#FFF" />
+            <Text style={styles.uploadButtonText}>Upload Your CV</Text>
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );

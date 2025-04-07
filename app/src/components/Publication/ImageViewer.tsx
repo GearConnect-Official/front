@@ -17,6 +17,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { FontAwesome } from "@expo/vector-icons";
 import { PinchGestureHandler, State, PinchGestureHandlerStateChangeEvent } from "react-native-gesture-handler";
 import styles from "../../styles/publicationStyles";
+import imageViewerStyles from "../../styles/imageViewerStyles";
 
 // Palette de couleurs racing
 const THEME_COLORS = {

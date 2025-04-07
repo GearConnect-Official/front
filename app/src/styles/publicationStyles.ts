@@ -1,4 +1,5 @@
 import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native';
+import theme from './config';
 
 const { width, height } = Dimensions.get('window');
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
@@ -49,8 +50,7 @@ const styles = StyleSheet.create({
   },
   headerLeft: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    ...theme.common.row,
   },
   backButton: {
     marginRight: 15,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   inputContainer: {
-    padding: 16,
+    padding: theme.spacing.md,
   },
   titleInput: {
     color: THEME_COLORS.textPrimary,
@@ -228,8 +228,8 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.card,
   },
   formContent: {
-    padding: 16,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+    padding: theme.spacing.md,
+    paddingBottom: Platform.OS === 'ios' ? 34 : theme.spacing.md,
   },
   
   // Preview Image styles

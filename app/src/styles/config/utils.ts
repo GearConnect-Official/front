@@ -50,4 +50,4 @@ const utils = {
   isObject
 };
 
-export default utils; 
+export default utils;

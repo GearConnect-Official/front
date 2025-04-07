@@ -10,7 +10,7 @@ export interface EventInterface {
   // category: string;
   description: string;
   // images: string[];
-  // tags: string[];
+  tags: string[];
   location: string;
   meteo: string;
   urlTIcket: string;

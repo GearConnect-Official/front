@@ -14,10 +14,12 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "@/app/App";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from "expo-linear-gradient";
 import styles from "../styles/createJobOfferStyles";
 
 // Couleur racing principale
 const RACING_RED = '#E10600';
+const PRIMARY_BLUE = '#3a86ff';
 
 // Constantes pour les types d'emploi
 const JOB_TYPES = [
@@ -80,7 +82,66 @@ const localStyles = StyleSheet.create({
   confirmText: {
     color: 'white',
     fontWeight: '600',
-  }
+  },
+  // Nouveaux styles inspirés de la section Events
+  heroSection: {
+    padding: 24,
+    backgroundColor: '#f0f7ff',
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  heroTitle: {
+    fontSize: 24,
+    color: '#1E1E1E',
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    maxWidth: '90%',
+  },
+  sectionDivider: {
+    height: 8,
+    backgroundColor: '#f5f5f5',
+    marginVertical: 16,
+  },
+  ctaSection: {
+    marginHorizontal: 16,
+    marginBottom: 24,
+    marginTop: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  ctaGradient: {
+    padding: 24,
+  },
+  ctaTitle: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  ctaText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 16,
+  },
+  submitButtonCta: {
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    alignSelf: 'flex-start',
+  },
+  submitButtonCtaText: {
+    color: PRIMARY_BLUE,
+    fontWeight: 'bold',
+  },
 });
 
 const CreateJobOfferScreen: React.FC = () => {
@@ -204,6 +265,14 @@ const CreateJobOfferScreen: React.FC = () => {
       </View>
 
       <ScrollView style={styles.content}>
+        {/* Hero section */}
+        <View style={localStyles.heroSection}>
+          <Text style={localStyles.heroTitle}>Create Your Dream Team</Text>
+          <Text style={localStyles.heroSubtitle}>
+            Find the perfect candidates by creating an attractive job offer
+          </Text>
+        </View>
+
         <Text style={styles.sectionTitle}>Basic Information</Text>
         
         {/* Title Input */}
@@ -280,6 +349,8 @@ const CreateJobOfferScreen: React.FC = () => {
           </View>
         </View>
 
+        <View style={localStyles.sectionDivider} />
+
         <Text style={styles.sectionTitle}>Detailed Information</Text>
 
         {/* Description Input */}
@@ -302,6 +373,8 @@ const CreateJobOfferScreen: React.FC = () => {
             Be specific and engaging to attract qualified candidates
           </Text>
         </View>
+
+        <View style={localStyles.sectionDivider} />
 
         <Text style={styles.sectionTitle}>Timeline & Compensation</Text>
 
@@ -386,11 +459,27 @@ const CreateJobOfferScreen: React.FC = () => {
           </Text>
         </View>
 
-        {/* Submit Button */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <FontAwesome name="check" size={20} color="#fff" />
-          <Text style={styles.submitButtonText}>Publish Job Offer</Text>
-        </TouchableOpacity>
+        {/* CTA Section */}
+        <View style={localStyles.ctaSection}>
+          <LinearGradient
+            colors={[PRIMARY_BLUE, '#5e60ce']}
+            style={localStyles.ctaGradient}
+          >
+            <Text style={localStyles.ctaTitle}>Ready to Find Your Perfect Match?</Text>
+            <Text style={localStyles.ctaText}>
+              Publish your job offer and start connecting with talented professionals
+            </Text>
+            <TouchableOpacity 
+              style={localStyles.submitButtonCta}
+              onPress={handleSubmit}
+            >
+              <Text style={localStyles.submitButtonCtaText}>Publish Now</Text>
+              <FontAwesome name="arrow-right" size={16} color={PRIMARY_BLUE} />
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
+        
+        <View style={{ height: 60 }} />
       </ScrollView>
 
       {/* Modal pour sélecteur de date de début (Android) */}

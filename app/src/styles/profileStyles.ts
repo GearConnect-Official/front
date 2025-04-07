@@ -1,30 +1,23 @@
 import { StyleSheet } from "react-native";
+import theme from "./config";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "rgba(251, 249, 250, 1)",
+    ...theme.common.container,
   },
   topBar: {
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 4,
-    minHeight: 60,
+    backgroundColor: theme.colors.background.paper,
+    ...theme.shadows.apply({}, 'topBar'),
+    minHeight: theme.spacing.height.toolbar,
   },
   topBarContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: "space-between",
+    ...theme.common.spaceBetween,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs + 4,
   },
   topBarTitle: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "#000",
+    ...theme.typography.h4,
+    color: theme.colors.text.primary,
   },
   topBarIcon: {
     width: 24,
@@ -34,14 +27,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileSection: {
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: theme.colors.background.paper,
+    ...theme.shadows.apply({}, 'card'),
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.xs + 4,
   },
   avatarContainer: {
     flexDirection: "row",

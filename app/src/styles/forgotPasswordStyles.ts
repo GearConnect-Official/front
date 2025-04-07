@@ -1,20 +1,21 @@
 import { StyleSheet } from "react-native";
+import theme from "./config";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 30,
+    ...theme.common.container,
+    backgroundColor: theme.colors.background.paper,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.xl + 6,
   },
   backButton: {
     width: 54,
     height: 54,
-    borderRadius: 32,
+    borderRadius: theme.borders.radius.round,
   },
   logoContainer: {
-    marginTop: 22,
+    marginTop: theme.spacing.lg + 2,
     alignItems: "center",
   },
   logo: {
@@ -22,55 +23,49 @@ const styles = StyleSheet.create({
     height: 72,
   },
   title: {
-    color: "#1E232C",
-    fontSize: 30,
-    fontWeight: "700",
-    marginTop: 18,
+    color: theme.colors.text.primary,
+    ...theme.typography.h1,
+    marginTop: theme.spacing.lg + 2,
   },
   subtitle: {
-    color: "#8391A1",
-    fontSize: 16,
-    marginTop: 10,
+    color: theme.colors.text.secondary,
+    ...theme.typography.body1,
+    marginTop: theme.spacing.xs + 2,
   },
   input: {
-    backgroundColor: "rgba(247, 248, 249, 1)",
-    borderColor: "rgba(218, 218, 218, 1)",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginTop: 57,
-    paddingHorizontal: 20,
-    paddingVertical: 19,
+    backgroundColor: theme.colors.background.input,
+    borderColor: theme.colors.border.light,
+    ...theme.borders.apply({}, { preset: 'input' }),
+    marginTop: theme.spacing.xxxl + 9,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md + 3,
     width: "100%",
-    color: "rgba(131, 145, 161, 1)",
+    color: theme.colors.text.secondary,
   },
   sendCodeButton: {
-    backgroundColor: "#1E232C",
-    borderRadius: 8,
-    marginTop: 30,
-    paddingVertical: 19,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: theme.borders.radius.md,
+    marginTop: theme.spacing.xl + 6,
+    paddingVertical: theme.spacing.md + 3,
+    ...theme.common.centerContent,
   },
   sendCodeText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: 15,
+    color: theme.colors.common.white,
+    ...theme.typography.button,
   },
   rememberPasswordContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 320,
+    marginTop: theme.spacing.multiply(40), // 320 / 8 = 40
   },
   rememberPasswordText: {
-    fontFamily: "Urbanist",
+    ...theme.typography.body1,
     fontWeight: "500",
-    fontSize: 15,
   },
   loginText: {
-    fontFamily: "Urbanist",
+    ...theme.typography.body1,
     fontWeight: "700",
-    color: "rgba(139,1,244,1)",
-    fontSize: 15,
+    color: theme.colors.secondary.main,
   },
 });
 

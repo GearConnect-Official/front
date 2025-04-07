@@ -12,6 +12,7 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '@/app/App';
 import { EventInterface } from '../services/EventInterface';
 import styles from '../styles/eventDetailStyles';
+import { API_URL_EVENTS, API_URL_EVENTTAGS, API_URL_EVENTREVIEWS, API_URL_TAGS } from '../config';
 
 type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
@@ -24,16 +25,82 @@ const EventDetailScreen: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch(`${process.env.API_PROTOCOLE}://${process.env.API_HOST}:${process.env.PORT}/events/${eventId}`);
+      const response = await fetch(API_URL_EVENTS + '/' + eventId);
       if (!response.ok) {
         throw new Error(
           `Failed to fetch events: ${response.status} ${response.statusText}`
         );
       }
+      
       const fetchedEvent: EventInterface = await response.json();
+      console.log('Event data fetched successfully');
+      
+      // Fetch event tags
+      try {
+        const fetchEventTags = await fetch(API_URL_EVENTTAGS + '/' + eventId);
+        console.log('Tags: ', fetchEventTags);
+
+        if (fetchEventTags.ok) {
+          const eventTags = await fetchEventTags.json();
+          console.log('Event tags fetched successfully:', eventTags);
+          // Assuming eventTags is an array of tag IDs or objects
+          if (Array.isArray(eventTags)) {
+            
+            const tagPromises = eventTags.map(async (tag) => {
+              const tagResponse = await fetch(API_URL_TAGS + '/' + tag.tagId);
+              if (tagResponse.ok) {
+                return tagResponse.json();
+              }
+              return null;
+            });
+            const tags = await Promise.all(tagPromises);
+            console.log('Fetched tags:', tags);
+            fetchedEvent.tags = tags.filter(tag => tag !== null);
+          }
+        }
+      } catch (tagError) {
+        console.error('Error fetching tags:', tagError);
+        console.log('No tags found for this event');
+      }
+      
+      // Fetch event reviews
+      // try {
+      //   const fetchEventReviews = await fetch(API_URL_EVENTREVIEWS + '/' + eventId);
+      //   if (fetchEventReviews.ok) {
+      //     const eventReviews = await fetchEventReviews.json();
+      //     fetchedEvent.reviews = eventReviews;
+      //   }
+      // } catch (reviewError) {
+      //   console.error('Error fetching reviews:', reviewError);
+      // }
+
+      /*      // Handle specific error codes if needed
+      // else if (response.status === 404) {
+      //   setError('Event not found');
+      //   return;
+      // } else if (response.status === 500) {
+      //   setError('Server error, please try again later');
+      //   return;
+      // } else if (response.status === 403) {
+      //   setError('Forbidden access to this event');
+      //   return;
+      // } else if (response.status === 401) {
+      //   setError('Unauthorized access, please log in');
+      //   return;
+      // } else if (response.status === 400) {
+      //   setError('Bad request, please check the event ID');
+      //   return;
+      // } else if (response.status === 408) {
+      //   setError('Request timeout, please try again later');
+      //   return;
+      // }
+      */
+      
       setEvent(fetchedEvent);
+      console.log('Fetched event:', fetchedEvent);
       setError(null);
     } catch (error) {
+      console.error('Error in fetchData:', error);
       setEvent(null);
       setError('Failed to fetch event data');
     }
@@ -78,7 +145,7 @@ const EventDetailScreen: React.FC = () => {
           {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
         </View>
 
-        {/* 
+        
          <View style={styles.descriptionContainer}>
            {event?.images?.[0] ? (
             <Image
@@ -102,7 +169,7 @@ const EventDetailScreen: React.FC = () => {
              <Text style={styles.description}>{event.description}</Text>
           </View>
          </View>
-          */}
+          
         {/*
          <Text style={styles.sectionTitle}>Best of Images</Text>
          {event.images[0] ? (

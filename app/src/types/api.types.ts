@@ -5,7 +5,10 @@ export enum ApiRoutes {
   AUTH = 'auth',
   EVENTS = 'events',
   POSTS = 'posts',
+  EVENTTAGS = 'eventTags',
+  EVENTREVIEWS = 'eventReviews',
   INTERACTIONS = 'interactions',
+  SPONSOR = 'sponsor',
   TAGS = 'tags'
 }
 

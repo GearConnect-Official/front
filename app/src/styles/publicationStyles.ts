@@ -7,11 +7,26 @@ const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 const SCREEN_WIDTH = width;
 const SCREEN_HEIGHT = height;
 
+// Palette de couleurs inspirée du monde automobile et du racing
+const THEME_COLORS = {
+  primary: '#E10600', // Rouge Racing
+  secondary: '#1E1E1E', // Noir Racing
+  tertiary: '#2D9CDB', // Bleu pour accent
+  quaternary: '#F0C419', // Jaune pour accent
+  background: '#FFFFFF',
+  card: '#F2F2F2',
+  cardLight: '#F8F8F8',
+  textPrimary: '#1E1E1E',
+  textSecondary: '#6E6E6E',
+  border: '#E0E0E0',
+  success: '#27AE60', // Vert pour badges positifs
+};
+
 const styles = StyleSheet.create({
   // Container styles
   container: {
     flex: 1,
-    backgroundColor: theme.colors.grey[900],
+    backgroundColor: THEME_COLORS.background,
   },
   safeArea: {
     flex: 1,
@@ -23,12 +38,14 @@ const styles = StyleSheet.create({
 
   // Header styles
   header: {
-    height: 44,
-    ...theme.common.spaceBetween,
-    paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.grey[900],
-    borderBottomColor: theme.colors.grey[800],
-    borderBottomWidth: 0.5,
+    height: 56,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    backgroundColor: THEME_COLORS.background,
+    borderBottomColor: THEME_COLORS.border,
+    borderBottomWidth: 1,
     zIndex: 1,
   },
   headerLeft: {
@@ -36,40 +53,40 @@ const styles = StyleSheet.create({
     ...theme.common.row,
   },
   backButton: {
-    marginRight: theme.spacing.md,
-    padding: theme.spacing.xxs,
+    marginRight: 15,
+    padding: 8,
   },
   headerTitle: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.subtitle1.fontSize,
-    fontWeight: theme.typography.subtitle1.fontWeight,
+    color: THEME_COLORS.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
   },
   headerButton: {
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     zIndex: 2,
   },
   nextButton: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borders.radius.xs,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
     backgroundColor: 'transparent',
     zIndex: 2,
   },
   nextButtonText: {
-    color: theme.colors.status.info,
+    color: THEME_COLORS.primary,
     fontSize: 15,
     fontWeight: '600',
   },
   nextButtonShare: {
-    backgroundColor: theme.colors.status.info,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borders.radius.xs,
+    backgroundColor: THEME_COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
     zIndex: 2,
   },
   nextButtonShareText: {
-    color: theme.colors.common.white,
+    color: THEME_COLORS.background,
     fontSize: 15,
     fontWeight: '600',
   },
@@ -80,103 +97,124 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonLoader: {
-    marginHorizontal: theme.spacing.xs,
+    marginHorizontal: 10,
+  },
+  cropConfirmText: {
+    color: THEME_COLORS.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
 
   // Media Section styles
   mediaSectionContainer: {
     flex: 1,
-    ...theme.common.centerContent,
-    backgroundColor: theme.colors.grey[800],
-    padding: theme.spacing.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: THEME_COLORS.cardLight,
+    padding: 24,
   },
   mediaButton: {
-    ...theme.common.centerContent,
-    padding: theme.spacing.xl,
-    borderRadius: theme.borders.radius.lg,
-    backgroundColor: theme.colors.status.info,
-    ...theme.shadows.apply({}, 'md'),
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    borderRadius: 16,
+    backgroundColor: THEME_COLORS.primary,
+    shadowColor: THEME_COLORS.secondary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   mediaButtonText: {
-    color: theme.colors.common.white,
-    marginTop: theme.spacing.xs + 4,
-    fontSize: theme.typography.button.fontSize,
-    fontWeight: theme.typography.button.fontWeight,
+    color: THEME_COLORS.background,
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: '600',
     letterSpacing: 0.3,
   },
 
   // Image Cropper styles
   cropperContainer: {
     flex: 1,
-    backgroundColor: theme.colors.grey[900],
+    backgroundColor: THEME_COLORS.background,
   },
   cropperHeader: {
-    ...theme.common.spaceBetween,
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.grey[800],
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: THEME_COLORS.cardLight,
   },
   cropperImage: {
     width: width,
     height: width,
-    backgroundColor: theme.colors.grey[800],
+    backgroundColor: THEME_COLORS.cardLight,
   },
   cropperTools: {
-    ...theme.common.row,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-around',
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.grey[800],
+    padding: 16,
+    backgroundColor: THEME_COLORS.cardLight,
   },
   cropperTool: {
     width: 44,
     height: 44,
-    ...theme.common.centerContent,
-    backgroundColor: theme.colors.grey[700],
-    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: THEME_COLORS.card,
+    borderRadius: 8,
+    shadowColor: THEME_COLORS.secondary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   cropperToolText: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.caption.fontSize,
-    marginTop: theme.spacing.xxs,
+    color: THEME_COLORS.textPrimary,
+    fontSize: 12,
+    marginTop: 4,
   },
 
   // Publication Form styles
   formContainer: {
     flex: 1,
-    backgroundColor: theme.colors.grey[800],
+    backgroundColor: THEME_COLORS.background,
   },
   userInfoContainer: {
-    ...theme.common.row,
-    padding: theme.spacing.md,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.colors.grey[700],
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.border,
   },
   userAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: theme.borders.radius.round,
-    marginRight: theme.spacing.xs + 4,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    marginRight: 12,
   },
   headerText: {
-    color: theme.colors.common.white,
-    fontSize: 15,
+    color: THEME_COLORS.textPrimary,
+    fontSize: 16,
     fontWeight: '600',
   },
   inputContainer: {
     padding: theme.spacing.md,
   },
   titleInput: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.h5.fontSize,
-    fontWeight: theme.typography.h5.fontWeight,
-    paddingVertical: theme.spacing.xs + 4,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.colors.grey[700],
-    marginBottom: theme.spacing.md,
+    color: THEME_COLORS.textPrimary,
+    fontSize: 20,
+    fontWeight: '600',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.border,
+    marginBottom: 16,
   },
   descriptionInput: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.body1.fontSize,
-    paddingVertical: theme.spacing.xs + 4,
+    color: THEME_COLORS.textPrimary,
+    fontSize: 16,
+    paddingVertical: 12,
     minHeight: 100,
     textAlignVertical: 'top',
     fontWeight: 'normal',
@@ -187,7 +225,7 @@ const styles = StyleSheet.create({
   formImagePreview: {
     width: SCREEN_WIDTH,
     height: SCREEN_WIDTH,
-    backgroundColor: theme.colors.grey[700],
+    backgroundColor: THEME_COLORS.card,
   },
   formContent: {
     padding: theme.spacing.md,
@@ -198,8 +236,9 @@ const styles = StyleSheet.create({
   previewContainer: {
     flex: 1,
     width: '100%',
-    backgroundColor: theme.colors.grey[900],
-    ...theme.common.centerContent,
+    backgroundColor: THEME_COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   previewImage: {
     width: '100%',
@@ -208,295 +247,96 @@ const styles = StyleSheet.create({
   
   // Additional Options styles
   optionsContainer: {
-    backgroundColor: theme.colors.grey[800],
+    backgroundColor: THEME_COLORS.background,
   },
   optionItem: {
-    ...theme.common.spaceBetween,
-    padding: theme.spacing.md,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.colors.grey[700],
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.border,
   },
   optionText: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.body1.fontSize,
+    color: THEME_COLORS.textPrimary,
+    fontSize: 16,
   },
   optionValue: {
-    color: theme.colors.grey[600],
-    fontSize: theme.typography.body1.fontSize,
+    color: THEME_COLORS.textSecondary,
+    fontSize: 16,
   },
 
   // Error styles
   errorContainer: {
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.status.error,
-    marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.md,
-    borderRadius: theme.borders.radius.md,
+    padding: 16,
+    backgroundColor: '#e74c3c',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 8,
   },
   errorText: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.caption.fontSize,
+    color: THEME_COLORS.background,
+    fontSize: 14,
     textAlign: 'center',
   },
 
   // Image Viewer styles
   imageViewerContainer: {
     flex: 1,
-    backgroundColor: theme.colors.grey[900],
+    backgroundColor: THEME_COLORS.background,
   },
   imageControls: {
-    ...theme.common.row,
-    justifyContent: 'space-around',
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.grey[900],
-  },
-  imageControlButton: {
-    width: 44,
-    height: 44,
-    borderRadius: theme.borders.radius.round,
-    backgroundColor: theme.colors.grey[700],
-    ...theme.common.centerContent,
-    ...theme.shadows.apply({}, 'md'),
-  },
-  fullScreenContainer: {
-    flex: 1,
-    backgroundColor: theme.colors.grey[900],
-    ...theme.common.centerContent,
-  },
-  fullScreenImage: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    resizeMode: 'contain',
-  },
-  fullScreenCloseButton: {
-    position: 'absolute',
-    top: STATUSBAR_HEIGHT + 10,
-    right: theme.spacing.md,
-    width: 44,
-    height: 44,
-    borderRadius: theme.borders.radius.round,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    ...theme.common.centerContent,
-    zIndex: 1,
-  },
-  zoomInstructions: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: theme.spacing.xs,
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  zoomInstructionsText: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.caption.fontSize,
-  },
-
-  // New styles from the code block
-  cropOverlayContainer: {
-    flex: 1,
-    backgroundColor: theme.colors.grey[900],
-    paddingTop: STATUSBAR_HEIGHT,
-  },
-  cropHeader: {
-    height: HEADER_HEIGHT - STATUSBAR_HEIGHT,
-    ...theme.common.spaceBetween,
-    paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.grey[800],
-  },
-  cropConfirmText: {
-    color: theme.colors.status.info,
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  cropPreviewContainer: {
-    flex: 1,
-    backgroundColor: theme.colors.grey[900],
-    ...theme.common.centerContent,
-  },
-  cropPreviewImage: {
-    width: '100%',
-    height: undefined,
-    backgroundColor: theme.colors.grey[800],
-  },
-  cropGrid: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  cropGridLine: {
-    position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  cropGridLineHorizontal: {
-    width: '100%',
-    height: 1,
-  },
-  cropGridLineVertical: {
-    width: 1,
-    height: '100%',
-  },
-  cropControls: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    backgroundColor: theme.colors.grey[800],
-    ...theme.common.row,
     justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 34 : theme.spacing.md,
-  },
-  cropControlButton: {
-    ...theme.common.centerContent,
-    padding: theme.spacing.xs + 4,
-  },
-  cropControlText: {
-    color: theme.colors.common.white,
-    marginTop: theme.spacing.xxs,
-    fontSize: theme.typography.caption.fontSize,
-  },
-
-  controlButton: {
-    width: 44,
-    height: 44,
-    borderRadius: theme.borders.radius.round,
-    backgroundColor: theme.colors.grey[700],
-    ...theme.common.centerContent,
-    marginHorizontal: theme.spacing.xs,
+    padding: 16,
+    backgroundColor: THEME_COLORS.cardLight,
   },
   
-  controlButtonText: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.caption.fontSize,
-    marginTop: theme.spacing.xxs,
-  },
-
-  aspectRatioControls: {
-    ...theme.common.row,
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.grey[900],
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.grey[700],
-  },
-
-  aspectRatioButton: {
-    ...theme.common.row,
-    padding: theme.spacing.xs + 4,
-    borderRadius: theme.borders.radius.md,
-    backgroundColor: theme.colors.grey[700],
-  },
-
-  aspectRatioButtonActive: {
-    backgroundColor: theme.colors.grey[800],
-    borderWidth: 1,
-    borderColor: theme.colors.status.info,
-  },
-
-  aspectRatioButtonText: {
-    color: theme.colors.common.white,
-    marginLeft: theme.spacing.xs,
-    fontSize: theme.typography.caption.fontSize,
-    fontWeight: '600',
-  },
-
-  cropFrameContainer: {
-    flex: 1,
-    ...theme.common.centerContent,
-    backgroundColor: theme.colors.grey[900],
-  },
-
-  cropFrame: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
-    overflow: 'hidden',
-    backgroundColor: 'transparent',
-  },
-
-  cropImageContainer: {
-    position: 'absolute',
-    width: SCREEN_WIDTH * 1.5,
-    height: SCREEN_WIDTH * 1.5,
-  },
-
-  cropImage: {
-    width: '100%',
-    height: '100%',
-  },
-
+  // Tag styles
   tagsContainer: {
-    marginTop: theme.spacing.md,
-    borderTopWidth: 0.5,
-    borderTopColor: theme.colors.grey[700],
-    paddingTop: theme.spacing.md,
-  },
-  tagsLabel: {
-    color: theme.colors.common.white,
-    fontSize: theme.typography.subtitle1.fontSize,
-    fontWeight: theme.typography.subtitle1.fontWeight,
-    marginBottom: theme.spacing.xs,
-  },
-  tagsInputContainer: {
-    ...theme.common.row,
-    marginBottom: theme.spacing.md,
-  },
-  tagInput: {
-    flex: 1,
-    color: theme.colors.common.white,
-    backgroundColor: theme.colors.grey[700],
-    borderRadius: theme.borders.radius.xs,
-    padding: theme.spacing.xs,
-    marginRight: theme.spacing.xs,
-  },
-  addTagButton: {
-    backgroundColor: theme.colors.status.info,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borders.radius.xs,
-  },
-  addTagButtonText: {
-    color: theme.colors.common.white,
-    fontWeight: '600',
-  },
-  tagsList: {
+    marginTop: 16,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: theme.spacing.md,
   },
   tagItem: {
-    ...theme.common.row,
-    backgroundColor: theme.colors.status.info,
-    borderRadius: theme.borders.radius.lg,
-    padding: theme.spacing.xs,
-    marginRight: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: THEME_COLORS.cardLight,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 8,
   },
   tagText: {
-    color: theme.colors.common.white,
-    marginRight: theme.spacing.xs,
+    color: THEME_COLORS.textPrimary,
+    marginRight: 6,
   },
-  removeTagButton: {
-    color: theme.colors.common.white,
-    fontSize: 18,
-    lineHeight: 18,
+  tagInputContainer: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
-  loadingContainer: {
-    ...theme.common.centerContent,
-    padding: theme.spacing.md,
+  tagInput: {
+    color: THEME_COLORS.textPrimary,
+    fontSize: 16,
+    paddingVertical: 8,
   },
-  loadingText: {
-    color: theme.colors.common.white,
-    marginTop: theme.spacing.xs,
-    fontSize: theme.typography.body1.fontSize,
+  addTagButton: {
+    backgroundColor: THEME_COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: 'flex-end',
+    marginTop: 12,
+  },
+  addTagButtonText: {
+    color: THEME_COLORS.background,
+    fontWeight: '600',
   },
 });
 

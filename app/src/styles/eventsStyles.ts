@@ -38,8 +38,115 @@ const styles = StyleSheet.create({
     ...theme.typography.h4,
     color: theme.colors.text.primary,
   },
+  
+  // Hero section
+  heroSection: {
+    padding: theme.spacing.lg,
+    backgroundColor: '#f0f7ff',
+    marginBottom: theme.spacing.md,
+  },
+  heroTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.primary.dark,
+    fontWeight: 'bold',
+    marginBottom: theme.spacing.xs,
+  },
+  heroSubtitle: {
+    ...theme.typography.subtitle1,
+    color: theme.colors.text.secondary,
+    maxWidth: '80%',
+  },
+  
+  // Featured events section
+  featuredSection: {
+    marginBottom: theme.spacing.md,
+  },
+  featuredCard: {
+    height: 220,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...theme.shadows.apply({}, 'md'),
+    marginBottom: theme.spacing.md,
+  },
+  featuredImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  featuredGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '70%',
+    justifyContent: 'flex-end',
+    padding: theme.spacing.md,
+  },
+  featuredDate: {
+    color: '#fff',
+    ...theme.typography.caption,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    backgroundColor: 'rgba(58, 134, 255, 0.7)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  featuredTitle: {
+    color: '#fff',
+    ...theme.typography.h5,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  featuredLocation: {
+    color: '#fff',
+    ...theme.typography.body2,
+    marginBottom: 12,
+  },
+  featuredActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  featuredButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: 20,
+  },
+  featuredButtonText: {
+    color: theme.colors.primary.main,
+    fontWeight: '600',
+  },
+  featuredIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  // Create button
+  createButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  
+  // Search section
   searchSection: {
-    padding: theme.spacing.xs + 4,
+    padding: theme.spacing.md,
   },
   searchBar: {
     ...theme.common.row,
@@ -49,6 +156,8 @@ const styles = StyleSheet.create({
       radius: 'sm' 
     }),
     padding: theme.spacing.xxs,
+    backgroundColor: '#fff',
+    ...theme.shadows.apply({}, 'xs'),
   },
   searchInput: {
     flex: 1,
@@ -72,10 +181,12 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     marginTop: theme.spacing.xxs,
   },
+  
+  // Tabs section
   tabGroup: {
     ...theme.common.row,
-    paddingHorizontal: theme.spacing.xs + 4,
-    marginTop: theme.spacing.xs + 4,
+    paddingHorizontal: theme.spacing.md,
+    marginVertical: theme.spacing.md,
     gap: theme.spacing.xs,
   },
   tab: {
@@ -90,24 +201,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: theme.spacing.xxs,
+    backgroundColor: '#fff',
   },
-
   tabIcon: {
     width: 24,
     height: 24,
     justifyContent: "center",
     alignItems: "center",
   },
-
   tabText: {
-    ...theme.typography.body1,
+    ...theme.typography.body2,
     textAlign: "center",
   },
+  
+  // Events list section
   sectionTitle: {
     ...theme.typography.h5,
     color: theme.colors.text.primary,
-    paddingHorizontal: theme.spacing.xs + 4,
-    paddingTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.md,
+    fontWeight: 'bold',
+  },
+  eventsContainer: {
+    marginBottom: theme.spacing.lg,
   },
   eventItem: {
     ...theme.common.row,
@@ -148,11 +265,85 @@ const styles = StyleSheet.create({
   emojiText: {
     fontSize: 20,
   },
+  
+  // CTA Section
+  ctaSection: {
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...theme.shadows.apply({}, 'md'),
+  },
+  ctaGradient: {
+    padding: theme.spacing.lg,
+  },
+  ctaTitle: {
+    ...theme.typography.h5,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: theme.spacing.xs,
+  },
+  ctaText: {
+    ...theme.typography.body1,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: theme.spacing.md,
+  },
+  ctaButton: {
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    alignSelf: 'flex-start',
+  },
+  ctaButtonText: {
+    color: theme.colors.primary.main,
+    fontWeight: 'bold',
+  },
+  
+  // Empty state
+  emptyContainer: {
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: theme.spacing.lg,
+  },
+  emptyText: {
+    ...theme.typography.h6,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+  },
+  emptySubtext: {
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  createEventButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: theme.spacing.md,
+  },
+  createEventButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  
+  // State styles
   activeTab: {
     backgroundColor: theme.colors.primary.main,
     borderRadius: theme.borders.radius.lg - 2,
   },
-
   activeTabText: {
     color: theme.colors.common.white,
     fontWeight: "bold",

@@ -19,6 +19,31 @@ const styles = StyleSheet.create({
     ...theme.typography.h4,
     color: theme.colors.text.primary,
   },
+  topBarIcon: {
+    width: 24,
+    height: 24,
+  },
+  topBarIcons: {
+    ...theme.common.row,
+    gap: theme.spacing.lg,
+  },
+  title: {
+    ...theme.typography.h4,
+    color: theme.colors.text.primary,
+  },
+  createButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
   searchSection: {
     padding: theme.spacing.xs + 4,
   },

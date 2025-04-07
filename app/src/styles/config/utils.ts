@@ -41,4 +41,13 @@ function isObject(item: any): item is Record<string, any> {
  */
 export function createTheme(themeOptions: Record<string, any>) {
   return themeOptions;
-} 
+}
+
+// Exporting utility functions as default to avoid Expo Router warnings
+const utils = {
+  deepMerge,
+  createTheme,
+  isObject
+};
+
+export default utils;

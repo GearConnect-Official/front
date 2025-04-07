@@ -1,13 +1,13 @@
 import axios from 'axios';
 import { API_URL_POSTS } from '../config';
 
-// Fonction utilitaire pour afficher les données de requête en détail
+// Utility function to display request details
 const logRequestDetails = (endpoint: string, method: string, data?: any) => {
-  console.log(`\n====== DÉTAILS DE LA REQUÊTE API ======`);
+  console.log(`\n====== API REQUEST DETAILS ======`);
   console.log(`URL: ${endpoint}`);
-  console.log(`Méthode: ${method}`);
+  console.log(`Method: ${method}`);
   if (data) {
-    console.log(`Données envoyées:`);
+    console.log(`Data sent:`);
     console.log(JSON.stringify(data, null, 2));
   }
   console.log(`======================================\n`);
@@ -40,7 +40,7 @@ export interface Post {
 }
 
 const postService = {
-  // Récupérer tous les posts
+  // Get all posts
   getAllPosts: async () => {
     const endpoint = `${API_URL_POSTS}`;
     logRequestDetails(endpoint, 'GET');
@@ -49,12 +49,12 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching posts:', error);
-      console.log('⚠️ Pour implémenter cette route côté backend: GET /api/posts');
+      console.log('⚠️ To implement this route on the backend: GET /api/posts');
       throw error;
     }
   },
 
-  // Récupérer un post par ID
+  // Get a post by ID
   getPostById: async (id: number) => {
     const endpoint = `${API_URL_POSTS}/${id}`;
     logRequestDetails(endpoint, 'GET');
@@ -63,12 +63,12 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching post:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: GET /api/posts/${id}`);
+      console.log(`⚠️ To implement this route on the backend: GET /api/posts/${id}`);
       throw error;
     }
   },
 
-  // Créer un nouveau post
+  // Create a new post
   createPost: async (postData: Post) => {
     const endpoint = `${API_URL_POSTS}`;
     logRequestDetails(endpoint, 'POST', postData);
@@ -77,20 +77,20 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error creating post:', error);
-      console.log('⚠️ Pour implémenter cette route côté backend: POST /api/posts');
-      console.log('Structure attendue dans le body:', {
-        title: 'string (obligatoire)',
-        body: 'string (obligatoire)',
-        userId: 'number (obligatoire)',
-        imageId: 'number (optionnel)',
-        image: 'string base64 (optionnel)',
-        tags: 'array de PostTag (optionnel)'
+      console.log('⚠️ To implement this route on the backend: POST /api/posts');
+      console.log('Expected structure in the body:', {
+        title: 'string (required)',
+        body: 'string (required)',
+        userId: 'number (required)',
+        imageId: 'number (optional)',
+        image: 'string base64 (optional)',
+        tags: 'array of PostTag (optional)'
       });
       throw error;
     }
   },
 
-  // Mettre à jour un post
+  // Update a post
   updatePost: async (id: number, postData: Partial<Post>) => {
     const endpoint = `${API_URL_POSTS}/${id}`;
     logRequestDetails(endpoint, 'PATCH', postData);
@@ -99,8 +99,8 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error updating post:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: PATCH /api/posts/${id}`);
-      console.log('Structure attendue dans le body (tous les champs sont optionnels):', {
+      console.log(`⚠️ To implement this route on the backend: PATCH /api/posts/${id}`);
+      console.log('Expected structure in the body (all fields are optional):', {
         title: 'string',
         body: 'string',
         imageId: 'number',
@@ -110,7 +110,7 @@ const postService = {
     }
   },
 
-  // Supprimer un post
+  // Delete a post
   deletePost: async (id: number) => {
     const endpoint = `${API_URL_POSTS}/${id}`;
     logRequestDetails(endpoint, 'DELETE');
@@ -119,12 +119,12 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error deleting post:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: DELETE /api/posts/${id}`);
+      console.log(`⚠️ To implement this route on the backend: DELETE /api/posts/${id}`);
       throw error;
     }
   },
 
-  // Ajouter une interaction à un post (like, comment, share)
+  // Add an interaction to a post (like, comment, share)
   addInteraction: async (postId: number, interaction: Omit<Interaction, 'id' | 'postId' | 'createdAt'>) => {
     const endpoint = `${API_URL_POSTS}/${postId}/interactions`;
     const interactionData = {
@@ -138,18 +138,18 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error adding interaction:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: POST /api/posts/${postId}/interactions`);
-      console.log('Structure attendue dans le body:', {
+      console.log(`⚠️ To implement this route on the backend: POST /api/posts/${postId}/interactions`);
+      console.log('Expected structure in the body:', {
         type: 'string (like, comment, share)',
         userId: 'number',
-        content: 'string (optionnel, obligatoire pour les commentaires)',
+        content: 'string (optional, required for comments)',
         createdAt: 'Date'
       });
       throw error;
     }
   },
 
-  // Récupérer toutes les interactions d'un post
+  // Get all interactions for a post
   getPostInteractions: async (postId: number) => {
     const endpoint = `${API_URL_POSTS}/${postId}/interactions`;
     logRequestDetails(endpoint, 'GET');
@@ -158,12 +158,12 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching post interactions:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: GET /api/posts/${postId}/interactions`);
+      console.log(`⚠️ To implement this route on the backend: GET /api/posts/${postId}/interactions`);
       throw error;
     }
   },
 
-  // Ajouter un tag à un post
+  // Add a tag to a post
   addTagToPost: async (postId: number, tag: Omit<PostTag, 'id'>) => {
     const endpoint = `${API_URL_POSTS}/${postId}/tags`;
     logRequestDetails(endpoint, 'POST', tag);
@@ -172,15 +172,15 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error adding tag to post:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: POST /api/posts/${postId}/tags`);
-      console.log('Structure attendue dans le body:', {
+      console.log(`⚠️ To implement this route on the backend: POST /api/posts/${postId}/tags`);
+      console.log('Expected structure in the body:', {
         name: 'string'
       });
       throw error;
     }
   },
 
-  // Supprimer un tag d'un post
+  // Remove a tag from a post
   removeTagFromPost: async (postId: number, tagId: string) => {
     const endpoint = `${API_URL_POSTS}/${postId}/tags/${tagId}`;
     logRequestDetails(endpoint, 'DELETE');
@@ -189,12 +189,12 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error removing tag from post:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: DELETE /api/posts/${postId}/tags/${tagId}`);
+      console.log(`⚠️ To implement this route on the backend: DELETE /api/posts/${postId}/tags/${tagId}`);
       throw error;
     }
   },
 
-  // Récupérer les posts d'un utilisateur spécifique
+  // Get posts from a specific user
   getUserPosts: async (userId: number) => {
     const endpoint = `${API_URL_POSTS}/users/${userId}`;
     logRequestDetails(endpoint, 'GET');
@@ -203,12 +203,12 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching user posts:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: GET /api/posts/users/${userId}`);
+      console.log(`⚠️ To implement this route on the backend: GET /api/posts/users/${userId}`);
       throw error;
     }
   },
 
-  // Rechercher des posts par mots-clés dans le titre ou le corps
+  // Search posts by keywords in title or body
   searchPosts: async (query: string) => {
     const endpoint = `${API_URL_POSTS}/search?q=${encodeURIComponent(query)}`;
     logRequestDetails(endpoint, 'GET');
@@ -217,12 +217,12 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error searching posts:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: GET /api/posts/search?q=${query}`);
+      console.log(`⚠️ To implement this route on the backend: GET /api/posts/search?q=${query}`);
       throw error;
     }
   },
 
-  // Récupérer les posts par tag
+  // Get posts by tag
   getPostsByTag: async (tagName: string) => {
     const endpoint = `${API_URL_POSTS}/tags/${encodeURIComponent(tagName)}`;
     logRequestDetails(endpoint, 'GET');
@@ -231,7 +231,7 @@ const postService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching posts by tag:', error);
-      console.log(`⚠️ Pour implémenter cette route côté backend: GET /api/posts/tags/${tagName}`);
+      console.log(`⚠️ To implement this route on the backend: GET /api/posts/tags/${tagName}`);
       throw error;
     }
   }

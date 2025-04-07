@@ -47,7 +47,7 @@ export type RootStackParamList = {
 const BottomTabNavigator = () => (
   <Tab.Navigator
     screenOptions={{ headerShown: false }}
-    tabBar={(props) => <BottomNav {...props} />} // Add BottomNav here
+    tabBar={(props: any) => <BottomNav {...props} />} // Add BottomNav here
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Network" component={FriendRequestScreen} />

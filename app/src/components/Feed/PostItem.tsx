@@ -1,11 +1,18 @@
-import React from 'react';
-import { View, Image, Text, TouchableOpacity, FlatList, Dimensions } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import PostHeader from './PostHeader';
-import PostActions from './PostActions';
-import PostFooter from './PostFooter';
-import styles from '../../styles/feed/postItemStyles';
-const SCREEN_WIDTH = Dimensions.get('window').width;
+import React from "react";
+import {
+  View,
+  Image,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Dimensions,
+} from "react-native";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import PostHeader from "./PostHeader";
+import PostActions from "./PostActions";
+import PostFooter from "./PostFooter";
+import styles from "../../styles/feed/postItemStyles";
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export interface Comment {
   id: string;
@@ -46,7 +53,7 @@ const PostItem: React.FC<PostItemProps> = ({
   onComment,
   onShare,
   onProfilePress,
-  currentUsername = 'Vous'
+  currentUsername = "john_doe",
 }) => {
   const renderPostImages = () => {
     if (post.images.length === 1) {
@@ -83,23 +90,23 @@ const PostItem: React.FC<PostItemProps> = ({
 
   return (
     <View style={styles.container}>
-      <PostHeader 
+      <PostHeader
         postId={post.id}
-        username={post.username} 
-        avatar={post.avatar} 
+        username={post.username}
+        avatar={post.avatar}
         onProfilePress={() => onProfilePress(post.username)}
         currentUsername={currentUsername}
       />
-      
-      <TouchableOpacity 
-        activeOpacity={1} 
-        onPress={handleDoubleTapLike} 
+
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={handleDoubleTapLike}
         delayLongPress={180}
       >
         {renderPostImages()}
       </TouchableOpacity>
-      
-      <PostActions 
+
+      <PostActions
         postId={post.id}
         liked={post.liked}
         saved={post.saved}
@@ -108,8 +115,8 @@ const PostItem: React.FC<PostItemProps> = ({
         onShare={() => onShare(post.id)}
         onSave={() => onSave(post.id)}
       />
-      
-      <PostFooter 
+
+      <PostFooter
         username={post.username}
         caption={post.caption}
         likes={post.likes}
@@ -122,4 +129,4 @@ const PostItem: React.FC<PostItemProps> = ({
   );
 };
 
-export default PostItem; 
+export default PostItem;

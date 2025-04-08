@@ -627,7 +627,7 @@ const ProfileScreen: React.FC = () => {
               />
 
               <View style={styles.profileDetails}>
-                <Text style={styles.displayName}>Esteban Dardillac</Text>
+                <Text style={styles.displayName}>John Doe</Text>
                 <View style={styles.statsContainer}>
                   <View style={styles.statItem}>
                     <Text style={styles.statValue}>
@@ -649,6 +649,19 @@ const ProfileScreen: React.FC = () => {
                   </View>
                 </View>
               </View>
+            </View>
+
+            {/* Boutons d'action */}
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity style={styles.primaryActionButton}>
+                <Text style={styles.primaryActionButtonText}>Suivre</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <Text style={styles.actionButtonText}>Message</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.smallActionButton}>
+                <FontAwesome name="user-plus" size={14} color="#1E1E1E" />
+              </TouchableOpacity>
             </View>
 
             {/* Bio et informations */}

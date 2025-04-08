@@ -19,39 +19,36 @@ const PostFooter: React.FC<PostFooterProps> = ({
   commentsCount,
   timeAgo,
   onViewComments,
-  onProfilePress
+  onProfilePress,
 }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.likesCount}>{likes} j'aime</Text>
-      
+
       <View style={styles.captionContainer}>
         <Text style={styles.caption}>
-          <Text 
-            style={styles.usernameText} 
-            onPress={onProfilePress}
-          >
+          <Text style={styles.usernameText} onPress={onProfilePress}>
             {username}
-          </Text>{' '}
+          </Text>{" "}
           {caption}
         </Text>
       </View>
-      
+
       {commentsCount > 0 && (
-        <TouchableOpacity 
-          style={styles.commentsLink} 
+        <TouchableOpacity
+          style={styles.commentsLink}
           onPress={onViewComments}
           activeOpacity={0.7}
         >
           <Text style={styles.commentsLinkText}>
-            Voir les {commentsCount} commentaire{commentsCount > 1 ? 's' : ''}
+            Voir les {commentsCount} commentaire{commentsCount > 1 ? "s" : ""}
           </Text>
         </TouchableOpacity>
       )}
-      
+
       <Text style={styles.timeAgo}>{timeAgo}</Text>
     </View>
   );
 };
 
-export default PostFooter; 
+export default PostFooter;

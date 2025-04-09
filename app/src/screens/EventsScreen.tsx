@@ -22,6 +22,7 @@ import { NavigationProp, useIsFocused } from "@react-navigation/native";
 import { useNavigation } from "expo-router";
 import eventService, { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";
+import { API_URL_EVENTS } from '../config';
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.8;
@@ -65,7 +66,7 @@ const EventsScreen: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${process.env.API_PROTOCOLE}://${process.env.API_HOST}:${process.env.PORT}/events`);
+      const response = await fetch(API_URL_EVENTS);
       if (!response.ok) {
         throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
       }
@@ -135,8 +136,8 @@ const EventsScreen: React.FC = () => {
   }, []);
 
   const handleEventPress = (event: Event) => {
-    // Navigation to event details (to be implemented)
-    Alert.alert("Event Selected", `You selected ${event.name}`);
+    console.log("Event ID:", event.id);
+    navigation.navigate('EventDetail', { eventId: event.id });
   };
 
   const renderFeaturedItem = ({ item, index }: { item: Event; index: number }) => {

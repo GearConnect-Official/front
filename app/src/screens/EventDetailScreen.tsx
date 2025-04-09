@@ -105,8 +105,6 @@ const EventDetailScreen: React.FC = () => {
       setError('Failed to fetch event data');
     }
   };
-  console.log('eventId:', eventId);
-  console.log('event:', event);
 
   useEffect(() => {
     if (!eventId) {
@@ -128,6 +126,8 @@ const EventDetailScreen: React.FC = () => {
   }
 
   if (event !== null) {
+    // Cast the meteo property to the proper type when accessing it
+    
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header}>
@@ -147,7 +147,7 @@ const EventDetailScreen: React.FC = () => {
 
         
          <View style={styles.descriptionContainer}>
-           {event?.images?.[0] ? (
+           {/* {event?.images?.[0] ? (
             <Image
                source={{ uri: event.images[0] }}
                style={styles.eventImage}
@@ -156,7 +156,7 @@ const EventDetailScreen: React.FC = () => {
              <View style={styles.placeholderImage}>
                <Text>No Image Available</Text>
              </View>
-           )}
+           )} */}
            <View style={styles.aboutContainer}>
              <Text style={styles.aboutTitle}>About</Text>
              <View style={styles.tagContainer}>
@@ -202,8 +202,13 @@ const EventDetailScreen: React.FC = () => {
             color="gray"
             style={{ marginLeft: 10 }}
           />
-          {/* <Text style={styles.detailText}>{event.meteo}</Text> */}
+          <Text style={styles.detailText}>
+            {typeof meteoInfo === 'object' 
+              ? `${meteoInfo.condition}, ${meteoInfo.temperature}°` 
+              : meteoInfo || 'Weather info unavailable'}
+          </Text>
         </View>
+        
         {/*
          <Text style={styles.sectionTitle}>Related Products</Text>
          <FlatList

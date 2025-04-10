@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import { useAuth } from '../context/AuthContext';
+import styles from '../styles/verifyStyles';
 
 const VerifyScreen: React.FC = () => {
   const { user } = useAuth();
@@ -30,30 +31,5 @@ const VerifyScreen: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
-    color: '#6A707C',
-  },
-  loader: {
-    marginTop: 20,
-  },
-});
 
 export default VerifyScreen; 

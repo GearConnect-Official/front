@@ -5,8 +5,13 @@ export enum ApiRoutes {
   AUTH = 'auth',
   EVENTS = 'events',
   POSTS = 'posts',
+  EVENTTAGS = 'event-tags',
+  EVENTREVIEWS = 'reviews',
+  RELATEDPRODUCTS = 'related-products',
   INTERACTIONS = 'interactions',
-  TAGS = 'tags'
+  SPONSOR = 'sponsor',
+  TAGS = 'tags',
+  USERS = 'users',
 }
 
 /**
@@ -24,4 +29,11 @@ export interface ApiConfig {
  */
 export type ApiEndpoints = {
   [key in ApiRoutes]: string;
-}; 
+};
+
+// Default export to avoid Expo Router warnings
+const apiTypes = {
+  ApiRoutes
+};
+
+export default apiTypes; 

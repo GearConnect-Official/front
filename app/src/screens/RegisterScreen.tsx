@@ -4,6 +4,7 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../App"; // Import navigation types
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import styles from "../styles/registerStyles";
+import componentStyles from "../styles/registerComponentStyles";
 import { useAuth } from "../context/AuthContext"; // Import useAuth hook
 
 const RegisterScreen: React.FC = () => {
@@ -73,7 +74,7 @@ const RegisterScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+      style={componentStyles.flexContainer}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>

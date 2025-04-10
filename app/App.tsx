@@ -11,6 +11,7 @@ import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import FriendRequestScreen from "./src/screens/FriendRequestScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import EventsScreen from "./src/screens/EventsScreen";
+import EventDetailScreen from "./src/screens/EventDetailScreen";
 import BottomNav from "./src/components/BottomNav";
 import { NavigationContainer } from "@react-navigation/native";
 import CreateJobOfferScreen from "./src/screens/CreateJobOfferScreen";
@@ -20,6 +21,7 @@ import PublicationScreen from "./src/screens/PublicationScreen";
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import LoadingScreen from "./src/screens/LoadingScreen";
 import VerifyScreen from "./src/screens/VerifyScreen";
+import ThemeProvider from "./src/styles/ThemeProvider";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -34,6 +36,7 @@ export type RootStackParamList = {
   Network: undefined;
   Publication: undefined;
   Jobs: undefined;
+  EventDetail: { eventId: number };
   FriendRequest: undefined;
   CreateJobOffer: undefined;
   Profile: undefined;
@@ -46,7 +49,7 @@ export type RootStackParamList = {
 const BottomTabNavigator = () => (
   <Tab.Navigator
     screenOptions={{ headerShown: false }}
-    tabBar={(props) => <BottomNav {...props} />} // Add BottomNav here
+    tabBar={(props: any) => <BottomNav {...props} />} // Add BottomNav here
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Network" component={FriendRequestScreen} />
@@ -72,6 +75,7 @@ const AppStack = () => (
     <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
     <Stack.Screen name="Verify" component={VerifyScreen} />
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
+    <Stack.Screen name="EventDetail" component={EventDetailScreen} />
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
@@ -97,15 +101,17 @@ const CLERK_PUBLISHABLE_KEY =
 const App: React.FC = () => {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-      <AuthProvider>
-        {Platform.OS === "web" ? (
-          <NavigationContainer>
+      <ThemeProvider>
+        <AuthProvider>
+          {Platform.OS === "web" ? (
+            <NavigationContainer>
+              <MainNavigator />
+            </NavigationContainer>
+          ) : (
             <MainNavigator />
-          </NavigationContainer>
-        ) : (
-          <MainNavigator />
-        )}
-      </AuthProvider>
+          )}
+        </AuthProvider>
+      </ThemeProvider>
     </ClerkProvider>
   );
 };

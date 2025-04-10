@@ -1,10 +1,21 @@
 import * as React from "react";
-import { View, Text, Alert } from "react-native";
-import InputField from "./CreateEvent/InputField";
-import ImageUpload from "./CreateEvent/ImageUpload";
-import ActionButtons from "./CreateEvent/ActionButtons";
+import {
+  View,
+  Text,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import StepIndicator from "./CreateEvent/StepIndicator";
+import BasicInfo from "./CreateEvent/BasicInfo";
+import NavigationButtons from "./CreateEvent/NavigationButtons";
 import styles from "../styles/createEventStyles";
 import eventService, { Event } from "../services/eventService";
+import { useAuth } from "../context/AuthContext";
+import MediaInfo from "./CreateEvent/MediaInfo";
+import AdditionalInfo from "./CreateEvent/AdditionalInfo";
 
 interface CreateEventProps {
   onCancel: () => void;
@@ -17,6 +28,8 @@ const CreateEvent: React.FC<CreateEventProps> = ({
   onSuccess,
   initialData = {},
 }) => {
+  const { user } = useAuth();
+  
   const [formData, setFormData] = React.useState<Event>({
     name: initialData.name || "",
     creators: initialData.creators || "",
@@ -25,12 +38,15 @@ const CreateEvent: React.FC<CreateEventProps> = ({
     sponsors: initialData.sponsors || "",
     website: initialData.website || "",
     rankings: initialData.rankings || "",
-    logo: initialData.logo,
+    logo: initialData.logo || "",
     images: initialData.images || [],
+    description: initialData.description || "",
   });
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [currentStep, setCurrentStep] = React.useState(1);
+  const totalSteps = 3;
 
   const handleInputChange = (field: keyof Event, value: any) => {
     setFormData((prev) => {
@@ -49,123 +65,159 @@ const CreateEvent: React.FC<CreateEventProps> = ({
       setLoading(false);
       return;
     }
+
+    if (!formData.location.trim()) {
+      setError("Event location is required");
+      setLoading(false);
+      return;
+    }
+    
+    if (!user || !user.id) {
+      setError("You must be logged in to create an event");
+      setLoading(false);
+      return;
+    }
   
     try {
+      // Format date properly
+      const formattedDate = new Date(formData.date);
+      
+      // Create a clean object with all required properties
       const eventData: Event = {
-        ...formData,
-        date: new Date(formData.date),
+        name: formData.name.trim(),
+        location: formData.location.trim(),
+        // Utiliser l'ID utilisateur comme creatorId
+        creators: user.id,
+        rankings: formData.rankings.trim(),
+        website: formData.website.trim(),
+        sponsors: formData.sponsors.trim(),
+        date: formattedDate,
+        description: formData.description ? formData.description.trim() : "",
+        // Les images sont traitées par eventService
+        logo: formData.logo || "",
+        images: formData.images || [],
       };
-    
+      
+      // Afficher toutes les données envoyées pour débogage
+      console.log("Données avant envoi:", JSON.stringify(eventData, null, 2));
+      
       const createdEvent = await eventService.createEvent(eventData);
+      console.log("Réponse du serveur:", createdEvent);
   
-      Alert.alert("Success", "The event has been created successfully!", [
-        { text: "OK", onPress: onSuccess },
-      ]);
-    } catch (err) {
-      setError("Erreur lors de la création de l'événement");
+      Alert.alert(
+        "Success", 
+        "Your event has been created successfully! It's now visible to the entire community.", 
+        [{ text: "Great!", onPress: onSuccess }]
+      );
+    } catch (err: any) {
       console.error("Error creating event:", err);
-      Alert.alert("Error", "Failed to create event. Please try again.");
+      
+      // Log more details about the error for debugging
+      if (err?.response) {
+        console.error("Response data:", err.response.data);
+        console.error("Response status:", err.response.status);
+        console.error("Response headers:", err.response.headers);
+      }
+      
+      // Afficher un message d'erreur plus précis
+      if (err?.response?.data?.error) {
+        setError(`Error: ${err.response.data.error}`);
+      } else if (err?.response?.data?.message) {
+        setError(`Error: ${err.response.data.message}`);
+      } else if (err?.message) {
+        setError(`Error: ${err.message}`);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+      Alert.alert("Error", "Unable to create the event. Please check your data and try again.");
     } finally {
       setLoading(false);
     }
   };
-  
+
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleAddImage = (uri: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: [...(prev.images || []), uri],
+    }));
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <BasicInfo
+            name={formData.name}
+            creators={formData.creators}
+            location={formData.location}
+            date={formData.date}
+            onInputChange={handleInputChange}
+          />
+        );
+      case 2:
+        return (
+          <MediaInfo
+            logo={formData.logo || ""}
+            images={formData.images || []}
+            description={formData.description || ""}
+            onInputChange={handleInputChange}
+            onAddImage={handleAddImage}
+          />
+        );
+      case 3:
+        return (
+          <AdditionalInfo
+            logo={formData.logo || ""}
+            name={formData.name}
+            location={formData.location}
+            date={formData.date}
+            website={formData.website}
+            sponsors={formData.sponsors}
+            onInputChange={handleInputChange}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const isLastStep = currentStep === totalSteps;
 
   return (
-    <View>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Logo</Text>
-        <ImageUpload
-          title="Upload the logo for the Event"
-          buttonText="Upload"
-          onImageSelected={(uri) => handleInputChange("logo", uri)}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
+        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
+        <ScrollView style={styles.scrollView}>
+          {renderStepContent()}
+        </ScrollView>
+        
+        <NavigationButtons
+          currentStep={currentStep}
+          isLastStep={isLastStep}
+          loading={loading}
+          onPrev={prevStep}
+          onNext={nextStep}
+          onSubmit={handleSubmit}
         />
+        
+        {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
-
-      <InputField
-        title="Event name"
-        placeholder="Enter event name"
-        info="Edit event name here"
-        value={formData.name}
-        onChangeText={(text) => handleInputChange("name", text)}
-      />
-
-      <InputField
-        title="People who created it"
-        placeholder="Enter creators' names"
-        info="Add or modify event creators"
-        value={formData.creators}
-        onChangeText={(text) => handleInputChange("creators", text)}
-      />
-
-      <InputField
-        title="Location"
-        placeholder="Enter event location"
-        info="Change event location here"
-        value={formData.location}
-        onChangeText={(text) => handleInputChange("location", text)}
-      />
-
-      <InputField
-        title="Date"
-        placeholder="Select event date"
-        info="Change event date here"
-        value={formData.date.toISOString().split("T")[0]} // Affichage en YYYY-MM-DD
-        onChangeText={(text) => {
-          const newDate = new Date(text);
-          if (!isNaN(newDate.getTime())) {
-            handleInputChange("date", newDate);
-          }
-        }}
-      />
-
-      <InputField
-        title="Sponsors"
-        placeholder="Enter event sponsors"
-        info="Add or modify event sponsors"
-        value={formData.sponsors}
-        onChangeText={(text) => handleInputChange("sponsors", text)}
-      />
-
-      <InputField
-        title="Organizer's website"
-        placeholder="www.valdevienne-circuit.com"
-        info="Add link to organizer's website if available"
-        value={formData.website}
-        onChangeText={(text) => handleInputChange("website", text)}
-      />
-
-      <InputField
-        title="Rankings"
-        placeholder="Val_de_Vienne_Rankings_2025.xls"
-        info="Download or modify the rankings file here"
-        value={formData.rankings}
-        onChangeText={(text) => handleInputChange("rankings", text)}
-      />
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Images</Text>
-        <ImageUpload
-          title="Upload your image"
-          buttonText="Upload"
-          onImageSelected={(uri) =>
-            setFormData((prev) => ({
-              ...prev,
-              images: [...(prev.images || []), uri],
-            }))
-          }
-        />
-      </View>
-
-      {error && <Text style={styles.errorText}>{error}</Text>}
-
-      <ActionButtons
-        onCancel={onCancel}
-        onSubmit={handleSubmit}
-        submitText={loading ? "Creating..." : "Create"}
-        disabled={loading}
-      />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

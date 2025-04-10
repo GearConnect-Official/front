@@ -1,4 +1,5 @@
 import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native';
+import theme from './config';
 
 const { width, height } = Dimensions.get('window');
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
@@ -6,11 +7,26 @@ const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 const SCREEN_WIDTH = width;
 const SCREEN_HEIGHT = height;
 
+// Palette de couleurs inspirée du monde automobile et du racing
+const THEME_COLORS = {
+  primary: '#E10600', // Rouge Racing
+  secondary: '#1E1E1E', // Noir Racing
+  tertiary: '#2D9CDB', // Bleu pour accent
+  quaternary: '#F0C419', // Jaune pour accent
+  background: '#FFFFFF',
+  card: '#F2F2F2',
+  cardLight: '#F8F8F8',
+  textPrimary: '#1E1E1E',
+  textSecondary: '#6E6E6E',
+  border: '#E0E0E0',
+  success: '#27AE60', // Vert pour badges positifs
+};
+
 const styles = StyleSheet.create({
   // Container styles
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: THEME_COLORS.background,
   },
   safeArea: {
     flex: 1,
@@ -22,56 +38,55 @@ const styles = StyleSheet.create({
 
   // Header styles
   header: {
-    height: 44,
+    height: 56,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    backgroundColor: '#000',
-    borderBottomColor: '#262626',
-    borderBottomWidth: 0.5,
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    backgroundColor: THEME_COLORS.background,
+    borderBottomColor: THEME_COLORS.border,
+    borderBottomWidth: 1,
     zIndex: 1,
   },
   headerLeft: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    ...theme.common.row,
   },
   backButton: {
-    marginRight: 16,
-    padding: 4,
+    marginRight: 15,
+    padding: 8,
   },
   headerTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: THEME_COLORS.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
   },
   headerButton: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     zIndex: 2,
   },
   nextButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 4,
+    borderRadius: 8,
     backgroundColor: 'transparent',
     zIndex: 2,
   },
   nextButtonText: {
-    color: '#0095F6',
+    color: THEME_COLORS.primary,
     fontSize: 15,
     fontWeight: '600',
   },
   nextButtonShare: {
-    backgroundColor: '#0095F6',
+    backgroundColor: THEME_COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 4,
+    borderRadius: 8,
     zIndex: 2,
   },
   nextButtonShareText: {
-    color: '#fff',
+    color: THEME_COLORS.background,
     fontSize: 15,
     fontWeight: '600',
   },
@@ -82,7 +97,12 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonLoader: {
-    marginHorizontal: 8,
+    marginHorizontal: 10,
+  },
+  cropConfirmText: {
+    color: THEME_COLORS.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
 
   // Media Section styles
@@ -90,26 +110,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#121212',
-    padding: 20,
+    backgroundColor: THEME_COLORS.cardLight,
+    padding: 24,
   },
   mediaButton: {
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    alignItems: 'center',
+    padding: 32,
     borderRadius: 16,
-    backgroundColor: '#0095F6',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    backgroundColor: THEME_COLORS.primary,
+    shadowColor: THEME_COLORS.secondary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   mediaButtonText: {
-    color: '#fff',
+    color: THEME_COLORS.background,
     marginTop: 12,
     fontSize: 16,
     fontWeight: '600',
@@ -119,37 +136,42 @@ const styles = StyleSheet.create({
   // Image Cropper styles
   cropperContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: THEME_COLORS.background,
   },
   cropperHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#121212',
+    backgroundColor: THEME_COLORS.cardLight,
   },
   cropperImage: {
     width: width,
     height: width,
-    backgroundColor: '#121212',
+    backgroundColor: THEME_COLORS.cardLight,
   },
   cropperTools: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
+    justifyContent: 'space-around',
     padding: 16,
-    backgroundColor: '#121212',
+    backgroundColor: THEME_COLORS.cardLight,
   },
   cropperTool: {
     width: 44,
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#262626',
-    borderRadius: 22,
+    backgroundColor: THEME_COLORS.card,
+    borderRadius: 8,
+    shadowColor: THEME_COLORS.secondary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   cropperToolText: {
-    color: '#fff',
+    color: THEME_COLORS.textPrimary,
     fontSize: 12,
     marginTop: 4,
   },
@@ -157,40 +179,40 @@ const styles = StyleSheet.create({
   // Publication Form styles
   formContainer: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: THEME_COLORS.background,
   },
   userInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#262626',
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.border,
   },
   userAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     marginRight: 12,
   },
   headerText: {
-    color: '#fff',
-    fontSize: 15,
+    color: THEME_COLORS.textPrimary,
+    fontSize: 16,
     fontWeight: '600',
   },
   inputContainer: {
-    padding: 16,
+    padding: theme.spacing.md,
   },
   titleInput: {
-    color: '#fff',
-    fontSize: 18,
+    color: THEME_COLORS.textPrimary,
+    fontSize: 20,
     fontWeight: '600',
     paddingVertical: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#262626',
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.border,
     marginBottom: 16,
   },
   descriptionInput: {
-    color: '#fff',
+    color: THEME_COLORS.textPrimary,
     fontSize: 16,
     paddingVertical: 12,
     minHeight: 100,
@@ -203,18 +225,18 @@ const styles = StyleSheet.create({
   formImagePreview: {
     width: SCREEN_WIDTH,
     height: SCREEN_WIDTH,
-    backgroundColor: '#262626',
+    backgroundColor: THEME_COLORS.card,
   },
   formContent: {
-    padding: 16,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+    padding: theme.spacing.md,
+    paddingBottom: Platform.OS === 'ios' ? 34 : theme.spacing.md,
   },
   
   // Preview Image styles
   previewContainer: {
     flex: 1,
     width: '100%',
-    backgroundColor: '#000',
+    backgroundColor: THEME_COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -225,35 +247,35 @@ const styles = StyleSheet.create({
   
   // Additional Options styles
   optionsContainer: {
-    backgroundColor: '#121212',
+    backgroundColor: THEME_COLORS.background,
   },
   optionItem: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#262626',
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.border,
   },
   optionText: {
-    color: '#fff',
+    color: THEME_COLORS.textPrimary,
     fontSize: 16,
   },
   optionValue: {
-    color: '#666',
+    color: THEME_COLORS.textSecondary,
     fontSize: 16,
   },
 
   // Error styles
   errorContainer: {
     padding: 16,
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#e74c3c',
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 8,
   },
   errorText: {
-    color: '#fff',
+    color: THEME_COLORS.background,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -261,281 +283,60 @@ const styles = StyleSheet.create({
   // Image Viewer styles
   imageViewerContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: THEME_COLORS.background,
   },
   imageControls: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-around',
     padding: 16,
-    backgroundColor: '#000',
-  },
-  imageControlButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#262626',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  fullScreenContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fullScreenImage: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    resizeMode: 'contain',
-  },
-  fullScreenCloseButton: {
-    position: 'absolute',
-    top: STATUSBAR_HEIGHT + 10,
-    right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  zoomInstructions: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 8,
-    alignItems: 'center',
-  },
-  zoomInstructionsText: {
-    color: '#fff',
-    fontSize: 14,
-  },
-
-  // New styles from the code block
-  cropOverlayContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    paddingTop: STATUSBAR_HEIGHT,
-  },
-  cropHeader: {
-    height: HEADER_HEIGHT - STATUSBAR_HEIGHT,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    backgroundColor: '#121212',
-  },
-  cropConfirmText: {
-    color: '#0095F6',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  cropPreviewContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cropPreviewImage: {
-    width: '100%',
-    height: undefined,
-    backgroundColor: '#121212',
-  },
-  cropGrid: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  cropGridLine: {
-    position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  cropGridLineHorizontal: {
-    width: '100%',
-    height: 1,
-  },
-  cropGridLineVertical: {
-    width: 1,
-    height: '100%',
-  },
-  cropControls: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    backgroundColor: '#121212',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Ajustement pour iPhone X et plus
-  },
-  cropControlButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-  },
-  cropControlText: {
-    color: '#fff',
-    marginTop: 4,
-    fontSize: 12,
-  },
-
-  controlButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#262626',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 8,
+    backgroundColor: THEME_COLORS.cardLight,
   },
   
-  controlButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    marginTop: 4,
-  },
-
-  aspectRatioControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#000',
-    borderTopWidth: 1,
-    borderTopColor: '#262626',
-  },
-
-  aspectRatioButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: '#262626',
-  },
-
-  aspectRatioButtonActive: {
-    backgroundColor: '#1C1C1C',
-    borderWidth: 1,
-    borderColor: '#0095F6',
-  },
-
-  aspectRatioButtonText: {
-    color: '#fff',
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  cropFrameContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-
-  cropFrame: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
-    overflow: 'hidden',
-    backgroundColor: 'transparent',
-  },
-
-  cropImageContainer: {
-    position: 'absolute',
-    width: SCREEN_WIDTH * 1.5,
-    height: SCREEN_WIDTH * 1.5,
-  },
-
-  cropImage: {
-    width: '100%',
-    height: '100%',
-  },
-
+  // Tag styles
   tagsContainer: {
     marginTop: 16,
-    borderTopWidth: 0.5,
-    borderTopColor: '#262626',
-    paddingTop: 16,
-  },
-  tagsLabel: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  tagsInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  tagInput: {
-    flex: 1,
-    color: '#fff',
-    backgroundColor: '#262626',
-    borderRadius: 4,
-    padding: 8,
-    marginRight: 8,
-  },
-  addTagButton: {
-    backgroundColor: '#0095F6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 4,
-  },
-  addTagButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  tagsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 16,
   },
   tagItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0095F6',
+    backgroundColor: THEME_COLORS.cardLight,
     borderRadius: 16,
-    padding: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     marginRight: 8,
     marginBottom: 8,
   },
   tagText: {
-    color: '#fff',
-    marginRight: 8,
+    color: THEME_COLORS.textPrimary,
+    marginRight: 6,
   },
-  removeTagButton: {
-    color: '#fff',
-    fontSize: 18,
-    lineHeight: 18,
+  tagInputContainer: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  loadingText: {
-    color: '#fff',
-    marginTop: 8,
+  tagInput: {
+    color: THEME_COLORS.textPrimary,
     fontSize: 16,
+    paddingVertical: 8,
+  },
+  addTagButton: {
+    backgroundColor: THEME_COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: 'flex-end',
+    marginTop: 12,
+  },
+  addTagButtonText: {
+    color: THEME_COLORS.background,
+    fontWeight: '600',
   },
 });
 

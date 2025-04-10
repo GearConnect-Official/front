@@ -57,18 +57,18 @@ const PublicationScreen: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Préparation du modèle de données selon le schéma Prisma
-      // Correspondant au modèle Post { id, title, body, user, userId, image, imageId, tags, interactions, createdAt }
+      // Preparing the data model according to the Prisma schema
+      // Corresponding to Post model { id, title, body, user, userId, image, imageId, tags, interactions, createdAt }
       const post = {
         title: title,
         body: description,
-        userId: 1, // Remplacer par l'ID de l'utilisateur connecté
+        userId: 1, // Replace with the ID of the logged-in user
         image: imageToShare,
         tags: tags.length > 0 ? tags.map(tag => ({ name: tag })) : undefined,
       };
       
-      console.log("\n\n=========== DONNÉES À ENVOYER VERS LE BACKEND ===========");
-      console.log("Format attendu par le modèle Prisma:");
+      console.log("\n\n=========== DATA TO SEND TO THE BACKEND ===========");
+      console.log("Format expected by the Prisma model:");
       console.log(`
 model Post {
   id            Int           @id @default(autoincrement())
@@ -84,13 +84,13 @@ model Post {
 }
       `);
       
-      // Appel de l'API pour créer le post
+      // API call to create the post
       const response = await postService.createPost(post);
       console.log('Post created:', response);
       
-      // Si le post a des tags, les ajouter
+      // If the post has tags, add them
       if (tags.length > 0 && response.id) {
-        console.log('\nAjout des tags au post:');
+        console.log('\nAdding tags to post:');
         await Promise.all(
           tags.map(tag => {
             console.log(`- Tag: ${tag}`);
@@ -109,30 +109,30 @@ model Post {
       Alert.alert('Success', 'Your post has been shared successfully!');
       navigation.goBack();
     } catch (error) {
-      console.error('\n❌ ERREUR LORS DE LA CRÉATION DU POST:');
+      console.error('\n❌ ERROR CREATING POST:');
       console.error(error);
-      console.log('\n📋 INSTRUCTIONS POUR LE BACKEND:');
+      console.log('\n📋 BACKEND INSTRUCTIONS:');
       console.log(`
-Pour que cette fonctionnalité fonctionne, vous devez implémenter les routes suivantes:
+To make this feature work, you need to implement the following routes:
 
 1. POST /api/posts
-   - Crée un nouveau post
-   - Corps de la requête: { title, body, userId, image, tags? }
-   - Retourne: Le post créé avec son ID
+   - Creates a new post
+   - Request body: { title, body, userId, image, tags? }
+   - Returns: The created post with its ID
 
 2. POST /api/posts/:postId/tags 
-   - Ajoute un tag à un post existant
-   - Corps de la requête: { name }
-   - Retourne: Le tag créé
+   - Adds a tag to an existing post
+   - Request body: { name }
+   - Returns: The created tag
 
 3. GET /api/posts
-   - Récupère tous les posts
-   - Retourne: Liste de posts
+   - Retrieves all posts
+   - Returns: List of posts
 
 4. POST /api/posts/:postId/interactions
-   - Ajoute une interaction (like, comment, share) à un post
-   - Corps de la requête: { type, userId, content?, createdAt }
-   - Retourne: L'interaction créée
+   - Adds an interaction (like, comment, share) to a post
+   - Request body: { type, userId, content?, createdAt }
+   - Returns: The created interaction
 `);
       Alert.alert('Error', 'Failed to share post');
     } finally {
@@ -204,8 +204,8 @@ Pour que cette fonctionnalité fonctionne, vous devez implémenter les routes su
             setTitle={setTitle}
             setDescription={setDescription}
             setTags={handleTagsChange}
-            username="Username" // À remplacer par le vrai username
-            userAvatar="https://via.placeholder.com/32" // À remplacer par le vrai avatar
+            username="Username" // Replace with the real username
+            userAvatar="https://via.placeholder.com/32" // Replace with the real avatar
             isLoading={isLoading}
           />
         ) : null;

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import theme from "./config";
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -6,17 +7,17 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.background.paper,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 30,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.multiply(7.5), // 60/8
+    paddingBottom: theme.spacing.xl + 6,
   },
   backButton: {
     position: "absolute",
     top: 50,
-    left: 20,
+    left: theme.spacing.lg,
     zIndex: 10,
   },
   backIcon: {
@@ -24,54 +25,47 @@ const styles = StyleSheet.create({
     height: 24,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1E232C",
+    ...theme.typography.h2,
+    color: theme.colors.text.primary,
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: theme.spacing.xl + 6,
   },
   inputContainer: {
     width: "100%",
-    marginBottom: 15,
+    marginBottom: theme.spacing.sm + 3,
   },
   input: {
     width: "100%",
-    height: 56,
-    backgroundColor: "#F7F7F7",
-    borderColor: "#DADADA",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    fontSize: 16,
+    height: theme.spacing.height.input,
+    backgroundColor: theme.colors.background.input,
+    ...theme.borders.apply({}, { preset: 'input' }),
+    paddingHorizontal: theme.spacing.sm + 3,
+    ...theme.typography.body1,
   },
   inputError: {
-    borderColor: "#FF3B30",
+    borderColor: theme.colors.status.error,
   },
   errorText: {
-    color: "#FF3B30",
-    fontSize: 12,
-    marginTop: 5,
-    marginLeft: 5,
+    ...theme.typography.error,
+    marginTop: theme.spacing.xxs + 1,
+    marginLeft: theme.spacing.xxs + 1,
   },
   registerButton: {
-    backgroundColor: "#1E232C",
+    backgroundColor: theme.colors.primary.main,
     width: "100%",
-    height: 56,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 20,
+    height: theme.spacing.height.button,
+    borderRadius: theme.borders.radius.md,
+    ...theme.common.centerContent,
+    marginVertical: theme.spacing.lg,
   },
   registerButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#fff",
+    ...theme.typography.button,
+    color: theme.colors.common.white,
   },
   orText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#6A707C",
-    marginBottom: 10,
+    ...theme.typography.subtitle2,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs + 2,
   },
   socialButtonsContainer: {
     flexDirection: "row",
@@ -81,11 +75,12 @@ const styles = StyleSheet.create({
   socialButton: {
     width: 56,
     height: 56,
-    borderWidth: 1,
-    borderColor: "#DADADA",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
+    ...theme.borders.apply({}, { 
+      width: 1, 
+      color: theme.colors.border.light, 
+      radius: 'md' 
+    }),
+    ...theme.common.centerContent,
   },
   socialIcon: {
     width: 26,

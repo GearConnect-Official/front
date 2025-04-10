@@ -10,7 +10,7 @@ const WelcomeScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Logo */}
-      <Image source={require("../../../assets/images/logo-rounded.png")} style={styles.logo} />
+      <Image source={require("../../assets/images/logo-rounded.png")} style={styles.logo} />
 
       {/* Authentication buttons */}
       <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("Auth")}>

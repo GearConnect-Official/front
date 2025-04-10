@@ -8,6 +8,9 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../App";
@@ -35,59 +38,67 @@ const AuthScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <FontAwesome name="arrow-left" size={24} color="#1E232C" />
-        </TouchableOpacity>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.contentContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <FontAwesome name="arrow-left" size={24} color="#1E232C" />
+          </TouchableOpacity>
 
-        <Image
-          source={require("../../../assets/images/logo-rounded.png")}
-          style={styles.logo}
-        />
+          <Image
+            source={require("../../assets/images/logo-rounded.png")}
+            style={styles.logo}
+          />
 
-        <Text style={styles.title}>Welcome back! Glad to see you again!</Text>
+          <Text style={styles.title}>Welcome back! Glad to see you again!</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          placeholderTextColor="rgba(131, 145, 161, 1)"
-        />
-
-        <View style={styles.passwordContainer}>
           <TextInput
-            style={styles.passwordInput}
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
+            style={styles.input}
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
             placeholderTextColor="rgba(131, 145, 161, 1)"
           />
-          <TouchableOpacity
-            onPress={() => setShowPassword(!showPassword)}
-            style={styles.eyeIcon}
-          >
-            <FontAwesome
-              name={showPassword ? "eye" : "eye-slash"}
-              size={22}
-              color="#6A707C"
-            />
-          </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity
-          style={styles.forgotPassword}
-          onPress={() => navigation.navigate("ForgotPassword")}
-        >
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              placeholderTextColor="rgba(131, 145, 161, 1)"
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIcon}
+            >
+              <FontAwesome
+                name={showPassword ? "eye" : "eye-slash"}
+                size={22}
+                color="#6A707C"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.forgotPassword}
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
 
         <TouchableOpacity 
           style={styles.loginButton} 
@@ -100,36 +111,36 @@ const AuthScreen: React.FC = () => {
             <Text style={styles.loginButtonText}>Login</Text>
           )}
         </TouchableOpacity>
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>Or Login with</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>Or Login with</Text>
-          <View style={styles.dividerLine} />
+          <View style={styles.socialButtonsContainer}>
+            <TouchableOpacity style={styles.socialButton}>
+              <FontAwesome name="facebook" size={24} color="#3b5998" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton}>
+              <FontAwesome name="google" size={24} color="#db4437" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton}>
+              <FontAwesome name="apple" size={24} color="#000000" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.registerContainer}
+            onPress={() => navigation.navigate("Register")}
+          >
+            <Text style={styles.registerText}>
+              Don't have an account?{" "}
+              <Text style={styles.registerLink}>Register Now</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.socialButtonsContainer}>
-          <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="facebook" size={24} color="#3b5998" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="google" size={24} color="#db4437" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="apple" size={24} color="#000000" />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.registerContainer}
-          onPress={() => navigation.navigate("Register")}
-        >
-          <Text style={styles.registerText}>
-            Don't have an account?{" "}
-            <Text style={styles.registerLink}>Register Now</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

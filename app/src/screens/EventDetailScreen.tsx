@@ -59,7 +59,7 @@ const ReviewItem: React.FC<{ item: EventInterface['reviews'][0] }> = ({
     <View style={styles.reviewCard}>
       <View style={styles.reviewHeader}>
         <Image
-          source={ item.avatar  ? { uri: item.avatar } : require('../../../assets/images/logo-rounded.png')}
+          source={ item.avatar  ? { uri: item.avatar } : require('../../assets/images/logo-rounded.png')}
           style={styles.reviewAvatar}
         />
         <View style={styles.reviewUserInfo}>
@@ -341,7 +341,7 @@ const EventDetailScreen: React.FC = () => {
           renderItem={({ item }) => (
             <View style={styles.productCard}>
               <Image
-                source={require('../../../assets/images/Google-logo.png')}
+                source={require('../../assets/images/Google-logo.png')}
                 style={styles.productImage}
               />
               <Text style={styles.productTitle}>{item.name}</Text>

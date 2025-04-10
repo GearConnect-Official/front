@@ -179,6 +179,19 @@ const RegisterScreen: React.FC = () => {
               <FontAwesome name="google" size={26} color="#db4437" />
             </TouchableOpacity>
           </View>
+
+          {/* Login text link - Fixed structure */}
+          <TouchableOpacity 
+            style={{ marginTop: 20 }}
+            onPress={() => navigation.navigate("Auth")}
+          >
+            <Text style={{ color: '#6A707C', fontSize: 15, textAlign: 'center' }}>
+              Déjà un compte ?{" "}
+              <Text style={{ color: '#E53935', fontWeight: 'bold' }}>
+                Se connecter
+              </Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

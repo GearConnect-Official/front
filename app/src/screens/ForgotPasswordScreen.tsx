@@ -34,13 +34,6 @@ const ForgotPasswordScreen: React.FC = () => {
         <FontAwesome name="arrow-left" size={24} color="#1E232C" />
       </TouchableOpacity>
 
-      {/* <View style={styles.logoContainer}>
-        <Image
-          source={require("../../../assets/images/forgot-password-icon.png")}
-          style={styles.logo}
-        />
-      </View> */}
-
       <Text style={styles.title}>Forgot Password?</Text>
 
       <Text style={styles.subtitle}>

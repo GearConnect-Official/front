@@ -41,3 +41,16 @@ export interface EventInterface {
     username: string;
   }[];
 }
+
+// Ceci est ajouté pour satisfaire les exigences d'Expo Router
+// qui s'attend à un export default d'un composant React pour chaque fichier
+import React from 'react';
+
+/**
+ * Ce fichier ne contient que des interfaces TypeScript et n'est pas censé être une route.
+ * Cependant, Expo Router l'interprète comme une route, donc nous devons ajouter un composant vide.
+ * Ne pas utiliser ce composant, il est uniquement présent pour éviter les avertissements.
+ */
+const EmptyComponent: React.FC = () => null;
+
+export default EmptyComponent;

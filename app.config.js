@@ -6,10 +6,10 @@ export default {
     slug: "gearconnect",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/icon.png",
+    icon: "./app/assets/images/icon.png",
     userInterfaceStyle: "light",
     splash: {
-      image: "./assets/splash.png",
+      image: "./app/assets/images/splash-icon.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },
@@ -21,12 +21,12 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
+        foregroundImage: "./app/assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
       }
     },
     web: {
-      favicon: "./assets/favicon.png"
+      favicon: "./app/assets/images/favicon.png"
     },
     extra: {
       apiProtocol: process.env.API_PROTOCOL,

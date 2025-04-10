@@ -64,7 +64,7 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <View style={styles.container}>
           <Image
-            source={require('../../../assets/images/icon.png')}
+            source={require('../../assets/images/icon.png')}
             style={styles.errorImage}
             resizeMode="contain"
           />

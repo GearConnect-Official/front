@@ -47,16 +47,41 @@ npm start
 - `app/` : Code source principal de l'application
   - `src/` : Sources principales
     - `components/` : Composants React Native réutilisables
+      - `Feed/` : Composants liés au flux d'actualités
+      - `Publication/` : Composants pour la création et l'affichage de publications
+      - `CreateEvent/` : Composants pour la création d'événements
     - `screens/` : Écrans de l'application
+      - `AuthScreen.tsx` : Écran de connexion
+      - `RegisterScreen.tsx` : Écran d'inscription
+      - `HomeScreen.tsx` : Écran d'accueil
+      - `EventsScreen.tsx` : Liste des événements
+      - `EventDetailScreen.tsx` : Détails d'un événement
+      - `CreateEventScreen.tsx` : Création d'événement
+      - `ProfileScreen.tsx` : Profil utilisateur
+      - `JobsScreen.tsx` : Offres d'emploi
+      - et d'autres écrans...
     - `services/` : Services d'API et logique métier
-    - `context/` : Contextes React pour la gestion d'état
+    - `context/` : Contextes React pour la gestion d'état (Auth, etc.)
+    - `hooks/` : Hooks personnalisés
+      - `useNetworkStatus.tsx` : Gestion de l'état de connexion
+      - `useFeedback.tsx` : Gestion des notifications et feedback
     - `types/` : Types TypeScript
     - `styles/` : Styles et thèmes
+      - `config/` : Configuration des thèmes et couleurs
     - `config.ts` : Configuration de l'API et constantes
   - `__tests__/` : Tests unitaires et d'intégration
-  - `App.tsx` : Point d'entrée de l'application
+  - `App.tsx` : Point d'entrée de l'application avec la configuration de navigation
 
-- `assets/` : Images, polices et autres ressources statiques
+  - `assets/` : Images, polices et autres ressources statiques
+    - `images/` : Images et icônes
+    - `fonts/` : Polices d'écriture
+
+## Système de navigation
+
+L'application utilise React Navigation 7 pour la gestion des routes :
+- Navigation par pile (`StackNavigator`) pour les écrans principaux
+- Navigation par onglets (`TabNavigator`) pour le menu inférieur
+- Gestion des états d'authentification avec des piles de navigation conditionnelles
 
 ## Notes importantes
 
@@ -70,7 +95,7 @@ npm start
 - React Native
 - Expo
 - TypeScript
-- React Navigation
+- React Navigation 7
 - Axios pour les requêtes API
 - Jest pour les tests
 

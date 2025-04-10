@@ -5,7 +5,8 @@ module.exports = {
   ],
   setupFilesAfterEnv: ['<rootDir>/app/__tests__/setup.js'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/app/$1'
+    '^@/(.*)$': '<rootDir>/app/$1',
+    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/app/__tests__/__mocks__/fileMock.js'
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testPathIgnorePatterns: ['/node_modules/', '/\\.expo/'],

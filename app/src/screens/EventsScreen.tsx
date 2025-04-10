@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,19 +22,22 @@ import { NavigationProp, useIsFocused } from "@react-navigation/native";
 import { useNavigation } from "expo-router";
 import eventService, { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";
+import { API_URL_EVENTS } from '../config';
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.8;
 
 const EventsScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<{ [key: string]: Event[] }>({
     all: [],
     upcoming: [],
     passed: [],
   });
-  const [filteredEvents, setFilteredEvents] = useState<{ [key: string]: Event[] }>({
+  const [filteredEvents, setFilteredEvents] = useState<{
+    [key: string]: Event[];
+  }>({
     all: [],
     upcoming: [],
     passed: [],
@@ -54,17 +57,20 @@ const EventsScreen: React.FC = () => {
   }
 
   const tabs: TabItem[] = [
-    { key: "all", label: "All Events", icon: "calendar" },
-    { key: "upcoming", label: "Upcoming Events", icon: "star" },
-    { key: "passed", label: "Passed Events", icon: "history" },
+    { key: 'all', label: 'All Events', icon: 'calendar' },
+    { key: 'upcoming', label: 'Upcoming Events', icon: 'star' },
+    { key: 'passed', label: 'Passed Events', icon: 'history' },
   ];
 
   const fetchEvents = async () => {
     setLoading(true);
     setError(null);
     try {
-      const allEvents = await eventService.getAllEvents();
-      
+      const response = await fetch(API_URL_EVENTS);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
+      }
+      const allEvents = await response.json();
       const now = new Date();
       const upcomingEvents = allEvents.filter(
         (event: Event) => new Date(event.date) >= now
@@ -107,13 +113,13 @@ const EventsScreen: React.FC = () => {
     if (searchQuery.length >= 3) {
       const lowerCaseQuery = searchQuery.toLowerCase();
       const filtered = {
-        all: events.all.filter(event =>
+        all: events.all.filter((event) =>
           event.name.toLowerCase().includes(lowerCaseQuery)
         ),
-        upcoming: events.upcoming.filter(event =>
+        upcoming: events.upcoming.filter((event) =>
           event.name.toLowerCase().includes(lowerCaseQuery)
         ),
-        passed: events.passed.filter(event =>
+        passed: events.passed.filter((event) =>
           event.name.toLowerCase().includes(lowerCaseQuery)
         ),
       };
@@ -130,8 +136,7 @@ const EventsScreen: React.FC = () => {
   }, []);
 
   const handleEventPress = (event: Event) => {
-    // Navigation to event details (to be implemented)
-    Alert.alert("Event Selected", `You selected ${event.name}`);
+    navigation.navigate('EventDetail', { eventId: event.id });
   };
 
   const renderFeaturedItem = ({ item, index }: { item: Event; index: number }) => {
@@ -214,7 +219,10 @@ const EventsScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.topBarContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
           <Text style={styles.title}>Events</Text>
@@ -233,7 +241,7 @@ const EventsScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -283,7 +291,10 @@ const EventsScreen: React.FC = () => {
               }}
               onSubmitEditing={handleSearch}
             />
-            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={handleSearch}
+            >
               <FontAwesome name="search" size={20} color="white" />
             </TouchableOpacity>
           </View>
@@ -302,7 +313,7 @@ const EventsScreen: React.FC = () => {
               <FontAwesome
                 name={tab.icon}
                 size={20}
-                color={activeTab === tab.key ? "#FFFFFF" : "#1E232C"}
+                color={activeTab === tab.key ? '#FFFFFF' : '#1E232C'}
                 style={styles.tabIcon}
               />
               <Text

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ClerkProvider } from "@clerk/clerk-expo";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import { Platform } from "react-native";
+import { Platform, View } from "react-native";
 import AuthScreen from "./src/screens/AuthScreen";
 import WelcomeScreen from "./src/screens/WelcomeScreen";
 import JobsScreen from "./src/screens/JobsScreen";
@@ -11,6 +11,7 @@ import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import FriendRequestScreen from "./src/screens/FriendRequestScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import EventsScreen from "./src/screens/EventsScreen";
+import EventDetailScreen from "./src/screens/EventDetailScreen";
 import BottomNav from "./src/components/BottomNav";
 import { NavigationContainer } from "@react-navigation/native";
 import CreateJobOfferScreen from "./src/screens/CreateJobOfferScreen";
@@ -22,6 +23,12 @@ import LoadingScreen from "./src/screens/LoadingScreen";
 import VerifyScreen from "./src/screens/VerifyScreen";
 import ThemeProvider from "./src/styles/ThemeProvider";
 import ProfileUserScreen from "./src/screens/ProfileUserScreen";
+import AxiosConfigProvider from "./src/services/axiosConfig";
+import ErrorBoundary from "./src/components/ErrorBoundary";
+import FeedbackMessage from "./src/components/FeedbackMessage";
+import useFeedback from "./src/hooks/useFeedback";
+import useNetworkStatus from "./src/hooks/useNetworkStatus";
+import OfflineScreen from "./src/screens/OfflineScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -36,6 +43,7 @@ export type RootStackParamList = {
   Network: undefined;
   Publication: undefined;
   Jobs: undefined;
+  EventDetail: { eventId: number };
   FriendRequest: undefined;
   CreateJobOffer: undefined;
   Profile: undefined;
@@ -74,6 +82,7 @@ const AppStack = () => (
     <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
     <Stack.Screen name="Verify" component={VerifyScreen} />
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
+    <Stack.Screen name="EventDetail" component={EventDetailScreen} />
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
@@ -81,6 +90,68 @@ const AppStack = () => (
     <Stack.Screen name="UserProfile" component={ProfileUserScreen} />
   </Stack.Navigator>
 );
+
+/**
+ * Composant de gestion du feedback dans l'application
+ */
+const FeedbackManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { feedbackState, hideFeedback } = useFeedback();
+  
+  return (
+    <View style={{ flex: 1 }}>
+      {children}
+      <FeedbackMessage
+        message={feedbackState.message}
+        type={feedbackState.type}
+        duration={feedbackState.duration}
+        onDismiss={hideFeedback}
+        errorType={feedbackState.errorType}
+        visible={feedbackState.visible}
+      />
+    </View>
+  );
+};
+
+/**
+ * Composant de gestion de la connectivité dans l'application
+ */
+const ConnectivityManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isOnline, isInitializing, checkConnection } = useNetworkStatus();
+  const [hasShownOfflineScreen, setHasShownOfflineScreen] = useState(false);
+  
+  // N'afficher l'écran hors ligne que si nous avons terminé l'initialisation
+  // et que nous ne pouvons pas accéder au serveur
+  const showOfflineScreen = !isInitializing && !isOnline;
+  
+  // Suivre si nous avons déjà affiché l'écran hors ligne
+  useEffect(() => {
+    if (showOfflineScreen) {
+      setHasShownOfflineScreen(true);
+    }
+  }, [showOfflineScreen]);
+  
+  // Réessayer la connexion
+  const handleRetry = async () => {
+    const isNowOnline = await checkConnection();
+    
+    // Si nous sommes maintenant en ligne après avoir réessayé, réinitialiser l'état
+    if (isNowOnline) {
+      setHasShownOfflineScreen(false);
+    }
+  };
+  
+  if (isInitializing) {
+    return <LoadingScreen />;
+  }
+  
+  // N'afficher l'écran hors ligne que si nous avons déjà essayé de nous connecter
+  // et que nous sommes toujours hors ligne
+  if (hasShownOfflineScreen && showOfflineScreen) {
+    return <OfflineScreen retry={handleRetry} />;
+  }
+  
+  return <>{children}</>;
+};
 
 // Main navigation handler that conditionally renders Auth or App stack
 const MainNavigator = () => {
@@ -99,19 +170,27 @@ const CLERK_PUBLISHABLE_KEY =
 // NavigationContainer only on Web
 const App: React.FC = () => {
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-      <ThemeProvider>
-        <AuthProvider>
-          {Platform.OS === "web" ? (
-            <NavigationContainer>
-              <MainNavigator />
-            </NavigationContainer>
-          ) : (
-            <MainNavigator />
-          )}
-        </AuthProvider>
-      </ThemeProvider>
-    </ClerkProvider>
+    <ErrorBoundary>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+        <ThemeProvider>
+          <AxiosConfigProvider>
+            <AuthProvider>
+              <FeedbackManager>
+                <ConnectivityManager>
+                  {Platform.OS === "web" ? (
+                    <NavigationContainer>
+                      <MainNavigator />
+                    </NavigationContainer>
+                  ) : (
+                    <MainNavigator />
+                  )}
+                </ConnectivityManager>
+              </FeedbackManager>
+            </AuthProvider>
+          </AxiosConfigProvider>
+        </ThemeProvider>
+      </ClerkProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -9,14 +9,14 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../App";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useAuth } from "../context/AuthContext";
 import styles from "../styles/authStyles";
+import { useRouter } from "expo-router";
 
 const AuthScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +39,7 @@ const AuthScreen: React.FC = () => {
       <View style={styles.contentContainer}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => router.back()}
         >
           <FontAwesome name="arrow-left" size={24} color="#1E232C" />
         </TouchableOpacity>
@@ -84,13 +84,13 @@ const AuthScreen: React.FC = () => {
 
         <TouchableOpacity
           style={styles.forgotPassword}
-          onPress={() => navigation.navigate("ForgotPassword")}
+          onPress={() => router.navigate("ForgotPassword")}
         >
           <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.loginButton} 
+        <TouchableOpacity
+          style={styles.loginButton}
           onPress={handleLogin}
           disabled={isLoading}
         >
@@ -121,7 +121,7 @@ const AuthScreen: React.FC = () => {
 
         <TouchableOpacity
           style={styles.registerContainer}
-          onPress={() => navigation.navigate("Register")}
+          onPress={() => router.navigate("Register")}
         >
           <Text style={styles.registerText}>
             Don't have an account?{" "}

@@ -135,27 +135,6 @@ const ProfileScreen: React.FC = () => {
       {
         id: "5",
         imageUrl:
-          "https://images.pexels.com/photos/9660/business-car-vehicle-black-and-white.jpg",
-        likes: 142,
-        comments: 17,
-        location: "Circuit Spa-Francorchamps",
-        caption:
-          "Week-end de course à Spa. Une piste mythique avec des conditions météo changeantes !",
-        timeAgo: "1 mois",
-      },
-      {
-        id: "6",
-        imageUrl:
-          "https://images.pexels.com/photos/2804393/pexels-photo-2804393.jpeg",
-        likes: 95,
-        comments: 7,
-        caption:
-          "En attendant la prochaine course, focus sur l'entraînement physique 🏃‍♂️",
-        timeAgo: "1 mois",
-      },
-      {
-        id: "7",
-        imageUrl:
           "https://images.pexels.com/photos/109699/pexels-photo-109699.jpeg",
         likes: 204,
         comments: 27,
@@ -165,7 +144,7 @@ const ProfileScreen: React.FC = () => {
         timeAgo: "2 mois",
       },
       {
-        id: "8",
+        id: "6",
         imageUrl:
           "https://images.pexels.com/photos/12801381/pexels-photo-12801381.jpeg",
         likes: 118,
@@ -175,7 +154,7 @@ const ProfileScreen: React.FC = () => {
         timeAgo: "2 mois",
       },
       {
-        id: "9",
+        id: "7",
         imageUrl:
           "https://images.pexels.com/photos/15825503/pexels-photo-15825503/free-photo-of-voiture-de-course-de-formule-1-et-drapeaux-a-damier.jpeg",
         likes: 163,

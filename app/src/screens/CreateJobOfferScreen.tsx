@@ -11,15 +11,15 @@ import {
   Modal,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { RootStackParamList } from "@/app/App";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import styles from "../styles/createJobOfferStyles";
 
 // Couleur racing principale
-const RACING_RED = '#E10600';
-const PRIMARY_BLUE = '#3a86ff';
+const RACING_RED = "#E10600";
+const PRIMARY_BLUE = "#3a86ff";
 
 // Constantes pour les types d'emploi
 const JOB_TYPES = [
@@ -33,35 +33,35 @@ const JOB_TYPES = [
 // Styles supplémentaires locaux
 const localStyles = StyleSheet.create({
   datePickerContainer: {
-    width: '100%',
+    width: "100%",
   },
   datePickerIOSContainer: {
-    alignSelf: 'center' as const,
-    width: '100%',
-    backgroundColor: 'white',
+    alignSelf: "center" as const,
+    width: "100%",
+    backgroundColor: "white",
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   datePickerStyle: {
-    width: '100%',
+    width: "100%",
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 20,
-    width: '80%',
-    alignItems: 'center',
+    width: "80%",
+    alignItems: "center",
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     marginTop: 20,
   },
   modalButton: {
@@ -70,40 +70,40 @@ const localStyles = StyleSheet.create({
     borderRadius: 8,
   },
   cancelButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   confirmButton: {
     backgroundColor: RACING_RED,
   },
   cancelText: {
-    color: '#333',
-    fontWeight: '600',
+    color: "#333",
+    fontWeight: "600",
   },
   confirmText: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
   // Nouveaux styles inspirés de la section Events
   heroSection: {
     padding: 24,
-    backgroundColor: '#f0f7ff',
+    backgroundColor: "#f0f7ff",
     marginBottom: 16,
     borderRadius: 8,
   },
   heroTitle: {
     fontSize: 24,
-    color: '#1E1E1E',
-    fontWeight: 'bold',
+    color: "#1E1E1E",
+    fontWeight: "bold",
     marginBottom: 8,
   },
   heroSubtitle: {
     fontSize: 16,
-    color: '#666',
-    maxWidth: '90%',
+    color: "#666",
+    maxWidth: "90%",
   },
   sectionDivider: {
     height: 8,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     marginVertical: 16,
   },
   ctaSection: {
@@ -111,41 +111,41 @@ const localStyles = StyleSheet.create({
     marginBottom: 24,
     marginTop: 8,
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   ctaGradient: {
     padding: 24,
   },
   ctaTitle: {
     fontSize: 18,
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     marginBottom: 8,
   },
   ctaText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: "rgba(255, 255, 255, 0.9)",
     marginBottom: 16,
   },
   submitButtonCta: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   submitButtonCtaText: {
     color: PRIMARY_BLUE,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 
 const CreateJobOfferScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -162,7 +162,7 @@ const CreateJobOfferScreen: React.FC = () => {
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  
+
   // États temporaires pour la sélection Android
   const [tempStartDate, setTempStartDate] = useState(new Date());
   const [tempEndDate, setTempEndDate] = useState(new Date());
@@ -172,7 +172,7 @@ const CreateJobOfferScreen: React.FC = () => {
   const handleSubmit = () => {
     // TODO: Implement job offer creation logic
     console.log("Form submitted:", formData);
-    navigation.goBack();
+    router.back();
   };
 
   const selectJobType = (typeId: string) => {
@@ -181,7 +181,7 @@ const CreateJobOfferScreen: React.FC = () => {
 
   // Gestionnaires pour les dates sur iOS
   const openStartDatePicker = () => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       setShowEndDatePicker(false);
       setShowStartDatePicker(true);
     } else {
@@ -192,7 +192,7 @@ const CreateJobOfferScreen: React.FC = () => {
   };
 
   const openEndDatePicker = () => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       setShowStartDatePicker(false);
       setShowEndDatePicker(true);
     } else {
@@ -204,34 +204,34 @@ const CreateJobOfferScreen: React.FC = () => {
 
   // Gestionnaires pour iOS DateTimePicker
   const onStartDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       const currentDate = selectedDate || startDate;
       setStartDate(currentDate);
-      
+
       if (selectedDate) {
-        const formattedDate = currentDate.toLocaleDateString('fr-FR');
+        const formattedDate = currentDate.toLocaleDateString("fr-FR");
         setFormData({ ...formData, startDate: formattedDate });
       }
     } else {
       setShowStartDatePicker(false);
-      if (event.type === 'set' && selectedDate) {
+      if (event.type === "set" && selectedDate) {
         setTempStartDate(selectedDate);
       }
     }
   };
 
   const onEndDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       const currentDate = selectedDate || endDate;
       setEndDate(currentDate);
-      
+
       if (selectedDate) {
-        const formattedDate = currentDate.toLocaleDateString('fr-FR');
+        const formattedDate = currentDate.toLocaleDateString("fr-FR");
         setFormData({ ...formData, endDate: formattedDate });
       }
     } else {
       setShowEndDatePicker(false);
-      if (event.type === 'set' && selectedDate) {
+      if (event.type === "set" && selectedDate) {
         setTempEndDate(selectedDate);
       }
     }
@@ -240,14 +240,14 @@ const CreateJobOfferScreen: React.FC = () => {
   // Gestionnaires pour les modals Android
   const confirmStartDate = () => {
     setStartDate(tempStartDate);
-    const formattedDate = tempStartDate.toLocaleDateString('fr-FR');
+    const formattedDate = tempStartDate.toLocaleDateString("fr-FR");
     setFormData({ ...formData, startDate: formattedDate });
     setShowStartModal(false);
   };
 
   const confirmEndDate = () => {
     setEndDate(tempEndDate);
-    const formattedDate = tempEndDate.toLocaleDateString('fr-FR');
+    const formattedDate = tempEndDate.toLocaleDateString("fr-FR");
     setFormData({ ...formData, endDate: formattedDate });
     setShowEndModal(false);
   };
@@ -256,7 +256,7 @@ const CreateJobOfferScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.topBarContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => router.back()}>
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>Create Job Offer</Text>
@@ -274,7 +274,7 @@ const CreateJobOfferScreen: React.FC = () => {
         </View>
 
         <Text style={styles.sectionTitle}>Basic Information</Text>
-        
+
         {/* Title Input */}
         <View style={styles.inputContainer}>
           <View style={styles.labelContainer}>
@@ -316,7 +316,9 @@ const CreateJobOfferScreen: React.FC = () => {
             style={styles.textInput}
             placeholder="Enter job location (city, remote, etc.)"
             value={formData.location}
-            onChangeText={(text) => setFormData({ ...formData, location: text })}
+            onChangeText={(text) =>
+              setFormData({ ...formData, location: text })
+            }
           />
         </View>
 
@@ -332,14 +334,14 @@ const CreateJobOfferScreen: React.FC = () => {
                 key={type.id}
                 style={[
                   styles.jobTypeOption,
-                  formData.jobType === type.id && styles.jobTypeSelected
+                  formData.jobType === type.id && styles.jobTypeSelected,
                 ]}
                 onPress={() => selectJobType(type.id)}
               >
                 <Text
                   style={[
                     styles.jobTypeText,
-                    formData.jobType === type.id && styles.jobTypeSelectedText
+                    formData.jobType === type.id && styles.jobTypeSelectedText,
                   ]}
                 >
                   {type.label}
@@ -387,7 +389,7 @@ const CreateJobOfferScreen: React.FC = () => {
           <View style={styles.datePickerRow}>
             <View style={styles.datePickerColumn}>
               <Text style={styles.jobTypeText}>Start Date</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.datePickerInput}
                 onPress={openStartDatePicker}
               >
@@ -396,7 +398,7 @@ const CreateJobOfferScreen: React.FC = () => {
                 </Text>
                 <FontAwesome name="calendar" size={18} color="#1E232C" />
               </TouchableOpacity>
-              {Platform.OS === 'ios' && showStartDatePicker && (
+              {Platform.OS === "ios" && showStartDatePicker && (
                 <View style={localStyles.datePickerIOSContainer}>
                   <DateTimePicker
                     testID="startDatePicker"
@@ -412,7 +414,7 @@ const CreateJobOfferScreen: React.FC = () => {
             </View>
             <View style={styles.datePickerColumn}>
               <Text style={styles.jobTypeText}>End Date</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.datePickerInput}
                 onPress={openEndDatePicker}
               >
@@ -421,7 +423,7 @@ const CreateJobOfferScreen: React.FC = () => {
                 </Text>
                 <FontAwesome name="calendar" size={18} color="#1E232C" />
               </TouchableOpacity>
-              {Platform.OS === 'ios' && showEndDatePicker && (
+              {Platform.OS === "ios" && showEndDatePicker && (
                 <View style={localStyles.datePickerIOSContainer}>
                   <DateTimePicker
                     testID="endDatePicker"
@@ -462,14 +464,17 @@ const CreateJobOfferScreen: React.FC = () => {
         {/* CTA Section */}
         <View style={localStyles.ctaSection}>
           <LinearGradient
-            colors={[PRIMARY_BLUE, '#5e60ce']}
+            colors={[PRIMARY_BLUE, "#5e60ce"]}
             style={localStyles.ctaGradient}
           >
-            <Text style={localStyles.ctaTitle}>Ready to Find Your Perfect Match?</Text>
-            <Text style={localStyles.ctaText}>
-              Publish your job offer and start connecting with talented professionals
+            <Text style={localStyles.ctaTitle}>
+              Ready to Find Your Perfect Match?
             </Text>
-            <TouchableOpacity 
+            <Text style={localStyles.ctaText}>
+              Publish your job offer and start connecting with talented
+              professionals
+            </Text>
+            <TouchableOpacity
               style={localStyles.submitButtonCta}
               onPress={handleSubmit}
             >
@@ -478,7 +483,7 @@ const CreateJobOfferScreen: React.FC = () => {
             </TouchableOpacity>
           </LinearGradient>
         </View>
-        
+
         <View style={{ height: 60 }} />
       </ScrollView>
 
@@ -503,13 +508,13 @@ const CreateJobOfferScreen: React.FC = () => {
               />
             )}
             <View style={localStyles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[localStyles.modalButton, localStyles.cancelButton]}
                 onPress={() => setShowStartModal(false)}
               >
                 <Text style={localStyles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[localStyles.modalButton, localStyles.confirmButton]}
                 onPress={confirmStartDate}
               >
@@ -541,13 +546,13 @@ const CreateJobOfferScreen: React.FC = () => {
               />
             )}
             <View style={localStyles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[localStyles.modalButton, localStyles.cancelButton]}
                 onPress={() => setShowEndModal(false)}
               >
                 <Text style={localStyles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[localStyles.modalButton, localStyles.confirmButton]}
                 onPress={confirmEndDate}
               >

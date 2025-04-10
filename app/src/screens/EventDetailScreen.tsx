@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '@/app/App';
-import { EventInterface } from '../services/EventInterface';
-import styles from '../styles/eventDetailStyles';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import { RootStackParamList } from "@/app/App";
+import { EventInterface } from "../services/EventInterface";
+import styles from "../styles/eventDetailStyles";
 import {
   API_URL_EVENTS,
   API_URL_EVENTTAGS,
@@ -19,9 +19,9 @@ import {
   API_URL_RELATEDPRODUCTS,
   API_URL_TAGS,
   API_URL_USERS,
-} from '../config';
+} from "../config";
 
-type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
+type EventDetailScreenRouteProp = RouteProp<RootStackParamList, "EventDetail">;
 
 interface MeteoInfo {
   condition: string;
@@ -37,10 +37,10 @@ const StarRating: React.FC<{ rating: number; maxRating?: number }> = ({
     <View style={styles.starContainer}>
       {Array.from({ length: maxRating }).map((_, index) => (
         <Ionicons
-          key={`star-${index}`}  // Changed to ensure uniqueness
-          name={index < rating ? 'star' : 'star-outline'}
+          key={`star-${index}`} // Changed to ensure uniqueness
+          name={index < rating ? "star" : "star-outline"}
           size={14}
-          color={index < rating ? '#FFD700' : '#aaa'}
+          color={index < rating ? "#FFD700" : "#aaa"}
           style={{ marginHorizontal: 1 }}
         />
       ))}
@@ -49,7 +49,7 @@ const StarRating: React.FC<{ rating: number; maxRating?: number }> = ({
 };
 
 // Create a separate functional component for review items
-const ReviewItem: React.FC<{ item: EventInterface['reviews'][0] }> = ({
+const ReviewItem: React.FC<{ item: EventInterface["reviews"][0] }> = ({
   item,
 }) => {
   const [showFullText, setShowFullText] = useState(false);
@@ -59,7 +59,11 @@ const ReviewItem: React.FC<{ item: EventInterface['reviews'][0] }> = ({
     <View style={styles.reviewCard}>
       <View style={styles.reviewHeader}>
         <Image
-          source={ item.avatar  ? { uri: item.avatar } : require('../../../assets/images/logo-rounded.png')}
+          source={
+            item.avatar
+              ? { uri: item.avatar }
+              : require("../../../assets/images/logo-rounded.png")
+          }
           style={styles.reviewAvatar}
         />
         <View style={styles.reviewUserInfo}>
@@ -71,7 +75,7 @@ const ReviewItem: React.FC<{ item: EventInterface['reviews'][0] }> = ({
         {showFullText
           ? item.description
           : isTextLong
-          ? item.description.substring(0, 200) + '...'
+          ? item.description.substring(0, 200) + "..."
           : item.description}
       </Text>
       {isTextLong && (
@@ -80,7 +84,7 @@ const ReviewItem: React.FC<{ item: EventInterface['reviews'][0] }> = ({
           style={styles.showMoreButton}
         >
           <Text style={styles.showMoreButtonText}>
-            {showFullText ? 'Show less' : 'Show more'}
+            {showFullText ? "Show less" : "Show more"}
           </Text>
         </TouchableOpacity>
       )}
@@ -97,8 +101,8 @@ const EventDetailScreen: React.FC = () => {
 
   function formatDate(data: string | number | Date) {
     const currentDate = new Date(data);
-    const day = currentDate.getDate().toString().padStart(2, '0');
-    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = currentDate.getDate().toString().padStart(2, "0");
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, "0");
     const year = currentDate.getFullYear();
     const formattedDate = `${day}/${month}/${year}`;
     return formattedDate;
@@ -106,7 +110,7 @@ const EventDetailScreen: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch(API_URL_EVENTS + '/' + eventId);
+      const response = await fetch(API_URL_EVENTS + "/" + eventId);
       if (!response.ok) {
         throw new Error(
           `Failed to fetch events: ${response.status} ${response.statusText}`
@@ -116,7 +120,7 @@ const EventDetailScreen: React.FC = () => {
       // Fetch event tags
       try {
         const fetchEventTags = await fetch(
-          API_URL_EVENTTAGS + '/event/' + eventId
+          API_URL_EVENTTAGS + "/event/" + eventId
         );
         if (!fetchEventTags.ok) {
           throw new Error(
@@ -127,7 +131,7 @@ const EventDetailScreen: React.FC = () => {
           const eventTags = await fetchEventTags.json();
           if (Array.isArray(eventTags)) {
             const tagPromises = eventTags.map(async (tag) => {
-              const tagResponse = await fetch(API_URL_TAGS + '/' + tag.tagId);
+              const tagResponse = await fetch(API_URL_TAGS + "/" + tag.tagId);
               if (tagResponse.ok) {
                 return tagResponse.json();
               }
@@ -138,26 +142,26 @@ const EventDetailScreen: React.FC = () => {
           }
         }
       } catch (tagError) {
-        console.error('Error fetching tags:', tagError);
-        console.log('No tags found for this event');
+        console.error("Error fetching tags:", tagError);
+        console.log("No tags found for this event");
       }
       // Fetch event reviews
       try {
         const fetchEventReviews = await fetch(
-          API_URL_EVENTREVIEWS + '/event/' + eventId
+          API_URL_EVENTREVIEWS + "/event/" + eventId
         );
         if (fetchEventReviews.ok) {
           const eventReviews = await fetchEventReviews.json();
           if (Array.isArray(eventReviews)) {
             const reviewPromises = eventReviews.map(async (review) => {
               if (!review.userId) {
-                console.warn('Review missing userId:', review);
-                return { ...review, username: 'Unknown User' };
+                console.warn("Review missing userId:", review);
+                return { ...review, username: "Unknown User" };
               }
 
               try {
                 const userResponse = await fetch(
-                  API_URL_USERS + '/' + review.userId
+                  API_URL_USERS + "/" + review.userId
                 );
                 if (userResponse.ok) {
                   const userData = await userResponse.json();
@@ -166,29 +170,30 @@ const EventDetailScreen: React.FC = () => {
                     userData.username ||
                     userData.name ||
                     (userData.user ? userData.user.username : null) ||
-                    'Anonymous';
-                  
+                    "Anonymous";
+
                   // Access avatar from additionalData
-                  const avatarUrl = userData.additionalData?.avatar || 
-                                   userData.avatar || 
-                                   'https://via.placeholder.com/30';
-                  
+                  const avatarUrl =
+                    userData.additionalData?.avatar ||
+                    userData.avatar ||
+                    "https://via.placeholder.com/30";
+
                   return {
                     ...review,
                     username: username,
-                    avatar: avatarUrl
+                    avatar: avatarUrl,
                   };
                 } else {
                   console.error(
-                    'Failed to fetch user:',
+                    "Failed to fetch user:",
                     userResponse.status,
                     userResponse.statusText
                   );
-                  return { ...review, username: 'User #' + review.userId };
+                  return { ...review, username: "User #" + review.userId };
                 }
               } catch (userError) {
-                console.error('Error fetching user data:', userError);
-                return { ...review, username: 'Unknown User' };
+                console.error("Error fetching user data:", userError);
+                return { ...review, username: "Unknown User" };
               }
             });
 
@@ -197,45 +202,45 @@ const EventDetailScreen: React.FC = () => {
               (review) => review !== null
             );
           } else {
-            console.warn('Event reviews is not an array:', eventReviews);
+            console.warn("Event reviews is not an array:", eventReviews);
             fetchedEvent.reviews = [];
           }
         } else {
           console.error(
-            'Failed to fetch reviews:',
+            "Failed to fetch reviews:",
             fetchEventReviews.status,
             fetchEventReviews.statusText
           );
           fetchedEvent.reviews = [];
         }
       } catch (reviewError) {
-        console.error('Error fetching reviews:', reviewError);
+        console.error("Error fetching reviews:", reviewError);
         fetchedEvent.reviews = [];
       }
       // Fetch related products
       try {
         const fetchRelatedProducts = await fetch(
-          API_URL_RELATEDPRODUCTS + '/event/' + eventId
+          API_URL_RELATEDPRODUCTS + "/event/" + eventId
         );
         if (fetchRelatedProducts.ok) {
           const relatedProducts = await fetchRelatedProducts.json();
           fetchedEvent.relatedProducts = relatedProducts;
         }
       } catch (productError) {
-        console.error('Error fetching related products:', productError);
+        console.error("Error fetching related products:", productError);
       }
       setEvent(fetchedEvent);
       setError(null);
     } catch (error) {
-      console.error('Error in fetchData:', error);
+      console.error("Error in fetchData:", error);
       setEvent(null);
-      setError('Failed to fetch event data');
+      setError("Failed to fetch event data");
     }
   };
 
   useEffect(() => {
     if (!eventId) {
-      setError('Invalid event ID.');
+      setError("Invalid event ID.");
       return;
     }
     fetchData();
@@ -287,8 +292,11 @@ const EventDetailScreen: React.FC = () => {
             <Text style={styles.aboutTitle}>About</Text>
             <View style={styles.tagContainer}>
               {event?.tags?.map((tag, index) => (
-                <Text key={`tag-${index}-${typeof tag === 'object' ? tag.id : tag}`} style={styles.tag}>
-                  {typeof tag === 'object' && tag !== null ? tag.name : tag}
+                <Text
+                  key={`tag-${index}-${typeof tag === "object" ? tag.id : tag}`}
+                  style={styles.tag}
+                >
+                  {typeof tag === "object" && tag !== null ? tag.name : tag}
                 </Text>
               ))}
             </View>
@@ -314,7 +322,7 @@ const EventDetailScreen: React.FC = () => {
         <View style={styles.detailRow}>
           <Ionicons name="location-outline" size={20} color="gray" />
           <Text style={styles.detailText}>
-            {event.location || 'No location available'}
+            {event.location || "No location available"}
           </Text>
         </View>
         <View style={styles.detailRow}>
@@ -327,9 +335,9 @@ const EventDetailScreen: React.FC = () => {
             style={{ marginLeft: 10 }}
           />
           <Text style={styles.detailText}>
-            {typeof meteoInfo === 'object'
+            {typeof meteoInfo === "object"
               ? `${meteoInfo.condition}, ${meteoInfo.temperature}°`
-              : meteoInfo || 'Weather info unavailable'}
+              : meteoInfo || "Weather info unavailable"}
           </Text>
         </View>
 
@@ -341,7 +349,7 @@ const EventDetailScreen: React.FC = () => {
           renderItem={({ item }) => (
             <View style={styles.productCard}>
               <Image
-                source={require('../../../assets/images/Google-logo.png')}
+                source={require("../../../assets/images/Google-logo.png")}
                 style={styles.productImage}
               />
               <Text style={styles.productTitle}>{item.name}</Text>
@@ -354,7 +362,9 @@ const EventDetailScreen: React.FC = () => {
         <FlatList
           horizontal
           data={event.reviews}
-          keyExtractor={(item, index) => item.id ? `review-${item.id}` : `review-index-${index}`}
+          keyExtractor={(item, index) =>
+            item.id ? `review-${item.id}` : `review-index-${index}`
+          }
           renderItem={({ item }) => <ReviewItem item={item} />}
         />
 
@@ -364,12 +374,12 @@ const EventDetailScreen: React.FC = () => {
           <Text>Share</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.addCalendarButton}>
-          <Text style={{ color: 'black', fontWeight: 'bold' }}>
+          <Text style={{ color: "black", fontWeight: "bold" }}>
             Add to Calendar
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.buyButton}>
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>
+          <Text style={{ color: "white", fontWeight: "bold" }}>
             Buy a Ticket
           </Text>
         </TouchableOpacity>

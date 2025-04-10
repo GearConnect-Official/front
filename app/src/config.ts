@@ -46,6 +46,7 @@ export const {
   [ApiRoutes.INTERACTIONS]: API_URL_INTERACTIONS,
   [ApiRoutes.TAGS]: API_URL_TAGS,
   [ApiRoutes.USERS]: API_URL_USERS,
+  [ApiRoutes.HEALTH]: API_URL_HEALTH,
 } = API_ENDPOINTS;
 
 export default apiConfig;

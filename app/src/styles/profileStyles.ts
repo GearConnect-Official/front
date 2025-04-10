@@ -1,7 +1,7 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions } from "react-native";
 import theme from "./config";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const NUM_COLUMNS = 3;
 const TILE_WIDTH = width / NUM_COLUMNS;
 const TILE_HEIGHT = TILE_WIDTH;
@@ -9,17 +9,17 @@ const TILE_SPACING = 1;
 
 // Palette de couleurs inspirée du monde automobile et du racing
 const THEME_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
-  tertiary: '#2D9CDB', // Bleu pour accent
-  quaternary: '#F0C419', // Jaune pour accent
-  background: '#FFFFFF',
-  card: '#F2F2F2',
-  cardLight: '#F8F8F8',
-  textPrimary: '#1E1E1E',
-  textSecondary: '#6E6E6E',
-  border: '#E0E0E0',
-  success: '#27AE60', // Vert pour badges positifs
+  primary: "#E10600", // Rouge Racing
+  secondary: "#1E1E1E", // Noir Racing
+  tertiary: "#2D9CDB", // Bleu pour accent
+  quaternary: "#F0C419", // Jaune pour accent
+  background: "#FFFFFF",
+  card: "#F2F2F2",
+  cardLight: "#F8F8F8",
+  textPrimary: "#1E1E1E",
+  textSecondary: "#6E6E6E",
+  border: "#E0E0E0",
+  success: "#27AE60", // Vert pour badges positifs
 };
 
 const styles = StyleSheet.create({
@@ -52,9 +52,9 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.secondary,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: THEME_COLORS.background,
@@ -63,18 +63,18 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    justifyContent: "center",
+    alignItems: "flex-start",
   },
   menuButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+    justifyContent: "center",
+    alignItems: "flex-end",
   },
   username: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: THEME_COLORS.secondary,
   },
   profileContainer: {
@@ -89,9 +89,9 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
   },
   profileInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 18,
   },
   profileAvatar: {
@@ -106,18 +106,24 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  profileDetails: {
+    flex: 1,
+    justifyContent: "flex-start",
+    backgroundColor: THEME_COLORS.background,
+  },
+
   statsContainer: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
   },
   statItem: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: THEME_COLORS.secondary,
   },
   statLabel: {
@@ -134,8 +140,9 @@ const styles = StyleSheet.create({
   },
   displayName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: THEME_COLORS.secondary,
+    marginLeft: 10,
     marginBottom: 5,
   },
   bioText: {
@@ -150,15 +157,15 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 4,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   websiteText: {
     fontSize: 14,
     color: THEME_COLORS.tertiary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   actionButtonsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginVertical: 15,
   },
   actionButton: {
@@ -166,8 +173,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 8,
     borderWidth: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 8,
     backgroundColor: THEME_COLORS.card,
     shadowColor: THEME_COLORS.secondary,
@@ -180,8 +187,8 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 44,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 8,
     backgroundColor: THEME_COLORS.primary,
     shadowColor: THEME_COLORS.primary,
@@ -192,12 +199,12 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: THEME_COLORS.secondary,
   },
   primaryActionButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: THEME_COLORS.background,
   },
   smallActionButton: {
@@ -205,8 +212,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 8,
     borderWidth: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: THEME_COLORS.card,
     shadowColor: THEME_COLORS.secondary,
     shadowOffset: { width: 0, height: 1 },
@@ -221,7 +228,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   highlightItem: {
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 10,
     width: 90,
   },
@@ -230,10 +237,10 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 8, // Carré avec coins arrondis
     borderWidth: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 5,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: THEME_COLORS.card,
     shadowColor: THEME_COLORS.secondary,
     shadowOffset: { width: 0, height: 1 },
@@ -249,19 +256,19 @@ const styles = StyleSheet.create({
   highlightText: {
     fontSize: 12,
     color: THEME_COLORS.textSecondary,
-    textAlign: 'center',
-    fontWeight: '500',
+    textAlign: "center",
+    fontWeight: "500",
   },
   newHighlightPlus: {
     width: 80,
     height: 80,
     borderRadius: 8,
     backgroundColor: THEME_COLORS.card,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   tabsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: THEME_COLORS.background,
     borderTopWidth: 0,
     borderBottomWidth: 0,
@@ -271,8 +278,8 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 8,
     marginHorizontal: 5,
   },
@@ -291,7 +298,7 @@ const styles = StyleSheet.create({
     height: TILE_HEIGHT,
     margin: TILE_SPACING,
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
     shadowColor: THEME_COLORS.secondary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -299,19 +306,19 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   postTileImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   multipleImagesIcon: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 4,
     width: 24,
     height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   // Styles pour les événements
   eventsContainer: {
@@ -324,7 +331,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 10,
     backgroundColor: THEME_COLORS.card,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 0,
     shadowColor: THEME_COLORS.secondary,
     shadowOffset: { width: 0, height: 2 },
@@ -333,31 +340,31 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   eventImage: {
-    width: '100%',
+    width: "100%",
     height: 180,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   eventOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 10,
   },
   organizerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: THEME_COLORS.tertiary,
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   organizerText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 4,
   },
   resultBadge: {
@@ -367,16 +374,16 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   resultText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   eventInfo: {
     padding: 15,
   },
   eventTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: THEME_COLORS.secondary,
     marginBottom: 10,
   },
@@ -389,8 +396,8 @@ const styles = StyleSheet.create({
     borderLeftColor: THEME_COLORS.tertiary,
   },
   eventMetaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 6,
   },
   eventMetaIcon: {
@@ -403,21 +410,21 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     backgroundColor: THEME_COLORS.background,
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: THEME_COLORS.secondary,
     marginTop: 15,
   },
   emptySubtitle: {
     fontSize: 14,
     color: THEME_COLORS.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginVertical: 10,
     lineHeight: 20,
   },
@@ -434,33 +441,33 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   shareButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
     fontSize: 14,
   },
   sectionHeader: {
     paddingHorizontal: 0,
     paddingVertical: 10,
     backgroundColor: THEME_COLORS.background,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: THEME_COLORS.border,
     marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: THEME_COLORS.secondary,
   },
   sectionLink: {
     fontSize: 14,
     color: THEME_COLORS.tertiary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   statsCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: THEME_COLORS.card,
     borderRadius: 10,
     marginVertical: 15,
@@ -473,11 +480,11 @@ const styles = StyleSheet.create({
   },
   statColumn: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   divider: {
     width: 1,
-    height: '80%',
+    height: "80%",
     backgroundColor: THEME_COLORS.border,
     marginHorizontal: 5,
   },
@@ -492,30 +499,30 @@ const styles = StyleSheet.create({
   },
   driverStatValue: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: THEME_COLORS.secondary,
   },
   achievementBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 10,
     right: 10,
     backgroundColor: THEME_COLORS.quaternary,
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   achievementText: {
     color: THEME_COLORS.secondary,
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 4,
   },
   // Styles pour les filtres d'événements
   eventFiltersContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 15,
     backgroundColor: THEME_COLORS.cardLight,
     borderRadius: 8,
@@ -526,8 +533,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginHorizontal: 2,
   },
   activeEventFilter: {
@@ -535,12 +542,12 @@ const styles = StyleSheet.create({
   },
   eventFilterText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     color: THEME_COLORS.textSecondary,
   },
   activeEventFilterText: {
     color: THEME_COLORS.background,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

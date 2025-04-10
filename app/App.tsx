@@ -22,6 +22,7 @@ import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import LoadingScreen from "./src/screens/LoadingScreen";
 import VerifyScreen from "./src/screens/VerifyScreen";
 import ThemeProvider from "./src/styles/ThemeProvider";
+import ProfileUserScreen from "./src/screens/ProfileUserScreen";
 import AxiosConfigProvider from "./src/services/axiosConfig";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import FeedbackMessage from "./src/components/FeedbackMessage";
@@ -86,6 +87,7 @@ const AppStack = () => (
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
     <Stack.Screen name="PublicationScreen" component={PublicationScreen} />
+    <Stack.Screen name="UserProfile" component={ProfileUserScreen} />
   </Stack.Navigator>
 );
 

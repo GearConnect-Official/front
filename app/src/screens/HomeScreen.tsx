@@ -39,7 +39,7 @@ interface Comment {
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 // Nom d'utilisateur courant
-const CURRENT_USERNAME = "Vous";
+const CURRENT_USERNAME = "john_doe";
 const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 
 const HomeScreen: React.FC = () => {
@@ -64,47 +64,53 @@ const HomeScreen: React.FC = () => {
   const loadData = () => {
     // Stories mock data avec des images réalistes
     const mockStories: Story[] = [
-      { 
-        id: "1", 
-        username: CURRENT_USERNAME, 
-        avatar: CURRENT_USER_AVATAR, 
+      {
+        id: "1",
+        username: CURRENT_USERNAME,
+        avatar: CURRENT_USER_AVATAR,
         viewed: false,
-        content: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+        content:
+          "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
       },
-      { 
-        id: "2", 
-        username: "John", 
-        avatar: "https://randomuser.me/api/portraits/men/41.jpg", 
+      {
+        id: "2",
+        username: "John",
+        avatar: "https://randomuser.me/api/portraits/men/41.jpg",
         viewed: false,
-        content: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+        content:
+          "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
       },
-      { 
-        id: "3", 
-        username: "Marie", 
-        avatar: "https://randomuser.me/api/portraits/women/64.jpg", 
+      {
+        id: "3",
+        username: "Marie",
+        avatar: "https://randomuser.me/api/portraits/women/64.jpg",
         viewed: false,
-        content: "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+        content:
+          "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
       },
-      { 
-        id: "4", 
-        username: "Alex", 
-        avatar: "https://randomuser.me/api/portraits/men/61.jpg", 
+      {
+        id: "4",
+        username: "Alex",
+        avatar: "https://randomuser.me/api/portraits/men/61.jpg",
         viewed: true,
-        content: "https://images.unsplash.com/photo-1546336502-94aa5d6c8bd3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+        content:
+          "https://images.unsplash.com/photo-1546336502-94aa5d6c8bd3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
       },
-      { 
-        id: "5", 
-        username: "Emma", 
-        avatar: "https://randomuser.me/api/portraits/women/33.jpg", 
+      {
+        id: "5",
+        username: "Emma",
+        avatar: "https://randomuser.me/api/portraits/women/33.jpg",
         viewed: true,
-        content: "https://images.unsplash.com/photo-1513151233558-d860c5398176?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+        content:
+          "https://images.unsplash.com/photo-1513151233558-d860c5398176?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
       },
-      { 
-        id: "6", 
-        username: "Tom", 
-        avatar: "https://randomuser.me/api/portraits/men/91.jpg", 
+      {
+        id: "6",
+        username: "Tom",
+        avatar: "https://randomuser.me/api/portraits/men/91.jpg",
         viewed: true,
-        content: "https://images.unsplash.com/photo-1519834022364-8dec37f38d05?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+        content:
+          "https://images.unsplash.com/photo-1519834022364-8dec37f38d05?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
       },
     ];
 
@@ -174,9 +180,10 @@ const HomeScreen: React.FC = () => {
         avatar: "https://randomuser.me/api/portraits/men/85.jpg",
         images: [
           "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"
+          "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
         ],
-        caption: "Incroyable journée au travail avec l'équipe GearConnect ! #networking #team",
+        caption:
+          "Incroyable journée au travail avec l'équipe GearConnect ! #networking #team",
         likes: 124,
         liked: false,
         saved: false,
@@ -187,8 +194,11 @@ const HomeScreen: React.FC = () => {
         id: "2",
         username: "tech_company",
         avatar: "https://randomuser.me/api/portraits/men/81.jpg",
-        images: ["https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"],
-        caption: "Notre nouveau produit est enfin disponible ! Découvrez toutes ses fonctionnalités sur notre site web. #innovation #tech",
+        images: [
+          "https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
+        ],
+        caption:
+          "Notre nouveau produit est enfin disponible ! Découvrez toutes ses fonctionnalités sur notre site web. #innovation #tech",
         likes: 457,
         liked: true,
         saved: true,
@@ -202,9 +212,10 @@ const HomeScreen: React.FC = () => {
         images: [
           "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
           "https://images.unsplash.com/photo-1611095970111-fc87b5315dc3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1542744094-3a95b1b9c9fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"
+          "https://images.unsplash.com/photo-1542744094-3a95b1b9c9fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
         ],
-        caption: "Le design c'est pas juste ce que ça a l'air d'être et ce que ça ressent. Le design c'est comment ça fonctionne. #uxdesign",
+        caption:
+          "Le design c'est pas juste ce que ça a l'air d'être et ce que ça ressent. Le design c'est comment ça fonctionne. #uxdesign",
         likes: 892,
         liked: false,
         saved: false,
@@ -218,9 +229,10 @@ const HomeScreen: React.FC = () => {
         images: [
           "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
           "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1519046904884-53103b34b206?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"
+          "https://images.unsplash.com/photo-1519046904884-53103b34b206?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
         ],
-        caption: "Enfin de retour en vacances ! ☀️ Le paradis existe et il se trouve aux Maldives. #voyage #plage #detente",
+        caption:
+          "Enfin de retour en vacances ! ☀️ Le paradis existe et il se trouve aux Maldives. #voyage #plage #detente",
         likes: 1023,
         liked: false,
         saved: true,
@@ -244,7 +256,7 @@ const HomeScreen: React.FC = () => {
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { 
+    {
       useNativeDriver: false,
       listener: (event: any) => {
         const currentScrollY = event.nativeEvent.contentOffset.y;
@@ -252,32 +264,33 @@ const HomeScreen: React.FC = () => {
           isHeaderVisible.current = true;
         } else {
           // Determiner la direction du scroll
-          const direction = currentScrollY > lastScrollY.current ? 'down' : 'up';
-          if (direction === 'down' && isHeaderVisible.current) {
+          const direction =
+            currentScrollY > lastScrollY.current ? "down" : "up";
+          if (direction === "down" && isHeaderVisible.current) {
             isHeaderVisible.current = false;
-          } else if (direction === 'up' && !isHeaderVisible.current) {
+          } else if (direction === "up" && !isHeaderVisible.current) {
             isHeaderVisible.current = true;
           }
         }
         lastScrollY.current = currentScrollY;
-      }
+      },
     }
   );
 
   const headerTranslateY = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [0, isHeaderVisible.current ? 0 : -60],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   const handleLike = (postId: string) => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
         if (post.id === postId) {
           return {
             ...post,
             liked: !post.liked,
-            likes: post.liked ? post.likes - 1 : post.likes + 1
+            likes: post.liked ? post.likes - 1 : post.likes + 1,
           };
         }
         return post;
@@ -286,8 +299,8 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleSave = (postId: string) => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
         if (post.id === postId) {
           return { ...post, saved: !post.saved };
         }
@@ -302,8 +315,8 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleStoryComplete = (storyId: string) => {
-    setStories(prevStories => 
-      prevStories.map(story => {
+    setStories((prevStories) =>
+      prevStories.map((story) => {
         if (story.id === storyId) {
           return { ...story, viewed: true };
         }
@@ -335,8 +348,8 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleAddComment = (postId: string, text: string) => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
         if (post.id === postId) {
           const newComment = {
             id: `c${Date.now()}`,
@@ -357,13 +370,13 @@ const HomeScreen: React.FC = () => {
   };
 
   const getCurrentPostComments = () => {
-    const post = posts.find(p => p.id === currentPostId);
+    const post = posts.find((p) => p.id === currentPostId);
     return post ? post.comments : [];
   };
 
   const handleProfilePress = (username: string) => {
     if (username === CURRENT_USERNAME) {
-      navigation.navigate("Profile" as never);
+      navigation.navigate("UserProfile" as never);
     } else {
       // Pour les autres profils, on pourrait prévoir une navigation avec des paramètres
       console.log(`Navigating to profile of ${username}`);
@@ -375,15 +388,22 @@ const HomeScreen: React.FC = () => {
   };
 
   const renderStoryItem = ({ item }: { item: Story }) => (
-    <TouchableOpacity 
-      style={styles.storyContainer} 
+    <TouchableOpacity
+      style={styles.storyContainer}
       onPress={() => handleViewStory(item.id)}
       activeOpacity={0.7}
     >
-      <View style={[styles.storyRing, item.viewed ? styles.storyRingViewed : styles.storyRingUnviewed]}>
+      <View
+        style={[
+          styles.storyRing,
+          item.viewed ? styles.storyRingViewed : styles.storyRingUnviewed,
+        ]}
+      >
         <Image source={{ uri: item.avatar }} style={styles.storyAvatar} />
       </View>
-      <Text style={styles.storyUsername} numberOfLines={1}>{item.username}</Text>
+      <Text style={styles.storyUsername} numberOfLines={1}>
+        {item.username}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -406,24 +426,29 @@ const HomeScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Animated.View style={[styles.header, { transform: [{ translateY: headerTranslateY }] }]}>
+      <Animated.View
+        style={[
+          styles.header,
+          { transform: [{ translateY: headerTranslateY }] },
+        ]}
+      >
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>GearConnect</Text>
           <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.headerIcon} onPress={handleCreatePost}>
-              <FontAwesome name="plus-square-o" size={24} color="#262626" />
-              </TouchableOpacity>
             <TouchableOpacity style={styles.headerIcon}>
               <FontAwesome name="paper-plane-o" size={24} color="#262626" />
-              </TouchableOpacity>
-            <TouchableOpacity style={styles.headerIcon} onPress={handleNavigateToProfile}>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerIcon}
+              onPress={handleNavigateToProfile}
+            >
               <Image
                 source={{ uri: CURRENT_USER_AVATAR }}
                 style={styles.headerProfileImage}
               />
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
       </Animated.View>
 
       <FlatList
@@ -448,7 +473,7 @@ const HomeScreen: React.FC = () => {
               contentContainerStyle={styles.storiesListContent}
             />
             <View style={styles.separator} />
-    </View>
+          </View>
         }
       />
 

@@ -1,14 +1,14 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import styles from "../../styles/feed/postHeaderStyles";
-import PostOptionsButton from './PostOptionsButton';
+import PostOptionsButton from "./PostOptionsButton";
 
 interface PostHeaderProps {
   postId: string;
   username: string;
   avatar: string;
   onProfilePress: () => void;
-  currentUsername?: string;
+  currentUsername: string;
 }
 
 const PostHeader: React.FC<PostHeaderProps> = ({
@@ -16,22 +16,26 @@ const PostHeader: React.FC<PostHeaderProps> = ({
   username,
   avatar,
   onProfilePress,
-  currentUsername
+  currentUsername,
 }) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.userInfo} onPress={onProfilePress} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.userInfo}
+        onPress={onProfilePress}
+        activeOpacity={0.8}
+      >
         <Image source={{ uri: avatar }} style={styles.avatar} />
         <Text style={styles.username}>{username}</Text>
       </TouchableOpacity>
-      
-      <PostOptionsButton 
-        postId={postId} 
-        username={username} 
+
+      <PostOptionsButton
+        postId={postId}
+        username={username}
         currentUsername={currentUsername}
       />
     </View>
   );
 };
 
-export default PostHeader; 
+export default PostHeader;

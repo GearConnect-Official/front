@@ -57,48 +57,10 @@ const PublicationScreen: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Preparing the data model according to the Prisma schema
-      // Corresponding to Post model { id, title, body, user, userId, image, imageId, tags, interactions, createdAt }
-      const post = {
-        title: title,
-        body: description,
-        userId: 1, // Replace with the ID of the logged-in user
-        image: imageToShare,
-        tags: tags.length > 0 ? tags.map(tag => ({ name: tag })) : undefined,
-      };
+      // Simuler un temps de chargement
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log("\n\n=========== DATA TO SEND TO THE BACKEND ===========");
-      console.log("Format expected by the Prisma model:");
-      console.log(`
-model Post {
-  id            Int           @id @default(autoincrement())
-  title         String
-  body          String
-  user          User          @relation(fields: [userId], references: [id])
-  userId        Int
-  image         Photo?        @relation(fields: [imageId], references: [id])
-  imageId       Int?
-  tags          PostTag[]
-  interactions  Interaction[]
-  createdAt     DateTime      @default(now())
-}
-      `);
-      
-      // API call to create the post
-      const response = await postService.createPost(post);
-      console.log('Post created:', response);
-      
-      // If the post has tags, add them
-      if (tags.length > 0 && response.id) {
-        console.log('\nAdding tags to post:');
-        await Promise.all(
-          tags.map(tag => {
-            console.log(`- Tag: ${tag}`);
-            return postService.addTagToPost(response.id, { name: tag });
-          })
-        );
-      }
-      
+      // Réinitialiser les valeurs du formulaire
       setSelectedImage(null);
       setCroppedImage(null);
       setTitle('');
@@ -106,34 +68,16 @@ model Post {
       setTags([]);
       setStep('select');
       
-      Alert.alert('Success', 'Your post has been shared successfully!');
-      navigation.goBack();
+      // Afficher l'alerte d'erreur
+      Alert.alert('Error', 'Failed to share post', [
+        { text: 'OK', onPress: () => {
+          // Rediriger vers la page d'accueil après que l'utilisateur ait cliqué sur OK
+          navigation.navigate('BottomTabs' as never);
+        }}
+      ]);
+      
     } catch (error) {
-      console.error('\n❌ ERROR CREATING POST:');
-      console.error(error);
-      console.log('\n📋 BACKEND INSTRUCTIONS:');
-      console.log(`
-To make this feature work, you need to implement the following routes:
-
-1. POST /api/posts
-   - Creates a new post
-   - Request body: { title, body, userId, image, tags? }
-   - Returns: The created post with its ID
-
-2. POST /api/posts/:postId/tags 
-   - Adds a tag to an existing post
-   - Request body: { name }
-   - Returns: The created tag
-
-3. GET /api/posts
-   - Retrieves all posts
-   - Returns: List of posts
-
-4. POST /api/posts/:postId/interactions
-   - Adds an interaction (like, comment, share) to a post
-   - Request body: { type, userId, content?, createdAt }
-   - Returns: The created interaction
-`);
+      console.error('Error during navigation:', error);
       Alert.alert('Error', 'Failed to share post');
     } finally {
       setIsLoading(false);

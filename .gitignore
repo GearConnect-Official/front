@@ -262,5 +262,6 @@ gradle-app.setting
 expo-env.d.ts
 # @end expo-cli
 
-bun.lockb
+bun.lock
 package-lock.json
+bun.lockb

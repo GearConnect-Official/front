@@ -264,3 +264,4 @@ expo-env.d.ts
 
 bun.lock
 package-lock.json
+bun.lockb

@@ -3,12 +3,12 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
+    "test": "jest",
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest --config jest.config.js",
     "lint": "expo lint"
   },
   "dependencies": {
@@ -38,6 +38,7 @@
     "expo-symbols": "~0.2.1",
     "expo-system-ui": "~4.0.7",
     "expo-web-browser": "~14.0.2",
+    "jest-mock": "^29.7.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "^0.76.6",

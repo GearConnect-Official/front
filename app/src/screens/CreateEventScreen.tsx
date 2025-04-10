@@ -1,19 +1,19 @@
 import * as React from "react";
 import { View, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
 import TopBar from "../components/CreateEvent/TopBar";
 import CreateEvent from "../components/CreateEvent";
 import styles from "../styles/createEventStyles";
-import { useNavigation } from "@react-navigation/native";
 
 const CreateEventScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
 
   const handleCancel = () => {
-    navigation.goBack();
+    router.back();
   };
 
   const handleSuccess = () => {
-    navigation.goBack(); // Naviguer après succès
+    router.back(); // Naviguer après succès
   };
 
   return (

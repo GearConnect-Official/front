@@ -11,6 +11,7 @@ import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import FriendRequestScreen from "./src/screens/FriendRequestScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import EventsScreen from "./src/screens/EventsScreen";
+import EventDetailScreen from "./src/screens/EventDetailScreen";
 import BottomNav from "./src/components/BottomNav";
 import { NavigationContainer } from "@react-navigation/native";
 import CreateJobOfferScreen from "./src/screens/CreateJobOfferScreen";
@@ -35,6 +36,7 @@ export type RootStackParamList = {
   Network: undefined;
   Publication: undefined;
   Jobs: undefined;
+  EventDetail: { eventId: number };
   FriendRequest: undefined;
   CreateJobOffer: undefined;
   Profile: undefined;
@@ -73,6 +75,7 @@ const AppStack = () => (
     <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
     <Stack.Screen name="Verify" component={VerifyScreen} />
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
+    <Stack.Screen name="EventDetail" component={EventDetailScreen} />
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="CreateEvent" component={CreateEventScreen} />

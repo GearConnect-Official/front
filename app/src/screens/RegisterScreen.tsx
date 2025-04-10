@@ -24,32 +24,32 @@ const RegisterScreen: React.FC = () => {
     
     // Username validation
     if (!username) {
-      newErrors.username = "Le nom d'utilisateur est requis";
+      newErrors.username = "Username is required";
     } else if (username.length < 3) {
-      newErrors.username = "Le nom d'utilisateur doit contenir au moins 3 caractères";
+      newErrors.username = "Username must contain at least 3 characters";
     }
     
     // Email validation
     if (!email) {
-      newErrors.email = "L'email est requis";
+      newErrors.email = "Email is required";
     } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-      newErrors.email = "Veuillez fournir une adresse email valide";
+      newErrors.email = "Please provide a valid email address";
     }
     
     // Password validation
     if (!password) {
-      newErrors.password = "Le mot de passe est requis";
+      newErrors.password = "Password is required";
     } else if (password.length < 8) {
-      newErrors.password = "Le mot de passe doit contenir au moins 8 caractères";
+      newErrors.password = "Password must contain at least 8 characters";
     } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(password)) {
-      newErrors.password = "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre";
+      newErrors.password = "Password must contain at least one uppercase letter, one lowercase letter, and one number";
     }
     
     // Confirm password validation
     if (!confirmPassword) {
-      newErrors.confirmPassword = "La confirmation du mot de passe est requise";
+      newErrors.confirmPassword = "Password confirmation is required";
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+      newErrors.confirmPassword = "Passwords do not match";
     }
     
     setErrors(newErrors);
@@ -65,9 +65,9 @@ const RegisterScreen: React.FC = () => {
     const result = await register(username, email, password);
 
     if (result.success) {
-      Alert.alert("Succès", "Inscription réussie !");
+      Alert.alert("Success", "Registration successful!");
     } else {
-      Alert.alert("Erreur", result.error || "L'inscription a échoué. Veuillez réessayer.");
+      Alert.alert("Error", result.error || "Registration failed. Please try again.");
     }
   };
 
@@ -87,13 +87,13 @@ const RegisterScreen: React.FC = () => {
           </TouchableOpacity>
 
           {/* Title */}
-          <Text style={styles.title}>Bienvenue ! Ravi de vous voir !</Text>
+          <Text style={styles.title}>Welcome! Glad to see you!</Text>
 
           {/* Input fields */}
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, errors.username ? styles.inputError : null]}
-              placeholder="Nom d'utilisateur"
+              placeholder="Username"
               value={username}
               onChangeText={(text) => {
                 setUsername(text);
@@ -124,7 +124,7 @@ const RegisterScreen: React.FC = () => {
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, errors.password ? styles.inputError : null]}
-              placeholder="Mot de passe"
+              placeholder="Password"
               secureTextEntry
               value={password}
               onChangeText={(text) => {
@@ -140,7 +140,7 @@ const RegisterScreen: React.FC = () => {
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, errors.confirmPassword ? styles.inputError : null]}
-              placeholder="Confirmer le mot de passe"
+              placeholder="Confirm password"
               secureTextEntry
               value={confirmPassword}
               onChangeText={(text) => {
@@ -162,12 +162,12 @@ const RegisterScreen: React.FC = () => {
             {isLoading ? (
               <ActivityIndicator color="#FFF" />
             ) : (
-              <Text style={styles.registerButtonText}>Accepter et s'inscrire</Text>
+              <Text style={styles.registerButtonText}>Accept and Register</Text>
             )}
           </TouchableOpacity>
 
           {/* Social network registration */}
-          <Text style={styles.orText}>Ou s'inscrire avec</Text>
+          <Text style={styles.orText}>Or register with</Text>
           <View style={styles.socialButtonsContainer}>
             <TouchableOpacity style={styles.socialButton}>
               <FontAwesome name="facebook" size={26} color="#3b5998" />
@@ -186,9 +186,9 @@ const RegisterScreen: React.FC = () => {
             onPress={() => navigation.navigate("Auth")}
           >
             <Text style={{ color: '#6A707C', fontSize: 15, textAlign: 'center' }}>
-              Déjà un compte ?{" "}
+              Already have an account?{" "}
               <Text style={{ color: '#E53935', fontWeight: 'bold' }}>
-                Se connecter
+                Log in
               </Text>
             </Text>
           </TouchableOpacity>

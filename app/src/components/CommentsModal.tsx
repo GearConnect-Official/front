@@ -58,7 +58,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
         <View style={styles.commentFooter}>
           <Text style={styles.commentTime}>{item.timeAgo}</Text>
           <TouchableOpacity style={styles.commentAction}>
-            <Text style={styles.commentActionText}>Répondre</Text>
+            <Text style={styles.commentActionText}>Reply</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -80,7 +80,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <FontAwesome name="arrow-left" size={20} color="#262626" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Commentaires</Text>
+          <Text style={styles.headerTitle}>Comments</Text>
           <TouchableOpacity>
             <FontAwesome name="paper-plane-o" size={20} color="#262626" />
           </TouchableOpacity>
@@ -95,8 +95,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <FontAwesome name="comments-o" size={60} color="#CCCCCC" />
-              <Text style={styles.emptyText}>Aucun commentaire pour le moment</Text>
-              <Text style={styles.emptySubText}>Soyez le premier à commenter</Text>
+              <Text style={styles.emptyText}>No comments yet</Text>
+              <Text style={styles.emptySubText}>Be the first to comment</Text>
             </View>
           }
         />
@@ -112,7 +112,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
           />
           <TextInput
             style={styles.input}
-            placeholder="Ajouter un commentaire..."
+            placeholder="Add a comment..."
             placeholderTextColor="#8E8E8E"
             multiline
             value={newComment}
@@ -132,7 +132,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
                 !newComment.trim() && styles.postButtonTextDisabled,
               ]}
             >
-              Publier
+              Post
             </Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>

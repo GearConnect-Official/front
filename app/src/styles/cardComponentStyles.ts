@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import theme from './config';
 
 const styles = StyleSheet.create({
-  // Conteneur principal de la carte
+  // Main card container
   container: {
     backgroundColor: theme.colors.background.paper,
     borderRadius: theme.borders.radius.md,
@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   
-  // En-tête de la carte
+  // Card header
   header: {
     ...theme.common.spaceBetween,
     padding: theme.spacing.md,
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.grey[100],
   },
   
-  // Informations de l'auteur
+  // Author information
   authorContainer: {
     ...theme.common.row,
   },
@@ -45,12 +45,12 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   
-  // Actions sur la carte
+  // Card actions
   actionButton: {
     padding: theme.spacing.xs,
   },
   
-  // Contenu de la carte
+  // Card content
   content: {
     padding: theme.spacing.md,
   },
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   
-  // Pied de la carte
+  // Card footer
   footer: {
     ...theme.common.row,
     padding: theme.spacing.md,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.grey[100],
   },
   
-  // Boutons d'action
+  // Action buttons
   actionContainer: {
     ...theme.common.row,
     flex: 1,
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     color: theme.colors.grey[600],
   },
   
-  // Etats de la carte
+  // Card states
   cardSuccess: {
     borderLeftWidth: 4,
     borderLeftColor: theme.colors.status.success,

@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     aspectRatio: 4/5
   },
   transformContainer: {
-    // Cette propriété sera étendue dynamiquement avec les transformations du pan
+    // This property will be dynamically extended with pan transformations
   }
 });
 

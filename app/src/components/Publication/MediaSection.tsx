@@ -4,10 +4,10 @@ import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import styles from '../../styles/publicationStyles';
 
-// Palette de couleurs du racing
+// Racing color palette
 const THEME_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
+  primary: '#E10600', // Racing Red
+  secondary: '#1E1E1E', // Racing Black
   background: '#FFFFFF',
   textSecondary: '#6E6E6E',
   border: '#E0E0E0',
@@ -23,8 +23,8 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permission Requise',
-        'Nous avons besoin d\'accéder à votre photothèque pour cette fonctionnalité.',
+        'Permission Required',
+        'We need access to your photo library for this feature.',
         [{ text: 'OK' }]
       );
       return false;
@@ -36,8 +36,8 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permission Requise',
-        'Nous avons besoin d\'accéder à votre appareil photo pour cette fonctionnalité.',
+        'Permission Required',
+        'We need access to your camera for this feature.',
         [{ text: 'OK' }]
       );
       return false;
@@ -51,7 +51,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: "images",
         allowsEditing: true,
         quality: 0.8,
         aspect: [4, 3],
@@ -61,7 +61,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
         onImageSelected(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de sélectionner l\'image');
+      Alert.alert('Error', 'Unable to select image');
       console.error(error);
     }
   };
@@ -72,7 +72,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
     
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: "images",
         allowsEditing: true,
         quality: 0.8,
         aspect: [4, 3],
@@ -82,17 +82,17 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
         onImageSelected(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de prendre une photo');
+      Alert.alert('Error', 'Unable to take photo');
       console.error(error);
     }
   };
 
   return (
     <View style={styles.mediaSectionContainer}>
-      <Text style={localStyles.title}>Créer une publication</Text>
+      <Text style={localStyles.title}>Create a Post</Text>
       
       <Text style={localStyles.subtitle}>
-        Partagez vos meilleures photos de course, voitures, événements et plus encore.
+        Share your best racing photos, cars, events and more.
       </Text>
       
       <View style={localStyles.buttonContainer}>
@@ -103,8 +103,8 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
           <View style={localStyles.iconContainer}>
             <FontAwesome name="image" size={30} color={THEME_COLORS.background} />
           </View>
-          <Text style={localStyles.buttonLabel}>Galerie</Text>
-          <Text style={localStyles.buttonDescription}>Choisir depuis la galerie</Text>
+          <Text style={localStyles.buttonLabel}>Gallery</Text>
+          <Text style={localStyles.buttonDescription}>Choose from gallery</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -114,8 +114,8 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
           <View style={localStyles.iconContainer}>
             <FontAwesome name="camera" size={30} color={THEME_COLORS.background} />
           </View>
-          <Text style={localStyles.buttonLabel}>Appareil photo</Text>
-          <Text style={localStyles.buttonDescription}>Prendre une nouvelle photo</Text>
+          <Text style={localStyles.buttonLabel}>Camera</Text>
+          <Text style={localStyles.buttonDescription}>Take a new photo</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -39,39 +39,39 @@ const PostOptionsMenu: React.FC<PostOptionsMenuProps> = ({
                 <>
                   <TouchableOpacity style={styles.option} onPress={onCopyLink}>
                     <FontAwesome name="link" size={20} color="#262626" />
-                    <Text style={styles.optionText}>Copier le lien</Text>
+                    <Text style={styles.optionText}>Copy link</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={styles.option}>
                     <FontAwesome name="pencil" size={20} color="#262626" />
-                    <Text style={styles.optionText}>Modifier</Text>
+                    <Text style={styles.optionText}>Edit</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={styles.option}>
                     <FontAwesome name="archive" size={20} color="#262626" />
-                    <Text style={styles.optionText}>Archiver</Text>
+                    <Text style={styles.optionText}>Archive</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={[styles.option, styles.deleteOption]}>
                     <FontAwesome name="trash" size={20} color="#E1306C" />
-                    <Text style={[styles.optionText, styles.deleteText]}>Supprimer</Text>
+                    <Text style={[styles.optionText, styles.deleteText]}>Delete</Text>
                   </TouchableOpacity>
                 </>
               ) : (
                 <>
                   <TouchableOpacity style={styles.option} onPress={onReport}>
                     <FontAwesome name="flag" size={20} color="#262626" />
-                    <Text style={styles.optionText}>Signaler</Text>
+                    <Text style={styles.optionText}>Report</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={styles.option}>
                     <FontAwesome name="user-times" size={20} color="#262626" />
-                    <Text style={styles.optionText}>Ne plus suivre</Text>
+                    <Text style={styles.optionText}>Unfollow</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={styles.option} onPress={onCopyLink}>
                     <FontAwesome name="link" size={20} color="#262626" />
-                    <Text style={styles.optionText}>Copier le lien</Text>
+                    <Text style={styles.optionText}>Copy link</Text>
                   </TouchableOpacity>
                 </>
               )}

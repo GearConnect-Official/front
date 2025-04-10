@@ -3,7 +3,6 @@ import {
     View,
     Image,
     TouchableOpacity,
-    Modal,
     Dimensions,
     Alert,
     Text,
@@ -15,14 +14,15 @@ import {
 } from "react-native";
 import * as ImageManipulator from "expo-image-manipulator";
 import { FontAwesome } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { PinchGestureHandler, State, PinchGestureHandlerStateChangeEvent } from "react-native-gesture-handler";
 import styles from "../../styles/publicationStyles";
 import imageViewerStyles from "../../styles/imageViewerStyles";
 
-// Palette de couleurs racing
+// Racing color palette
 const THEME_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
+  primary: '#E10600', // Racing Red
+  secondary: '#1E1E1E', // Racing Black
   background: '#FFFFFF',
   textPrimary: '#1E1E1E',
   textSecondary: '#6E6E6E',
@@ -50,22 +50,39 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     isLastStep = false
 }) => {
     const [isCropping, setIsCropping] = useState(false);
-    const [isFullScreen, setIsFullScreen] = useState(false);
     const [aspectRatio, setAspectRatio] = useState<"square" | "portrait" | "landscape">("square");
     const [displayedImage, setDisplayedImage] = useState(imageUri);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [scale, setScale] = useState(1);
-    const [fullscreenScale, setFullscreenScale] = useState(1);
     const [showHelp, setShowHelp] = useState(true);
     
     const pan = useRef(new Animated.ValueXY()).current;
     const baseScale = useRef(new Animated.Value(1)).current;
     const pinchScale = useRef(new Animated.Value(1)).current;
     const scale2 = Animated.multiply(baseScale, pinchScale);
-
-    const fullscreenBaseScale = useRef(new Animated.Value(1)).current;
-    const fullscreenPinchScale = useRef(new Animated.Value(1)).current;
-    const fullscreenScale2 = Animated.multiply(fullscreenBaseScale, fullscreenPinchScale);
+    
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onPanResponderMove: (_, gestureState) => {
+                // Hide help tooltip when user starts interacting
+                if (showHelp) {
+                    setShowHelp(false);
+                }
+                
+                pan.setValue({
+                    x: offset.x + gestureState.dx,
+                    y: offset.y + gestureState.dy
+                });
+            },
+            onPanResponderRelease: (_, gestureState) => {
+                setOffset({
+                    x: offset.x + gestureState.dx,
+                    y: offset.y + gestureState.dy
+                });
+            }
+        })
+    ).current;
     
     // Fade out help tooltip after 3 seconds
     useEffect(() => {
@@ -90,11 +107,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         { useNativeDriver: true }
     );
 
-    const onFullscreenPinchGestureEvent = Animated.event(
-        [{ nativeEvent: { scale: fullscreenPinchScale } }],
-        { useNativeDriver: true }
-    );
-
     const onPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
         if (event.nativeEvent.oldState === State.ACTIVE) {
             const newScale = scale * event.nativeEvent.scale;
@@ -104,39 +116,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             pinchScale.setValue(1);
         }
     };
-
-    const onFullscreenPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
-        if (event.nativeEvent.oldState === State.ACTIVE) {
-            const newScale = fullscreenScale * event.nativeEvent.scale;
-            const limitedScale = Math.max(1, Math.min(newScale, 3));
-            setFullscreenScale(limitedScale);
-            fullscreenBaseScale.setValue(limitedScale);
-            fullscreenPinchScale.setValue(1);
-        }
-    };
-
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onPanResponderMove: (_, gestureState) => {
-                // Hide help tooltip when user starts interacting
-                if (showHelp) {
-                    setShowHelp(false);
-                }
-                
-                pan.setValue({
-                    x: offset.x + gestureState.dx,
-                    y: offset.y + gestureState.dy
-                });
-            },
-            onPanResponderRelease: (_, gestureState) => {
-                setOffset({
-                    x: offset.x + gestureState.dx,
-                    y: offset.y + gestureState.dy
-                });
-            }
-        })
-    ).current;
 
     const handleAspectRatioChange = (newAspectRatio: "square" | "portrait" | "landscape") => {
         setAspectRatio(newAspectRatio);
@@ -190,69 +169,20 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             baseScale.setValue(1);
             pinchScale.setValue(1);
         } catch (error) {
-            Alert.alert('Erreur', 'Impossible de recadrer l\'image');
+            Alert.alert('Error', 'Unable to crop image');
             console.error(error);
         }
     };
 
-    const renderFullScreenModal = () => (
-        <Modal
-            animationType="fade"
-            transparent={false}
-            visible={isFullScreen}
-            onRequestClose={() => setIsFullScreen(false)}
-        >
-            <SafeAreaView style={localStyles.fullScreenContainer}>
-                <TouchableOpacity
-                    style={localStyles.fullScreenCloseButton}
-                    onPress={() => {
-                        setIsFullScreen(false);
-                        setFullscreenScale(1);
-                        fullscreenBaseScale.setValue(1);
-                        fullscreenPinchScale.setValue(1);
-                    }}
-                >
-                    <FontAwesome name="arrow-left" size={24} color={THEME_COLORS.background} />
-                </TouchableOpacity>
-                <PinchGestureHandler
-                    onGestureEvent={onFullscreenPinchGestureEvent}
-                    onHandlerStateChange={onFullscreenPinchHandlerStateChange}
-                >
-                    <Animated.View style={{ flex: 1 }}>
-                        <Animated.Image
-                            source={{ uri: displayedImage }}
-                            style={[
-                                localStyles.fullScreenImage,
-                                {
-                                    transform: [{ scale: fullscreenScale2 }]
-                                }
-                            ]}
-                            resizeMode="contain"
-                        />
-                    </Animated.View>
-                </PinchGestureHandler>
-                <View style={localStyles.zoomInstructions}>
-                    <Text style={localStyles.zoomInstructionsText}>Pincez pour zoomer</Text>
-                </View>
-            </SafeAreaView>
-        </Modal>
-    );
-
     const renderImageViewer = () => (
         <View style={localStyles.viewerContainer}>
-            <TouchableOpacity 
-                style={localStyles.imageContainer}
-                onPress={() => setIsFullScreen(true)}
-            >
+            <View style={localStyles.imageContainer}>
                 <Image
                     source={{ uri: displayedImage }}
                     style={localStyles.previewImage}
                     resizeMode="cover"
                 />
-                <View style={localStyles.imageOverlay}>
-                    <FontAwesome name="search-plus" size={24} color={THEME_COLORS.background} />
-                </View>
-            </TouchableOpacity>
+            </View>
             
             <View style={localStyles.imageControls}>
                 <TouchableOpacity
@@ -260,7 +190,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                     onPress={() => setIsCropping(true)}
                 >
                     <FontAwesome name="crop" size={20} color={THEME_COLORS.primary} />
-                    <Text style={localStyles.controlText}>Recadrer</Text>
+                    <Text style={localStyles.controlText}>Crop</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
@@ -268,7 +198,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                     onPress={onNext}
                 >
                     <Text style={[localStyles.nextButtonText, isLastStep && localStyles.continueButtonText]}>
-                        {isLastStep ? "Terminer" : "Continuer"}
+                        {isLastStep ? "Finish" : "Continue"}
                     </Text>
                     <FontAwesome 
                         name="arrow-right" 
@@ -287,9 +217,9 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 <TouchableOpacity onPress={() => setIsCropping(false)}>
                     <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.textPrimary} />
                 </TouchableOpacity>
-                <Text style={localStyles.cropTitle}>Recadrer la photo</Text>
+                <Text style={localStyles.cropTitle}>Crop photo</Text>
                 <TouchableOpacity onPress={confirmCrop}>
-                    <Text style={localStyles.cropDoneText}>Appliquer</Text>
+                    <Text style={localStyles.cropDoneText}>Apply</Text>
                 </TouchableOpacity>
             </View>
             
@@ -342,7 +272,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                     {showHelp && (
                         <View style={localStyles.helpTooltip}>
                             <Text style={localStyles.helpText}>
-                                Déplacez et pincez pour ajuster
+                                Move and pinch to adjust
                             </Text>
                         </View>
                     )}
@@ -371,7 +301,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                     ]}
                     onPress={() => handleAspectRatioChange("portrait")}
                 >
-                    <FontAwesome name="rectangle-portrait" size={16} color={aspectRatio === "portrait" ? THEME_COLORS.primary : THEME_COLORS.textSecondary} />
+                    <MaterialIcons name="crop-portrait" size={16} color={aspectRatio === "portrait" ? THEME_COLORS.primary : THEME_COLORS.textSecondary} />
                     <Text style={[
                         localStyles.aspectRatioText,
                         aspectRatio === "portrait" && localStyles.aspectRatioTextActive
@@ -385,7 +315,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                     ]}
                     onPress={() => handleAspectRatioChange("landscape")}
                 >
-                    <FontAwesome name="rectangle-landscape" size={16} color={aspectRatio === "landscape" ? THEME_COLORS.primary : THEME_COLORS.textSecondary} />
+                    <FontAwesome name="image" size={16} color={aspectRatio === "landscape" ? THEME_COLORS.primary : THEME_COLORS.textSecondary} />
                     <Text style={[
                         localStyles.aspectRatioText,
                         aspectRatio === "landscape" && localStyles.aspectRatioTextActive
@@ -400,8 +330,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             <StatusBar barStyle="dark-content" backgroundColor={THEME_COLORS.background} />
             
             {isCropping ? renderCropTool() : renderImageViewer()}
-            
-            {isFullScreen && renderFullScreenModal()}
         </SafeAreaView>
     );
 };
@@ -420,17 +348,6 @@ const localStyles = StyleSheet.create({
     previewImage: {
         width: '100%',
         height: '100%',
-    },
-    imageOverlay: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        borderRadius: 20,
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     imageControls: {
         flexDirection: 'row',
@@ -587,44 +504,6 @@ const localStyles = StyleSheet.create({
         color: THEME_COLORS.background,
         fontSize: 14,
         textAlign: 'center',
-    },
-    
-    // Fullscreen styles
-    fullScreenContainer: {
-        flex: 1,
-        backgroundColor: THEME_COLORS.secondary,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    fullScreenCloseButton: {
-        position: 'absolute',
-        top: 16 + (StatusBar.currentHeight || 0),
-        left: 16,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 10,
-    },
-    fullScreenImage: {
-        width: SCREEN_WIDTH,
-        height: SCREEN_HEIGHT,
-        resizeMode: 'contain',
-    },
-    zoomInstructions: {
-        position: 'absolute',
-        bottom: 20,
-        left: 0,
-        right: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        padding: 8,
-        alignItems: 'center',
-    },
-    zoomInstructionsText: {
-        color: THEME_COLORS.background,
-        fontSize: 14,
     },
 });
 

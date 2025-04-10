@@ -88,7 +88,7 @@ const ProfilePost: React.FC<ProfilePostProps> = ({
       </View>
 
       {/* Likes */}
-      <Text style={styles.likes}>{post.likes} j'aime</Text>
+      <Text style={styles.likes}>{post.likes} likes</Text>
 
       {/* Caption */}
       {post.caption && (
@@ -104,7 +104,7 @@ const ProfilePost: React.FC<ProfilePostProps> = ({
       {post.comments > 0 && (
         <TouchableOpacity style={styles.commentsButton} onPress={() => onComment(post.id)}>
           <Text style={styles.commentsText}>
-            Voir les {post.comments} commentaires
+            View {post.comments} comments
           </Text>
         </TouchableOpacity>
       )}

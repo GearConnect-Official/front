@@ -40,7 +40,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
         <Text style={styles.label}>Event Name*</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: Val de Vienne Karting Grand Prix"
+          placeholder="Enter event name"
           value={name}
           onChangeText={(text) => onInputChange("name", text)}
         />
@@ -50,7 +50,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
         <Text style={styles.label}>Organizers</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: Val de Vienne Karting Club"
+          placeholder="Enter organizer name"
           value={creators}
           onChangeText={(text) => onInputChange("creators", text)}
         />
@@ -60,7 +60,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
         <Text style={styles.label}>Location*</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: Circuit du Val de Vienne, Le Vigeant"
+          placeholder="Enter event location"
           value={location}
           onChangeText={(text) => onInputChange("location", text)}
         />

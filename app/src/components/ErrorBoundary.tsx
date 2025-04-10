@@ -15,8 +15,8 @@ interface State {
 }
 
 /**
- * Composant qui intercepte les erreurs JavaScript non capturées
- * et affiche une interface de secours.
+ * Component that intercepts uncaught JavaScript errors
+ * and displays a fallback interface.
  */
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
@@ -29,7 +29,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    // Mettre à jour l'état pour afficher l'UI de secours
+    // Update state to display fallback UI
     return {
       hasError: true,
       error,
@@ -38,7 +38,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log de l'erreur pour le débogage
+    // Log the error for debugging
     console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
@@ -54,12 +54,12 @@ class ErrorBoundary extends Component<Props, State> {
     const { hasError, error, showFeedback } = this.state;
     const { children, fallback } = this.props;
 
-    // Si une erreur a été interceptée et qu'un fallback est fourni, afficher le fallback
+    // If an error was caught and a fallback is provided, display the fallback
     if (hasError && fallback) {
       return fallback;
     }
 
-    // Si une erreur a été interceptée mais pas de fallback, afficher une UI par défaut
+    // If an error was caught but no fallback is provided, display a default UI
     if (hasError) {
       return (
         <View style={styles.container}>
@@ -68,18 +68,18 @@ class ErrorBoundary extends Component<Props, State> {
             style={styles.errorImage}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Oups! Une erreur est survenue</Text>
-          <Text style={styles.message}>{error?.message || 'Une erreur inattendue s\'est produite'}</Text>
+          <Text style={styles.title}>Oops! An error occurred</Text>
+          <Text style={styles.message}>{error?.message || 'An unexpected error occurred'}</Text>
           <TouchableOpacity 
             style={styles.button}
             onPress={this.resetError}
           >
-            <Text style={styles.buttonText}>Réessayer</Text>
+            <Text style={styles.buttonText}>Try Again</Text>
           </TouchableOpacity>
 
           <FeedbackMessage
             visible={showFeedback}
-            message="Une erreur non gérée s'est produite."
+            message="An unhandled error occurred."
             type={FeedbackType.ERROR}
             onDismiss={() => this.setState({ showFeedback: false })}
           />
@@ -87,7 +87,7 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    // Sinon, afficher les enfants normalement
+    // Otherwise, display children normally
     return children;
   }
 }

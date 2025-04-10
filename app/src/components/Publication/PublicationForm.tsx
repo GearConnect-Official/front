@@ -14,10 +14,10 @@ import {
 import { FontAwesome } from '@expo/vector-icons';
 import styles from '../../styles/publicationStyles';
 
-// Palette de couleurs du racing
+// Racing color palette
 const THEME_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
+  primary: '#E10600', // Racing Red
+  secondary: '#1E1E1E', // Racing Black
   background: '#FFFFFF',
   textPrimary: '#1E1E1E',
   textSecondary: '#6E6E6E',
@@ -26,13 +26,13 @@ const THEME_COLORS = {
   cardLight: '#F8F8F8',
 };
 
-// Tags populaires suggérés
+// Popular suggested tags
 const SUGGESTED_TAGS = [
-  'racing', 'f1', 'circuit', 'karting', 'pilotage', 'motorsport', 
-  'performance', 'mécanique', 'voiture', 'vitesse', 'competition'
+  'racing', 'f1', 'circuit', 'karting', 'driving', 'motorsport', 
+  'performance', 'mechanics', 'car', 'speed', 'competition'
 ];
 
-// Limitation de caractères
+// Character limit
 const MAX_DESCRIPTION_LENGTH = 500;
 
 interface PublicationFormProps {
@@ -96,13 +96,13 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
     return (
       <View style={styles.formContainer}>
         <View style={localStyles.previewHeader}>
-          <Text style={localStyles.previewTitle}>Aperçu de la publication</Text>
+          <Text style={localStyles.previewTitle}>Post Preview</Text>
           <TouchableOpacity
             style={localStyles.previewCloseButton}
             onPress={togglePreviewMode}
           >
             <FontAwesome name="edit" size={18} color={THEME_COLORS.primary} />
-            <Text style={localStyles.previewCloseText}>Modifier</Text>
+            <Text style={localStyles.previewCloseText}>Edit</Text>
           </TouchableOpacity>
         </View>
         
@@ -124,12 +124,12 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               <Text style={styles.headerText}>{username}</Text>
             </View>
             
-            <Text style={localStyles.previewPostTitle}>{title || "Sans titre"}</Text>
+            <Text style={localStyles.previewPostTitle}>{title || "Untitled"}</Text>
             
             {description ? (
               <Text style={localStyles.previewDescription}>{description}</Text>
             ) : (
-              <Text style={localStyles.previewNoContent}>Aucune description</Text>
+              <Text style={localStyles.previewNoContent}>No description</Text>
             )}
             
             {tags.length > 0 ? (
@@ -139,7 +139,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 ))}
               </View>
             ) : (
-              <Text style={localStyles.previewNoContent}>Aucun tag</Text>
+              <Text style={localStyles.previewNoContent}>No tags</Text>
             )}
           </View>
         </ScrollView>
@@ -176,16 +176,16 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               disabled={isLoading}
             >
               <FontAwesome name="eye" size={16} color={THEME_COLORS.primary} />
-              <Text style={localStyles.previewButtonText}>Aperçu</Text>
+              <Text style={localStyles.previewButtonText}>Preview</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputContainer}>
             <View style={localStyles.inputSection}>
-              <Text style={localStyles.inputLabel}>Titre</Text>
+              <Text style={localStyles.inputLabel}>Title</Text>
               <TextInput
                 style={styles.titleInput}
-                placeholder="Ajouter un titre..."
+                placeholder="Enter your title"
                 placeholderTextColor={THEME_COLORS.textSecondary}
                 value={title}
                 onChangeText={setTitle}
@@ -206,7 +206,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               </View>
               <TextInput
                 style={styles.descriptionInput}
-                placeholder="Écrivez votre description..."
+                placeholder="Write your description"
                 placeholderTextColor={THEME_COLORS.textSecondary}
                 value={description}
                 onChangeText={text => {
@@ -218,7 +218,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 editable={!isLoading}
               />
               <Text style={localStyles.helperText}>
-                Partagez des détails sur votre photo, le circuit, l'événement...
+                Share details about your photo, the circuit, the event...
               </Text>
             </View>
 
@@ -244,7 +244,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               <View style={styles.tagInputContainer}>
                 <TextInput
                   style={styles.tagInput}
-                  placeholder="Ajouter des tags..."
+                  placeholder="Add tags"
                   placeholderTextColor={THEME_COLORS.textSecondary}
                   value={tagInput}
                   onChangeText={setTagInput}
@@ -261,12 +261,12 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 onPress={handleAddTag}
                 disabled={isLoading || !tagInput.trim()}
               >
-                <Text style={styles.addTagButtonText}>Ajouter</Text>
+                <Text style={styles.addTagButtonText}>Add</Text>
               </TouchableOpacity>
               
               {tagInput.trim() && filteredSuggestions.length > 0 ? (
                 <View style={localStyles.suggestionsContainer}>
-                  <Text style={localStyles.suggestionsTitle}>Suggestions :</Text>
+                  <Text style={localStyles.suggestionsTitle}>Suggestions:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={localStyles.suggestionsList}>
                       {filteredSuggestions.map((tag, index) => (
@@ -284,7 +284,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 </View>
               ) : tags.length === 0 && tagInput.length === 0 ? (
                 <View style={localStyles.suggestionsContainer}>
-                  <Text style={localStyles.suggestionsTitle}>Tags populaires :</Text>
+                  <Text style={localStyles.suggestionsTitle}>Popular tags:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={localStyles.suggestionsList}>
                       {SUGGESTED_TAGS.slice(0, 8).map((tag, index) => (
@@ -307,7 +307,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
           {isLoading && (
             <View style={localStyles.loadingContainer}>
               <ActivityIndicator size="large" color={THEME_COLORS.primary} />
-              <Text style={localStyles.loadingText}>Publication en cours...</Text>
+              <Text style={localStyles.loadingText}>Publishing...</Text>
             </View>
           )}
         </View>

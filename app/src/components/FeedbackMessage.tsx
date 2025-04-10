@@ -29,7 +29,7 @@ interface FeedbackMessageProps {
 const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
   message,
   type = FeedbackType.INFO,
-  duration = 5000, // 5 secondes par défaut
+  duration = 5000, // 5 seconds by default
   onDismiss,
   errorType,
   visible,
@@ -105,13 +105,13 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
   if (type === FeedbackType.ERROR && errorType) {
     switch (errorType) {
       case ErrorType.NETWORK:
-        displayMessage = "Problème de connexion. Vérifiez votre connexion internet.";
+        displayMessage = "Connection problem. Please check your internet connection.";
         break;
       case ErrorType.SERVER:
-        displayMessage = "Le serveur rencontre un problème. Veuillez réessayer plus tard.";
+        displayMessage = "The server is experiencing an issue. Please try again later.";
         break;
       case ErrorType.TIMEOUT:
-        displayMessage = "La requête a pris trop de temps. Veuillez réessayer.";
+        displayMessage = "The request took too long. Please try again.";
         break;
     }
   }

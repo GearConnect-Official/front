@@ -28,7 +28,7 @@ const createTextStyle = (options: Partial<TypographyStyles>): TextStyle => ({
 });
 
 const typography = {
-  // Titres
+  // Headings
   h1: createTextStyle({
     fontSize: 30,
     fontWeight: '700',
@@ -65,7 +65,7 @@ const typography = {
     lineHeight: 24,
   }),
   
-  // Corps de texte
+  // Body text
   body1: createTextStyle({
     fontSize: 16,
     fontWeight: '400',
@@ -78,7 +78,7 @@ const typography = {
     lineHeight: 22,
   }),
   
-  // Éléments particuliers
+  // Special elements
   subtitle1: createTextStyle({
     fontSize: 16,
     fontWeight: '600',
@@ -105,7 +105,7 @@ const typography = {
     letterSpacing: 0.5,
   }),
   
-  // Variantes fonctionnelles
+  // Functional variants
   label: createTextStyle({
     fontSize: 14,
     fontWeight: '500',

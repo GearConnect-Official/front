@@ -21,7 +21,7 @@ const CaptionInput: React.FC<CaptionInputProps> = ({
       />
       <TextInput
         style={styles.captionInput}
-        placeholder="Write a caption..."
+        placeholder="Enter your caption"
         value={value}
         onChangeText={onChangeText}
         multiline

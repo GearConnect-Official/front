@@ -113,28 +113,28 @@ const FeedbackManager: React.FC<{ children: React.ReactNode }> = ({ children }) 
 };
 
 /**
- * Composant de gestion de la connectivité dans l'application
+ * Connectivity management component in the application
  */
 const ConnectivityManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isOnline, isInitializing, checkConnection } = useNetworkStatus();
   const [hasShownOfflineScreen, setHasShownOfflineScreen] = useState(false);
   
-  // N'afficher l'écran hors ligne que si nous avons terminé l'initialisation
-  // et que nous ne pouvons pas accéder au serveur
+  // Only display the offline screen if we have finished initialization
+  // and we cannot access the server
   const showOfflineScreen = !isInitializing && !isOnline;
   
-  // Suivre si nous avons déjà affiché l'écran hors ligne
+  // Track if we have already displayed the offline screen
   useEffect(() => {
     if (showOfflineScreen) {
       setHasShownOfflineScreen(true);
     }
   }, [showOfflineScreen]);
   
-  // Réessayer la connexion
+  // Retry connection
   const handleRetry = async () => {
     const isNowOnline = await checkConnection();
     
-    // Si nous sommes maintenant en ligne après avoir réessayé, réinitialiser l'état
+    // If we are now online after retrying, reset the state
     if (isNowOnline) {
       setHasShownOfflineScreen(false);
     }
@@ -144,8 +144,8 @@ const ConnectivityManager: React.FC<{ children: React.ReactNode }> = ({ children
     return <LoadingScreen />;
   }
   
-  // N'afficher l'écran hors ligne que si nous avons déjà essayé de nous connecter
-  // et que nous sommes toujours hors ligne
+  // Only display the offline screen if we have already tried to connect
+  // and we are still offline
   if (hasShownOfflineScreen && showOfflineScreen) {
     return <OfflineScreen retry={handleRetry} />;
   }

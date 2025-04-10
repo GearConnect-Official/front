@@ -15,10 +15,10 @@ const OfflineScreen: React.FC<OfflineScreenProps> = ({ retry }) => {
     <View style={styles.container}>
       <MaterialIcons name="wifi-off" size={80} color="#8E8E93" style={styles.icon} />
       
-      <Text style={styles.title}>Pas de connexion</Text>
+      <Text style={styles.title}>No Connection</Text>
       
       <Text style={styles.message}>
-        Impossible de se connecter au serveur. Vérifiez votre connexion internet et réessayez.
+        Unable to connect to server. Check your internet connection and try again.
       </Text>
       
       <View style={styles.buttonContainer}>
@@ -26,21 +26,21 @@ const OfflineScreen: React.FC<OfflineScreenProps> = ({ retry }) => {
           style={styles.primaryButton}
           onPress={retry}
         >
-          <Text style={styles.primaryButtonText}>Réessayer</Text>
+          <Text style={styles.primaryButtonText}>Try Again</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.secondaryButton}
           onPress={() => Linking.openSettings()}
         >
-          <Text style={styles.secondaryButtonText}>Paramètres réseau</Text>
+          <Text style={styles.secondaryButtonText}>Network Settings</Text>
         </TouchableOpacity>
       </View>
       
       <View style={styles.helpContainer}>
-        <Text style={styles.helpText}>Besoin d'aide?</Text>
+        <Text style={styles.helpText}>Need help?</Text>
         <TouchableOpacity>
-          <Text style={styles.helpLink}>Contacter le support</Text>
+          <Text style={styles.helpLink}>Contact Support</Text>
         </TouchableOpacity>
       </View>
     </View>

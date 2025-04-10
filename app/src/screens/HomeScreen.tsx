@@ -120,7 +120,7 @@ const HomeScreen: React.FC = () => {
         id: "c1",
         username: "user123",
         avatar: "https://randomuser.me/api/portraits/women/76.jpg",
-        text: "Super photo ! J'adore l'ambiance de l'équipe 👏",
+        text: "Great photo! I love the team atmosphere 👏",
         timeAgo: "30m",
         likes: 3,
       },
@@ -128,7 +128,7 @@ const HomeScreen: React.FC = () => {
         id: "c2",
         username: "julie_design",
         avatar: "https://randomuser.me/api/portraits/women/45.jpg",
-        text: "On dirait que vous vous êtes bien amusés !",
+        text: "Looks like you all had a great time!",
         timeAgo: "1h",
         likes: 0,
       },
@@ -139,7 +139,7 @@ const HomeScreen: React.FC = () => {
         id: "c3",
         username: "tech_enthusiast",
         avatar: "https://randomuser.me/api/portraits/men/22.jpg",
-        text: "J'ai hâte de tester ce produit ! Où est-ce qu'on peut l'acheter ?",
+        text: "I can't wait to try this product! Where can we buy it?",
         timeAgo: "45m",
         likes: 12,
       },
@@ -147,7 +147,7 @@ const HomeScreen: React.FC = () => {
         id: "c4",
         username: "sarah_dev",
         avatar: "https://randomuser.me/api/portraits/women/37.jpg",
-        text: "Quelles sont les spécifications techniques ?",
+        text: "What are the technical specifications?",
         timeAgo: "1h",
         likes: 4,
       },
@@ -155,7 +155,7 @@ const HomeScreen: React.FC = () => {
         id: "c5",
         username: "marketing_pro",
         avatar: "https://randomuser.me/api/portraits/men/56.jpg",
-        text: "Bravo pour le lancement ! Le design est superbe.",
+        text: "Congrats on the launch! The design is superb.",
         timeAgo: "2h",
         likes: 8,
       },
@@ -166,13 +166,13 @@ const HomeScreen: React.FC = () => {
         id: "c6",
         username: "design_student",
         avatar: "https://randomuser.me/api/portraits/women/14.jpg",
-        text: "Cette citation est tellement vraie. Merci pour l'inspiration !",
+        text: "This quote is so true. Thanks for the inspiration!",
         timeAgo: "3h",
         likes: 15,
       },
     ];
 
-    // Posts mock data avec des images réalistes
+    // Realistic mock posts data
     const mockPosts: Post[] = [
       {
         id: "1",
@@ -183,7 +183,7 @@ const HomeScreen: React.FC = () => {
           "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
         ],
         caption:
-          "Incroyable journée au travail avec l'équipe GearConnect ! #networking #team",
+          "Amazing day at work with the GearConnect team! #networking #team",
         likes: 124,
         liked: false,
         saved: false,
@@ -198,7 +198,7 @@ const HomeScreen: React.FC = () => {
           "https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
         ],
         caption:
-          "Notre nouveau produit est enfin disponible ! Découvrez toutes ses fonctionnalités sur notre site web. #innovation #tech",
+          "Our new product is finally available! Discover all its features on our website. #innovation #tech",
         likes: 457,
         liked: true,
         saved: true,
@@ -215,7 +215,7 @@ const HomeScreen: React.FC = () => {
           "https://images.unsplash.com/photo-1542744094-3a95b1b9c9fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
         ],
         caption:
-          "Le design c'est pas juste ce que ça a l'air d'être et ce que ça ressent. Le design c'est comment ça fonctionne. #uxdesign",
+          "Design is not just what it looks like and feels like. Design is how it works. #uxdesign",
         likes: 892,
         liked: false,
         saved: false,
@@ -232,7 +232,7 @@ const HomeScreen: React.FC = () => {
           "https://images.unsplash.com/photo-1519046904884-53103b34b206?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
         ],
         caption:
-          "Enfin de retour en vacances ! ☀️ Le paradis existe et il se trouve aux Maldives. #voyage #plage #detente",
+          "Finally back on vacation! ☀️ Paradise exists and it's in the Maldives. #travel #beach #relaxation",
         likes: 1023,
         liked: false,
         saved: true,
@@ -356,7 +356,7 @@ const HomeScreen: React.FC = () => {
             username: CURRENT_USERNAME,
             avatar: CURRENT_USER_AVATAR,
             text,
-            timeAgo: "à l'instant",
+            timeAgo: "just now",
             likes: 0,
           };
           return {
@@ -378,7 +378,7 @@ const HomeScreen: React.FC = () => {
     if (username === CURRENT_USERNAME) {
       navigation.navigate("UserProfile" as never);
     } else {
-      // Pour les autres profils, on pourrait prévoir une navigation avec des paramètres
+      // For other profiles, we could set up navigation with parameters
       console.log(`Navigating to profile of ${username}`);
     }
   };

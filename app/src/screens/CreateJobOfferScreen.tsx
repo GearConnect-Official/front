@@ -240,14 +240,14 @@ const CreateJobOfferScreen: React.FC = () => {
   // Gestionnaires pour les modals Android
   const confirmStartDate = () => {
     setStartDate(tempStartDate);
-    const formattedDate = tempStartDate.toLocaleDateString('fr-FR');
+    const formattedDate = tempStartDate.toLocaleDateString('en-US');
     setFormData({ ...formData, startDate: formattedDate });
     setShowStartModal(false);
   };
 
   const confirmEndDate = () => {
     setEndDate(tempEndDate);
-    const formattedDate = tempEndDate.toLocaleDateString('fr-FR');
+    const formattedDate = tempEndDate.toLocaleDateString('en-US');
     setFormData({ ...formData, endDate: formattedDate });
     setShowEndModal(false);
   };
@@ -482,7 +482,7 @@ const CreateJobOfferScreen: React.FC = () => {
         <View style={{ height: 60 }} />
       </ScrollView>
 
-      {/* Modal pour sélecteur de date de début (Android) */}
+      {/* Modal for start date selector (Android) */}
       <Modal
         visible={showStartModal}
         transparent={true}
@@ -520,7 +520,7 @@ const CreateJobOfferScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Modal pour sélecteur de date de fin (Android) */}
+      {/* Modal for end date selector (Android) */}
       <Modal
         visible={showEndModal}
         transparent={true}

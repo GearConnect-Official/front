@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import styles from '../../styles/publicationStyles';
 
-// Palette de couleurs du racing
+// Racing color palette
 const THEME_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
+  primary: '#E10600', // Racing Red
+  secondary: '#1E1E1E', // Racing Black
   background: '#FFFFFF',
 };
 
@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({
             style={styles.headerButton}
             disabled={isLoading}
           >
-            <Text style={styles.cropConfirmText}>Terminé</Text>
+            <Text style={styles.cropConfirmText}>Done</Text>
           </TouchableOpacity>
         </>
       ) : (
@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({
             >
               <FontAwesome name="arrow-left" size={24} color={THEME_COLORS.secondary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Nouvelle Publication</Text>
+            <Text style={styles.headerTitle}>New Post</Text>
           </View>
           <TouchableOpacity 
             style={[
@@ -78,7 +78,7 @@ const Header: React.FC<HeaderProps> = ({
               <ActivityIndicator size="small" color={THEME_COLORS.background} style={styles.buttonLoader} />
             ) : (
               <Text style={isLastStep ? styles.nextButtonShareText : styles.nextButtonText}>
-                {isLastStep ? "Partager" : "Suivant"}
+                {isLastStep ? "Share" : "Next"}
               </Text>
             )}
           </TouchableOpacity>

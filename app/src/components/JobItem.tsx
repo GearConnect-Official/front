@@ -6,8 +6,8 @@ import theme from "../styles/config";
 
 // Palette de couleurs racing
 const RACING_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
+  primary: '#E10600', // Racing Red
+  secondary: '#1E1E1E', // Racing Black
   background: '#FFFFFF',
   textPrimary: '#1E1E1E',
   textSecondary: '#6E6E6E',
@@ -31,7 +31,7 @@ const JobItem: React.FC<JobItemProps> = ({
   type, 
   onPress 
 }) => {
-  // Déterminer la couleur de fond du badge selon le type de job
+  // Determine badge background color based on job type
   const getBadgeColor = () => {
     switch (type.toLowerCase()) {
       case 'full-time':
@@ -76,7 +76,7 @@ const JobItem: React.FC<JobItemProps> = ({
           </View>
           <View style={localStyles.infoItem}>
             <FontAwesome name="clock-o" size={14} color={RACING_COLORS.textSecondary} />
-            <Text style={localStyles.infoText}>Posté il y a 2j</Text>
+            <Text style={localStyles.infoText}>Posted 2d ago</Text>
           </View>
         </View>
       </View>

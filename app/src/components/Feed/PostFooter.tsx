@@ -23,7 +23,7 @@ const PostFooter: React.FC<PostFooterProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.likesCount}>{likes} j'aime</Text>
+      <Text style={styles.likesCount}>{likes} likes</Text>
 
       <View style={styles.captionContainer}>
         <Text style={styles.caption}>
@@ -41,7 +41,7 @@ const PostFooter: React.FC<PostFooterProps> = ({
           activeOpacity={0.7}
         >
           <Text style={styles.commentsLinkText}>
-            Voir les {commentsCount} commentaire{commentsCount > 1 ? "s" : ""}
+            View {commentsCount} comment{commentsCount > 1 ? "s" : ""}
           </Text>
         </TouchableOpacity>
       )}

@@ -18,10 +18,10 @@ import { NavigationProp } from "@react-navigation/native";
 import { useNavigation } from "expo-router";
 import theme from "../styles/config";
 
-// Palette de couleurs racing
+// Racing color palette
 const RACING_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
+  primary: '#E10600', // Racing Red
+  secondary: '#1E1E1E', // Racing Black
   background: '#FFFFFF',
   textPrimary: '#1E1E1E',
   textSecondary: '#6E6E6E',
@@ -94,9 +94,9 @@ const JobsScreen: React.FC = () => {
   };
 
   const tabs: TabItem[] = [
-    { key: "followed", label: "Suivis", icon: "users" },
+    { key: "followed", label: "Following", icon: "users" },
     { key: "suggested", label: "Suggestions", icon: "star" },
-    { key: "applied", label: "Candidatures", icon: "history" },
+    { key: "applied", label: "Applications", icon: "history" },
   ];
 
   const handleSearch = () => {
@@ -125,7 +125,7 @@ const JobsScreen: React.FC = () => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
-          <Text style={styles.title}>Emplois</Text>
+          <Text style={styles.title}>Jobs</Text>
           <View style={styles.topBarIcons}>
             <TouchableOpacity
               style={styles.createButton}
@@ -148,7 +148,7 @@ const JobsScreen: React.FC = () => {
             <FontAwesome name="search" size={18} color={RACING_COLORS.textSecondary} />
             <TextInput
               style={localStyles.searchInput}
-              placeholder="Rechercher un emploi ou une entreprise"
+              placeholder="Search for a job or company"
               placeholderTextColor={RACING_COLORS.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -161,7 +161,7 @@ const JobsScreen: React.FC = () => {
             )}
           </View>
           {searchQuery.length > 0 && searchQuery.length < 3 && (
-            <Text style={localStyles.searchInfo}>Saisissez au moins 3 caractères</Text>
+            <Text style={localStyles.searchInfo}>Enter at least 3 characters</Text>
           )}
         </View>
 
@@ -198,26 +198,26 @@ const JobsScreen: React.FC = () => {
         <View style={localStyles.jobsSection}>
           <View style={localStyles.sectionHeader}>
             <Text style={localStyles.sectionTitle}>
-              {activeTab === "followed" && "Emplois suivis"}
-              {activeTab === "suggested" && "Suggestions d'emplois"}
-              {activeTab === "applied" && "Candidatures envoyées"}
+              {activeTab === "followed" && "Followed Jobs"}
+              {activeTab === "suggested" && "Job Suggestions"}
+              {activeTab === "applied" && "Submitted Applications"}
             </Text>
             <Text style={localStyles.jobCount}>
-              {jobsData[activeTab as keyof typeof jobsData].length} résultats
+              {jobsData[activeTab as keyof typeof jobsData].length} results
             </Text>
           </View>
 
           {isLoading ? (
             <View style={localStyles.loadingContainer}>
               <ActivityIndicator size="large" color={RACING_COLORS.primary} />
-              <Text style={localStyles.loadingText}>Recherche en cours...</Text>
+              <Text style={localStyles.loadingText}>Searching...</Text>
             </View>
           ) : jobsData[activeTab as keyof typeof jobsData].length === 0 ? (
             <View style={localStyles.emptyContainer}>
               <FontAwesome name="search" size={50} color={RACING_COLORS.textSecondary} />
-              <Text style={localStyles.emptyText}>Aucun emploi trouvé</Text>
+              <Text style={localStyles.emptyText}>No jobs found</Text>
               <Text style={localStyles.emptySubtext}>
-                Essayez de modifier vos critères de recherche
+                Try modifying your search criteria
               </Text>
             </View>
           ) : (

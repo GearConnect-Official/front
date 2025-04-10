@@ -33,14 +33,14 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<UserSuggestion[]>([]);
 
-  // Simuler une recherche d'utilisateurs
+  // Simulate user search
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     
     if (query.length > 2) {
       setIsSearching(true);
       
-      // Simulons un appel API avec un timeout
+      // Simulate an API call with a timeout
       setTimeout(() => {
         const mockResults: UserSuggestion[] = [
           { id: "1", name: "John Doe", imageUrl: "https://via.placeholder.com/50" },
@@ -90,7 +90,7 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Ajouter un ami</Text>
+            <Text style={styles.modalTitle}>Add a Friend</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <FontAwesome name="times" size={24} color="#1E232C" />
             </TouchableOpacity>
@@ -100,7 +100,7 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
             <FontAwesome name="search" size={20} color="#6A707C" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Rechercher par nom ou email..."
+              placeholder="Search by name or email..."
               value={searchQuery}
               onChangeText={handleSearch}
               autoCapitalize="none"
@@ -130,19 +130,19 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
           ) : searchQuery.length > 2 ? (
             <View style={styles.emptyState}>
               <FontAwesome name="users" size={50} color="#E0E0E0" />
-              <Text style={styles.emptyStateText}>Aucun utilisateur trouvé</Text>
+              <Text style={styles.emptyStateText}>No users found</Text>
             </View>
           ) : searchQuery.length > 0 ? (
             <View style={styles.tipContainer}>
               <Text style={styles.tipText}>
-                Entrez au moins 3 caractères pour lancer la recherche
+                Enter at least 3 characters to start searching
               </Text>
             </View>
           ) : (
             <View style={styles.emptyState}>
               <FontAwesome name="user-plus" size={50} color="#E0E0E0" />
               <Text style={styles.emptyStateText}>
-                Recherchez un ami pour l'ajouter à votre réseau
+                Search for a friend to add to your network
               </Text>
             </View>
           )}

@@ -16,14 +16,14 @@ import styles from "../styles/profileStyles";
 import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
 
-// Largeur de l'écran pour calculer les dimensions des images de la grille
+// Screen width to calculate grid image dimensions
 const { width } = Dimensions.get("window");
 const NUM_COLUMNS = 3;
 const TILE_WIDTH = width / NUM_COLUMNS;
 const TILE_HEIGHT = TILE_WIDTH;
 const TILE_SPACING = 1;
 
-// Type pour les publications
+// Type for posts
 interface Post {
   id: string;
   imageUrl: string;
@@ -35,7 +35,7 @@ interface Post {
   multipleImages?: boolean;
 }
 
-// Type pour les événements
+// Type for events
 interface Event {
   id: string;
   title: string;
@@ -45,10 +45,10 @@ interface Event {
   description?: string;
   participants?: number;
   isOrganizer?: boolean;
-  result?: string; // Pour les résultats de course
+  result?: string; // For race results
 }
 
-// Type pour les statistiques de pilote
+// Type for driver statistics
 interface DriverStats {
   races: number;
   wins: number;
@@ -80,12 +80,12 @@ const ProfileScreen: React.FC = () => {
   const [postModalVisible, setPostModalVisible] = useState(false);
 
   useEffect(() => {
-    // Simuler le chargement des données
+    // Simulate loading data
     loadMockData();
   }, []);
 
   const loadMockData = () => {
-    // Publications simulées pour la grille
+    // Simulated posts for the grid
     const mockPosts: Post[] = [
       {
         id: "1",
@@ -93,11 +93,11 @@ const ProfileScreen: React.FC = () => {
           "https://images.pexels.com/photos/12801367/pexels-photo-12801367.jpeg",
         likes: 128,
         comments: 14,
-        location: "Circuit de Monza",
+        location: "Monza Circuit",
         multipleImages: true,
         caption:
-          "Incroyable journée sur le circuit de Monza. Préparation pour la saison à venir ! 🏎️ #F3 #Racing #Monza",
-        timeAgo: "2 jours",
+          "Amazing day at Monza Circuit. Preparing for the upcoming season! 🏎️ #F3 #Racing #Monza",
+        timeAgo: "2 days",
       },
       {
         id: "2",
@@ -105,10 +105,10 @@ const ProfileScreen: React.FC = () => {
           "https://images.pexels.com/photos/12316494/pexels-photo-12316494.jpeg",
         likes: 253,
         comments: 32,
-        location: "Circuit Paul Ricard",
+        location: "Paul Ricard Circuit",
         caption:
-          "Essais au Paul Ricard. Conditions parfaites et bonne performance de l'équipe. Prêts pour la compétition ! 💪",
-        timeAgo: "1 semaine",
+          "Testing at Paul Ricard. Perfect conditions and good team performance. Ready for competition! 💪",
+        timeAgo: "1 week",
       },
       {
         id: "3",
@@ -116,11 +116,11 @@ const ProfileScreen: React.FC = () => {
           "https://images.pexels.com/photos/12120915/pexels-photo-12120915.jpeg",
         likes: 86,
         comments: 9,
-        location: "Karting de Cormeilles",
+        location: "Cormeilles Karting",
         multipleImages: true,
         caption:
-          "Retour aux sources avec une session de karting. Rien de tel pour perfectionner sa technique !",
-        timeAgo: "2 semaines",
+          "Back to basics with a karting session. Nothing better to perfect your technique!",
+        timeAgo: "2 weeks",
       },
       {
         id: "4",
@@ -129,8 +129,8 @@ const ProfileScreen: React.FC = () => {
         likes: 176,
         comments: 21,
         caption:
-          "Nouveau casque personnalisé pour la saison ! Qu'en pensez-vous ? #Racing #Equipment",
-        timeAgo: "3 semaines",
+          "New custom helmet for the season! What do you think? #Racing #Equipment",
+        timeAgo: "3 weeks",
       },
       {
         id: "5",
@@ -138,10 +138,10 @@ const ProfileScreen: React.FC = () => {
           "https://images.pexels.com/photos/9660/business-car-vehicle-black-and-white.jpg",
         likes: 142,
         comments: 17,
-        location: "Circuit Spa-Francorchamps",
+        location: "Spa-Francorchamps Circuit",
         caption:
-          "Week-end de course à Spa. Une piste mythique avec des conditions météo changeantes !",
-        timeAgo: "1 mois",
+          "Race weekend at Spa. A legendary track with changing weather conditions!",
+        timeAgo: "1 month",
       },
       {
         id: "6",
@@ -150,8 +150,8 @@ const ProfileScreen: React.FC = () => {
         likes: 95,
         comments: 7,
         caption:
-          "En attendant la prochaine course, focus sur l'entraînement physique 🏃‍♂️",
-        timeAgo: "1 mois",
+          "While waiting for the next race, focus on physical training 🏃‍♂️",
+        timeAgo: "1 month",
       },
       {
         id: "7",
@@ -161,8 +161,8 @@ const ProfileScreen: React.FC = () => {
         comments: 27,
         multipleImages: true,
         caption:
-          "Visite de l'usine de l'équipe. Incroyable de voir le travail des ingénieurs et mécaniciens !",
-        timeAgo: "2 mois",
+          "Visiting the team factory. Amazing to see the work of engineers and mechanics!",
+        timeAgo: "2 months",
       },
       {
         id: "8",
@@ -171,8 +171,8 @@ const ProfileScreen: React.FC = () => {
         likes: 118,
         comments: 12,
         caption:
-          "Analyse des données de la dernière course. Toujours chercher à s'améliorer ! 📊",
-        timeAgo: "2 mois",
+          "Analyzing data from the last race. Always looking to improve! 📊",
+        timeAgo: "2 months",
       },
       {
         id: "9",
@@ -182,81 +182,81 @@ const ProfileScreen: React.FC = () => {
         comments: 19,
         location: "Circuit de Barcelona-Catalunya",
         caption:
-          "Premiers tests à Barcelona. La nouvelle voiture est prometteuse ! 🏎️ #Testing #F3 #Barcelona",
-        timeAgo: "3 mois",
+          "First tests in Barcelona. The new car looks promising! 🏎️ #Testing #F3 #Barcelona",
+        timeAgo: "3 months",
       },
     ];
 
-    // Événements simulés
+    // Simulated events
     const mockEvents: Event[] = [
       {
         id: "1",
-        title: "Championnat F3 - Manche 1",
+        title: "F3 Championship - Round 1",
         imageUrl:
           "https://images.pexels.com/photos/12138012/pexels-photo-12138012.jpeg",
-        date: "15-17 Mars 2023",
-        location: "Circuit de Monza, Italie",
+        date: "March 15-17, 2023",
+        location: "Monza Circuit, Italy",
         description:
-          "Première manche du championnat F3 2023. Qualification P3, résultat course 1: P2, course 2: P1.",
-        result: "Victoire",
+          "First round of the 2023 F3 championship. Qualifying P3, race 1 result: P2, race 2: P1.",
+        result: "Victory",
         participants: 22,
       },
       {
         id: "2",
-        title: "Course d'exhibition - 4h du Mans",
+        title: "Exhibition Race - 4h of Le Mans",
         imageUrl:
           "https://images.pexels.com/photos/12062013/pexels-photo-12062013.jpeg",
-        date: "5-6 Avril 2023",
+        date: "April 5-6, 2023",
         location: "Circuit des 24h du Mans, France",
-        description: "Course d'exhibition en lever de rideau des 24h du Mans.",
+        description: "Exhibition race before the 24h of Le Mans.",
         result: "P4",
         participants: 30,
       },
       {
         id: "3",
-        title: "Championnat F3 - Manche 2",
+        title: "F3 Championship - Round 2",
         imageUrl:
           "https://images.pexels.com/photos/2399249/pexels-photo-2399249.jpeg",
-        date: "29 Avril - 1 Mai 2023",
-        location: "Circuit Paul Ricard, France",
+        date: "April 29 - May 1, 2023",
+        location: "Paul Ricard Circuit, France",
         description:
-          "Deuxième manche du championnat F3 2023. Qualification P1, course 1: P1, course 2: DNF (problème technique).",
-        result: "Victoire / Abandon",
+          "Second round of the 2023 F3 championship. Qualifying P1, race 1: P1, race 2: DNF (technical issue).",
+        result: "Victory / DNF",
         participants: 22,
       },
       {
         id: "4",
-        title: "Journée Karting - Promotion Jeunes Pilotes",
+        title: "Karting Day - Young Drivers Promotion",
         imageUrl:
           "https://images.pexels.com/photos/8985459/pexels-photo-8985459.jpeg",
-        date: "15 Mai 2023",
-        location: "Karting de Cormeilles, France",
+        date: "May 15, 2023",
+        location: "Cormeilles Karting, France",
         description:
-          "Journée d'initiation organisée pour les jeunes pilotes. Partage d'expérience et coaching.",
+          "Introduction day organized for young drivers. Experience sharing and coaching.",
         isOrganizer: true,
         participants: 15,
       },
       {
         id: "5",
-        title: "Championnat F3 - Manche 3",
+        title: "F3 Championship - Round 3",
         imageUrl:
           "https://images.pexels.com/photos/265881/pexels-photo-265881.jpeg",
-        date: "20-22 Mai 2023",
-        location: "Circuit de Barcelona-Catalunya, Espagne",
+        date: "May 20-22, 2023",
+        location: "Circuit de Barcelona-Catalunya, Spain",
         description:
-          "Troisième manche du championnat F3 2023. Qualification P5, course 1: P4, course 2: P3.",
+          "Third round of the 2023 F3 championship. Qualifying P5, race 1: P4, race 2: P3.",
         result: "P3",
         participants: 22,
       },
       {
         id: "6",
-        title: "Stage de Pilotage - Avancé",
+        title: "Advanced Driving Course",
         imageUrl:
           "https://images.pexels.com/photos/14777754/pexels-photo-14777754.jpeg",
-        date: "10 Juin 2023",
-        location: "Circuit de Magny-Cours, France",
+        date: "June 10, 2023",
+        location: "Magny-Cours Circuit, France",
         description:
-          "Stage de pilotage pour pilotes confirmés. Techniques avancées et analyse de télémétrie.",
+          "Driving course for experienced drivers. Advanced techniques and telemetry analysis.",
         isOrganizer: true,
         participants: 8,
       },
@@ -301,23 +301,23 @@ const ProfileScreen: React.FC = () => {
 
   const handleCommentPost = (postId: string) => {
     console.log(`Open comments for post ${postId}`);
-    // Ici vous pourriez ouvrir un modal de commentaires
+    // Here you could open a comments modal
   };
 
   const handleSharePost = (postId: string) => {
     console.log(`Share post ${postId}`);
-    // Ici vous pourriez ouvrir un modal de partage
+    // Here you could open a share modal
   };
 
   const handleProfilePress = (username: string) => {
     console.log(`Navigate to profile of ${username}`);
-    // Comme on est déjà sur le profil, cette fonction serait plus utile
-    // si on naviguait vers d'autres profils depuis le profil actuel
+    // Since we're already on the profile, this function would be more useful
+    // if we were navigating to other profiles from the current profile
   };
 
   const handleEventPress = (eventId: string) => {
     console.log(`View event details for ${eventId}`);
-    // Navigation vers la page détaillée de l'événement
+    // Navigation to the event detail page
   };
 
   const renderPostItem = ({ item }: { item: Post }) => (
@@ -346,7 +346,7 @@ const ProfileScreen: React.FC = () => {
         {item.isOrganizer && (
           <View style={styles.organizerBadge}>
             <FontAwesome name="star" size={12} color="#FFFFFF" />
-            <Text style={styles.organizerText}>Organisateur</Text>
+            <Text style={styles.organizerText}>Organizer</Text>
           </View>
         )}
         {item.result && (
@@ -355,10 +355,10 @@ const ProfileScreen: React.FC = () => {
           </View>
         )}
       </View>
-      {item.result === "Victoire" && (
+      {item.result === "Victory" && (
         <View style={styles.achievementBadge}>
           <FontAwesome name="trophy" size={12} color="#FFFFFF" />
-          <Text style={styles.achievementText}>1ère place</Text>
+          <Text style={styles.achievementText}>1st place</Text>
         </View>
       )}
       <View style={styles.eventInfo}>
@@ -405,7 +405,7 @@ const ProfileScreen: React.FC = () => {
       return renderEmptyComponent();
     }
 
-    // Calculer le nombre de lignes nécessaires pour afficher tous les posts
+    // Calculate the number of rows needed to display all posts
     const rows = Math.ceil(posts.length / NUM_COLUMNS);
     const postRows = [];
 
@@ -431,7 +431,7 @@ const ProfileScreen: React.FC = () => {
               )}
             </TouchableOpacity>
           ))}
-          {/* Remplir la rangée avec des espaces vides si nécessaire */}
+          {/* Fill the row with empty spaces if needed */}
           {Array(NUM_COLUMNS - rowItems.length)
             .fill(0)
             .map((_, index) => (
@@ -453,31 +453,31 @@ const ProfileScreen: React.FC = () => {
       return renderEmptyComponent();
     }
 
-    // Filtrer les événements selon le filtre actif
+    // Filter events based on active filter
     const filteredEvents = events.filter((event) => {
       if (eventFilter === "all") return true;
       if (eventFilter === "organized") return !!event.isOrganizer;
-      if (eventFilter === "participated") return !event.isOrganizer; // Supposant que tous les événements non organisés sont participés
+      if (eventFilter === "participated") return !event.isOrganizer; // Assuming that all non-organized events are participated
       return true;
     });
 
-    // Si aucun événement ne correspond au filtre, afficher un message approprié
+    // If no events match the filter, display an appropriate message
     if (filteredEvents.length === 0) {
       return (
         <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
           <FontAwesome name="calendar-times-o" size={60} color="#CCCCCC" />
           <Text style={styles.emptyTitle}>
             {eventFilter === "organized"
-              ? "Aucun événement organisé"
-              : "Aucune participation"}
+              ? "No events organized"
+              : "No participation"}
           </Text>
           <Text style={styles.emptySubtitle}>
             {eventFilter === "organized"
-              ? "Les événements que vous organisez apparaîtront ici."
-              : "Les événements auxquels vous participez apparaîtront ici."}
+              ? "Events you organize will appear here."
+              : "Events you participate in will appear here."}
           </Text>
           <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Créer un événement</Text>
+            <Text style={styles.shareButtonText}>Create Event</Text>
           </TouchableOpacity>
         </View>
       );
@@ -485,7 +485,7 @@ const ProfileScreen: React.FC = () => {
 
     return (
       <View style={styles.eventsContainer}>
-        {/* Filtres d'événements */}
+        {/* Event filters */}
         <View style={styles.eventFiltersContainer}>
           <TouchableOpacity
             style={[
@@ -500,7 +500,7 @@ const ProfileScreen: React.FC = () => {
                 eventFilter === "all" && styles.activeEventFilterText,
               ]}
             >
-              Tous
+              All
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -516,7 +516,7 @@ const ProfileScreen: React.FC = () => {
                 eventFilter === "organized" && styles.activeEventFilterText,
               ]}
             >
-              Organisés
+              Organized
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -532,12 +532,12 @@ const ProfileScreen: React.FC = () => {
                 eventFilter === "participated" && styles.activeEventFilterText,
               ]}
             >
-              Participations
+              Participated
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Liste des événements filtrés */}
+        {/* List of filtered events */}
         {filteredEvents.map((item) => (
           <View key={item.id}>{renderEventItem({ item })}</View>
         ))}
@@ -550,45 +550,44 @@ const ProfileScreen: React.FC = () => {
       {activeTab === "posts" ? (
         <>
           <FontAwesome name="camera" size={60} color="#CCCCCC" />
-          <Text style={styles.emptyTitle}>Aucune publication</Text>
+          <Text style={styles.emptyTitle}>No Posts</Text>
           <Text style={styles.emptySubtitle}>
-            Les photos et vidéos de vos courses et entraînements apparaîtront
-            ici.
+            Photos and videos from your races and training sessions will appear
+            here.
           </Text>
           <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Partager une photo</Text>
+            <Text style={styles.shareButtonText}>Share a Photo</Text>
           </TouchableOpacity>
         </>
       ) : activeTab === "events" ? (
         <>
           <FontAwesome name="calendar-plus-o" size={60} color="#CCCCCC" />
-          <Text style={styles.emptyTitle}>Aucun événement</Text>
+          <Text style={styles.emptyTitle}>No Events</Text>
           <Text style={styles.emptySubtitle}>
-            Vos courses, championnats et sessions d'entraînement apparaîtront
-            ici.
+            Your races, championships and training sessions will appear
+            here.
           </Text>
           <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Créer un événement</Text>
+            <Text style={styles.shareButtonText}>Create Event</Text>
           </TouchableOpacity>
         </>
       ) : activeTab === "reels" ? (
         <>
           <FontAwesome name="film" size={60} color="#CCCCCC" />
-          <Text style={styles.emptyTitle}>Aucune vidéo</Text>
+          <Text style={styles.emptyTitle}>No Videos</Text>
           <Text style={styles.emptySubtitle}>
-            Partagez les meilleurs moments de vos courses et circuits.
+            Share the best moments from your races and circuits.
           </Text>
           <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Ajouter une vidéo</Text>
+            <Text style={styles.shareButtonText}>Add a Video</Text>
           </TouchableOpacity>
         </>
       ) : (
         <>
           <FontAwesome name="bookmark-o" size={60} color="#CCCCCC" />
-          <Text style={styles.emptyTitle}>Aucun élément sauvegardé</Text>
+          <Text style={styles.emptyTitle}>No Saved Items</Text>
           <Text style={styles.emptySubtitle}>
-            Sauvegardez des circuits, publications et événements pour les
-            retrouver facilement.
+            Save circuits, posts and events to find them easily.
           </Text>
         </>
       )}
@@ -601,7 +600,7 @@ const ProfileScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        {/* En-tête avec nom et bouton de retour */}
+        {/* Header with name and back button */}
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -609,13 +608,13 @@ const ProfileScreen: React.FC = () => {
           >
             <FontAwesome name="arrow-left" size={20} color="#1E1E1E" />
           </TouchableOpacity>
-          <Text style={styles.username}>Profil</Text>
+          <Text style={styles.username}>Profile</Text>
           <TouchableOpacity style={styles.menuButton}>
             <FontAwesome name="ellipsis-v" size={20} color="#1E1E1E" />
           </TouchableOpacity>
         </View>
 
-        {/* Section profil avec avatar et statistiques */}
+        {/* Profile section with avatar and statistics */}
         <View style={styles.profileContainer}>
           <View style={styles.profileSection}>
             <View style={styles.profileInfo}>
@@ -633,30 +632,30 @@ const ProfileScreen: React.FC = () => {
                     <Text style={styles.statValue}>
                       {formatNumber(stats.posts)}
                     </Text>
-                    <Text style={styles.statLabel}>Publications</Text>
+                    <Text style={styles.statLabel}>Posts</Text>
                   </View>
                   <View style={styles.statItem}>
                     <Text style={styles.statValue}>
                       {formatNumber(stats.followers)}
                     </Text>
-                    <Text style={styles.statLabel}>Abonnés</Text>
+                    <Text style={styles.statLabel}>Followers</Text>
                   </View>
                   <View style={styles.statItem}>
                     <Text style={styles.statValue}>
                       {formatNumber(stats.following)}
                     </Text>
-                    <Text style={styles.statLabel}>Abonnements</Text>
+                    <Text style={styles.statLabel}>Following</Text>
                   </View>
                 </View>
               </View>
             </View>
 
-            {/* Bio et informations */}
+            {/* Bio and information */}
             <View style={styles.bioSection}>
               <Text style={styles.bioText}>
-                🏎️ Pilote F3 | Karting Fr Championship 🏆
+                🏎️ F3 Driver | Karting Fr Championship 🏆
               </Text>
-              <Text style={styles.bioText}>Ambassadeur @racing_gear</Text>
+              <Text style={styles.bioText}>Ambassador @racing_gear</Text>
               <TouchableOpacity style={styles.websiteLink}>
                 <Text style={styles.websiteText}>
                   circuits-passion.com/esteban
@@ -664,7 +663,7 @@ const ProfileScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Statistiques de pilote */}
+            {/* Driver statistics */}
             <View style={styles.statsCard}>
               <View style={styles.statColumn}>
                 <FontAwesome
@@ -672,13 +671,13 @@ const ProfileScreen: React.FC = () => {
                   size={20}
                   style={styles.statIcon}
                 />
-                <Text style={styles.driverStatLabel}>Courses</Text>
+                <Text style={styles.driverStatLabel}>Races</Text>
                 <Text style={styles.driverStatValue}>{driverStats.races}</Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.statColumn}>
                 <FontAwesome name="trophy" size={20} style={styles.statIcon} />
-                <Text style={styles.driverStatLabel}>Victoires</Text>
+                <Text style={styles.driverStatLabel}>Wins</Text>
                 <Text style={styles.driverStatValue}>{driverStats.wins}</Text>
               </View>
               <View style={styles.divider} />
@@ -695,7 +694,7 @@ const ProfileScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Stories à la une */}
+            {/* Featured stories */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -722,7 +721,7 @@ const ProfileScreen: React.FC = () => {
                     style={styles.highlightImage}
                   />
                 </View>
-                <Text style={styles.highlightText}>Victoires</Text>
+                <Text style={styles.highlightText}>Victories</Text>
               </TouchableOpacity>
               <TouchableOpacity key="highlight-3" style={styles.highlightItem}>
                 <View style={styles.highlightImageContainer}>
@@ -744,7 +743,7 @@ const ProfileScreen: React.FC = () => {
                     style={styles.highlightImage}
                   />
                 </View>
-                <Text style={styles.highlightText}>Équipe</Text>
+                <Text style={styles.highlightText}>Team</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 key="highlight-new"
@@ -755,12 +754,12 @@ const ProfileScreen: React.FC = () => {
                     <FontAwesome name="plus" size={24} color="#1E1E1E" />
                   </View>
                 </View>
-                <Text style={styles.highlightText}>Nouveau</Text>
+                <Text style={styles.highlightText}>New</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
 
-          {/* Onglets */}
+          {/* Tabs */}
           <View style={styles.tabsContainer}>
             <TouchableOpacity
               style={[styles.tab, activeTab === "posts" && styles.activeTab]}
@@ -805,7 +804,7 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Contenu des onglets */}
+        {/* Tab content */}
         <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
           {activeTab === "posts"
             ? renderPostsGrid()
@@ -814,33 +813,9 @@ const ProfileScreen: React.FC = () => {
             : renderEmptyComponent()}
         </View>
 
-        {/* Bouton flottant pour les événements */}
-        {activeTab === "events" && events.length > 0 && (
-          <TouchableOpacity
-            style={{
-              position: "absolute",
-              bottom: 20,
-              right: 20,
-              backgroundColor: "#E10600",
-              width: 60,
-              height: 60,
-              borderRadius: 30,
-              justifyContent: "center",
-              alignItems: "center",
-              elevation: 5,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.25,
-              shadowRadius: 3.84,
-            }}
-            onPress={() => console.log("Créer un événement")}
-          >
-            <FontAwesome name="plus" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-        )}
       </ScrollView>
 
-      {/* Modal pour afficher un post en détail */}
+      {/* Modal to display a post in detail */}
       <Modal
         visible={postModalVisible}
         animationType="slide"

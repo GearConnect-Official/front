@@ -1,19 +1,19 @@
 import { StyleSheet } from "react-native";
 import theme from "./config";
 
-// Palette de couleurs inspirée du monde automobile et du racing
+// Racing color palette inspired by automotive and racing world
 const THEME_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
-  tertiary: '#2D9CDB', // Bleu pour accent
-  quaternary: '#F0C419', // Jaune pour accent
+  primary: '#E10600', // Racing Red
+  secondary: '#1E1E1E', // Racing Black
+  tertiary: '#2D9CDB', // Accent Blue
+  quaternary: '#F0C419', // Accent Yellow
   background: '#FFFFFF',
   card: '#F2F2F2',
   cardLight: '#F8F8F8',
   textPrimary: '#1E1E1E',
   textSecondary: '#6E6E6E',
   border: '#E0E0E0',
-  success: '#27AE60', // Vert pour badges positifs
+  success: '#27AE60', // Green for positive badges
 };
 
 const styles = StyleSheet.create({

@@ -13,8 +13,8 @@ interface NetworkStatus {
 }
 
 /**
- * Hook personnalisé pour surveiller la connexion réseau et
- * la disponibilité du backend.
+ * Custom hook to monitor network connection and
+ * backend availability.
  */
 const useNetworkStatus = () => {
   const [status, setStatus] = useState<NetworkStatus>({
@@ -25,37 +25,37 @@ const useNetworkStatus = () => {
     lastChecked: null,
   });
 
-  // Fonction pour vérifier si le serveur est accessible
+  // Function to check if the server is accessible
   const checkServerReachability = useCallback(async (): Promise<boolean> => {
     try {
-      // Ping simple au serveur avec un timeout court
+      // Simple ping to the server with a short timeout
       await axios.get(`${API_URL_HEALTH}`, { 
         timeout: 5000,
-        // Ne pas rediriger automatiquement pour ne pas attendre trop longtemps
+        // Don't redirect automatically to avoid waiting too long
         maxRedirects: 0,
-        // Ne pas envoyer de credentials pour optimiser
+        // Don't send credentials to optimize the request
         withCredentials: false
       });
       return true;
     } catch (error) {
-      // Vérifier si l'erreur est liée à un problème réseau
-      // ou si c'est une autre erreur serveur (dans ce cas, le serveur est accessible)
+      // Check if the error is related to a network problem
+      // or if it's another server error (in this case, the server is accessible)
       if (axios.isAxiosError(error) && error.response) {
-        // Si nous avons une réponse du serveur (même si c'est une erreur),
-        // cela signifie que le serveur est accessible
+        // If we have a response from the server (even if it's an error),
+        // it means the server is accessible
         return true;
       }
       
-      // Erreur silencieuse - ne pas afficher l'erreur de connexion
+      // Silent error - don't display the connection error
       return false;
     }
   }, []);
 
-  // Fonction pour mettre à jour l'état complet de la connexion
+  // Function to update the complete connection status
   const updateConnectionStatus = useCallback(async (netInfoState: NetInfoState) => {
     const { isConnected, isInternetReachable } = netInfoState;
     
-    // Vérifier la disponibilité du serveur uniquement si nous avons une connexion internet
+    // Only check server availability if we have an internet connection
     const serverReachable = (isConnected && isInternetReachable) 
       ? await checkServerReachability() 
       : false;
@@ -70,54 +70,54 @@ const useNetworkStatus = () => {
     }));
   }, [checkServerReachability]);
 
-  // Vérifier manuellement la connexion (peut être utilisé après une action utilisateur)
+  // Manually check the connection (can be used after a user action)
   const checkConnection = useCallback(async () => {
     try {
       const netInfo = await NetInfo.fetch();
       await updateConnectionStatus(netInfo);
       return status.isServerReachable;
     } catch (error) {
-      // Erreur silencieuse - ne pas afficher l'erreur
+      // Silent error - don't display the error
       return false;
     }
   }, [updateConnectionStatus, status.isServerReachable]);
 
-  // Écouter les changements d'état de l'application
+  // Listen to application state changes
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
-      // Vérifier la connexion lorsque l'application revient au premier plan
+      // Check the connection when the application comes back to the foreground
       if (nextAppState === 'active') {
         await checkConnection();
       }
     };
     
-    // S'abonner aux changements d'état de l'application
+    // Subscribe to application state changes
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     
     return () => {
-      // Nettoyage: désabonnement
+      // Cleanup: unsubscribe
       if (Platform.OS === 'ios' || parseInt(Platform.Version as string, 10) >= 29) {
-        // Pour iOS et Android 29+
+        // For iOS and Android 29+
         subscription.remove();
       }
     };
   }, [checkConnection]);
 
-  // Écouter les changements de l'état de la connexion
+  // Listen to connection state changes
   useEffect(() => {
     setStatus(prev => ({ ...prev, isInitializing: true }));
 
-    // Vérification initiale
+    // Initial check
     const initialCheck = async () => {
       await checkConnection();
     };
     initialCheck();
     
-    // S'abonner aux changements d'état de la connexion
+    // Subscribe to connection state changes
     const unsubscribe = NetInfo.addEventListener(updateConnectionStatus);
     
     return () => {
-      // Nettoyage: désabonnement
+      // Cleanup: unsubscribe
       unsubscribe();
     };
   }, [checkConnection, updateConnectionStatus]);
@@ -125,9 +125,9 @@ const useNetworkStatus = () => {
   return {
     ...status,
     checkConnection,
-    // Méthode abrégée pour vérifier si nous sommes complètement connectés
+    // Shorthand method to check if we are fully connected
     isOnline: status.isServerReachable === true,
-    // Méthode abrégée pour vérifier si nous pouvons effectuer des requêtes réseau
+    // Shorthand method to check if we can make network requests
     canMakeRequests: status.isConnected === true && status.isInternetReachable === true
   };
 };

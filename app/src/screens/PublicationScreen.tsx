@@ -57,10 +57,10 @@ const PublicationScreen: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Simuler un temps de chargement
+      // Simulate loading time
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Réinitialiser les valeurs du formulaire
+      // Reset form values
       setSelectedImage(null);
       setCroppedImage(null);
       setTitle('');
@@ -68,10 +68,10 @@ const PublicationScreen: React.FC = () => {
       setTags([]);
       setStep('select');
       
-      // Afficher l'alerte d'erreur
+      // Display error alert
       Alert.alert('Error', 'Failed to share post', [
         { text: 'OK', onPress: () => {
-          // Rediriger vers la page d'accueil après que l'utilisateur ait cliqué sur OK
+          // Redirect to home page after user clicks OK
           navigation.navigate('BottomTabs' as never);
         }}
       ]);

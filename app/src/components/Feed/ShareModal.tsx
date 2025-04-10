@@ -29,7 +29,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
   onClose,
   postId,
 }) => {
-  // Options de partage
+  // Sharing options
   const shareOptions: ShareOption[] = [
     { 
       id: '1', 
@@ -45,9 +45,9 @@ const ShareModal: React.FC<ShareModalProps> = ({
     },
     { 
       id: '3', 
-      name: 'Messenger', 
-      icon: 'facebook-messenger', 
-      action: () => console.log(`Sharing post ${postId} via Messenger`)
+      name: 'Facebook', 
+      icon: 'facebook', 
+      action: () => console.log(`Sharing post ${postId} via Facebook`)
     },
     { 
       id: '4', 
@@ -57,25 +57,25 @@ const ShareModal: React.FC<ShareModalProps> = ({
     },
     { 
       id: '5', 
-      name: 'Copier le lien', 
+      name: 'Copy link', 
       icon: 'link', 
       action: () => console.log(`Copying link for post ${postId}`)
     },
     { 
       id: '6', 
-      name: 'Partager sur...', 
+      name: 'Share on...', 
       icon: 'share-alt', 
       action: () => console.log(`Opening general share for post ${postId}`)
     },
   ];
 
-  // Liste de contacts récents fictive
+  // Sample recent contacts
   const recentContacts = [
-    { id: 'c1', name: 'Marie Dupont', avatar: 'https://randomuser.me/api/portraits/women/12.jpg' },
-    { id: 'c2', name: 'Jean Martin', avatar: 'https://randomuser.me/api/portraits/men/45.jpg' },
-    { id: 'c3', name: 'Sophie Bernard', avatar: 'https://randomuser.me/api/portraits/women/22.jpg' },
-    { id: 'c4', name: 'Thomas Petit', avatar: 'https://randomuser.me/api/portraits/men/33.jpg' },
-    { id: 'c5', name: 'Julie Dupuis', avatar: 'https://randomuser.me/api/portraits/women/32.jpg' },
+    { id: 'c1', name: 'Mary Smith', avatar: 'https://randomuser.me/api/portraits/women/12.jpg' },
+    { id: 'c2', name: 'John Martin', avatar: 'https://randomuser.me/api/portraits/men/45.jpg' },
+    { id: 'c3', name: 'Sophie Brown', avatar: 'https://randomuser.me/api/portraits/women/22.jpg' },
+    { id: 'c4', name: 'Thomas Green', avatar: 'https://randomuser.me/api/portraits/men/33.jpg' },
+    { id: 'c5', name: 'Julie Davis', avatar: 'https://randomuser.me/api/portraits/women/32.jpg' },
   ];
 
   const handleShareToContact = (contactId: string) => {
@@ -88,7 +88,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
     onClose();
   };
 
-  // Rendu d'un contact récent
+  // Render a recent contact
   const renderRecentContact = ({ item }: { item: { id: string; name: string; avatar: string } }) => (
     <TouchableOpacity 
       style={styles.contactItem}
@@ -99,7 +99,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
     </TouchableOpacity>
   );
 
-  // Rendu d'une option de partage
+  // Render a sharing option
   const renderShareOption = ({ item }: { item: ShareOption }) => (
     <TouchableOpacity 
       style={styles.shareOption}
@@ -125,10 +125,10 @@ const ShareModal: React.FC<ShareModalProps> = ({
             <View style={styles.modalContent}>
               <View style={styles.header}>
                 <View style={styles.indicator} />
-                <Text style={styles.title}>Partager</Text>
+                <Text style={styles.title}>Share</Text>
               </View>
 
-              <Text style={styles.sectionTitle}>Récent</Text>
+              <Text style={styles.sectionTitle}>Recent</Text>
               <FlatList
                 data={recentContacts}
                 renderItem={renderRecentContact}
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 30, // Extra pour l'iPhone X et plus récents
+    paddingBottom: 30, // Extra for iPhone X and newer
   },
   header: {
     alignItems: 'center',

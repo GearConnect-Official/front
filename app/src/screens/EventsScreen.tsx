@@ -136,7 +136,6 @@ const EventsScreen: React.FC = () => {
   }, []);
 
   const handleEventPress = (event: Event) => {
-    console.log("Event ID:", event.id);
     navigation.navigate('EventDetail', { eventId: event.id });
   };
 

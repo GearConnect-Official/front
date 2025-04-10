@@ -10,9 +10,14 @@ export interface EventInterface {
   // category: string;
   description: string;
   // images: string[];
-  tags: string[];
+  tags: Array<string | {id: string; name: string; createdAt?: string}>;
   location: string;
-  meteo: string;
+  meteo?:
+    | {
+        condition: string;
+        temperature: number | string;
+      }
+    | string;
   urlTIcket: string;
   finished: boolean;
   createdAt: string;
@@ -21,17 +26,18 @@ export interface EventInterface {
   //   date: string;
   //   time: string;
   // };
-  // relatedProducts: {
-  //   id: string;
-  //   tag: string;
-  //   image: string;
-  //   title: string;
-  //   price: string;
-  // }[];
-  // reviews: {
-  //   id: string;
-  //   user: string;
-  //   comment: string;
-  //   avatar: string;
-  // }[];
+  relatedProducts: {
+    id: string;
+    tag: string;
+    image: string;
+    name: string;
+    price: string;
+  }[];
+  reviews: {
+    id: string;
+    note: number;
+    description: string;
+    avatar: string;
+    username: string;
+  }[];
 }

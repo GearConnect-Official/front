@@ -59,7 +59,27 @@ export const styles = StyleSheet.create({
   productTitle: { fontWeight: 'bold' },
   productTag: { backgroundColor: 'black', color: 'white', padding: 5 },
   productPrice: { marginTop: 5 },
-  reviewUser: { fontWeight: 'bold' },
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  reviewUser: { 
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  reviewUserInfo: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  starContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   shareButton: {
     backgroundColor: '#ddd',
     padding: 15,
@@ -68,12 +88,30 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   reviewCard: {
-    padding: 10,
+    padding: 5, // reduced from 10
     borderWidth: 1,
-    borderRadius: 10,
-    marginRight: 10,
+    borderRadius: 5, // reduced from 10
+    marginRight: 5, // reduced from 10
+    width: 220, // added explicit width to make card smaller
+    height: 150, // added height constraint
   },
-  reviewAvatar: { width: 30, height: 30, borderRadius: 15 },
+  reviewAvatar: { 
+    width: 30, 
+    height: 30, 
+    borderRadius: 15,
+  },
+  reviewDescription: {
+    fontSize: 12,
+  },
+  showMoreButton: {
+    marginTop: 5,
+    alignSelf: 'flex-end',
+  },
+  showMoreButtonText: {
+    color: 'black',
+    fontSize: 10,
+    fontWeight: '600',
+  },
   buyButton: {
     backgroundColor: 'black',
     padding: 15,

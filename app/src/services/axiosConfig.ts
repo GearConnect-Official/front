@@ -68,6 +68,9 @@ export const configureAxios = async () => {
         originalError: error
       };
 
+      // Vérifier si c'est une requête de health check en vérifiant l'URL
+      const isHealthCheck = error.config?.url?.includes('/api/health');
+
       // Pas de réponse du serveur (problème réseau)
       if (error.code === 'ECONNABORTED') {
         apiError = {
@@ -120,13 +123,15 @@ export const configureAxios = async () => {
         }
       }
 
-      // Log l'erreur pour le débogage
-      console.error('API Error:', {
-        type: apiError.type,
-        status: apiError.status,
-        message: apiError.message,
-        url: error.config?.url
-      });
+      // Log l'erreur pour le débogage seulement si ce n'est pas un health check
+      if (!isHealthCheck) {
+        console.error('API Error:', {
+          type: apiError.type,
+          status: apiError.status,
+          message: apiError.message,
+          url: error.config?.url
+        });
+      }
 
       // Rejeter avec l'erreur formatée
       return Promise.reject(apiError);

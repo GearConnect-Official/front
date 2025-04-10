@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { AppState, AppStateStatus, Platform } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import axios from 'axios';
-import { API_URL_AUTH } from '../config';
+import { API_URL_HEALTH } from '../config';
 
 interface NetworkStatus {
   isConnected: boolean | null;
@@ -29,7 +29,7 @@ const useNetworkStatus = () => {
   const checkServerReachability = useCallback(async (): Promise<boolean> => {
     try {
       // Ping simple au serveur avec un timeout court
-      await axios.get(`${API_URL_AUTH}/health`, { 
+      await axios.get(`${API_URL_HEALTH}`, { 
         timeout: 5000,
         // Ne pas rediriger automatiquement pour ne pas attendre trop longtemps
         maxRedirects: 0,
@@ -46,6 +46,7 @@ const useNetworkStatus = () => {
         return true;
       }
       
+      // Erreur silencieuse - ne pas afficher l'erreur de connexion
       return false;
     }
   }, []);
@@ -76,7 +77,7 @@ const useNetworkStatus = () => {
       await updateConnectionStatus(netInfo);
       return status.isServerReachable;
     } catch (error) {
-      console.error('Error checking connection:', error);
+      // Erreur silencieuse - ne pas afficher l'erreur
       return false;
     }
   }, [updateConnectionStatus, status.isServerReachable]);

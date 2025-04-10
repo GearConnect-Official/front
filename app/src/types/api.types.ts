@@ -12,6 +12,7 @@ export enum ApiRoutes {
   SPONSOR = 'sponsor',
   TAGS = 'tags',
   USERS = 'users',
+  HEALTH = 'health',
 }
 
 /**

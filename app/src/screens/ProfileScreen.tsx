@@ -365,7 +365,11 @@ const ProfileScreen: React.FC = () => {
       const rowItems = posts.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
       const row = (
         <View key={`row-${i}`} style={{ flexDirection: 'row' }}>
-          {rowItems.map(item => renderPostItem({ item }))}
+          {rowItems.map(item => (
+            <React.Fragment key={`post-${item.id}`}>
+              {renderPostItem({ item })}
+            </React.Fragment>
+          ))}
           {/* Remplir la rangée avec des espaces vides si nécessaire */}
           {Array(NUM_COLUMNS - rowItems.length).fill(0).map((_, index) => (
             <View key={`empty-${index}`} style={[styles.postTile, { backgroundColor: 'transparent' }]} />

@@ -5,16 +5,16 @@
 const lightPalette = {
   // Couleurs primaires
   primary: {
-    main: '#1E232C',
-    light: '#2F3640',
-    dark: '#0F121E',
+    main: '#E53935', // Rouge principal
+    light: '#FF5252', // Rouge plus clair
+    dark: '#C62828', // Rouge plus foncé
   },
   
   // Couleurs secondaires
   secondary: {
-    main: '#8B01F4',
-    light: '#A136FF',
-    dark: '#7000C2',
+    main: '#B71C1C', // Rouge foncé
+    light: '#D32F2F', // Rouge secondaire
+    dark: '#7F0000', // Rouge très foncé
   },
   
   // Gris
@@ -41,16 +41,16 @@ const lightPalette = {
   
   // Couleurs de fond
   background: {
-    default: 'rgba(251, 248, 249, 1)',
+    default: 'rgba(255, 245, 245, 1)', // Fond légèrement rouge
     paper: '#FFF',
-    input: 'rgba(247, 248, 249, 1)',
+    input: 'rgba(253, 242, 242, 1)', // Entrées légèrement rouges
   },
   
   // Couleurs d'état
   status: {
     error: '#FF3B30',
     warning: '#FF9500',
-    info: '#007AFF',
+    info: '#E57373', // Rouge clair pour l'info
     success: '#34C759',
   },
   
@@ -63,9 +63,9 @@ const lightPalette = {
 
   // Couleurs de bordure
   border: {
-    light: 'rgba(218, 218, 218, 1)',
-    medium: 'rgba(0, 0, 0, 0.1)',
-    dark: 'rgba(0, 0, 0, 0.3)',
+    light: 'rgba(229, 57, 53, 0.1)', // Bordure légèrement rouge
+    medium: 'rgba(229, 57, 53, 0.2)',
+    dark: 'rgba(229, 57, 53, 0.3)',
   },
 };
 

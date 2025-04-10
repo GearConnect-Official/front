@@ -5,16 +5,16 @@
 const palette = {
   // Couleurs primaires
   primary: {
-    main: '#1E232C',
-    light: '#2F3640',
-    dark: '#0F121E',
+    main: '#E53935', // Rouge principal
+    light: '#FF5252', // Rouge plus clair
+    dark: '#C62828', // Rouge plus foncé
   },
   
   // Couleurs secondaires
   secondary: {
-    main: '#8B01F4',
-    light: '#A136FF',
-    dark: '#7000C2',
+    main: '#B71C1C', // Rouge foncé
+    light: '#D32F2F', // Rouge secondaire
+    dark: '#7F0000', // Rouge très foncé
   },
   
   // Gris
@@ -50,7 +50,7 @@ const palette = {
   status: {
     error: '#FF3B30',
     warning: '#FF9500',
-    info: '#007AFF',
+    info: '#E57373', // Rouge clair pour l'info
     success: '#34C759',
   },
   

@@ -1,16 +1,12 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import CreateEvent from "./CreateEvent";
-import { useAuth } from "../context/AuthContext";
-import eventService from "../services/eventService";
+import CreateEvent from "../../src/components/CreateEvent";
+import { useAuth } from "../../src/context/AuthContext";
+import eventService from "../../src/services/eventService";
 
-// Mock du hook d'authentification
-jest.mock("../context/AuthContext", () => ({
-  useAuth: jest.fn(),
-}));
+jest.mock("@context/AuthContext", () => ({ useAuth: jest.fn() }));
 
-// Mock du service
-jest.mock("../services/eventService", () => ({
+jest.mock("../../../src/services/eventService", () => ({
   __esModule: true,
   default: {
     createEvent: jest.fn(),

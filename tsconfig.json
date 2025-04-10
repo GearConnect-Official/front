@@ -4,13 +4,13 @@
     "jsx": "react",
     "strict": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "paths": {
+    "@context/*": ["src/context/*"],
+    "@services/*": ["src/services/*"]
+  },
+
+  "include": ["**/*.ts", "**/*.tsx"]
 }

@@ -22,6 +22,7 @@ import LoadingScreen from "./src/screens/LoadingScreen";
 import VerifyScreen from "./src/screens/VerifyScreen";
 import ThemeProvider from "./src/styles/ThemeProvider";
 import ProfileUserScreen from "./src/screens/ProfileUserScreen";
+import { API_URL_AUTH } from "./src/config";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -98,6 +99,7 @@ const CLERK_PUBLISHABLE_KEY =
 
 // NavigationContainer only on Web
 const App: React.FC = () => {
+  console.log(API_URL_AUTH);
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
       <ThemeProvider>

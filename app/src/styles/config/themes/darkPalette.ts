@@ -5,16 +5,16 @@
 const darkPalette = {
   // Couleurs primaires
   primary: {
-    main: '#9E01FF', // Version plus claire pour contraste sur fond sombre
-    light: '#B54AFF',
-    dark: '#7000C2',
+    main: '#F44336', // Rouge vif pour contraste sur fond sombre
+    light: '#FF7961', // Rouge clair
+    dark: '#BA000D', // Rouge foncé
   },
   
   // Couleurs secondaires
   secondary: {
-    main: '#4FC3F7',
-    light: '#81D4FA',
-    dark: '#29B6F6',
+    main: '#EF5350', // Rouge secondaire
+    light: '#FF867C', // Rouge clair secondaire
+    dark: '#B61827', // Rouge foncé secondaire
   },
   
   // Gris
@@ -34,23 +34,23 @@ const darkPalette = {
   // Couleurs de texte
   text: {
     primary: '#FFFFFF',
-    secondary: '#BDBDBD',
+    secondary: '#FFCDD2', // Légèrement rouge
     disabled: '#757575',
     hint: '#9E9E9E',
   },
   
   // Couleurs de fond
   background: {
-    default: '#121212',
-    paper: '#1E1E1E',
-    input: '#292929',
+    default: '#1F1212', // Fond sombre avec teinte rouge
+    paper: '#2C1A1A', // Papier sombre avec teinte rouge
+    input: '#2C1A1A', // Entrées sombres avec teinte rouge
   },
   
   // Couleurs d'état
   status: {
     error: '#FF5252',
     warning: '#FFB74D',
-    info: '#4FC3F7',
+    info: '#FF8A80', // Rouge clair pour l'info
     success: '#69F0AE',
   },
   
@@ -63,9 +63,9 @@ const darkPalette = {
 
   // Couleurs de bordure
   border: {
-    light: 'rgba(255, 255, 255, 0.12)',
-    medium: 'rgba(255, 255, 255, 0.24)',
-    dark: 'rgba(255, 255, 255, 0.38)',
+    light: 'rgba(244, 67, 54, 0.2)', // Bordure rouge transparente
+    medium: 'rgba(244, 67, 54, 0.35)',
+    dark: 'rgba(244, 67, 54, 0.5)',
   },
 };
 

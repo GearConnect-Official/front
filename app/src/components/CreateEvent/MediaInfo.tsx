@@ -20,7 +20,7 @@ const MediaInfo: React.FC<MediaInfoProps> = ({
   onAddImage,
 }) => {
   return (
-    <View style={styles.stepContainer}>
+    <View style={styles.stepContainer} testID="media-info-step">
       <Text style={styles.stepTitle}>Media & Description</Text>
       <Text style={styles.stepDescription}>
         Add visuals to attract more participants
@@ -31,6 +31,7 @@ const MediaInfo: React.FC<MediaInfoProps> = ({
           title="Event Logo"
           buttonText="Upload"
           onImageSelected={(uri) => onInputChange("logo", uri)}
+          testID="logo-upload-button"
         />
       </View>
 
@@ -44,6 +45,7 @@ const MediaInfo: React.FC<MediaInfoProps> = ({
           multiline
           numberOfLines={5}
           textAlignVertical="top"
+          testID="event-description-input"
         />
       </View>
 

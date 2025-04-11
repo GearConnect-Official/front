@@ -8,12 +8,14 @@ interface ImageUploadProps {
   title: string;
   buttonText: string;
   onImageSelected?: (uri: string) => void;
+  testID?: string;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
   title,
   buttonText,
   onImageSelected,
+  testID,
 }) => {
   const [image, setImage] = React.useState<string | null>(null);
 
@@ -39,7 +41,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   return (
     <View style={styles.imageUploadContainer}>
       <Text style={styles.imageUploadTitle}>{title}</Text>
-      <TouchableOpacity style={styles.imageUploadButton} onPress={pickImage}>
+      <TouchableOpacity 
+        style={styles.imageUploadButton} 
+        onPress={pickImage}
+        testID={testID || "image-upload-button"}
+      >
         {image ? (
           <Image source={{ uri: image }} style={styles.uploadedImage} />
         ) : (

@@ -36,13 +36,14 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
         Let's start with the essential details of your event
       </Text>
 
-      <View style={styles.inputGroup}>
+      <View style={styles.inputGroup} testID="basic-info-step">
         <Text style={styles.label}>Event Name*</Text>
         <TextInput
           style={styles.input}
           placeholder="Ex: Val de Vienne Karting Grand Prix"
           value={name}
           onChangeText={(text) => onInputChange("name", text)}
+          testID="event-name-input"
         />
       </View>
 
@@ -63,6 +64,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
           placeholder="Ex: Circuit du Val de Vienne, Le Vigeant"
           value={location}
           onChangeText={(text) => onInputChange("location", text)}
+          testID="event-location-input"
         />
       </View>
 

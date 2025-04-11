@@ -26,6 +26,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         <TouchableOpacity 
           style={styles.backButton} 
           onPress={onPrev}
+          testID="prev-button"
         >
           <FontAwesome name="arrow-left" size={16} color="#666" />
           <Text style={styles.backButtonText}>Back</Text>
@@ -37,6 +38,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           style={[styles.nextButton, { backgroundColor: '#28a745' }]} 
           onPress={onSubmit}
           disabled={loading}
+          testID="submit-button"
         >
           {loading ? (
             <Text style={styles.nextButtonText}>Publishing...</Text>
@@ -51,6 +53,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         <TouchableOpacity 
           style={styles.nextButton} 
           onPress={onNext}
+          testID="next-button"
         >
           <Text style={styles.nextButtonText}>Continue</Text>
           <FontAwesome name="arrow-right" size={16} color="#fff" />

@@ -4,9 +4,9 @@ import CreateEvent from "../../src/components/CreateEvent";
 import { useAuth } from "../../src/context/AuthContext";
 import eventService from "../../src/services/eventService";
 
-jest.mock("@context/AuthContext", () => ({ useAuth: jest.fn() }));
+jest.mock("../../src/context/AuthContext", () => ({ useAuth: jest.fn() }));
 
-jest.mock("../../../src/services/eventService", () => ({
+jest.mock("../../src/services/eventService", () => ({
   __esModule: true,
   default: {
     createEvent: jest.fn(),
@@ -19,7 +19,8 @@ describe("CreateEvent", () => {
   const mockUser = { id: "user-123" };
 
   beforeEach(() => {
-    (useAuth as jest.Mock).mockReturnValue({ user: mockUser });
+    const mockedUseAuth = useAuth as jest.Mock;
+    mockedUseAuth.mockReturnValue({ user: mockUser });
     jest.clearAllMocks();
   });
 

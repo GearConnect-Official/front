@@ -7,6 +7,10 @@ module.exports = {
   moduleNameMapper: {
     "^@context/(.*)$": "<rootDir>/src/context/$1",
     "^@services/(.*)$": "<rootDir>/src/services/$1",
+    "^expo-font$": "<rootDir>/__mocks__/expo-font.js",
+    "^@expo/vector-icons$": "<rootDir>/__mocks__/vector-icons.js",
+    "^@react-native-community/datetimepicker$":
+      "<rootDir>/__mocks__/@react-native-community/datetimepicker.js",
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   testPathIgnorePatterns: ["/node_modules/", "/\\.expo/"],

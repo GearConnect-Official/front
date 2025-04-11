@@ -67,9 +67,9 @@ describe('ErrorBoundary component', () => {
     fireEvent.press(incrementButton); // 2 -> 3 (erreur)
     
     // Vérifier que l'interface d'erreur est affichée
-    expect(getByText(/Oups! Une erreur est survenue/i)).toBeTruthy();
+    expect(getByText(/Oops! An error occurred/i)).toBeTruthy();
     expect(getByText(/Test error: Counter reached 3!/i)).toBeTruthy();
-    expect(getByText('Réessayer')).toBeTruthy();
+    expect(getByText('Try Again')).toBeTruthy();
   });
   
   it('should render custom fallback if provided', () => {
@@ -105,14 +105,14 @@ describe('ErrorBoundary component', () => {
     fireEvent.press(incrementButton);
     
     // Vérifier que l'interface d'erreur est affichée
-    expect(getByText(/Oups! Une erreur est survenue/i)).toBeTruthy();
+    expect(getByText(/Oops! An error occurred/i)).toBeTruthy();
     
     // Cliquer sur le bouton Réessayer
-    const retryButton = getByText('Réessayer');
+    const retryButton = getByText('Try Again');
     fireEvent.press(retryButton);
     
     // Vérifier que nous sommes revenus à l'état normal
-    expect(queryByText(/Oups! Une erreur est survenue/i)).toBeNull();
+    expect(queryByText(/Oops! An error occurred/i)).toBeNull();
     
     // Vérifier que le compteur est affiché de nouveau
     // Mais réinitialisé à 0 car le composant a été remonté

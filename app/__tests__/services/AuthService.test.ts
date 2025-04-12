@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { signUp, signIn, getUserInfo } from '../../../src/services/AuthService';
-import { API_URL_AUTH } from '../../../src/config';
+import { signUp, signIn, getUserInfo } from '../../src/services/AuthService';
+import { API_URL_AUTH } from '../../src/config';
 
 // Mock axios
 jest.mock('axios');

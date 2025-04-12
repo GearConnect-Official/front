@@ -287,7 +287,7 @@ describe('AuthContext - Registration', () => {
     
     // Mock login failure
     const loginError = new Error('Login failed after registration');
-    result.current.login = jest.fn().mockRejectedValueOnce(loginError);
+    mockSignIn.create.mockRejectedValueOnce(loginError);
 
     (useUser as jest.Mock).mockReturnValue({
       user: null,

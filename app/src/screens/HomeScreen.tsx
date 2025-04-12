@@ -12,7 +12,7 @@ import {
   StatusBar,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import styles from "../styles/homeStyles";
 import StoryModal from "../components/StoryModal";
 import CommentsModal from "../components/CommentsModal";
@@ -43,7 +43,7 @@ const CURRENT_USERNAME = "john_doe";
 const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 
 const HomeScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -375,16 +375,19 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleProfilePress = (username: string) => {
+    // Naviguer vers le profil utilisateur
     if (username === CURRENT_USERNAME) {
-      navigation.navigate("UserProfile" as never);
+      router.push('/(app)/profile');
     } else {
-      // For other profiles, we could set up navigation with parameters
-      console.log(`Navigating to profile of ${username}`);
+      router.push({
+        pathname: '/(app)/userProfile',
+        params: { username }
+      });
     }
   };
 
   const handleNavigateToProfile = () => {
-    navigation.navigate("Profile" as never);
+    router.push('/(app)/profile');
   };
 
   const renderStoryItem = ({ item }: { item: Story }) => (
@@ -420,7 +423,7 @@ const HomeScreen: React.FC = () => {
   );
 
   const handleCreatePost = () => {
-    navigation.navigate("PublicationScreen" as never);
+    router.push('/(app)/publicationScreen');
   };
 
   return (

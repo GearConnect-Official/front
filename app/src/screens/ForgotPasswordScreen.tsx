@@ -6,14 +6,18 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  SafeAreaView,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "../../App";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { useRouter } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/forgotPasswordStyles";
 
 const ForgotPasswordScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const [email, setEmail] = useState("");
 
   const handleSendCode = () => {
@@ -26,40 +30,54 @@ const ForgotPasswordScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <StatusBar barStyle="dark-content" />
+      
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.goBack()}
+        onPress={() => router.push("/(auth)/login")}
+        activeOpacity={0.7}
       >
         <FontAwesome name="arrow-left" size={24} color="#1E232C" />
       </TouchableOpacity>
+      
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView 
+          contentContainerStyle={{ flexGrow: 1 }}
+          style={styles.container}
+        >
+          <Text style={styles.title}>Forgot Password?</Text>
 
-      <Text style={styles.title}>Forgot Password?</Text>
+          <Text style={styles.subtitle}>
+            Don't worry! It happens. Please enter the email address associated with your account.
+          </Text>
 
-      <Text style={styles.subtitle}>
-        Don't worry! It happens. Please enter the email address associated with your account.
-      </Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            placeholderTextColor="#8391A1"
+          />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+          <TouchableOpacity style={styles.sendCodeButton} onPress={handleSendCode}>
+            <Text style={styles.sendCodeText}>Send Code</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.sendCodeButton} onPress={handleSendCode}>
-        <Text style={styles.sendCodeText}>Send Code</Text>
-      </TouchableOpacity>
-
-      <View style={styles.rememberPasswordContainer}>
-        <Text style={styles.rememberPasswordText}>Remember Password? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Auth")}>
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          <View style={styles.rememberPasswordContainer}>
+            <Text style={styles.rememberPasswordText}>Remember Password? </Text>
+            <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
+              <Text style={styles.loginText}>Login</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

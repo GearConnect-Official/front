@@ -11,8 +11,7 @@ import {
   Modal,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "@/app/App";
+import { useRouter } from "expo-router";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from "expo-linear-gradient";
 import styles from "../styles/createJobOfferStyles";
@@ -145,7 +144,7 @@ const localStyles = StyleSheet.create({
 });
 
 const CreateJobOfferScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -172,7 +171,7 @@ const CreateJobOfferScreen: React.FC = () => {
   const handleSubmit = () => {
     // TODO: Implement job offer creation logic
     console.log("Form submitted:", formData);
-    navigation.goBack();
+    router.back();
   };
 
   const selectJobType = (typeId: string) => {
@@ -256,7 +255,7 @@ const CreateJobOfferScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.topBarContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => router.back()}>
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>Create Job Offer</Text>

@@ -9,7 +9,7 @@ import {
   Animated,
   RefreshControl,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import FriendRequestItem from "../components/FriendRequestItem";
 import AddFriendModal from "../components/AddFriendModal";
@@ -29,7 +29,7 @@ const THEME_COLORS = {
 };
 
 const FriendRequestScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("requests");
   const [isAddFriendModalVisible, setIsAddFriendModalVisible] = useState(false);
@@ -61,7 +61,7 @@ const FriendRequestScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Fixed header */}
       <View style={[styles.header, { backgroundColor: THEME_COLORS.background }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.secondary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: THEME_COLORS.secondary }]}>Network</Text>

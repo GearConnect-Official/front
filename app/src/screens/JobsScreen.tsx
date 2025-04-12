@@ -13,9 +13,7 @@ import {
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/jobsStyles";
 import JobItem from "../components/JobItem";
-import { RootStackParamList } from "@/app/App";
-import { NavigationProp } from "@react-navigation/native";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 import theme from "../styles/config";
 
 // Racing color palette
@@ -34,7 +32,7 @@ const JobsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("suggested");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const router = useRouter();
 
   interface TabItem {
     key: string;
@@ -115,14 +113,14 @@ const JobsScreen: React.FC = () => {
   };
 
   const handleCreateJob = () => {
-    navigation.navigate("CreateJobOffer" as never);
+    router.push('/(app)/createJobOffer');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.topBarContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => router.back()}>
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
           <Text style={styles.title}>Jobs</Text>

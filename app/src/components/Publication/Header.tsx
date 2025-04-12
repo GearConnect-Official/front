@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StatusBar, Platform } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import styles from '../../styles/publicationStyles';
 
@@ -37,6 +37,7 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <View style={styles.header}>
+      <StatusBar barStyle="dark-content" backgroundColor={THEME_COLORS.background} />
       {isCropping ? (
         <>
           <TouchableOpacity 
@@ -44,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({
             style={styles.backButton}
             disabled={isLoading}
           >
-            <FontAwesome name="arrow-left" size={24} color={THEME_COLORS.secondary} />
+            <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.secondary} />
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={onConfirm}
@@ -56,32 +57,32 @@ const Header: React.FC<HeaderProps> = ({
         </>
       ) : (
         <>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity 
-              onPress={onGoBack} 
-              style={styles.backButton}
-              disabled={isLoading}
-            >
-              <FontAwesome name="arrow-left" size={24} color={THEME_COLORS.secondary} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>New Post</Text>
-          </View>
           <TouchableOpacity 
-            style={[
-              isLastStep ? styles.nextButtonShare : styles.nextButton,
-              isLoading && styles.buttonDisabled
-            ]}
-            onPress={handleNext}
+            onPress={onGoBack} 
+            style={styles.backButton}
             disabled={isLoading}
           >
-            {isLoading && isLastStep ? (
-              <ActivityIndicator size="small" color={THEME_COLORS.background} style={styles.buttonLoader} />
-            ) : (
-              <Text style={isLastStep ? styles.nextButtonShareText : styles.nextButtonText}>
-                {isLastStep ? "Share" : "Next"}
-              </Text>
-            )}
+            <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.secondary} />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>New Post</Text>
+          {isLastStep ? (
+            <TouchableOpacity 
+              style={[
+                styles.nextButtonShare,
+                isLoading && styles.buttonDisabled
+              ]}
+              onPress={handleNext}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={THEME_COLORS.background} style={styles.buttonLoader} />
+              ) : (
+                <Text style={styles.nextButtonShareText}>Share</Text>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.placeholderRight} />
+          )}
         </>
       )}
     </View>

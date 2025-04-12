@@ -7,25 +7,28 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.paper,
     width: "100%",
   },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 44,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    zIndex: 10,
+  },
   contentContainer: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xs,
+    paddingTop: 50,
     paddingBottom: theme.spacing.xxxl,
     alignItems: "center",
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    width: 54,
-    height: 54,
-    borderRadius: theme.borders.radius.round,
-    justifyContent: "center",
-    paddingLeft: theme.spacing.xs,
   },
   logo: {
     width: 72,
     height: 72,
-    marginTop: theme.spacing.lg + 2,
+    marginTop: theme.spacing.xxxl + 20,
   },
   title: {
     ...theme.typography.h1,
@@ -115,7 +118,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   registerContainer: {
-    marginTop: theme.spacing.xxxl + 35,
+    marginTop: theme.spacing.xxxl + 20,
   },
   registerText: {
     ...theme.typography.body1,

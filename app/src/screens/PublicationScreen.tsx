@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Alert, SafeAreaView, StatusBar } from 'react-native';
+import { useRouter } from 'expo-router';
 import styles from '../styles/publicationStyles';
 import postService from '../services/postService';
 
@@ -10,7 +10,7 @@ import ImageViewer from '../components/Publication/ImageViewer';
 import PublicationForm from '../components/Publication/PublicationForm';
 
 const PublicationScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [step, setStep] = useState<'select' | 'crop' | 'form'>('select');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
@@ -36,13 +36,13 @@ const PublicationScreen: React.FC = () => {
               setDescription('');
               setTags([]);
               setStep('select');
-              navigation.goBack();
+              router.back();
             }
           },
         ]
       );
     } else {
-      navigation.goBack();
+      router.back();
     }
   };
 
@@ -72,7 +72,7 @@ const PublicationScreen: React.FC = () => {
       Alert.alert('Error', 'Failed to share post', [
         { text: 'OK', onPress: () => {
           // Redirect to home page after user clicks OK
-          navigation.navigate('BottomTabs' as never);
+          router.replace('/(app)/(tabs)');
         }}
       ]);
       
@@ -160,7 +160,8 @@ const PublicationScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <Header 
         isCropping={step === 'crop'}
         isLastStep={step === 'form'}
@@ -170,8 +171,10 @@ const PublicationScreen: React.FC = () => {
         onGoBack={handleGoBack}
         isLoading={isLoading}
       />
-      {renderContent()}
-    </View>
+      <View style={styles.contentContainer}>
+        {renderContent()}
+      </View>
+    </SafeAreaView>
   );
 };
 

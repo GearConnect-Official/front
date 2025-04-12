@@ -34,19 +34,18 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+    paddingTop: HEADER_HEIGHT,
   },
 
   // Header styles
   header: {
-    height: 56,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 15,
+    paddingVertical: 10,
     backgroundColor: THEME_COLORS.background,
-    borderBottomColor: THEME_COLORS.border,
-    borderBottomWidth: 1,
-    zIndex: 1,
+    borderBottomWidth: 0,
   },
   headerLeft: {
     flex: 1,
@@ -55,11 +54,17 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 15,
     padding: 8,
+    position: 'relative',
+    zIndex: 20,
   },
   headerTitle: {
     color: THEME_COLORS.textPrimary,
     fontSize: 18,
     fontWeight: '700',
+  },
+  placeholderRight: {
+    width: 40,
+    height: 40,
   },
   headerButton: {
     paddingHorizontal: 10,

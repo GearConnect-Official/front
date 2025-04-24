@@ -141,7 +141,7 @@ const EventDetailScreen: React.FC = () => {
               return null;
             });
             const tags = await Promise.all(tagPromises);
-            fetchedEvent.tags = tags.filter((tag: null) => tag !== null);
+            fetchedEvent.tags = tags.filter((tag) => tag !== null);
           }
         }
       } catch (tagError) {

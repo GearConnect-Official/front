@@ -8,7 +8,7 @@ export interface User {
   username: string,
   email: string,
   birthday: Date,
-  additionnalData: {
+  additionalData: {
     avatar: string,
   },
   isVerify: boolean,

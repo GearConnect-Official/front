@@ -20,6 +20,7 @@ import {
   API_URL_TAGS,
   API_URL_USERS,
 } from '../config';
+import { useAuth } from "../context/AuthContext";
 
 type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
@@ -94,6 +95,7 @@ const EventDetailScreen: React.FC = () => {
   const { eventId } = route.params;
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isCreator, setIsCreator] = useState(false);
 
   function formatDate(data: string | number | Date) {
     const currentDate = new Date(data);
@@ -104,6 +106,39 @@ const EventDetailScreen: React.FC = () => {
     return formattedDate;
   }
 
+  const checkIfCreator = async (fetchedEvent: EventInterface) => {
+    try {
+      const { user } = useAuth();
+      console.log('Fetched Event:', fetchedEvent);
+      console.log('Current User ID:', user?.id);
+      
+      if (user && fetchedEvent.creatorId && user.id) {
+        // Convert both to strings for comparison if they might be different types
+        const eventCreatorId = typeof fetchedEvent.creatorId === 'object' 
+          ? fetchedEvent.creatorId.id || fetchedEvent.creatorId.toString()
+          : fetchedEvent.creatorId.toString();
+          
+        const currentUserId = typeof user.id === 'object'
+          ? user.id || user.id.toString()
+          : user.id.toString();
+          
+        setIsCreator(eventCreatorId === currentUserId);
+        console.log('Creator check:', { eventCreatorId, currentUserId, isCreator: eventCreatorId === currentUserId });
+      } else {
+        setIsCreator(false);
+      }
+    } catch (error) {
+      console.error('Error checking if creator:', error);
+      setIsCreator(false);
+    }
+  };
+
+  const handleEditEvent = () => {
+    if (event) {
+      navigation.navigate('EditEvent', { eventId: event.id });
+    }
+  };
+
   const fetchData = async () => {
     try {
       const response = await fetch(API_URL_EVENTS + '/' + eventId);
@@ -113,6 +148,10 @@ const EventDetailScreen: React.FC = () => {
         );
       }
       const fetchedEvent: EventInterface = await response.json();
+      
+      // Check if current user is the creator
+      await checkIfCreator(fetchedEvent);
+      
       // Fetch event tags
       try {
         const fetchEventTags = await fetch(
@@ -266,10 +305,16 @@ const EventDetailScreen: React.FC = () => {
 
         <View style={styles.eventInfo}>
           <Text style={styles.eventTitle}>{event.name}</Text>
-          <TouchableOpacity style={styles.reviewButton}>
-            <Text style={styles.reviewText}>Review</Text>
-          </TouchableOpacity>
-          {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
+          
+          {isCreator ? (
+            <TouchableOpacity style={styles.editButton} onPress={handleEditEvent}>
+              <Ionicons name="create-outline" size={24} color="white" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.reviewButton}>
+              <Text style={styles.reviewText}>Review</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.descriptionContainer}>

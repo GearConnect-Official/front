@@ -29,7 +29,6 @@ import FeedbackMessage from "./src/components/FeedbackMessage";
 import useFeedback from "./src/hooks/useFeedback";
 import useNetworkStatus from "./src/hooks/useNetworkStatus";
 import OfflineScreen from "./src/screens/OfflineScreen";
-import CreateReviewScreen from "./src/screens/CreateReviewScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -45,7 +44,6 @@ export type RootStackParamList = {
   Publication: undefined;
   Jobs: undefined;
   EventDetail: { eventId: number };
-  CreateReview: { eventId: number };
   FriendRequest: undefined;
   CreateJobOffer: undefined;
   Profile: undefined;
@@ -85,7 +83,6 @@ const AppStack = () => (
     <Stack.Screen name="Verify" component={VerifyScreen} />
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
     <Stack.Screen name="EventDetail" component={EventDetailScreen} />
-    <Stack.Screen name="CreateReview" component={CreateReviewScreen} />
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="CreateEvent" component={CreateEventScreen} />

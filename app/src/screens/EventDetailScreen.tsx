@@ -8,7 +8,7 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
+import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '@/app/App';
 import { EventInterface } from '../services/EventInterface';
 import styles from '../styles/eventDetailStyles';
@@ -20,9 +20,6 @@ import {
   API_URL_TAGS,
   API_URL_USERS,
 } from '../config';
-import eventService from '../services/eventService';
-import tagService from '../services/tagService';
-import userService from '../services/userService';
 
 type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
@@ -93,7 +90,7 @@ const ReviewItem: React.FC<{ item: EventInterface['reviews'][0] }> = ({
 
 const EventDetailScreen: React.FC = () => {
   const route = useRoute<EventDetailScreenRouteProp>();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation();
   const { eventId } = route.params;
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -109,9 +106,7 @@ const EventDetailScreen: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      // const fetchEvent = await eventService.getEventById(eventId);
-      const response = await fetch(`${API_URL_EVENTS}/${eventId}`);
-      console.log('Event response:', response);
+      const response = await fetch(API_URL_EVENTS + '/' + eventId);
       if (!response.ok) {
         throw new Error(
           `Failed to fetch events: ${response.status} ${response.statusText}`
@@ -120,9 +115,8 @@ const EventDetailScreen: React.FC = () => {
       const fetchedEvent: EventInterface = await response.json();
       // Fetch event tags
       try {
-        // const fetchEventTags = await eventService.getEventTagsByEventId(eventId);
         const fetchEventTags = await fetch(
-          `${API_URL_EVENTTAGS}/event/${eventId}`
+          API_URL_EVENTTAGS + '/event/' + eventId
         );
         if (!fetchEventTags.ok) {
           throw new Error(
@@ -133,8 +127,7 @@ const EventDetailScreen: React.FC = () => {
           const eventTags = await fetchEventTags.json();
           if (Array.isArray(eventTags)) {
             const tagPromises = eventTags.map(async (tag) => {
-              // const tagResponse = await tagService.getTagById(tag.tagId);
-              const tagResponse = await fetch(`${API_URL_TAGS}/${tag.tagId}`);
+              const tagResponse = await fetch(API_URL_TAGS + '/' + tag.tagId);
               if (tagResponse.ok) {
                 return tagResponse.json();
               }
@@ -150,9 +143,9 @@ const EventDetailScreen: React.FC = () => {
       }
       // Fetch event reviews
       try {
-        // const fetchEventReviews = await eventService.getEventReviews(eventId);
         const fetchEventReviews = await fetch(
-          `${API_URL_EVENTREVIEWS}/event/${eventId}`);
+          API_URL_EVENTREVIEWS + '/event/' + eventId
+        );
         if (fetchEventReviews.ok) {
           const eventReviews = await fetchEventReviews.json();
           if (Array.isArray(eventReviews)) {
@@ -163,9 +156,9 @@ const EventDetailScreen: React.FC = () => {
               }
 
               try {
-                // const userResponse = await userService.getUserById(review.userId);
                 const userResponse = await fetch(
-                  `${API_URL_USERS}/${review.userId}`);
+                  API_URL_USERS + '/' + review.userId
+                );
                 if (userResponse.ok) {
                   const userData = await userResponse.json();
                   // Check various possibilities for username
@@ -173,7 +166,8 @@ const EventDetailScreen: React.FC = () => {
                     userData.username ||
                     userData.name ||
                     (userData.user ? userData.user.username : null) ||
-                    'Anonymous';                  
+                    'Anonymous';
+                  
                   // Access avatar from additionalData
                   const avatarUrl = userData.additionalData?.avatar || 
                                    userData.avatar || 
@@ -220,9 +214,8 @@ const EventDetailScreen: React.FC = () => {
       }
       // Fetch related products
       try {
-        // const fetchRelatedProducts = await eventService.getRelatedProductsByEventId(eventId);
         const fetchRelatedProducts = await fetch(
-          `${API_URL_RELATEDPRODUCTS}/event/${eventId}`
+          API_URL_RELATEDPRODUCTS + '/event/' + eventId
         );
         if (fetchRelatedProducts.ok) {
           const relatedProducts = await fetchRelatedProducts.json();
@@ -262,10 +255,6 @@ const EventDetailScreen: React.FC = () => {
   if (event !== null) {
     const meteoInfo = event.meteo as MeteoInfo | string | undefined;
 
-    function handleReviewPress(eventId: any): void {
-      navigation.navigate('CreateReview', { eventId });
-    }
-
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header}>
@@ -277,7 +266,7 @@ const EventDetailScreen: React.FC = () => {
 
         <View style={styles.eventInfo}>
           <Text style={styles.eventTitle}>{event.name}</Text>
-          <TouchableOpacity style={styles.reviewButton} onPress={() => handleReviewPress(eventId)}>
+          <TouchableOpacity style={styles.reviewButton}>
             <Text style={styles.reviewText}>Review</Text>
           </TouchableOpacity>
           {/* <Text style={styles.eventCategory}>{event.category}</Text> */}

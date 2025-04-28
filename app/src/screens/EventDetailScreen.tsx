@@ -96,6 +96,7 @@ const EventDetailScreen: React.FC = () => {
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCreator, setIsCreator] = useState(false);
+  const { user } = useAuth(); // Move this hook call to component level
 
   function formatDate(data: string | number | Date) {
     const currentDate = new Date(data);
@@ -108,7 +109,6 @@ const EventDetailScreen: React.FC = () => {
 
   const checkIfCreator = async (fetchedEvent: EventInterface) => {
     try {
-      const { user } = useAuth();
       console.log('Fetched Event:', fetchedEvent);
       console.log('Current User ID:', user?.id);
       
@@ -116,10 +116,10 @@ const EventDetailScreen: React.FC = () => {
         // Convert both to strings for comparison if they might be different types
         const eventCreatorId = typeof fetchedEvent.creatorId === 'object' 
           ? fetchedEvent.creatorId.id || fetchedEvent.creatorId.toString()
-          : fetchedEvent.creatorId.toString();
+          : String(fetchedEvent.creatorId);
           
         const currentUserId = typeof user.id === 'object'
-          ? user.id || user.id.toString()
+          ? String(user.id)
           : user.id.toString();
           
         setIsCreator(eventCreatorId === currentUserId);

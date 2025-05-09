@@ -30,6 +30,7 @@ import useFeedback from "./src/hooks/useFeedback";
 import useNetworkStatus from "./src/hooks/useNetworkStatus";
 import OfflineScreen from "./src/screens/OfflineScreen";
 import CreateReviewScreen from "./src/screens/CreateReviewScreen";
+import ModifyReviewScreen from "./src/screens/ModifyReviewScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -86,6 +87,7 @@ const AppStack = () => (
     <Stack.Screen name="FriendRequest" component={FriendRequestScreen} />
     <Stack.Screen name="EventDetail" component={EventDetailScreen} />
     <Stack.Screen name="CreateReview" component={CreateReviewScreen} />
+    <Stack.Screen name="ModifyReview" component={ModifyReviewScreen} />
     <Stack.Screen name="CreateJobOffer" component={CreateJobOfferScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="CreateEvent" component={CreateEventScreen} />

@@ -295,9 +295,7 @@ const EventDetailScreen: React.FC = () => {
       await checkIfReviewCreator(fetchedEvent);
       if (fetchedEvent.reviews && fetchedEvent.reviews.length > 0) {
         checkIfUserHasReviewed(fetchedEvent.reviews);
-        console.log('User has reviewed:', Boolean(userReview));
       }
-
       setEvent(fetchedEvent);
       setError(null);
     } catch (error) {

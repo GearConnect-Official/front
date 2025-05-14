@@ -12,8 +12,8 @@ export const styles = StyleSheet.create({
   eventInfo: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between', // Ensures items are separated to the left and right
-    alignItems: 'center', // Aligns items vertically in the center
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
   },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },

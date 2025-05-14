@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import theme from './config';
+import LoadingScreen from '../screens/LoadingScreen';
 
 const styles = StyleSheet.create({
   container: {
@@ -82,6 +83,27 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: '#B0C4DE',
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 8,
+    marginLeft: 'auto',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#333',
+    marginTop: 10,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    marginTop: 10,
+    textAlign: 'center',
   },
 });
 

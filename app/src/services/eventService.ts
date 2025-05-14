@@ -117,7 +117,7 @@ const eventService = {
       throw error;
     }
   },
-  getEventReviews: async (eventId: string) => {
+  getEventReviews: async (eventId: number) => {
     try {
       const response = await axios.get(`${API_URL_EVENTREVIEWS}/event/${eventId}`);
       return response.data;
@@ -126,27 +126,27 @@ const eventService = {
       throw error;
     }
   },
-  getEventReviewById: async (id: string) => {
+  getEventReviewById: async (eventId: number, userId: number) => {
     try {
-      const response = await axios.get(`${API_URL_EVENTREVIEWS}/${id}`);
+      const response = await axios.get(`${API_URL_EVENTREVIEWS}/${eventId}/${userId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching event review:', error);
       throw error;
     }
   },
-  updateEventReview: async (id: string, reviewData: any) => {
+  updateEventReview: async (eventId: number, userId: number, reviewData: any) => {
     try {
-      const response = await axios.patch(`${API_URL_EVENTREVIEWS}/${id}`, reviewData);
+      const response = await axios.put(`${API_URL_EVENTREVIEWS}/${eventId}/${userId}`, reviewData);
       return response.data;
     } catch (error) {
       console.error('Error updating event review:', error);
       throw error;
     }
   },
-  deleteEventReview: async (id: string) => {
+  deleteEventReview: async (eventId: number, userId: number) => {
     try {
-      const response = await axios.delete(`${API_URL_EVENTREVIEWS}/${id}`);
+      const response = await axios.delete(`${API_URL_EVENTREVIEWS}/${eventId}/${userId}`);
       return response.data;
     } catch (error) {
       console.error('Error deleting event review:', error);

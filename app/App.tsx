@@ -47,6 +47,7 @@ export type RootStackParamList = {
   Jobs: undefined;
   EventDetail: { eventId: number };
   CreateReview: { eventId: number };
+  ModifyReview: { userId: number, eventId: number };
   FriendRequest: undefined;
   CreateJobOffer: undefined;
   Profile: undefined;

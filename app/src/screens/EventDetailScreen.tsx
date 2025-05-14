@@ -8,7 +8,12 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
+import {
+  RouteProp,
+  useRoute,
+  useNavigation,
+  NavigationProp,
+} from '@react-navigation/native';
 import { RootStackParamList } from '@/app/App';
 import { EventInterface } from '../services/EventInterface';
 import styles from '../styles/eventDetailStyles';
@@ -41,7 +46,7 @@ const StarRating: React.FC<{ rating: number; maxRating?: number }> = ({
     <View style={styles.starContainer}>
       {Array.from({ length: maxRating }).map((_, index) => (
         <Ionicons
-          key={`star-${index}`}  // Changed to ensure uniqueness
+          key={`star-${index}`} // Changed to ensure uniqueness
           name={index < rating ? 'star' : 'star-outline'}
           size={14}
           color={index < rating ? '#FFD700' : '#aaa'}
@@ -53,13 +58,10 @@ const StarRating: React.FC<{ rating: number; maxRating?: number }> = ({
 };
 
 // Create a separate functional component for review items
-const ReviewItem: React.FC<{ 
-  item: EventInterface['reviews'][0],
-  isCurrentUserReview?: boolean 
-}> = ({
-  item,
-  isCurrentUserReview = false
-}) => {
+const ReviewItem: React.FC<{
+  item: EventInterface['reviews'][0];
+  isCurrentUserReview?: boolean;
+}> = ({ item, isCurrentUserReview = false }) => {
   const [showFullText, setShowFullText] = useState(false);
   const isTextLong = item.description?.length > 200;
 
@@ -67,13 +69,15 @@ const ReviewItem: React.FC<{
     <View style={styles.reviewCard}>
       <View style={styles.reviewHeader}>
         <Image
-          source={ item.avatar  ? { uri: item.avatar } : require('../../assets/images/logo-rounded.png')}
+          source={
+            item.avatar
+              ? { uri: item.avatar }
+              : require('../../assets/images/logo-rounded.png')
+          }
           style={styles.reviewAvatar}
         />
         <View style={styles.reviewUserInfo}>
-          <Text style={styles.reviewUser}>
-            {item.username}
-          </Text>
+          <Text style={styles.reviewUser}>{item.username}</Text>
           <StarRating rating={item.note} />
         </View>
       </View>
@@ -104,8 +108,10 @@ const EventDetailScreen: React.FC = () => {
   const { eventId } = route.params;
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth(); 
-  const [userReview, setUserReview] = useState<EventInterface['reviews'][0] | null>(null);
+  const { user } = useAuth();
+  const [userReview, setUserReview] = useState<
+    EventInterface['reviews'][0] | null
+  >(null);
   const [isCreator, setIsCreator] = useState<boolean>(false);
 
   function formatDate(data: string | number | Date) {
@@ -118,42 +124,45 @@ const EventDetailScreen: React.FC = () => {
   }
 
   const checkIfReviewCreator = async (fetchedEvent: EventInterface) => {
-    try{
+    try {
       if (!user || !user.id) {
         setIsCreator(false);
-        return;
+        return false;
       }
-      const response = await fetch(`${API_URL_EVENTREVIEWS}/${fetchedEvent.id}/${user.id}`)
+      const response = await fetch(
+        `${API_URL_EVENTREVIEWS}/${fetchedEvent.id}/${user.id}`
+      );
       if (!response.ok) {
-        throw new Error(`Failed to fetch review: ${response.status} ${response.statusText}`);
+        setIsCreator(false);
+        return false;
       }
-
+      const data = await response.json();
+      const isCreator = Boolean(data && data.id);
+      setIsCreator(isCreator);
+      return isCreator;
     } catch (error) {
       console.error('Error checking if creator:', error);
       setIsCreator(false);
+      return false;
     }
   };
 
   const checkIfUserHasReviewed = (reviews: EventInterface['reviews']) => {
     if (!user || !user.id || !reviews || reviews.length === 0) {
       setUserReview(null);
-      return;
+      return false;
     }
-    
-    const currentUserId = typeof user.id === 'object' ? String(user.id) : user.id.toString();
-    
-    // Find if user has already left a review
+    const currentUserId = typeof user.id === 'object' && user.id !== null
+      ? String(user.id)
+      : String(user.id);  
     const existingReview = reviews.find(review => {
       if (!review.userId) return false;
-      
-      const reviewUserId = typeof review.userId === 'object' 
-        ? review.userId.id || review.userId.toString()
-        : String(review.userId);
-        
+      const reviewUserId = String(review.userId);
       return reviewUserId === currentUserId;
     });
     
     setUserReview(existingReview || null);
+    return Boolean(existingReview);
   };
 
   const fetchData = async () => {
@@ -201,7 +210,8 @@ const EventDetailScreen: React.FC = () => {
       try {
         // const fetchEventReviews = await eventService.getEventReviews(eventId);
         const fetchEventReviews = await fetch(
-          `${API_URL_EVENTREVIEWS}/event/${eventId}`);
+          `${API_URL_EVENTREVIEWS}/event/${eventId}`
+        );
         if (fetchEventReviews.ok) {
           const eventReviews = await fetchEventReviews.json();
           if (Array.isArray(eventReviews)) {
@@ -214,7 +224,8 @@ const EventDetailScreen: React.FC = () => {
               try {
                 // const userResponse = await userService.getUserById(review.userId);
                 const userResponse = await fetch(
-                  `${API_URL_USERS}/${review.userId}`);
+                  `${API_URL_USERS}/${review.userId}`
+                );
                 if (userResponse.ok) {
                   const userData = await userResponse.json();
                   // Check various possibilities for username
@@ -222,16 +233,17 @@ const EventDetailScreen: React.FC = () => {
                     userData.username ||
                     userData.name ||
                     (userData.user ? userData.user.username : null) ||
-                    'Anonymous';                  
+                    'Anonymous';
                   // Access avatar from additionalData
-                  const avatarUrl = userData.additionalData?.avatar || 
-                                   userData.avatar || 
-                                   'https://via.placeholder.com/30';
-                  
+                  const avatarUrl =
+                    userData.additionalData?.avatar ||
+                    userData.avatar ||
+                    'https://via.placeholder.com/30';
+
                   return {
                     ...review,
                     username: username,
-                    avatar: avatarUrl
+                    avatar: avatarUrl,
                   };
                 } else {
                   console.error(
@@ -280,13 +292,12 @@ const EventDetailScreen: React.FC = () => {
       } catch (productError) {
         console.error('Error fetching related products:', productError);
       }
-      // After fetching event data and before setting the state
-      checkIfReviewCreator(fetchedEvent);
-      
-      // After setting all the review data
+      await checkIfReviewCreator(fetchedEvent);
       if (fetchedEvent.reviews && fetchedEvent.reviews.length > 0) {
         checkIfUserHasReviewed(fetchedEvent.reviews);
+        console.log('User has reviewed:', Boolean(userReview));
       }
+
       setEvent(fetchedEvent);
       setError(null);
     } catch (error) {
@@ -318,9 +329,12 @@ const EventDetailScreen: React.FC = () => {
   if (event !== null) {
     const meteoInfo = event.meteo as MeteoInfo | string | undefined;
 
-    function handleReviewPress(eventId: any): void {
+    function handleReviewPress(): void {
       if (userReview) {
-        navigation.navigate('ModifyReview', { eventId, reviewId: userReview.id, isEdit: true });
+        if (user?.id !== undefined && user?.id !== null) {
+          const userId = Number(user.id);
+          navigation.navigate('ModifyReview', { eventId, userId });
+        }
       } else {
         navigation.navigate('CreateReview', { eventId });
       }
@@ -337,8 +351,13 @@ const EventDetailScreen: React.FC = () => {
 
         <View style={styles.eventInfo}>
           <Text style={styles.eventTitle}>{event.name}</Text>
-          <TouchableOpacity style={styles.reviewButton} onPress={() => handleReviewPress(eventId)}>
-            <Text style={styles.reviewText}>{userReview ? 'Edit Review' : 'Review'}</Text>
+          <TouchableOpacity
+            style={styles.reviewButton}
+            onPress={handleReviewPress}
+          >
+            <Text style={styles.reviewText}>
+              {userReview ? 'Edit Review' : 'Review'}
+            </Text>
           </TouchableOpacity>
           {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
         </View>
@@ -358,7 +377,10 @@ const EventDetailScreen: React.FC = () => {
             <Text style={styles.aboutTitle}>About</Text>
             <View style={styles.tagContainer}>
               {event?.tags?.map((tag, index) => (
-                <Text key={`tag-${index}-${typeof tag === 'object' ? tag.id : tag}`} style={styles.tag}>
+                <Text
+                  key={`tag-${index}-${typeof tag === 'object' ? tag.id : tag}`}
+                  style={styles.tag}
+                >
                   {typeof tag === 'object' && tag !== null ? tag.name : tag}
                 </Text>
               ))}
@@ -425,10 +447,12 @@ const EventDetailScreen: React.FC = () => {
         <FlatList
           horizontal
           data={event.reviews}
-          keyExtractor={(item, index) => item.id ? `review-${item.id}` : `review-index-${index}`}
+          keyExtractor={(item, index) =>
+            item.id ? `review-${item.id}` : `review-index-${index}`
+          }
           renderItem={({ item }) => (
-            <ReviewItem 
-              item={item} 
+            <ReviewItem
+              item={item}
               isCurrentUserReview={userReview && userReview.id === item.id}
             />
           )}

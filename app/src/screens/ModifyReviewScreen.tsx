@@ -29,7 +29,7 @@ const ModifyReviewScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<ModifyReviewScreenRouteProp>();
-  const { reviewId } = route.params;
+  const { eventId, userId } = route.params;
   
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(0);
@@ -41,7 +41,7 @@ const ModifyReviewScreen: React.FC = () => {
   useEffect(() => {
     const fetchReviewData = async () => {
       try {
-        const review = await eventService.getReviewById(reviewId);
+        const review = await eventService.getEventReviewById(eventId, userId);
         setReviewData(review);
         setReviewText(review.description);
         setRating(review.note);
@@ -54,7 +54,7 @@ const ModifyReviewScreen: React.FC = () => {
     };
 
     fetchReviewData();
-  }, [reviewId]);
+  }, [eventId, userId]);
 
   const onUpdate = async () => {
     setSubmitting(true);
@@ -74,14 +74,11 @@ const ModifyReviewScreen: React.FC = () => {
 
     try {
       const updatedReviewData = {
-        id: reviewId,
-        eventId: reviewData.eventId,
-        userId: user?.id,
         note: rating,
         description: reviewText,
       };
       
-      await eventService.updateEventReview(updatedReviewData);
+      await eventService.updateEventReview(eventId, userId, updatedReviewData);
       console.log('Review updated successfully');
       navigation.goBack();
     } catch (error: any) {
@@ -124,11 +121,10 @@ const ModifyReviewScreen: React.FC = () => {
       </View>
     );
   }
-
   const handleDeleteReview = async () => {
     try {
       setSubmitting(true);
-      await eventService.deleteReview(reviewId);
+      await eventService.deleteEventReview(eventId, userId);
       console.log("Review deleted successfully");
       navigation.goBack();
     } catch (error) {

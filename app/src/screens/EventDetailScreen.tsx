@@ -8,8 +8,7 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '@/app/App';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { EventInterface } from '../services/EventInterface';
 import styles from '../styles/eventDetailStyles';
 import {
@@ -20,8 +19,6 @@ import {
   API_URL_TAGS,
   API_URL_USERS,
 } from '../config';
-
-type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
 interface MeteoInfo {
   condition: string;
@@ -89,9 +86,9 @@ const ReviewItem: React.FC<{ item: EventInterface['reviews'][0] }> = ({
 };
 
 const EventDetailScreen: React.FC = () => {
-  const route = useRoute<EventDetailScreenRouteProp>();
-  const navigation = useNavigation();
-  const { eventId } = route.params;
+  const params = useLocalSearchParams();
+  const router = useRouter();
+  const eventId = params.eventId as string;
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -245,7 +242,7 @@ const EventDetailScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Event not found or failed to load.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.goBackText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -258,7 +255,7 @@ const EventDetailScreen: React.FC = () => {
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Event Details</Text>

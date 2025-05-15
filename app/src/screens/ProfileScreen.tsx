@@ -11,7 +11,7 @@ import {
   Modal,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import styles from "../styles/profileStyles";
 import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
@@ -56,8 +56,13 @@ interface DriverStats {
   championshipPosition?: number;
 }
 
-const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation();
+// Définir l'interface des props
+interface ProfileScreenProps {
+  userId?: number;
+}
+
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
+  const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
@@ -80,9 +85,18 @@ const ProfileScreen: React.FC = () => {
   const [postModalVisible, setPostModalVisible] = useState(false);
 
   useEffect(() => {
-    // Simulate loading data
+    // Simuler le chargement des données
+    // Si userId est défini, charger les données de cet utilisateur spécifique
+    // Sinon, charger les données de l'utilisateur connecté
     loadMockData();
-  }, []);
+    
+    // Dans une vraie application, vous pourriez faire quelque chose comme:
+    // if (userId) {
+    //   loadUserData(userId);
+    // } else {
+    //   loadCurrentUserData();
+    // }
+  }, [userId]); // Recharger les données quand userId change
 
   const loadMockData = () => {
     // Simulated posts for the grid
@@ -316,8 +330,10 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleEventPress = (eventId: string) => {
-    console.log(`View event details for ${eventId}`);
-    // Navigation to the event detail page
+    router.push({
+      pathname: '/(app)/eventDetail',
+      params: { eventId }
+    });
   };
 
   const renderPostItem = ({ item }: { item: Post }) => (
@@ -604,7 +620,7 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
           >
             <FontAwesome name="arrow-left" size={20} color="#1E1E1E" />
           </TouchableOpacity>

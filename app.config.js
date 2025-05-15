@@ -17,13 +17,15 @@ export default {
       "**/*"
     ],
     ios: {
-      supportsTablet: true
+      supportsTablet: true,
+      bundleIdentifier: "com.gearconnect.app"
     },
     android: {
       adaptiveIcon: {
         foregroundImage: "./app/assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
-      }
+      },
+      package: "com.gearconnect.app"
     },
     web: {
       favicon: "./app/assets/images/favicon.png"
@@ -35,6 +37,10 @@ export default {
       eas: {
         projectId: "your-project-id"
       }
-    }
+    },
+    scheme: "gearconnect",
+    plugins: [
+      "expo-router"
+    ]
   }
 }; 

@@ -1,21 +1,17 @@
 import React, { useEffect } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../App';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/verifyStyles';
 
 const VerifyScreen: React.FC = () => {
   const { user } = useAuth();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const router = useRouter();
   
   useEffect(() => {
-    // Redirection automatique vers BottomTabs après 2 secondes
+    // Redirection automatique vers les tabs après 2 secondes
     const timer = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'BottomTabs' }],
-      });
+      router.replace('/(app)/(tabs)');
     }, 2000);
     
     return () => clearTimeout(timer);

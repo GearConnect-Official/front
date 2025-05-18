@@ -74,29 +74,43 @@ interface EventDetailReviewProps {
   reviews: EventInterface['reviews'];
   userReview: EventInterface['reviews'][0] | null;
   user: any;
+  isCreator: boolean;
 }
 
 const EventDetailReview: React.FC<EventDetailReviewProps> = ({
   eventId,
   reviews,
   userReview,
-  user
+  user,
+  isCreator
 }) => {
+  const hasReviews = reviews && reviews.length > 0;
+  
   return (
     <View>
       <Text style={styles.sectionTitle}>Reviews</Text>
       
-      <FlatList
-        horizontal
-        data={reviews || []}
-        keyExtractor={(item, index) => `review-index-${index}`}
-        renderItem={({ item }) => (
-          <ReviewItem
-            item={item}
-            isCurrentUserReview={userReview !== null && item.userId === userReview.userId}
-          />
-        )}
-      />
+      {!hasReviews ? (
+        <View style={styles.noReviewsContainer}>
+          <Text style={styles.noReviewsText}>
+            {isCreator 
+              ? "No users have reviewed your event yet." 
+              : "No reviews yet. Be the first to leave a review!"}
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          horizontal
+          data={reviews}
+          keyExtractor={(item, index) => `review-index-${index}`}
+          renderItem={({ item }) => (
+            <ReviewItem
+              item={item}
+              isCurrentUserReview={userReview !== null && item.userId === userReview.userId}
+            />
+          )}
+        />
+      )}
     </View>
   );
 };

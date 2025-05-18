@@ -48,6 +48,8 @@ const EventDetailScreen: React.FC = () => {
   const [userReview, setUserReview] = useState<
     EventInterface['reviews'][0] | null
   >(null);
+  const [isReviewCreator, setIsReviewCreator] = useState<boolean>(false);
+  // Will be completed with the modifyReview screen update
   const [isCreator, setIsCreator] = useState<boolean>(false);
 
   function formatDate(data: string | number | Date) {
@@ -62,23 +64,23 @@ const EventDetailScreen: React.FC = () => {
   const checkIfReviewCreator = async (fetchedEvent: EventInterface) => {
     try {
       if (!user || !user.id) {
-        setIsCreator(false);
+        setIsReviewCreator(false);
         return false;
       }
       const response = await fetch(
         `${API_URL_EVENTREVIEWS}/${fetchedEvent.id}/${user.id}`
       );
       if (!response.ok) {
-        setIsCreator(false);
+        setIsReviewCreator(false);
         return false;
       }
       const data = await response.json();
-      const isCreator = Boolean(data && data.id);
-      setIsCreator(isCreator);
-      return isCreator;
+      const isReviewCreator = Boolean(data && data.id);
+      setIsReviewCreator(isReviewCreator);
+      return isReviewCreator;
     } catch (error) {
       console.error('Error checking if creator:', error);
-      setIsCreator(false);
+      setIsReviewCreator(false);
       return false;
     }
   };
@@ -378,6 +380,7 @@ const EventDetailScreen: React.FC = () => {
           reviews={event.reviews || []}
           userReview={userReview}
           user={user}
+          isCreator={isCreator}
         />
         {/* Buttons */}
         <TouchableOpacity style={styles.shareButton}>

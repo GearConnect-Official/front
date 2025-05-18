@@ -1,7 +1,8 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },  header: {
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  header: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     paddingBottom: 10,
@@ -15,7 +16,8 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
-  },  headerTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 8 },
+  },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 8 },
   reviewButton: { backgroundColor: 'black', padding: 8, borderRadius: 5 },
   reviewText: { color: 'white' },
   editButton: { backgroundColor: 'black', padding: 8, borderRadius: 5 },
@@ -66,7 +68,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
-  reviewUser: { 
+  reviewUser: {
     fontWeight: 'bold',
     marginLeft: 8,
     fontSize: 14,
@@ -95,9 +97,9 @@ export const styles = StyleSheet.create({
     width: 220, // added explicit width to make card smaller
     height: 150, // added height constraint
   },
-  reviewAvatar: { 
-    width: 30, 
-    height: 30, 
+  reviewAvatar: {
+    width: 30,
+    height: 30,
     borderRadius: 15,
   },
   reviewDescription: {
@@ -106,7 +108,8 @@ export const styles = StyleSheet.create({
   showMoreButton: {
     marginTop: 5,
     alignSelf: 'flex-end',
-  },  showMoreButtonText: {
+  },
+  showMoreButtonText: {
     color: 'black',
     fontSize: 10,
     fontWeight: '600',
@@ -117,7 +120,8 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     paddingHorizontal: 5,
-  },  buyButton: {
+  },
+  buyButton: {
     backgroundColor: 'black',
     padding: 15,
     borderRadius: 10,
@@ -145,5 +149,19 @@ export const styles = StyleSheet.create({
   },
   errorText: { fontSize: 16, color: 'red' },
   goBackText: { fontSize: 16, color: 'blue', marginTop: 10 },
+  noReviewsContainer: {
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: '#ddd',
+    backgroundColor: '#f9f9f9',
+    marginTop: 5,
+  },
+  noReviewsText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    padding: 10,
+  },
 });
 export default styles;

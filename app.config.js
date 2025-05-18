@@ -40,7 +40,9 @@ export default {
     },
     scheme: "gearconnect",
     plugins: [
-      "expo-router"
+      "expo-router",
+      "expo-font",
+      "expo-web-browser"
     ]
   }
 }; 

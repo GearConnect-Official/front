@@ -29,6 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
 import tagService from '../services/tagService';
 import userService from '../services/userService';
+import EventDetailReview from '../components/EventDetailReview';
 
 type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
@@ -36,71 +37,6 @@ interface MeteoInfo {
   condition: string;
   temperature: number | string;
 }
-
-// Create a star rating component
-const StarRating: React.FC<{ rating: number; maxRating?: number }> = ({
-  rating,
-  maxRating = 5,
-}) => {
-  return (
-    <View style={styles.starContainer}>
-      {Array.from({ length: maxRating }).map((_, index) => (
-        <Ionicons
-          key={`star-${index}`} // Changed to ensure uniqueness
-          name={index < rating ? 'star' : 'star-outline'}
-          size={14}
-          color={index < rating ? '#FFD700' : '#aaa'}
-          style={{ marginHorizontal: 1 }}
-        />
-      ))}
-    </View>
-  );
-};
-
-// Create a separate functional component for review items
-const ReviewItem: React.FC<{
-  item: EventInterface['reviews'][0];
-  isCurrentUserReview?: boolean;
-}> = ({ item, isCurrentUserReview = false }) => {
-  const [showFullText, setShowFullText] = useState(false);
-  const isTextLong = item.description?.length > 200;
-
-  return (
-    <View style={styles.reviewCard}>
-      <View style={styles.reviewHeader}>
-        <Image
-          source={
-            item.avatar
-              ? { uri: item.avatar }
-              : require('../../assets/images/logo-rounded.png')
-          }
-          style={styles.reviewAvatar}
-        />
-        <View style={styles.reviewUserInfo}>
-          <Text style={styles.reviewUser}>{item.username}</Text>
-          <StarRating rating={item.note} />
-        </View>
-      </View>
-      <Text style={styles.reviewDescription}>
-        {showFullText
-          ? item.description
-          : isTextLong
-          ? item.description.substring(0, 200) + '...'
-          : item.description}
-      </Text>
-      {isTextLong && (
-        <TouchableOpacity
-          onPress={() => setShowFullText(!showFullText)}
-          style={styles.showMoreButton}
-        >
-          <Text style={styles.showMoreButtonText}>
-            {showFullText ? 'Show less' : 'Show more'}
-          </Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
 
 const EventDetailScreen: React.FC = () => {
   const route = useRoute<EventDetailScreenRouteProp>();
@@ -152,15 +88,16 @@ const EventDetailScreen: React.FC = () => {
       setUserReview(null);
       return false;
     }
-    const currentUserId = typeof user.id === 'object' && user.id !== null
-      ? String(user.id)
-      : String(user.id);  
-    const existingReview = reviews.find(review => {
+    const currentUserId =
+      typeof user.id === 'object' && user.id !== null
+        ? String(user.id)
+        : String(user.id);
+    const existingReview = reviews.find((review) => {
       if (!review.userId) return false;
       const reviewUserId = String(review.userId);
       return reviewUserId === currentUserId;
     });
-    
+
     setUserReview(existingReview || null);
     return Boolean(existingReview);
   };
@@ -323,10 +260,10 @@ const EventDetailScreen: React.FC = () => {
       </View>
     );
   }
-
   if (event !== null) {
     const meteoInfo = event.meteo as MeteoInfo | string | undefined;
 
+    // Handle review button press
     function handleReviewPress(): void {
       if (userReview) {
         if (user?.id !== undefined && user?.id !== null) {
@@ -337,18 +274,15 @@ const EventDetailScreen: React.FC = () => {
         navigation.navigate('CreateReview', { eventId });
       }
     }
-
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Event Details</Text>
-        </View>
-
-        <View style={styles.eventInfo}>
-          <Text style={styles.eventTitle}>{event.name}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color="black" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Event Details</Text>
+          </View>
           <TouchableOpacity
             style={styles.reviewButton}
             onPress={handleReviewPress}
@@ -357,9 +291,11 @@ const EventDetailScreen: React.FC = () => {
               {userReview ? 'Edit Review' : 'Review'}
             </Text>
           </TouchableOpacity>
+        </View>
+        <View style={styles.eventInfo}>
+          <Text style={styles.eventTitle}>{event.name}</Text>
           {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
         </View>
-
         <View style={styles.descriptionContainer}>
           {/* {event?.images?.[0] ? (
             <Image
@@ -386,8 +322,7 @@ const EventDetailScreen: React.FC = () => {
             <Text style={styles.description}>{event.description}</Text>
           </View>
         </View>
-
-        {/*
+        {/* 
          <Text style={styles.sectionTitle}>Best of Images</Text>
          {event.images[0] ? (
           <Image
@@ -399,8 +334,7 @@ const EventDetailScreen: React.FC = () => {
             <Text>No Image Available</Text>
           </View>
         )}
-            */}
-
+        */}
         <Text style={styles.sectionTitle}>Event Details</Text>
         <View style={styles.detailRow}>
           <Ionicons name="location-outline" size={20} color="gray" />
@@ -423,7 +357,6 @@ const EventDetailScreen: React.FC = () => {
               : meteoInfo || 'Weather info unavailable'}
           </Text>
         </View>
-
         <Text style={styles.sectionTitle}>Related Products</Text>
         <FlatList
           horizontal
@@ -440,36 +373,21 @@ const EventDetailScreen: React.FC = () => {
             </View>
           )}
         />
-
-        <Text style={styles.sectionTitle}>Reviews</Text>
-        <FlatList
-          horizontal
-          data={event.reviews}
-          keyExtractor={(item, index) =>
-            item.id ? `review-${item.id}` : `review-index-${index}`
-          }
-          renderItem={({ item }) => (
-            <ReviewItem
-              item={item}
-              isCurrentUserReview={userReview && userReview.id === item.id}
-            />
-          )}
+        <EventDetailReview
+          eventId={eventId}
+          reviews={event.reviews || []}
+          userReview={userReview}
+          user={user}
         />
-
         {/* Buttons */}
-
         <TouchableOpacity style={styles.shareButton}>
-          <Text>Share</Text>
+          <Text style={styles.shareText}>Share</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.addCalendarButton}>
-          <Text style={{ color: 'black', fontWeight: 'bold' }}>
-            Add to Calendar
-          </Text>
+          <Text style={styles.addCalendarText}>Add to Calendar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.buyButton}>
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>
-            Buy a Ticket
-          </Text>
+          <Text style={styles.buyButtonText}>Buy a Ticket</Text>
         </TouchableOpacity>
       </ScrollView>
     );

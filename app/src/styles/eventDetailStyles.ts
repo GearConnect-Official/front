@@ -1,13 +1,13 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  header: {
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },  header: {
     flexDirection: 'row',
-    gap: 4,
     borderBottomWidth: 1,
     paddingBottom: 10,
     marginBottom: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   eventInfo: {
     flex: 1,
@@ -15,10 +15,10 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
-  },
-  headerTitle: { fontSize: 18, fontWeight: 'bold' },
+  },  headerTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 8 },
   reviewButton: { backgroundColor: 'black', padding: 8, borderRadius: 5 },
   reviewText: { color: 'white' },
+  editButton: { backgroundColor: 'black', padding: 8, borderRadius: 5 },
   eventTitle: { fontSize: 20, fontWeight: 'bold' },
   eventCategory: { color: 'gray' },
   descriptionContainer: { flexDirection: 'row', marginBottom: 10 },
@@ -106,13 +106,18 @@ export const styles = StyleSheet.create({
   showMoreButton: {
     marginTop: 5,
     alignSelf: 'flex-end',
-  },
-  showMoreButtonText: {
+  },  showMoreButtonText: {
     color: 'black',
     fontSize: 10,
     fontWeight: '600',
   },
-  buyButton: {
+  reviewSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 5,
+  },  buyButton: {
     backgroundColor: 'black',
     padding: 15,
     borderRadius: 10,
@@ -120,12 +125,23 @@ export const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
   },
+  buyButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
   addCalendarButton: {
     backgroundColor: '#ddd',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 10,
+  },
+  addCalendarText: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
+  shareText: {
+    color: 'black',
   },
   errorText: { fontSize: 16, color: 'red' },
   goBackText: { fontSize: 16, color: 'blue', marginTop: 10 },

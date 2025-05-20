@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL_EVENTS } from '../config';
+import { API_URL_EVENTTAGS, API_URL_EVENTREVIEWS, API_URL_RELATEDPRODUCTS } from '../config';
 
 export interface Event {
   id?: string;

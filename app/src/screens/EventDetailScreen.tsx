@@ -252,16 +252,20 @@ const EventDetailScreen: React.FC = () => {
   }
   if (event !== null) {
     const meteoInfo = event.meteo as MeteoInfo | string | undefined;
-
-    // Handle review button press
     function handleReviewPress(): void {
       if (userReview) {
         if (user?.id !== undefined && user?.id !== null) {
           const userId = Number(user.id);
-          navigation.navigate('ModifyReview', { eventId, userId });
+          router.push({
+            pathname: '/(app)/modifyEventReview',
+            params: { eventId, userId }
+          });
         }
       } else {
-        navigation.navigate('CreateReview', { eventId });
+        router.push({
+          pathname: '/(app)/createEventReview',
+          params: { eventId }
+        });
       }
     }
     return (

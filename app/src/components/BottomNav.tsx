@@ -1,48 +1,54 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import styles from "../styles/bottomNavStyles";
+import { useRouter, usePathname } from "expo-router";
 
-const BottomNav: React.FC<BottomTabBarProps> = ({ navigation, state }) => {
-  // Check: Ensure that `state` is defined before accessing `state.index`
-  if (!state) {
-    return null;
-  }
+// Adapter le composant pour ne pas dépendre de react-navigation
+const BottomNav = (props: any) => {
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const routes = ["Home", "Network", "Publication", "Events", "Jobs"];
+  // Define tab routes with their paths and labels
+  const tabs = [
+    { name: "Home", path: "/(app)/(tabs)/home" },
+    { name: "Network", path: "/(app)/(tabs)/network" },
+    { name: "Publication", path: "/(app)/(tabs)/publication" },
+    { name: "Events", path: "/(app)/(tabs)/events" },
+    { name: "Jobs", path: "/(app)/(tabs)/jobs" }
+  ];
 
-  const handleNavigation = (route: string) => {
-    if (route === "Publication") {
-      navigation.navigate("PublicationScreen");
-    } else {
-      navigation.navigate(route);
-    }
+  const handleNavigation = (path: string) => {
+    router.push(path);
   };
 
   return (
     <View style={styles.container}>
-      {routes.map((route, index) => (
-        <TouchableOpacity
-          key={route}
-          style={styles.tab}
-          onPress={() => handleNavigation(route)}
-        >
-          <FontAwesome
-            name={getIconName(route)}
-            size={24}
-            color={state.index === index ? "#000" : "#6A707C"}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              state.index === index && styles.activeTabText,
-            ]}
+      {tabs.map((tab) => {
+        const isActive = pathname.includes(tab.path);
+          
+        return (
+          <TouchableOpacity
+            key={tab.name}
+            style={styles.tab}
+            onPress={() => handleNavigation(tab.path)}
           >
-            {route}
-          </Text>
-        </TouchableOpacity>
-      ))}
+            <FontAwesome
+              name={getIconName(tab.name)}
+              size={24}
+              color={isActive ? "#000" : "#6A707C"}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                isActive && styles.activeTabText,
+              ]}
+            >
+              {tab.name}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 };

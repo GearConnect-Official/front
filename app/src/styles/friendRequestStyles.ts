@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: THEME_COLORS.secondary,
   },

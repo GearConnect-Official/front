@@ -11,13 +11,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.multiply(7.5), // 60/8
+    paddingTop: 60,
     paddingBottom: theme.spacing.xl + 6,
   },
   backButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 50,
-    left: theme.spacing.lg,
+    left: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 44,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
     zIndex: 10,
   },
   backIcon: {
@@ -28,6 +33,7 @@ const styles = StyleSheet.create({
     ...theme.typography.h2,
     color: theme.colors.text.primary,
     textAlign: "center",
+    marginTop: theme.spacing.xxxl + 10,
     marginBottom: theme.spacing.xl + 6,
   },
   inputContainer: {

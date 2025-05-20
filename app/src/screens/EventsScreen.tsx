@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,9 +17,7 @@ import {
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/eventsStyles";
 import EventItem from "../components/EventItem";
-import { RootStackParamList } from "@/app/App";
-import { NavigationProp, useIsFocused } from "@react-navigation/native";
-import { useNavigation } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import eventService, { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS } from '../config';
@@ -47,8 +45,7 @@ const EventsScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [featured, setFeatured] = useState<Event[]>([]);
   const scrollX = React.useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const isFocused = useIsFocused();
+  const router = useRouter();
 
   interface TabItem {
     key: string;
@@ -103,23 +100,23 @@ const EventsScreen: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (isFocused) {
+  useFocusEffect(
+    useCallback(() => {
       fetchEvents();
-    }
-  }, [isFocused]);
+    }, [])
+  );
 
   const handleSearch = () => {
     if (searchQuery.length >= 3) {
       const lowerCaseQuery = searchQuery.toLowerCase();
       const filtered = {
-        all: events.all.filter((event) =>
+        all: events.all.filter((event: Event) =>
           event.name.toLowerCase().includes(lowerCaseQuery)
         ),
-        upcoming: events.upcoming.filter((event) =>
+        upcoming: events.upcoming.filter((event: Event) =>
           event.name.toLowerCase().includes(lowerCaseQuery)
         ),
-        passed: events.passed.filter((event) =>
+        passed: events.passed.filter((event: Event) =>
           event.name.toLowerCase().includes(lowerCaseQuery)
         ),
       };
@@ -136,7 +133,14 @@ const EventsScreen: React.FC = () => {
   }, []);
 
   const handleEventPress = (event: Event) => {
-    navigation.navigate('EventDetail', { eventId: event.id });
+    router.push({
+      pathname: '/(app)/eventDetail',
+      params: { eventId: event.id }
+    });
+  };
+
+  const handleCreateEvent = () => {
+    router.push('/(app)/createEvent');
   };
 
   const renderFeaturedItem = ({ item, index }: { item: Event; index: number }) => {
@@ -221,7 +225,7 @@ const EventsScreen: React.FC = () => {
         <View style={styles.topBarContent}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
           >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
@@ -229,7 +233,7 @@ const EventsScreen: React.FC = () => {
           <View style={styles.topBarIcons}>
             <TouchableOpacity
               style={styles.createButton}
-              onPress={() => navigation.navigate("CreateEvent" as never)}
+              onPress={handleCreateEvent}
             >
               <FontAwesome name="plus" size={20} color="#fff" />
               <Text style={styles.createButtonText}>Create</Text>
@@ -261,7 +265,7 @@ const EventsScreen: React.FC = () => {
             <Text style={styles.sectionTitle}>Featured Events</Text>
             <Animated.FlatList
               data={featured}
-              keyExtractor={(item) => item.id || Math.random().toString()}
+              keyExtractor={(item: Event) => item.id?.toString() || Math.random().toString()}
               renderItem={renderFeaturedItem}
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -283,7 +287,7 @@ const EventsScreen: React.FC = () => {
               style={styles.searchInput}
               placeholder="Search for an event"
               value={searchQuery}
-              onChangeText={(text) => {
+              onChangeText={(text: string) => {
                 setSearchQuery(text);
                 if (text === "") {
                   setFilteredEvents(events);
@@ -348,9 +352,9 @@ const EventsScreen: React.FC = () => {
               {activeTab === "upcoming" && "Upcoming Events"}
               {activeTab === "passed" && "Past Events"}
             </Text>
-            {filteredEvents[activeTab]?.map((event, index) => (
+            {filteredEvents[activeTab]?.map((event: Event, index: number) => (
               <EventItem
-                key={event.id || index}
+                key={event.id?.toString() || index.toString()}
                 title={event.name}
                 subtitle={`By: ${event.creators}`}
                 date={new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
@@ -375,7 +379,7 @@ const EventsScreen: React.FC = () => {
             </Text>
             <TouchableOpacity 
               style={styles.ctaButton}
-              onPress={() => navigation.navigate("CreateEvent" as never)}
+              onPress={handleCreateEvent}
             >
               <Text style={styles.ctaButtonText}>Create Now</Text>
               <FontAwesome name="arrow-right" size={16} color="#3a86ff" />

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { RouteProp } from '@react-navigation/native';
 import { EventInterface } from '../services/EventInterface';
 import styles from '../styles/eventDetailStyles';
 import {
@@ -24,6 +25,11 @@ import eventService from '../services/eventService';
 import tagService from '../services/tagService';
 import userService from '../services/userService';
 import EventDetailReview from '../components/EventDetailReview';
+
+type RootStackParamList = {
+  EventDetail: { eventId: string };
+  // Add other routes as needed
+};
 
 type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
@@ -47,12 +53,20 @@ const EventDetailScreen: React.FC = () => {
   const [isCreator, setIsCreator] = useState<boolean>(false);
 
   function formatDate(data: string | number | Date) {
-    const currentDate = new Date(data);
-    const day = currentDate.getDate().toString().padStart(2, '0');
-    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
-    const year = currentDate.getFullYear();
-    const formattedDate = `${day}/${month}/${year}`;
-    return formattedDate;
+    if (!data) return 'Date not available';
+    try {
+      const currentDate = new Date(data);
+      if (isNaN(currentDate.getTime())) return 'Invalid date';
+      
+      const day = currentDate.getDate().toString().padStart(2, '0');
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+      const year = currentDate.getFullYear();
+      const formattedDate = `${day}/${month}/${year}`;
+      return formattedDate;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date not available';
+    }
   }
 
   const checkIfReviewCreator = async (fetchedEvent: EventInterface) => {
@@ -252,6 +266,20 @@ const EventDetailScreen: React.FC = () => {
   }
   if (event !== null) {
     const meteoInfo = event.meteo as MeteoInfo | string | undefined;
+    
+    // Helper function to safely get weather information
+    const getWeatherInfo = () => {
+      if (!meteoInfo) return 'Weather info unavailable';
+      
+      if (typeof meteoInfo === 'object' && meteoInfo !== null) {
+        const condition = meteoInfo.condition || 'No condition available';
+        const temperature = meteoInfo.temperature !== undefined ? `${meteoInfo.temperature}°` : '';
+        return `${condition}${temperature ? ', ' + temperature : ''}`;
+      }
+      
+      return typeof meteoInfo === 'string' && meteoInfo.trim() ? meteoInfo : 'Weather info unavailable';
+    };
+    
     function handleReviewPress(): void {
       if (userReview) {
         if (user?.id !== undefined && user?.id !== null) {
@@ -268,6 +296,7 @@ const EventDetailScreen: React.FC = () => {
         });
       }
     }
+    
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header}>
@@ -287,7 +316,7 @@ const EventDetailScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.eventInfo}>
-          <Text style={styles.eventTitle}>{event.name}</Text>
+          <Text style={styles.eventTitle}>{event.name || 'Unnamed Event'}</Text>
           {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
         </View>
         <View style={styles.descriptionContainer}>
@@ -304,16 +333,22 @@ const EventDetailScreen: React.FC = () => {
           <View style={styles.aboutContainer}>
             <Text style={styles.aboutTitle}>About</Text>
             <View style={styles.tagContainer}>
-              {event?.tags?.map((tag, index) => (
-                <Text
-                  key={`tag-${index}-${typeof tag === 'object' ? tag.id : tag}`}
-                  style={styles.tag}
-                >
-                  {typeof tag === 'object' && tag !== null ? tag.name : tag}
-                </Text>
-              ))}
+              {event?.tags && event.tags.length > 0 ? (
+                event.tags.map((tag, index) => (
+                  <Text
+                    key={`tag-${index}-${typeof tag === 'object' ? tag.id : tag}`}
+                    style={styles.tag}
+                  >
+                    {typeof tag === 'object' && tag !== null ? tag.name : tag}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.noTagsText}>No tags available</Text>
+              )}
             </View>
-            <Text style={styles.description}>{event.description}</Text>
+            <Text style={styles.description}>
+              {event.description || 'No description available for this event.'}
+            </Text>
           </View>
         </View>
         {/* 
@@ -333,40 +368,44 @@ const EventDetailScreen: React.FC = () => {
         <View style={styles.detailRow}>
           <Ionicons name="location-outline" size={20} color="gray" />
           <Text style={styles.detailText}>
-            {event.location || 'No location available'}
+            {event.location && event.location.trim() ? event.location : 'No location available'}
           </Text>
         </View>
         <View style={styles.detailRow}>
           <Ionicons name="calendar-outline" size={20} color="gray" />
           <Text style={styles.detailText}>{formatDate(event.date)}</Text>
           <Ionicons
-            name="time-outline"
+            name="cloud-outline"
             size={20}
             color="gray"
             style={{ marginLeft: 10 }}
           />
-          <Text style={styles.detailText}>
-            {typeof meteoInfo === 'object'
-              ? `${meteoInfo.condition}, ${meteoInfo.temperature}°`
-              : meteoInfo || 'Weather info unavailable'}
-          </Text>
+          <Text style={styles.detailText}>{getWeatherInfo()}</Text>
         </View>
         <Text style={styles.sectionTitle}>Related Products</Text>
-        <FlatList
-          horizontal
-          data={event.relatedProducts}
-          keyExtractor={(item) => `product-${item.id}`}
-          renderItem={({ item }) => (
-            <View style={styles.productCard}>
-              <Image
-                source={require('../../assets/images/Google-logo.png')}
-                style={styles.productImage}
-              />
-              <Text style={styles.productTitle}>{item.name}</Text>
-              <Text style={styles.productPrice}>Price: {item.price}€</Text>
-            </View>
-          )}
-        />
+        {event.relatedProducts && event.relatedProducts.length > 0 ? (
+          <FlatList
+            horizontal
+            data={event.relatedProducts}
+            keyExtractor={(item) => `product-${item.id}`}
+            renderItem={({ item }) => (
+              <View style={styles.productCard}>
+                <Image
+                  source={require('../../assets/images/Google-logo.png')}
+                  style={styles.productImage}
+                />
+                <Text style={styles.productTitle}>{item.name || 'Unnamed Product'}</Text>
+                <Text style={styles.productPrice}>
+                  Price: {item.price !== undefined && item.price !== null ? `${item.price}€` : 'Not available'}
+                </Text>
+              </View>
+            )}
+          />
+        ) : (
+          <View style={styles.noProductsContainer}>
+            <Text style={styles.noProductsText}>No related products available</Text>
+          </View>
+        )}
         <EventDetailReview
           eventId={eventId}
           reviews={event.reviews || []}
@@ -387,6 +426,13 @@ const EventDetailScreen: React.FC = () => {
       </ScrollView>
     );
   }
+  
+  // Add a loading state when event is null but there's no error
+  return (
+    <View style={[styles.container, styles.loadingContainer]}>
+      <Text style={styles.loadingText}>Loading event details...</Text>
+    </View>
+  );
 };
 
 export default EventDetailScreen;

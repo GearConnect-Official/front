@@ -197,6 +197,22 @@ export const styles = StyleSheet.create({
     color: theme.colors.status.info, 
     marginTop: theme.spacing.sm 
   },
+  noProductsContainer: {
+    padding: theme.spacing.sm,
+    ...theme.borders.apply({}, { 
+      width: 5,
+      color: theme.colors.border.light,
+      radius: theme.borders.radius.sm
+    }),
+    backgroundColor: theme.colors.grey[50],
+    marginTop: theme.spacing.xs,
+  },
+  noProductsText: {
+    fontSize: theme.typography.body1.fontSize,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    padding: theme.spacing.sm,
+  },
   noReviewsContainer: {
     padding: theme.spacing.sm,
     ...theme.borders.apply({}, { 

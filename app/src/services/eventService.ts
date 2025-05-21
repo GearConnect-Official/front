@@ -5,6 +5,7 @@ import { API_URL_EVENTTAGS, API_URL_EVENTREVIEWS, API_URL_RELATEDPRODUCTS } from
 export interface Event {
   id?: string;
   name: string;
+  creatorId: number;
   creators: string;
   location: string;
   date: Date;

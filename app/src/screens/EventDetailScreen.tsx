@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { RouteProp } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { EventInterface } from '../services/EventInterface';
 import styles from '../styles/eventDetailStyles';
 import {
@@ -25,6 +26,7 @@ import eventService from '../services/eventService';
 import tagService from '../services/tagService';
 import userService from '../services/userService';
 import EventDetailReview from '../components/EventDetailReview';
+import { ActivityIndicator } from 'react-native';
 
 type RootStackParamList = {
   EventDetail: { eventId: string };
@@ -44,12 +46,12 @@ const EventDetailScreen: React.FC = () => {
   const eventId = params.eventId as string;
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const [userReview, setUserReview] = useState<
     EventInterface['reviews'][0] | null
   >(null);
   const [isReviewCreator, setIsReviewCreator] = useState<boolean>(false);
-  // Will be completed with the modifyReview screen update
   const [isCreator, setIsCreator] = useState<boolean>(false);
 
   function formatDate(data: string | number | Date) {
@@ -79,10 +81,8 @@ const EventDetailScreen: React.FC = () => {
         typeof user.id === 'object' && user.id !== null
           ? String(user.id)
           : String(user.id);
-      console.log('Current User ID:', currentUserId);
       // Check if fetchedEvent has a creatorId or userId property
       const eventCreatorId = fetchedEvent.creatorId || null;
-      console.log('Event Creator ID:', eventCreatorId);
       if (!eventCreatorId) {
         setIsCreator(false);
         return;
@@ -142,6 +142,7 @@ const EventDetailScreen: React.FC = () => {
   };
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const response = await fetch(API_URL_EVENTS + '/' + eventId);
       if (!response.ok) {
@@ -273,9 +274,24 @@ const EventDetailScreen: React.FC = () => {
       console.error('Error in fetchData:', error);
       setEvent(null);
       setError('Failed to fetch event data');
+    } finally {
+      setLoading(false);
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      if (eventId) {
+        fetchData();
+      }
+      return () => {
+        setEvent(null);
+        setError(null);
+      };
+    }, [eventId])
+  );
+
+  // Keep the initial useEffect for first load
   useEffect(() => {
     if (!eventId) {
       setError('Invalid event ID.');
@@ -476,9 +492,23 @@ const EventDetailScreen: React.FC = () => {
   }
 
   // Add a loading state when event is null but there's no error
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#4A80F0" />
+        <Text style={styles.loadingText}>Loading event details...</Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={[styles.container, styles.loadingContainer]}>
-      <Text style={styles.loadingText}>Loading event details...</Text>
+    <View style={styles.container}>
+      <Text style={styles.errorText}>
+        Something went wrong. Please try again.
+      </Text>
+      <TouchableOpacity onPress={() => router.back()}>
+        <Text style={styles.goBackText}>Go Back</Text>
+      </TouchableOpacity>
     </View>
   );
 };

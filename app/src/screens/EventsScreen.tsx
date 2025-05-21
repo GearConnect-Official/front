@@ -13,16 +13,16 @@ import {
   FlatList,
   Animated,
   Dimensions,
-} from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/eventsStyles";
-import EventItem from "../components/EventItem";
-import { useRouter, useFocusEffect } from "expo-router";
-import eventService, { Event } from "../services/eventService";
-import { LinearGradient } from "expo-linear-gradient";
-import { API_URL_EVENTS } from '../config';
+} from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import styles from '../styles/eventsStyles';
+import EventItem from '../components/EventItem';
+import { useRouter, useFocusEffect } from 'expo-router';
+import eventService, { Event } from '../services/eventService';
+import { LinearGradient } from 'expo-linear-gradient';
+import { API_URL_EVENTS, API_URL_USERS } from '../config';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.8;
 
 const EventsScreen: React.FC = () => {
@@ -65,14 +65,42 @@ const EventsScreen: React.FC = () => {
     try {
       const response = await fetch(API_URL_EVENTS);
       if (!response.ok) {
-        throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch events: ${response.status} ${response.statusText}`
+        );
       }
       const allEvents = await response.json();
+
+      // fetch user name from API_URL_USERS by userId with event creatorId
+      const eventsWithCreators = await Promise.all(
+        allEvents.map(async (event: Event) => {
+          try {
+            const userResponse = await fetch(
+              `${API_URL_USERS}/${event.creatorId}`
+            );
+            if (!userResponse.ok) {
+              console.error(
+                `Failed to fetch user for event ${event.id}: ${userResponse.status}`
+              );
+              return { ...event, creators: 'Unknown' };
+            }
+            const user = await userResponse.json();
+            return { ...event, creators: user.name };
+          } catch (error) {
+            console.error(
+              `Error fetching creator for event ${event.id}:`,
+              error
+            );
+            return { ...event, creators: 'Unknown' };
+          }
+        })
+      );
+
       const now = new Date();
-      const upcomingEvents = allEvents.filter(
+      const upcomingEvents = eventsWithCreators.filter(
         (event: Event) => new Date(event.date) >= now
       );
-      const passedEvents = allEvents.filter(
+      const passedEvents = eventsWithCreators.filter(
         (event: Event) => new Date(event.date) < now
       );
 
@@ -81,20 +109,19 @@ const EventsScreen: React.FC = () => {
 
       setFeatured(featuredEvents);
       setEvents({
-        all: allEvents,
+        all: eventsWithCreators,
         upcoming: upcomingEvents,
         passed: passedEvents,
       });
 
       setFilteredEvents({
-        all: allEvents,
+        all: eventsWithCreators,
         upcoming: upcomingEvents,
         passed: passedEvents,
       });
-
     } catch (err) {
-      setError("Error loading events");
-      console.error("Error fetching events:", err);
+      setError('Error loading events');
+      console.error('Error fetching events:', err);
     } finally {
       setLoading(false);
     }
@@ -121,7 +148,7 @@ const EventsScreen: React.FC = () => {
         ),
       };
       setFilteredEvents(filtered);
-    } else if (searchQuery === "") {
+    } else if (searchQuery === '') {
       setFilteredEvents(events);
     }
   };
@@ -135,7 +162,7 @@ const EventsScreen: React.FC = () => {
   const handleEventPress = (event: Event) => {
     router.push({
       pathname: '/(app)/eventDetail',
-      params: { eventId: event.id }
+      params: { eventId: event.id },
     });
   };
 
@@ -143,12 +170,18 @@ const EventsScreen: React.FC = () => {
     router.push('/(app)/createEvent');
   };
 
-  const renderFeaturedItem = ({ item, index }: { item: Event; index: number }) => {
+  const renderFeaturedItem = ({
+    item,
+    index,
+  }: {
+    item: Event;
+    index: number;
+  }) => {
     const date = new Date(item.date);
-    const formattedDate = date.toLocaleDateString('en-US', { 
-      day: 'numeric', 
-      month: 'short', 
-      year: 'numeric' 
+    const formattedDate = date.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
     });
 
     const inputRange = [
@@ -174,15 +207,20 @@ const EventsScreen: React.FC = () => {
         onPress={() => handleEventPress(item)}
         activeOpacity={0.9}
       >
-        <Animated.View style={{
-          width: CARD_WIDTH,
-          transform: [{ scale }],
-          opacity,
-          marginHorizontal: 10,
-        }}>
+        <Animated.View
+          style={{
+            width: CARD_WIDTH,
+            transform: [{ scale }],
+            opacity,
+            marginHorizontal: 10,
+          }}
+        >
           <View style={styles.featuredCard}>
             <Image
-              source={{ uri: item.logo || 'https://via.placeholder.com/300x200?text=Event' }}
+              source={{
+                uri:
+                  item.logo || 'https://via.placeholder.com/300x200?text=Event',
+              }}
               style={styles.featuredImage}
             />
             <LinearGradient
@@ -192,7 +230,8 @@ const EventsScreen: React.FC = () => {
               <Text style={styles.featuredDate}>{formattedDate}</Text>
               <Text style={styles.featuredTitle}>{item.name}</Text>
               <Text style={styles.featuredLocation}>
-                <FontAwesome name="map-marker" size={14} color="#fff" /> {item.location}
+                <FontAwesome name="map-marker" size={14} color="#fff" />{' '}
+                {item.location}
               </Text>
               <View style={styles.featuredActions}>
                 <TouchableOpacity style={styles.featuredButton}>
@@ -213,9 +252,7 @@ const EventsScreen: React.FC = () => {
     <View style={styles.emptyContainer}>
       <FontAwesome name="calendar-o" size={64} color="#ccc" />
       <Text style={styles.emptyText}>No events found</Text>
-      <Text style={styles.emptySubtext}>
-        Be the first to create an event!
-      </Text>
+      <Text style={styles.emptySubtext}>Be the first to create an event!</Text>
     </View>
   );
 
@@ -265,7 +302,9 @@ const EventsScreen: React.FC = () => {
             <Text style={styles.sectionTitle}>Featured Events</Text>
             <Animated.FlatList
               data={featured}
-              keyExtractor={(item: Event) => item.id?.toString() || Math.random().toString()}
+              keyExtractor={(item: Event) =>
+                item.id?.toString() || Math.random().toString()
+              }
               renderItem={renderFeaturedItem}
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -289,7 +328,7 @@ const EventsScreen: React.FC = () => {
               value={searchQuery}
               onChangeText={(text: string) => {
                 setSearchQuery(text);
-                if (text === "") {
+                if (text === '') {
                   setFilteredEvents(events);
                 }
               }}
@@ -348,16 +387,19 @@ const EventsScreen: React.FC = () => {
         ) : (
           <View style={styles.eventsContainer}>
             <Text style={styles.sectionTitle}>
-              {activeTab === "all" && "All Events"}
-              {activeTab === "upcoming" && "Upcoming Events"}
-              {activeTab === "passed" && "Past Events"}
+              {activeTab === 'all' && 'All Events'}
+              {activeTab === 'upcoming' && 'Upcoming Events'}
+              {activeTab === 'passed' && 'Past Events'}
             </Text>
             {filteredEvents[activeTab]?.map((event: Event, index: number) => (
               <EventItem
                 key={event.id?.toString() || index.toString()}
                 title={event.name}
                 subtitle={`By: ${event.creators}`}
-                date={new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                date={new Date(event.date).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                })}
                 emoji="🎉"
                 location={event.location}
                 attendees={Math.floor(Math.random() * 100)}
@@ -377,7 +419,7 @@ const EventsScreen: React.FC = () => {
             <Text style={styles.ctaText}>
               Share your passion and meet new people
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.ctaButton}
               onPress={handleCreateEvent}
             >
@@ -386,7 +428,7 @@ const EventsScreen: React.FC = () => {
             </TouchableOpacity>
           </LinearGradient>
         </View>
-        
+
         <View style={{ height: 60 }} />
       </ScrollView>
     </SafeAreaView>

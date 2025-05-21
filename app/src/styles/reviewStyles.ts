@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import theme from './config';
-import LoadingScreen from '../screens/LoadingScreen';
 
 const styles = StyleSheet.create({
   container: {
@@ -96,11 +95,11 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#333',
+    color: theme.colors.grey[500],
     marginTop: 10,
   },
   errorText: {
-    color: '#FF3B30',
+    color: theme.colors.status.error,
     fontSize: 14,
     marginTop: 10,
     textAlign: 'center',

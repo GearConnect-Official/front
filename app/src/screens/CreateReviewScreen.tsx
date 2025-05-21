@@ -14,11 +14,16 @@ import {
   useRoute,
   NavigationProp,
 } from '@react-navigation/native';
-import { RootStackParamList } from '@/app/App';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import styles from '../styles/createReviewStyles';
+import styles from '../styles/reviewStyles';
 import { useAuth } from "../context/AuthContext";
 import eventService from '../services/eventService';
+
+type RootStackParamList = {
+  CreateReview: {
+    eventId: number;
+  };
+};
 
 type CreateReviewScreenRouteProp = RouteProp<
   RootStackParamList,

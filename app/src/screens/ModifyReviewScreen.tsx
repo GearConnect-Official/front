@@ -14,11 +14,17 @@ import {
   useRoute,
   NavigationProp,
 } from '@react-navigation/native';
-import { RootStackParamList } from '@/app/App';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import styles from '../styles/createReviewStyles';
-import { useAuth } from "../context/AuthContext";
+import styles from '../styles/reviewStyles';
+import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
+
+type RootStackParamList = {
+  ModifyReview: {
+    eventId: number;
+    userId: number;
+  };
+};
 
 type ModifyReviewScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -30,7 +36,7 @@ const ModifyReviewScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<ModifyReviewScreenRouteProp>();
   const { eventId, userId } = route.params;
-  
+
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -60,13 +66,13 @@ const ModifyReviewScreen: React.FC = () => {
     setSubmitting(true);
     setError(null);
 
-    if(!reviewText.trim()) {
+    if (!reviewText.trim()) {
       setError('Please enter a review text.');
       setSubmitting(false);
       return;
     }
-    
-    if(!rating) {
+
+    if (!rating) {
       setError('Please select a rating.');
       setSubmitting(false);
       return;
@@ -77,7 +83,7 @@ const ModifyReviewScreen: React.FC = () => {
         note: rating,
         description: reviewText,
       };
-      
+
       await eventService.updateEventReview(eventId, userId, updatedReviewData);
       console.log('Review updated successfully');
       navigation.goBack();
@@ -125,11 +131,11 @@ const ModifyReviewScreen: React.FC = () => {
     try {
       setSubmitting(true);
       await eventService.deleteEventReview(eventId, userId);
-      console.log("Review deleted successfully");
+      console.log('Review deleted successfully');
       navigation.goBack();
     } catch (error) {
-      console.error("Error deleting review:", error);
-      setError("Failed to delete review. Please try again.");
+      console.error('Error deleting review:', error);
+      setError('Failed to delete review. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -162,7 +168,7 @@ const ModifyReviewScreen: React.FC = () => {
 
       <View style={styles.reviewContainer}>
         <RatingSelector />
-        
+
         <View style={styles.textAreaContainer}>
           <TextInput
             style={styles.textArea}
@@ -178,11 +184,12 @@ const ModifyReviewScreen: React.FC = () => {
 
         {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
-      
+
       <TouchableOpacity
         style={[
           styles.submitButton,
-          (submitting || !reviewText.trim() || rating === 0) && styles.disabledButton
+          (submitting || !reviewText.trim() || rating === 0) &&
+            styles.disabledButton,
         ]}
         onPress={onUpdate}
         disabled={submitting || !reviewText.trim() || rating === 0}
@@ -192,7 +199,12 @@ const ModifyReviewScreen: React.FC = () => {
         ) : (
           <>
             <Text style={styles.submitButtonText}>Update Review</Text>
-            <FontAwesome name="save" size={16} color="#fff" style={{ marginLeft: 8 }} />
+            <FontAwesome
+              name="save"
+              size={16}
+              color="#fff"
+              style={{ marginLeft: 8 }}
+            />
           </>
         )}
       </TouchableOpacity>

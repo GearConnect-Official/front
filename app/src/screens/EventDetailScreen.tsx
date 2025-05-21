@@ -57,7 +57,7 @@ const EventDetailScreen: React.FC = () => {
     try {
       const currentDate = new Date(data);
       if (isNaN(currentDate.getTime())) return 'Invalid date';
-      
+
       const day = currentDate.getDate().toString().padStart(2, '0');
       const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
       const year = currentDate.getFullYear();
@@ -68,6 +68,35 @@ const EventDetailScreen: React.FC = () => {
       return 'Date not available';
     }
   }
+  const checkIfCreator = async (fetchedEvent: EventInterface) => {
+    try {
+      if (!user || !user.id) {
+        setIsCreator(false);
+        return;
+      }
+      // Check if the logged-in user is the creator of the event
+      const currentUserId =
+        typeof user.id === 'object' && user.id !== null
+          ? String(user.id)
+          : String(user.id);
+      console.log('Current User ID:', currentUserId);
+      // Check if fetchedEvent has a creatorId or userId property
+      const eventCreatorId = fetchedEvent.creatorId || null;
+      console.log('Event Creator ID:', eventCreatorId);
+      if (!eventCreatorId) {
+        setIsCreator(false);
+        return;
+      }
+      // Convert to string for comparison
+      const creatorIdString = String(eventCreatorId);
+      // Compare the IDs
+      const isCreator = creatorIdString === currentUserId;
+      setIsCreator(isCreator);
+    } catch (error) {
+      console.error('Error checking if creator:', error);
+      setIsCreator(false);
+    }
+  };
 
   const checkIfReviewCreator = async (fetchedEvent: EventInterface) => {
     try {
@@ -175,7 +204,7 @@ const EventDetailScreen: React.FC = () => {
                     userData.name ||
                     (userData.user ? userData.user.username : null) ||
                     'Anonymous';
-                  
+
                   // Access avatar from additionalData
                   const avatarUrl =
                     userData.additionalData?.avatar ||
@@ -234,6 +263,7 @@ const EventDetailScreen: React.FC = () => {
         console.error('Error fetching related products:', productError);
       }
       await checkIfReviewCreator(fetchedEvent);
+      await checkIfCreator(fetchedEvent); // Add this line
       if (fetchedEvent.reviews && fetchedEvent.reviews.length > 0) {
         checkIfUserHasReviewed(fetchedEvent.reviews);
       }
@@ -266,37 +296,42 @@ const EventDetailScreen: React.FC = () => {
   }
   if (event !== null) {
     const meteoInfo = event.meteo as MeteoInfo | string | undefined;
-    
+
     // Helper function to safely get weather information
     const getWeatherInfo = () => {
       if (!meteoInfo) return 'Weather info unavailable';
-      
+
       if (typeof meteoInfo === 'object' && meteoInfo !== null) {
         const condition = meteoInfo.condition || 'No condition available';
-        const temperature = meteoInfo.temperature !== undefined ? `${meteoInfo.temperature}°` : '';
+        const temperature =
+          meteoInfo.temperature !== undefined
+            ? `${meteoInfo.temperature}°`
+            : '';
         return `${condition}${temperature ? ', ' + temperature : ''}`;
       }
-      
-      return typeof meteoInfo === 'string' && meteoInfo.trim() ? meteoInfo : 'Weather info unavailable';
+
+      return typeof meteoInfo === 'string' && meteoInfo.trim()
+        ? meteoInfo
+        : 'Weather info unavailable';
     };
-    
+
     function handleReviewPress(): void {
       if (userReview) {
         if (user?.id !== undefined && user?.id !== null) {
           const userId = Number(user.id);
           router.push({
             pathname: '/(app)/modifyEventReview',
-            params: { eventId, userId }
+            params: { eventId, userId },
           });
         }
       } else {
         router.push({
           pathname: '/(app)/createEventReview',
-          params: { eventId }
+          params: { eventId },
         });
       }
     }
-    
+
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header}>
@@ -306,14 +341,16 @@ const EventDetailScreen: React.FC = () => {
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Event Details</Text>
           </View>
-          <TouchableOpacity
-            style={styles.reviewButton}
-            onPress={handleReviewPress}
-          >
-            <Text style={styles.reviewText}>
-              {userReview ? 'Edit Review' : 'Review'}
-            </Text>
-          </TouchableOpacity>
+          {!isCreator && (
+            <TouchableOpacity
+              style={styles.reviewButton}
+              onPress={handleReviewPress}
+            >
+              <Text style={styles.reviewText}>
+                {userReview ? 'Edit Review' : 'Review'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
         <View style={styles.eventInfo}>
           <Text style={styles.eventTitle}>{event.name || 'Unnamed Event'}</Text>
@@ -336,7 +373,9 @@ const EventDetailScreen: React.FC = () => {
               {event?.tags && event.tags.length > 0 ? (
                 event.tags.map((tag, index) => (
                   <Text
-                    key={`tag-${index}-${typeof tag === 'object' ? tag.id : tag}`}
+                    key={`tag-${index}-${
+                      typeof tag === 'object' ? tag.id : tag
+                    }`}
                     style={styles.tag}
                   >
                     {typeof tag === 'object' && tag !== null ? tag.name : tag}
@@ -368,7 +407,9 @@ const EventDetailScreen: React.FC = () => {
         <View style={styles.detailRow}>
           <Ionicons name="location-outline" size={20} color="gray" />
           <Text style={styles.detailText}>
-            {event.location && event.location.trim() ? event.location : 'No location available'}
+            {event.location && event.location.trim()
+              ? event.location
+              : 'No location available'}
           </Text>
         </View>
         <View style={styles.detailRow}>
@@ -394,16 +435,23 @@ const EventDetailScreen: React.FC = () => {
                   source={require('../../assets/images/Google-logo.png')}
                   style={styles.productImage}
                 />
-                <Text style={styles.productTitle}>{item.name || 'Unnamed Product'}</Text>
+                <Text style={styles.productTitle}>
+                  {item.name || 'Unnamed Product'}
+                </Text>
                 <Text style={styles.productPrice}>
-                  Price: {item.price !== undefined && item.price !== null ? `${item.price}€` : 'Not available'}
+                  Price:{' '}
+                  {item.price !== undefined && item.price !== null
+                    ? `${item.price}€`
+                    : 'Not available'}
                 </Text>
               </View>
             )}
           />
         ) : (
           <View style={styles.noProductsContainer}>
-            <Text style={styles.noProductsText}>No related products available</Text>
+            <Text style={styles.noProductsText}>
+              No related products available
+            </Text>
           </View>
         )}
         <EventDetailReview
@@ -426,7 +474,7 @@ const EventDetailScreen: React.FC = () => {
       </ScrollView>
     );
   }
-  
+
   // Add a loading state when event is null but there's no error
   return (
     <View style={[styles.container, styles.loadingContainer]}>

@@ -4,57 +4,52 @@ import theme from './config';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
   header: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#DBDBDB',
-    zIndex: 1000,
-  },
-  headerContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    height: 44,
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIconBtn: {
+    padding: 8,
+  },
+  appTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#262626',
   },
-  headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerIcon: {
-    marginLeft: 20,
-  },
-  headerProfileImage: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#DBDBDB',
+  storiesContainer: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
   },
   storiesList: {
-    paddingVertical: 10,
-  },
-  storiesListContent: {
     paddingHorizontal: 8,
   },
-  storyContainer: {
+  storyItem: {
     alignItems: 'center',
     marginHorizontal: 8,
-    width: 80,
   },
   storyRing: {
     width: 68,
     height: 68,
     borderRadius: 34,
+    borderWidth: 2,
     padding: 2,
     marginBottom: 4,
   },
@@ -69,20 +64,103 @@ const styles = StyleSheet.create({
     borderColor: '#DBDBDB',
   },
   storyAvatar: {
-    width: 60,
-    height: 60,
+    width: '100%',
+    height: '100%',
     borderRadius: 30,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
   storyUsername: {
     fontSize: 12,
     color: '#262626',
-    textAlign: 'center',
+    marginTop: 4,
   },
-  separator: {
+  dateSeperatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  dateSeparatorLine: {
+    flex: 1,
     height: 1,
     backgroundColor: '#EFEFEF',
+  },
+  dateSeparatorText: {
+    fontSize: 14,
+    color: '#8E8E8E',
+    marginHorizontal: 8,
+  },
+  footerLoader: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#262626',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  reloadButton: {
+    backgroundColor: '#FF5864',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  reloadButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Styles pour l'état vide
+  emptyStateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    backgroundColor: '#FFFFFF',
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#262626',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateDescription: {
+    fontSize: 16,
+    color: '#8E8E8E',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  createPostButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF5864',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  createPostIcon: {
+    marginRight: 8,
+  },
+  createPostText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   postContainer: {
     marginBottom: 12,
@@ -115,8 +193,9 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
   },
   postMultipleImage: {
-    width: 420,
-    height: 420,
+    width: SCREEN_WIDTH,
+    height: undefined,
+    aspectRatio: 1,
   },
   postActions: {
     flexDirection: 'row',
@@ -151,7 +230,7 @@ const styles = StyleSheet.create({
     color: '#262626',
     lineHeight: 18,
   },
-  captionUsername: {
+  usernameText: {
     fontWeight: '600',
     color: '#262626',
   },
@@ -162,7 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E8E',
   },
-  postTime: {
+  timeAgo: {
     fontSize: 12,
     color: '#8E8E8E',
     marginTop: 4,

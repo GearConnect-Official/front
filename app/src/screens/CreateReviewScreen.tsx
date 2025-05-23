@@ -16,8 +16,10 @@ import {
 } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from '../styles/reviewStyles';
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 type RootStackParamList = {
   CreateReview: {
@@ -39,29 +41,28 @@ const CreateReviewScreen: React.FC = () => {
   const [rating, setRating] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
 
   const onSubmit = async () => {
     setLoading(true);
     setError(null);
     // Add logic to submit the review to your API
     console.log('Submitting review:', { eventId, reviewText, rating });
-    if(!reviewText.trim() ){
+    if (!reviewText.trim()) {
       setError('Please enter a review text.');
       setLoading(false);
       return;
     }
-    if(!rating){
+    if (!rating) {
       setError('Please select a rating.');
       setLoading(false);
       return;
     }
-    if(!user || !user.id){
+    if (!user || !user.id) {
       setError('User not authenticated. Please log in.');
       setLoading(false);
       return;
     }
-    try{
+    try {
       const reviewData = {
         eventId: eventId,
         userId: user.id,
@@ -104,59 +105,72 @@ const CreateReviewScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={100}
-    >
+    <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.titleBar}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
             style={styles.backButton}
           >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
-          <Text style={styles.title}>Create Review</Text>
+          <Text
+            style={[
+              styles.title,
+              { flex: 1, textAlign: 'center', marginRight: 85 },
+            ]}
+          >
+            Create Review
+          </Text>
         </View>
       </View>
 
-      <View style={styles.reviewContainer}>
-        <RatingSelector />
-        
-        <View style={styles.textAreaContainer}>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Write your review here..."
-            placeholderTextColor="#A0A0A0"
-            multiline={true}
-            value={reviewText}
-            onChangeText={setReviewText}
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
-        </View>
-      </View>
-      
-      <TouchableOpacity
-        style={[
-          styles.submitButton,
-          (!reviewText.trim() || rating === 0) && styles.disabledButton
-        ]}
-        onPress={onSubmit}
-        disabled={!reviewText.trim() || rating === 0}
+      <KeyboardAvoidingView
+        style={styles.reviewContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={100}
       >
-        <Text style={styles.submitButtonText}>
-          {reviewText.trim() && rating > 0 ? 'Post Review' : 'Add Rating & Review'}
-        </Text>
-        {reviewText.trim() && rating > 0 && (
-          <FontAwesome name="paper-plane" size={16} color="#fff" style={{ marginLeft: 8 }} />
-        )}
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+        <View>
+          <RatingSelector />
+          <View style={styles.textAreaContainer}>
+            <TextInput
+              style={styles.textArea}
+              placeholder="Write your review here..."
+              placeholderTextColor="#A0A0A0"
+              multiline={true}
+              value={reviewText}
+              onChangeText={setReviewText}
+              numberOfLines={5}
+              textAlignVertical="top"
+            />
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            (!reviewText.trim() || rating === 0) && styles.disabledButton,
+          ]}
+          onPress={onSubmit}
+          disabled={!reviewText.trim() || rating === 0}
+        >
+          <Text style={styles.submitButtonText}>
+            {reviewText.trim() && rating > 0
+              ? 'Post Review'
+              : 'Add Rating & Review'}
+          </Text>
+          {reviewText.trim() && rating > 0 && (
+            <FontAwesome
+              name="paper-plane"
+              size={16}
+              color="#fff"
+              style={{ marginLeft: 8 }}
+            />
+          )}
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
-
-
 
 export default CreateReviewScreen;

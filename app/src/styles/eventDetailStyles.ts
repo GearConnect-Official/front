@@ -32,6 +32,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.xs,
   },
+  headerTitle: {
+    ...theme.typography.h4,
+    color: theme.colors.text.primary,
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -39,30 +43,26 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
+
   // Event header and info
   eventInfo: {
     flex: 1,
     ...theme.common.spaceBetween,
     marginBottom: theme.spacing.sm,
   },
-  headerTitle: {
-    ...theme.typography.h4,
-    color: theme.colors.text.primary,
-  },
   eventTitle: {
     fontSize: theme.typography.h2.fontSize,
     fontWeight: theme.typography.h2.fontWeight,
   },
-  eventCategory: { 
-    color: theme.colors.text.secondary 
+  eventCategory: {
+    color: theme.colors.text.secondary,
   },
   sectionTitle: {
     fontSize: theme.typography.h3.fontSize,
     fontWeight: theme.typography.h3.fontWeight,
     marginVertical: theme.spacing.sm,
   },
-  
+
   // Images
   mainEventImage: {
     width: '100%',
@@ -90,29 +90,29 @@ export const styles = StyleSheet.create({
     ...theme.common.centerContent,
     backgroundColor: theme.colors.grey[200],
   },
-  
+
   // Description section
   descriptionContainer: {
     ...theme.common.row,
     marginBottom: theme.spacing.sm,
   },
-  aboutContainer: { 
-    flex: 1 
+  aboutContainer: {
+    flex: 1,
   },
-  aboutTitle: { 
-    fontWeight: theme.typography.h3.fontWeight 
+  aboutTitle: {
+    fontWeight: theme.typography.h3.fontWeight,
   },
-  description: { 
-    marginTop: theme.spacing.xs 
+  description: {
+    marginTop: theme.spacing.xs,
   },
   detailRow: {
     ...theme.common.row,
     marginVertical: theme.spacing.xs,
   },
-  detailText: { 
-    marginLeft: theme.spacing.xs 
+  detailText: {
+    marginLeft: theme.spacing.xs,
   },
-  
+
   // Tags
   tagContainer: {
     ...theme.common.row,
@@ -130,27 +130,27 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     padding: theme.spacing.sm,
   },
-  
+
   // Products
   productCard: {
     padding: theme.spacing.sm,
     marginRight: theme.spacing.sm,
     ...theme.borders.apply({}, { preset: 'card' }),
   },
-  productImage: { 
-    width: 80, 
-    height: 80 
+  productImage: {
+    width: 80,
+    height: 80,
   },
-  productTitle: { 
-    fontWeight: theme.typography.body1.fontWeight 
+  productTitle: {
+    fontWeight: theme.typography.body1.fontWeight,
   },
   productTag: {
     backgroundColor: theme.colors.common.black,
     color: theme.colors.common.white,
     padding: theme.spacing.xs,
   },
-  productPrice: { 
-    marginTop: theme.spacing.xs 
+  productPrice: {
+    marginTop: theme.spacing.xs,
   },
   noProductsContainer: {
     padding: theme.spacing.sm,
@@ -171,7 +171,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     padding: theme.spacing.sm,
   },
-  
+
   // Reviews
   reviewSection: {
     ...theme.common.spaceBetween,
@@ -240,7 +240,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     padding: theme.spacing.sm,
   },
-  
+
   // Buttons
   reviewButton: {
     backgroundColor: theme.colors.primary.main,
@@ -251,8 +251,8 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  reviewText: { 
-    color: theme.colors.common.white 
+  reviewText: {
+    color: theme.colors.common.white,
   },
   editButton: {
     backgroundColor: theme.colors.common.black,
@@ -305,7 +305,7 @@ export const styles = StyleSheet.create({
   shareText: {
     color: theme.colors.text.primary,
   },
-  
+
   // Status messages
   errorText: {
     fontSize: theme.typography.error.fontSize,

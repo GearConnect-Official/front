@@ -18,6 +18,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from '../styles/reviewStyles';
 import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type RootStackParamList = {
   ModifyReview: {
@@ -33,7 +35,6 @@ type ModifyReviewScreenRouteProp = RouteProp<
 
 const ModifyReviewScreen: React.FC = () => {
   const { user } = useAuth();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<ModifyReviewScreenRouteProp>();
   const { eventId, userId } = route.params;
 
@@ -86,7 +87,7 @@ const ModifyReviewScreen: React.FC = () => {
 
       await eventService.updateEventReview(eventId, userId, updatedReviewData);
       console.log('Review updated successfully');
-      navigation.goBack();
+      router.back();
     } catch (error: any) {
       console.error('Error updating review:', error);
       setError('Error updating review. Please try again.');
@@ -132,7 +133,7 @@ const ModifyReviewScreen: React.FC = () => {
       setSubmitting(true);
       await eventService.deleteEventReview(eventId, userId);
       console.log('Review deleted successfully');
-      navigation.goBack();
+      router.back();
     } catch (error) {
       console.error('Error deleting review:', error);
       setError('Failed to delete review. Please try again.');
@@ -142,15 +143,11 @@ const ModifyReviewScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={100}
-    >
+    <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.titleBar}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
             style={styles.backButton}
           >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
@@ -166,49 +163,54 @@ const ModifyReviewScreen: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.reviewContainer}>
-        <RatingSelector />
+      <KeyboardAvoidingView
+        style={styles.reviewContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={100}
+      >
+        <View>
+          <RatingSelector />
+          <View style={styles.textAreaContainer}>
+            <TextInput
+              style={styles.textArea}
+              placeholder="Write your review here..."
+              placeholderTextColor="#A0A0A0"
+              multiline={true}
+              value={reviewText}
+              onChangeText={setReviewText}
+              numberOfLines={5}
+              textAlignVertical="top"
+            />
+          </View>
 
-        <View style={styles.textAreaContainer}>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Write your review here..."
-            placeholderTextColor="#A0A0A0"
-            multiline={true}
-            value={reviewText}
-            onChangeText={setReviewText}
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
+          {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
-
-      <TouchableOpacity
-        style={[
-          styles.submitButton,
-          (submitting || !reviewText.trim() || rating === 0) &&
-            styles.disabledButton,
-        ]}
-        onPress={onUpdate}
-        disabled={submitting || !reviewText.trim() || rating === 0}
-      >
-        {submitting ? (
-          <ActivityIndicator color="#FFF" size="small" />
-        ) : (
-          <>
-            <Text style={styles.submitButtonText}>Update Review</Text>
-            <FontAwesome
-              name="save"
-              size={16}
-              color="#fff"
-              style={{ marginLeft: 8 }}
-            />
-          </>
-        )}
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            (submitting || !reviewText.trim() || rating === 0) &&
+              styles.disabledButton,
+          ]}
+          onPress={onUpdate}
+          disabled={submitting || !reviewText.trim() || rating === 0}
+        >
+          {submitting ? (
+            <ActivityIndicator color="#FFF" size="small" />
+          ) : (
+            <>
+              <Text style={styles.submitButtonText}>Update Review</Text>
+              <FontAwesome
+                name="save"
+                size={16}
+                color="#fff"
+                style={{ marginLeft: 8 }}
+              />
+            </>
+          )}
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

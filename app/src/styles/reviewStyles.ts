@@ -2,34 +2,49 @@ import { StyleSheet } from 'react-native';
 import theme from './config';
 
 const styles = StyleSheet.create({
+  // Layout and Container Styles
   container: {
+    ...theme.common.container,
     flex: 1,
-    backgroundColor: theme.colors.background.paper,
+    maxWidth: 480,
+    width: '100%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
-  topBar: {
-    backgroundColor: theme.colors.background.paper,
-  },
-  titleBar: {
-    flexDirection: 'row',
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs + 4,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.grey[200],
-  },
-  title: {
-    fontSize: theme.typography.h4.fontSize,
-    fontWeight: theme.typography.h4.fontWeight,
-    marginLeft: 12,
-  },
-  backButton: {
-    padding: 8,
-    borderRadius: 8,
   },
   reviewContainer: {
     flex: 1,
     padding: 16,
   },
+
+  // Header Styles
+  topBar: {
+    backgroundColor: theme.colors.background.paper,
+    ...theme.shadows.apply({}, 'topBar'),
+    minHeight: theme.spacing.height.toolbar,
+  },
+  titleBar: {
+    ...theme.common.spaceBetween,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+  },
+  title: {
+    fontSize: theme.typography.h4.fontSize,
+    fontWeight: theme.typography.h4.fontWeight,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Rating Styles
   ratingContainer: {
     marginBottom: 24,
   },
@@ -47,6 +62,8 @@ const styles = StyleSheet.create({
   starButton: {
     marginHorizontal: 6,
   },
+
+  // Review Text Area Styles
   textAreaContainer: {
     borderWidth: 1,
     borderColor: '#E8E8E8',
@@ -65,8 +82,10 @@ const styles = StyleSheet.create({
     color: '#333',
     padding: 8,
   },
+
+  // Button Styles
   submitButton: {
-    backgroundColor: '#3a86ff',
+    backgroundColor: theme.colors.primary.main,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -81,18 +100,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   disabledButton: {
-    backgroundColor: '#B0C4DE',
+    backgroundColor: theme.colors.grey[300],
   },
   deleteButton: {
     padding: 8,
     borderRadius: 8,
-    marginLeft: 'auto',
+    // marginLeft: 'auto',
   },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+
+  // Status Styles
   loadingText: {
     fontSize: 16,
     color: theme.colors.grey[500],

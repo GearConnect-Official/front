@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { RouteProp } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -27,6 +27,7 @@ import tagService from '../services/tagService';
 import userService from '../services/userService';
 import EventDetailReview from '../components/EventDetailReview';
 import { ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type RootStackParamList = {
   EventDetail: { eventId: string };
@@ -143,139 +144,207 @@ const EventDetailScreen: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      const response = await fetch(API_URL_EVENTS + '/' + eventId);
+      // Main event data fetch
+      const response = await fetchWithRetry(
+        API_URL_EVENTS + '/' + eventId,
+        3, // number of retries
+        1000 // delay between retries in ms
+      );
+
       if (!response.ok) {
-        throw new Error(
-          `Failed to fetch events: ${response.status} ${response.statusText}`
-        );
-      }
-      const fetchedEvent: EventInterface = await response.json();
-      // Fetch event tags
-      try {
-        const fetchEventTags = await fetch(
-          API_URL_EVENTTAGS + '/event/' + eventId
-        );
-        if (!fetchEventTags.ok) {
-          throw new Error(
-            `Failed to fetch event tags: ${fetchEventTags.status} ${fetchEventTags.statusText}`
-          );
-        }
-        if (fetchEventTags.ok) {
-          const eventTags = await fetchEventTags.json();
-          if (Array.isArray(eventTags)) {
-            const tagPromises = eventTags.map(async (tag) => {
-              const tagResponse = await fetch(API_URL_TAGS + '/' + tag.tagId);
-              if (tagResponse.ok) {
-                return tagResponse.json();
-              }
-              return null;
-            });
-            const tags = await Promise.all(tagPromises);
-            fetchedEvent.tags = tags.filter((tag) => tag !== null);
-          }
-        }
-      } catch (tagError) {
-        console.error('Error fetching tags:', tagError);
-        console.log('No tags found for this event');
-      }
-      // Fetch event reviews
-      try {
-        const fetchEventReviews = await fetch(
-          API_URL_EVENTREVIEWS + '/event/' + eventId
-        );
-        if (fetchEventReviews.ok) {
-          const eventReviews = await fetchEventReviews.json();
-          if (Array.isArray(eventReviews)) {
-            const reviewPromises = eventReviews.map(async (review) => {
-              if (!review.userId) {
-                console.warn('Review missing userId:', review);
-                return { ...review, username: 'Unknown User' };
-              }
-
-              try {
-                const userResponse = await fetch(
-                  API_URL_USERS + '/' + review.userId
-                );
-                if (userResponse.ok) {
-                  const userData = await userResponse.json();
-                  // Check various possibilities for username
-                  const username =
-                    userData.username ||
-                    userData.name ||
-                    (userData.user ? userData.user.username : null) ||
-                    'Anonymous';
-
-                  // Access avatar from additionalData
-                  const avatarUrl =
-                    userData.additionalData?.avatar ||
-                    userData.avatar ||
-                    'https://via.placeholder.com/30';
-
-                  return {
-                    ...review,
-                    username: username,
-                    avatar: avatarUrl,
-                  };
-                } else {
-                  console.error(
-                    'Failed to fetch user:',
-                    userResponse.status,
-                    userResponse.statusText
-                  );
-                  return { ...review, username: 'User #' + review.userId };
-                }
-              } catch (userError) {
-                console.error('Error fetching user data:', userError);
-                return { ...review, username: 'Unknown User' };
-              }
-            });
-
-            const reviewsWithUsernames = await Promise.all(reviewPromises);
-            fetchedEvent.reviews = reviewsWithUsernames.filter(
-              (review) => review !== null
-            );
-          } else {
-            console.warn('Event reviews is not an array:', eventReviews);
-            fetchedEvent.reviews = [];
-          }
+        if (response.status === 404) {
+          throw new Error('Event not found. It may have been removed.');
         } else {
-          console.error(
-            'Failed to fetch reviews:',
-            fetchEventReviews.status,
-            fetchEventReviews.statusText
+          throw new Error(
+            `Server error: ${response.status} ${response.statusText}`
           );
-          fetchedEvent.reviews = [];
         }
-      } catch (reviewError) {
-        console.error('Error fetching reviews:', reviewError);
-        fetchedEvent.reviews = [];
       }
-      // Fetch related products
-      try {
-        const fetchRelatedProducts = await fetch(
-          API_URL_RELATEDPRODUCTS + '/event/' + eventId
-        );
-        if (fetchRelatedProducts.ok) {
-          const relatedProducts = await fetchRelatedProducts.json();
-          fetchedEvent.relatedProducts = relatedProducts;
-        }
-      } catch (productError) {
-        console.error('Error fetching related products:', productError);
+
+      const fetchedEvent: EventInterface = await response.json();
+
+      // Process additional data with graceful degradation
+      const enhancedEvent = await Promise.all([
+        enhanceEventWithTags(fetchedEvent),
+        enhanceEventWithReviews(fetchedEvent),
+        enhanceEventWithProducts(fetchedEvent),
+      ]).then(() => fetchedEvent);
+
+      // User-specific checks
+      await checkIfReviewCreator(enhancedEvent);
+      await checkIfCreator(enhancedEvent);
+      if (enhancedEvent.reviews && enhancedEvent.reviews.length > 0) {
+        checkIfUserHasReviewed(enhancedEvent.reviews);
       }
-      await checkIfReviewCreator(fetchedEvent);
-      await checkIfCreator(fetchedEvent); // Add this line
-      if (fetchedEvent.reviews && fetchedEvent.reviews.length > 0) {
-        checkIfUserHasReviewed(fetchedEvent.reviews);
-      }
-      setEvent(fetchedEvent);
-      setError(null);
-    } catch (error) {
+
+      setEvent(enhancedEvent);
+    } catch (error: any) {
       console.error('Error in fetchData:', error);
+
+      // Provide user-friendly error messages based on error type
+      if (error.message?.includes('Network request failed')) {
+        setError(
+          'Network connection error. Please check your internet connection.'
+        );
+      } else if (error.message?.includes('Event not found')) {
+        setError(error.message);
+      } else if (error.message?.includes('Server error')) {
+        setError('Server error occurred. Please try again later.');
+      } else {
+        setError('Failed to fetch event data. Please try again.');
+      }
+
       setEvent(null);
-      setError('Failed to fetch event data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper functions for retry logic and graceful degradation
+  const fetchWithRetry = async (
+    url: string,
+    retriesLeft: number,
+    delay: number
+  ): Promise<Response> => {
+    try {
+      const response = await fetch(url);
+      return response;
+    } catch (error) {
+      if (retriesLeft <= 0) throw error;
+
+      // Wait before retrying
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return fetchWithRetry(url, retriesLeft - 1, delay);
+    }
+  };
+
+  const enhanceEventWithTags = async (
+    eventData: EventInterface
+  ): Promise<void> => {
+    try {
+      const fetchEventTags = await fetch(
+        API_URL_EVENTTAGS + '/event/' + eventData.id
+      );
+      if (!fetchEventTags.ok) {
+        console.warn(`Could not fetch tags: ${fetchEventTags.status}`);
+        eventData.tags = [];
+        return;
+      }
+
+      const eventTags = await fetchEventTags.json();
+      if (!Array.isArray(eventTags)) {
+        console.warn('Event tags response is not an array');
+        eventData.tags = [];
+        return;
+      }
+
+      const tagPromises = eventTags.map(async (tag) => {
+        try {
+          const tagResponse = await fetch(API_URL_TAGS + '/' + tag.tagId);
+          if (tagResponse.ok) {
+            return tagResponse.json();
+          }
+          return null;
+        } catch (tagError) {
+          console.warn(`Failed to fetch tag ${tag.tagId}`, tagError);
+          return null;
+        }
+      });
+
+      const tags = await Promise.all(tagPromises);
+      eventData.tags = tags.filter((tag) => tag !== null);
+    } catch (error) {
+      console.error('Error processing tags:', error);
+      eventData.tags = [];
+    }
+  };
+
+  const enhanceEventWithReviews = async (
+    eventData: EventInterface
+  ): Promise<void> => {
+    try {
+      const fetchEventReviews = await fetch(
+        API_URL_EVENTREVIEWS + '/event/' + eventData.id
+      );
+      if (!fetchEventReviews.ok) {
+        console.warn(`Could not fetch reviews: ${fetchEventReviews.status}`);
+        eventData.reviews = [];
+        return;
+      }
+
+      const eventReviews = await fetchEventReviews.json();
+      if (!Array.isArray(eventReviews)) {
+        console.warn('Event reviews response is not an array');
+        eventData.reviews = [];
+        return;
+      }
+
+      const reviewPromises = eventReviews.map(async (review) => {
+        if (!review.userId) {
+          return { ...review, username: 'Unknown User' };
+        }
+
+        try {
+          const userResponse = await fetch(API_URL_USERS + '/' + review.userId);
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+
+            const username =
+              userData.username ||
+              userData.name ||
+              (userData.user ? userData.user.username : null) ||
+              'Anonymous';
+
+            const avatarUrl =
+              userData.additionalData?.avatar ||
+              userData.avatar ||
+              'https://via.placeholder.com/30';
+
+            return { ...review, username: username, avatar: avatarUrl };
+          } else {
+            return { ...review, username: 'User #' + review.userId };
+          }
+        } catch (userError) {
+          console.warn(`Failed to fetch user ${review.userId}`, userError);
+          return { ...review, username: 'Unknown User' };
+        }
+      });
+
+      const reviewsWithUsernames = await Promise.all(reviewPromises);
+      eventData.reviews = reviewsWithUsernames.filter(
+        (review) => review !== null
+      );
+    } catch (error) {
+      console.error('Error processing reviews:', error);
+      eventData.reviews = [];
+    }
+  };
+
+  const enhanceEventWithProducts = async (
+    eventData: EventInterface
+  ): Promise<void> => {
+    try {
+      const fetchRelatedProducts = await fetch(
+        API_URL_RELATEDPRODUCTS + '/event/' + eventData.id
+      );
+      if (!fetchRelatedProducts.ok) {
+        console.warn(
+          `Could not fetch related products: ${fetchRelatedProducts.status}`
+        );
+        eventData.relatedProducts = [];
+        return;
+      }
+
+      const relatedProducts = await fetchRelatedProducts.json();
+      eventData.relatedProducts = Array.isArray(relatedProducts)
+        ? relatedProducts
+        : [];
+    } catch (error) {
+      console.error('Error processing related products:', error);
+      eventData.relatedProducts = [];
     }
   };
 
@@ -349,64 +418,83 @@ const EventDetailScreen: React.FC = () => {
     }
 
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="black" />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.topBar}>
+          <View style={styles.topBarContent}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <FontAwesome name="arrow-left" size={24} color="#1E232C" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Event Details</Text>
+            {isCreator ? (
+              <TouchableOpacity
+                style={styles.reviewButton}
+                onPress={() => router.push({
+                  pathname: '/(app)/modifyEvent',
+                  params: { eventId }
+                })}
+              >
+                <Text style={styles.reviewText}>Modify</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.reviewButton}
+                onPress={handleReviewPress}
+              >
+                <Text style={styles.reviewText}>
+                  {userReview ? 'Edit Review' : 'Review'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
-          {!isCreator && (
-            <TouchableOpacity
-              style={styles.reviewButton}
-              onPress={handleReviewPress}
-            >
-              <Text style={styles.reviewText}>
-                {userReview ? 'Edit Review' : 'Review'}
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
-        <View style={styles.eventInfo}>
-          <Text style={styles.eventTitle}>{event.name || 'Unnamed Event'}</Text>
-          {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
-        </View>
-        <View style={styles.descriptionContainer}>
-          {/* {event?.images?.[0] ? (
+
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.eventInfo}>
+            <Text style={styles.eventTitle}>
+              {event.name || 'Unnamed Event'}
+            </Text>
+            {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
+          </View>
+          <View style={styles.descriptionContainer}>
+            {/* {event?.images?.[0] ? (
             <Image
                source={{ uri: event.images[0] }}
                style={styles.eventImage}
              />
            ) : (
              <View style={styles.placeholderImage}>
-               <Text>No Image Available</Text>
+             <Text>No Image Available</Text>
              </View>
-           )} */}
-          <View style={styles.aboutContainer}>
-            <Text style={styles.aboutTitle}>About</Text>
-            <View style={styles.tagContainer}>
-              {event?.tags && event.tags.length > 0 ? (
-                event.tags.map((tag, index) => (
-                  <Text
-                    key={`tag-${index}-${
-                      typeof tag === 'object' ? tag.id : tag
-                    }`}
-                    style={styles.tag}
-                  >
-                    {typeof tag === 'object' && tag !== null ? tag.name : tag}
-                  </Text>
-                ))
-              ) : (
-                <Text style={styles.noTagsText}>No tags available</Text>
-              )}
+             )} */}
+            <View style={styles.aboutContainer}>
+              <Text style={styles.aboutTitle}>About</Text>
+              <View style={styles.tagContainer}>
+                {event?.tags && event.tags.length > 0 ? (
+                  event.tags.map((tag, index) => (
+                    <Text
+                      key={`tag-${index}-${
+                        typeof tag === 'object' ? tag.id : tag
+                      }`}
+                      style={styles.tag}
+                    >
+                      {typeof tag === 'object' && tag !== null ? tag.name : tag}
+                    </Text>
+                  ))
+                ) : (
+                  <Text style={styles.noTagsText}>No tags available</Text>
+                )}
+              </View>
+              <Text style={styles.description}>
+                {event.description ||
+                  'No description available for this event.'}
+              </Text>
             </View>
-            <Text style={styles.description}>
-              {event.description || 'No description available for this event.'}
-            </Text>
           </View>
-        </View>
-        {/* 
+
+          {/* 
          <Text style={styles.sectionTitle}>Best of Images</Text>
          {event.images[0] ? (
           <Image
@@ -419,75 +507,76 @@ const EventDetailScreen: React.FC = () => {
           </View>
         )}
         */}
-        <Text style={styles.sectionTitle}>Event Details</Text>
-        <View style={styles.detailRow}>
-          <Ionicons name="location-outline" size={20} color="gray" />
-          <Text style={styles.detailText}>
-            {event.location && event.location.trim()
-              ? event.location
-              : 'No location available'}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="calendar-outline" size={20} color="gray" />
-          <Text style={styles.detailText}>{formatDate(event.date)}</Text>
-          <Ionicons
-            name="cloud-outline"
-            size={20}
-            color="gray"
-            style={{ marginLeft: 10 }}
-          />
-          <Text style={styles.detailText}>{getWeatherInfo()}</Text>
-        </View>
-        <Text style={styles.sectionTitle}>Related Products</Text>
-        {event.relatedProducts && event.relatedProducts.length > 0 ? (
-          <FlatList
-            horizontal
-            data={event.relatedProducts}
-            keyExtractor={(item) => `product-${item.id}`}
-            renderItem={({ item }) => (
-              <View style={styles.productCard}>
-                <Image
-                  source={require('../../assets/images/Google-logo.png')}
-                  style={styles.productImage}
-                />
-                <Text style={styles.productTitle}>
-                  {item.name || 'Unnamed Product'}
-                </Text>
-                <Text style={styles.productPrice}>
-                  Price:{' '}
-                  {item.price !== undefined && item.price !== null
-                    ? `${item.price}€`
-                    : 'Not available'}
-                </Text>
-              </View>
-            )}
-          />
-        ) : (
-          <View style={styles.noProductsContainer}>
-            <Text style={styles.noProductsText}>
-              No related products available
+          <Text style={styles.sectionTitle}>Event Details</Text>
+          <View style={styles.detailRow}>
+            <Ionicons name="location-outline" size={20} color="gray" />
+            <Text style={styles.detailText}>
+              {event.location && event.location.trim()
+                ? event.location
+                : 'No location available'}
             </Text>
           </View>
-        )}
-        <EventDetailReview
-          eventId={eventId}
-          reviews={event.reviews || []}
-          userReview={userReview}
-          user={user}
-          isCreator={isCreator}
-        />
-        {/* Buttons */}
-        <TouchableOpacity style={styles.shareButton}>
-          <Text style={styles.shareText}>Share</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.addCalendarButton}>
-          <Text style={styles.addCalendarText}>Add to Calendar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.buyButton}>
-          <Text style={styles.buyButtonText}>Buy a Ticket</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <View style={styles.detailRow}>
+            <Ionicons name="calendar-outline" size={20} color="gray" />
+            <Text style={styles.detailText}>{formatDate(event.date)}</Text>
+            <Ionicons
+              name="cloud-outline"
+              size={20}
+              color="gray"
+              style={{ marginLeft: 10 }}
+            />
+            <Text style={styles.detailText}>{getWeatherInfo()}</Text>
+          </View>
+          <Text style={styles.sectionTitle}>Related Products</Text>
+          {event.relatedProducts && event.relatedProducts.length > 0 ? (
+            <FlatList
+              horizontal
+              data={event.relatedProducts}
+              keyExtractor={(item) => `product-${item.id}`}
+              renderItem={({ item }) => (
+                <View style={styles.productCard}>
+                  <Image
+                    source={require('../../assets/images/Google-logo.png')}
+                    style={styles.productImage}
+                  />
+                  <Text style={styles.productTitle}>
+                    {item.name || 'Unnamed Product'}
+                  </Text>
+                  <Text style={styles.productPrice}>
+                    Price:{' '}
+                    {item.price !== undefined && item.price !== null
+                      ? `${item.price}€`
+                      : 'Not available'}
+                  </Text>
+                </View>
+              )}
+            />
+          ) : (
+            <View style={styles.noProductsContainer}>
+              <Text style={styles.noProductsText}>
+                No related products available
+              </Text>
+            </View>
+          )}
+          <EventDetailReview
+            eventId={eventId}
+            reviews={event.reviews || []}
+            userReview={userReview}
+            user={user}
+            isCreator={isCreator}
+          />
+          {/* Buttons */}
+          <TouchableOpacity style={styles.shareButton}>
+            <Text style={styles.shareText}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addCalendarButton}>
+            <Text style={styles.addCalendarText}>Add to Calendar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.buyButton}>
+            <Text style={styles.buyButtonText}>Buy a Ticket</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 

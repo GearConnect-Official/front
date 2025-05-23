@@ -2,48 +2,79 @@ import { StyleSheet } from 'react-native';
 import theme from './config/theme';
 
 export const styles = StyleSheet.create({
+  // Layout containers
   container: {
     ...theme.common.container,
-    padding: theme.spacing.md,
+    flex: 1,
+    maxWidth: 480,
+    width: '100%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
-  header: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    paddingBottom: theme.spacing.sm,
-    marginBottom: theme.spacing.sm,
-    justifyContent: 'space-between',
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
+  scrollView: {
+    flex: 1,
+    margin: theme.spacing.sm,
+  },
+
+  // Top navigation
+  topBar: {
+    backgroundColor: theme.colors.background.paper,
+    ...theme.shadows.apply({}, 'topBar'),
+    minHeight: theme.spacing.height.toolbar,
+  },
+  topBarContent: {
+    ...theme.common.spaceBetween,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  // Event header and info
   eventInfo: {
     flex: 1,
     ...theme.common.spaceBetween,
     marginBottom: theme.spacing.sm,
   },
   headerTitle: {
-    fontSize: theme.typography.h2.fontSize,
-    fontWeight: theme.typography.h2.fontWeight,
-    marginLeft: theme.spacing.sm,
-  },
-  reviewButton: {
-    backgroundColor: theme.colors.primary.main,
-    padding: theme.spacing.sm,
-    ...theme.borders.apply({}, { preset: 'button' }),
-  },
-  reviewText: { color: theme.colors.common.white },
-  editButton: {
-    backgroundColor: theme.colors.common.black,
-    padding: theme.spacing.sm,
-    ...theme.borders.apply({}, { preset: 'button' }),
+    ...theme.typography.h4,
+    color: theme.colors.text.primary,
   },
   eventTitle: {
     fontSize: theme.typography.h2.fontSize,
     fontWeight: theme.typography.h2.fontWeight,
   },
-  eventCategory: { color: theme.colors.text.secondary },
-  descriptionContainer: {
-    ...theme.common.row,
-    marginBottom: theme.spacing.sm,
+  eventCategory: { 
+    color: theme.colors.text.secondary 
+  },
+  sectionTitle: {
+    fontSize: theme.typography.h3.fontSize,
+    fontWeight: theme.typography.h3.fontWeight,
+    marginVertical: theme.spacing.sm,
+  },
+  
+  // Images
+  mainEventImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: theme.borders.radius.md,
+  },
+  placeholderMainImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: theme.borders.radius.md,
+    ...theme.common.centerContent,
+    backgroundColor: theme.colors.grey[200],
   },
   eventImage: {
     width: 50,
@@ -59,8 +90,30 @@ export const styles = StyleSheet.create({
     ...theme.common.centerContent,
     backgroundColor: theme.colors.grey[200],
   },
-  aboutContainer: { flex: 1 },
-  aboutTitle: { fontWeight: theme.typography.h3.fontWeight },
+  
+  // Description section
+  descriptionContainer: {
+    ...theme.common.row,
+    marginBottom: theme.spacing.sm,
+  },
+  aboutContainer: { 
+    flex: 1 
+  },
+  aboutTitle: { 
+    fontWeight: theme.typography.h3.fontWeight 
+  },
+  description: { 
+    marginTop: theme.spacing.xs 
+  },
+  detailRow: {
+    ...theme.common.row,
+    marginVertical: theme.spacing.xs,
+  },
+  detailText: { 
+    marginLeft: theme.spacing.xs 
+  },
+  
+  // Tags
   tagContainer: {
     ...theme.common.row,
     marginTop: theme.spacing.xs,
@@ -71,42 +124,67 @@ export const styles = StyleSheet.create({
     ...theme.borders.apply({}, { radius: theme.borders.radius.sm }),
     marginRight: theme.spacing.xs,
   },
-  description: { marginTop: theme.spacing.xs },
-  sectionTitle: {
-    fontSize: theme.typography.h3.fontSize,
-    fontWeight: theme.typography.h3.fontWeight,
-    marginVertical: theme.spacing.sm,
+  noTagsText: {
+    fontSize: theme.typography.body1.fontSize,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    padding: theme.spacing.sm,
   },
-  mainEventImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: theme.borders.radius.md,
-  },
-  placeholderMainImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: theme.borders.radius.md,
-    ...theme.common.centerContent,
-    backgroundColor: theme.colors.grey[200],
-  },
-  detailRow: {
-    ...theme.common.row,
-    marginVertical: theme.spacing.xs,
-  },
-  detailText: { marginLeft: theme.spacing.xs },
+  
+  // Products
   productCard: {
     padding: theme.spacing.sm,
     marginRight: theme.spacing.sm,
     ...theme.borders.apply({}, { preset: 'card' }),
   },
-  productImage: { width: 80, height: 80 },
-  productTitle: { fontWeight: theme.typography.body1.fontWeight },
+  productImage: { 
+    width: 80, 
+    height: 80 
+  },
+  productTitle: { 
+    fontWeight: theme.typography.body1.fontWeight 
+  },
   productTag: {
     backgroundColor: theme.colors.common.black,
     color: theme.colors.common.white,
     padding: theme.spacing.xs,
   },
-  productPrice: { marginTop: theme.spacing.xs },
+  productPrice: { 
+    marginTop: theme.spacing.xs 
+  },
+  noProductsContainer: {
+    padding: theme.spacing.sm,
+    ...theme.borders.apply(
+      {},
+      {
+        width: 5,
+        color: theme.colors.border.light,
+        radius: theme.borders.radius.sm,
+      }
+    ),
+    backgroundColor: theme.colors.grey[50],
+    marginTop: theme.spacing.xs,
+  },
+  noProductsText: {
+    fontSize: theme.typography.body1.fontSize,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    padding: theme.spacing.sm,
+  },
+  
+  // Reviews
+  reviewSection: {
+    ...theme.common.spaceBetween,
+    marginBottom: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  reviewCard: {
+    padding: theme.spacing.xs,
+    ...theme.borders.apply({}, { preset: 'card' }),
+    marginRight: theme.spacing.xs,
+    width: 220,
+    height: 150,
+  },
   reviewHeader: {
     ...theme.common.row,
     marginBottom: theme.spacing.sm,
@@ -122,24 +200,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     marginLeft: theme.spacing.sm,
   },
-  starContainer: {
-    ...theme.common.row,
-    marginTop: 2,
-  },
-  shareButton: {
-    backgroundColor: theme.colors.grey[200],
-    padding: theme.spacing.md,
-    ...theme.borders.apply({}, { radius: theme.borders.radius.md }),
-    alignItems: 'center',
-    marginTop: theme.spacing.sm,
-  },
-  reviewCard: {
-    padding: theme.spacing.xs,
-    ...theme.borders.apply({}, { preset: 'card' }),
-    marginRight: theme.spacing.xs,
-    width: 220,
-    height: 150,
-  },
   reviewAvatar: {
     width: 30,
     height: 30,
@@ -147,6 +207,10 @@ export const styles = StyleSheet.create({
   },
   reviewDescription: {
     fontSize: theme.typography.body2.fontSize,
+  },
+  starContainer: {
+    ...theme.common.row,
+    marginTop: 2,
   },
   showMoreButton: {
     marginTop: theme.spacing.xs,
@@ -157,10 +221,56 @@ export const styles = StyleSheet.create({
     fontSize: theme.typography.button.fontSize,
     fontWeight: theme.typography.button.fontWeight,
   },
-  reviewSection: {
-    ...theme.common.spaceBetween,
-    marginBottom: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.xs,
+  noReviewsContainer: {
+    padding: theme.spacing.sm,
+    ...theme.borders.apply(
+      {},
+      {
+        width: 5,
+        color: theme.colors.border.light,
+        radius: theme.borders.radius.sm,
+      }
+    ),
+    backgroundColor: theme.colors.grey[50],
+    marginTop: theme.spacing.xs,
+  },
+  noReviewsText: {
+    fontSize: theme.typography.body1.fontSize,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    padding: theme.spacing.sm,
+  },
+  
+  // Buttons
+  reviewButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  reviewText: { 
+    color: theme.colors.common.white 
+  },
+  editButton: {
+    backgroundColor: theme.colors.common.black,
+    padding: theme.spacing.sm,
+    ...theme.borders.apply({}, { preset: 'button' }),
+  },
+  createReviewButton: {
+    backgroundColor: theme.colors.primary.main,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  createReviewButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
   },
   buyButton: {
     backgroundColor: theme.colors.secondary.main,
@@ -185,9 +295,18 @@ export const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     fontWeight: theme.typography.button.fontWeight,
   },
+  shareButton: {
+    backgroundColor: theme.colors.grey[200],
+    padding: theme.spacing.md,
+    ...theme.borders.apply({}, { radius: theme.borders.radius.md }),
+    alignItems: 'center',
+    marginTop: theme.spacing.sm,
+  },
   shareText: {
     color: theme.colors.text.primary,
   },
+  
+  // Status messages
   errorText: {
     fontSize: theme.typography.error.fontSize,
     color: theme.colors.status.error,
@@ -197,53 +316,10 @@ export const styles = StyleSheet.create({
     color: theme.colors.status.info,
     marginTop: theme.spacing.sm,
   },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   loadingText: {
     fontSize: 16,
     color: theme.colors.grey[500],
     marginTop: 10,
-  },
-  noProductsContainer: {
-    padding: theme.spacing.sm,
-    ...theme.borders.apply(
-      {},
-      {
-        width: 5,
-        color: theme.colors.border.light,
-        radius: theme.borders.radius.sm,
-      }
-    ),
-    backgroundColor: theme.colors.grey[50],
-    marginTop: theme.spacing.xs,
-  },
-  noProductsText: {
-    fontSize: theme.typography.body1.fontSize,
-    color: theme.colors.text.secondary,
-    textAlign: 'center',
-    padding: theme.spacing.sm,
-  },
-  noReviewsContainer: {
-    padding: theme.spacing.sm,
-    ...theme.borders.apply(
-      {},
-      {
-        width: 5,
-        color: theme.colors.border.light,
-        radius: theme.borders.radius.sm,
-      }
-    ),
-    backgroundColor: theme.colors.grey[50],
-    marginTop: theme.spacing.xs,
-  },
-  noReviewsText: {
-    fontSize: theme.typography.body1.fontSize,
-    color: theme.colors.text.secondary,
-    textAlign: 'center',
-    padding: theme.spacing.sm,
   },
 });
 

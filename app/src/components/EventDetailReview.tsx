@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import styles from '../styles/eventDetailStyles';
 import { EventInterface } from '../services/EventInterface';
 
@@ -82,21 +83,46 @@ const EventDetailReview: React.FC<EventDetailReviewProps> = ({
   reviews,
   userReview,
   user,
-  isCreator
+  isCreator,
 }) => {
   const hasReviews = reviews && reviews.length > 0;
   
+  function handleReviewPress(): void {
+    if (userReview) {
+      if (user?.id !== undefined && user?.id !== null) {
+        const userId = Number(user.id);
+        router.push({
+          pathname: '/(app)/modifyEventReview',
+          params: { eventId, userId },
+        });
+      }
+    } else {
+      router.push({
+        pathname: '/(app)/createEventReview',
+        params: { eventId },
+      });
+    }
+  }
+
   return (
     <View>
       <Text style={styles.sectionTitle}>Reviews</Text>
-      
+
       {!hasReviews ? (
         <View style={styles.noReviewsContainer}>
           <Text style={styles.noReviewsText}>
-            {isCreator 
-              ? "No users have reviewed your event yet." 
-              : "No reviews yet. Be the first to leave a review!"}
+            {isCreator
+              ? 'No users have reviewed your event yet.'
+              : 'No reviews yet. Be the first to leave a review!'}
           </Text>
+          {!isCreator && (
+            <TouchableOpacity
+              style={styles.createReviewButton}
+              onPress={handleReviewPress}
+            >
+              <Text style={styles.createReviewButtonText}>Write a Review</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <FlatList
@@ -106,7 +132,9 @@ const EventDetailReview: React.FC<EventDetailReviewProps> = ({
           renderItem={({ item }) => (
             <ReviewItem
               item={item}
-              isCurrentUserReview={userReview !== null && item.userId === userReview.userId}
+              isCurrentUserReview={
+                userReview !== null && item.userId === userReview.userId
+              }
             />
           )}
         />

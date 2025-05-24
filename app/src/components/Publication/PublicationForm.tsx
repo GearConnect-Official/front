@@ -282,12 +282,12 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                     </View>
                   </ScrollView>
                 </View>
-              ) : tags.length === 0 && tagInput.length === 0 ? (
+              ) : !tagInput.trim() ? (
                 <View style={localStyles.suggestionsContainer}>
                   <Text style={localStyles.suggestionsTitle}>Popular tags:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={localStyles.suggestionsList}>
-                      {SUGGESTED_TAGS.slice(0, 8).map((tag, index) => (
+                      {SUGGESTED_TAGS.filter(tag => !tags.includes(tag)).slice(0, 8).map((tag, index) => (
                         <TouchableOpacity
                           key={index}
                           style={localStyles.suggestionTag}

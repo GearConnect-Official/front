@@ -432,16 +432,16 @@ const HomeScreen: React.FC = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyStateContainer}>
       <FontAwesome name="camera" size={60} color="#CCCCCC" />
-      <Text style={styles.emptyStateTitle}>Aucun post pour le moment</Text>
+      <Text style={styles.emptyStateTitle}>No posts yet</Text>
       <Text style={styles.emptyStateDescription}>
-        Soyez le premier à partager votre passion pour les voitures !
+        Be the first to share your passion for cars!
       </Text>
       <TouchableOpacity 
         style={styles.createPostButton}
-        onPress={() => setIsStoryModalVisible(true)}
+        onPress={() => router.push('/publication')}
       >
         <FontAwesome name="plus" size={16} color="#FFFFFF" style={styles.createPostIcon} />
-        <Text style={styles.createPostText}>Créer mon premier post</Text>
+        <Text style={styles.createPostText}>Create my first post</Text>
       </TouchableOpacity>
     </View>
   );
@@ -487,25 +487,10 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Header */}
-      <Animated.View
-        style={[
-          styles.header,
-          {
-            transform: [
-              {
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 50],
-                  outputRange: [0, -50],
-                  extrapolate: "clamp",
-                }),
-              },
-            ],
-          },
-        ]}
-      >
+      <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.appTitle}>GearConnect</Text>
         </View>
@@ -517,7 +502,7 @@ const HomeScreen: React.FC = () => {
             <FontAwesome name="plus-square-o" size={26} color="#000" />
           </TouchableOpacity>
         </View>
-      </Animated.View>
+      </View>
 
       {/* Main Content */}
       <AnimatedFlatList

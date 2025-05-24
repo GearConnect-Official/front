@@ -82,6 +82,13 @@ const styles = StyleSheet.create({
     color: '#333',
     padding: 8,
   },
+  characterCounter: {
+    textAlign: 'right',
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
+    marginRight: 10,
+  },
 
   // Button Styles
   submitButton: {

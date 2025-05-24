@@ -44,6 +44,7 @@ const ModifyReviewScreen: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reviewData, setReviewData] = useState<any>(null);
+  const maxReviewLength = 190;
 
   useEffect(() => {
     const fetchReviewData = async () => {
@@ -72,7 +73,11 @@ const ModifyReviewScreen: React.FC = () => {
       setSubmitting(false);
       return;
     }
-
+    if (reviewText.length > maxReviewLength) {
+      setError(`Review text cannot exceed ${maxReviewLength} characters.`);
+      setLoading(false);
+      return;
+    }
     if (!rating) {
       setError('Please select a rating.');
       setSubmitting(false);
@@ -173,14 +178,18 @@ const ModifyReviewScreen: React.FC = () => {
           <View style={styles.textAreaContainer}>
             <TextInput
               style={styles.textArea}
-              placeholder="Write your review here..."
+              placeholder={`Write your review here... (max ${maxReviewLength} characters)`}
               placeholderTextColor="#A0A0A0"
               multiline={true}
               value={reviewText}
               onChangeText={setReviewText}
               numberOfLines={5}
               textAlignVertical="top"
+              maxLength={maxReviewLength}
             />
+            <Text style={styles.characterCounter}>
+              {reviewText.length}/{maxReviewLength}
+            </Text>
           </View>
 
           {error && <Text style={styles.errorText}>{error}</Text>}

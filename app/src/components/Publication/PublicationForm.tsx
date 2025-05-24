@@ -33,7 +33,7 @@ const SUGGESTED_TAGS = [
 ];
 
 // Character limit
-const MAX_DESCRIPTION_LENGTH = 500;
+const MAX_DESCRIPTION_LENGTH = 2200;
 
 interface PublicationFormProps {
   imageUri: string;
@@ -209,11 +209,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 placeholder="Write your description"
                 placeholderTextColor={THEME_COLORS.textSecondary}
                 value={description}
-                onChangeText={text => {
-                  if (text.length <= MAX_DESCRIPTION_LENGTH) {
-                    setDescription(text);
-                  }
-                }}
+                onChangeText={text => setDescription(text.slice(0, MAX_DESCRIPTION_LENGTH))}
                 multiline
                 editable={!isLoading}
               />

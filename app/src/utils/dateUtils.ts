@@ -40,4 +40,10 @@ export const formatPostDate = (date: Date | string): string => {
 export const isPostFromToday = (date: Date | string): boolean => {
   const postDate = typeof date === 'string' ? new Date(date) : date;
   return isToday(postDate);
+};
+
+// Exportation par défaut de toutes les fonctions
+export default {
+  formatPostDate,
+  isPostFromToday
 }; 

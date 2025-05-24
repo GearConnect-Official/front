@@ -58,6 +58,7 @@ interface UIPost {
   comments: Comment[];
   timeAgo: string;
   isFromToday: boolean;
+  tags: string[];
 }
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -87,7 +88,8 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
       likes: 0
     })) || [],
     timeAgo: timeAgo,
-    isFromToday: isPostFromToday(apiPost.createdAt || new Date())
+    isFromToday: isPostFromToday(apiPost.createdAt || new Date()),
+    tags: apiPost.tags?.map(tag => tag.name) || []
   };
 };
 

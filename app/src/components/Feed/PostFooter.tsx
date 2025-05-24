@@ -1,38 +1,66 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import styles from "../../styles/feed/postFooterStyles";
 
 interface PostFooterProps {
   username: string;
-  caption: string;
+  title: string;
+  description: string;
   likes: number;
   commentsCount: number;
   timeAgo: string;
+  tags?: string[];
   onViewComments: () => void;
   onProfilePress: () => void;
 }
 
+const MAX_DESCRIPTION_LINES = 3;
+
 const PostFooter: React.FC<PostFooterProps> = ({
   username,
-  caption,
+  title,
+  description,
   likes,
   commentsCount,
   timeAgo,
+  tags = [],
   onViewComments,
   onProfilePress,
 }) => {
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
   return (
     <View style={styles.container}>
+      <View style={styles.separator} />
       <Text style={styles.likesCount}>{likes} likes</Text>
 
       <View style={styles.captionContainer}>
-        <Text style={styles.caption}>
-          <Text style={styles.usernameText} onPress={onProfilePress}>
-            {username}
-          </Text>{" "}
-          {caption}
+        <Text style={styles.title}>{title}</Text>
+        <Text
+          style={styles.description}
+          numberOfLines={showFullDescription ? undefined : MAX_DESCRIPTION_LINES}
+        >
+          {description}
         </Text>
+        {description.length > 120 && !showFullDescription && (
+          <TouchableOpacity onPress={() => setShowFullDescription(true)}>
+            <Text style={styles.seeMore}>Voir plus</Text>
+          </TouchableOpacity>
+        )}
+        {description.length > 120 && showFullDescription && (
+          <TouchableOpacity onPress={() => setShowFullDescription(false)}>
+            <Text style={styles.seeMore}>Voir moins</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {tags.length > 0 && (
+        <View style={styles.tagsContainer}>
+          {tags.map((tag, index) => (
+            <Text key={index} style={styles.tagText}>#{tag}</Text>
+          ))}
+        </View>
+      )}
 
       {commentsCount > 0 && (
         <TouchableOpacity

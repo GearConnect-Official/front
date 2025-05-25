@@ -177,7 +177,8 @@ export const styles = StyleSheet.create({
     ...theme.common.spaceBetween,
     marginBottom: theme.spacing.sm,
     paddingHorizontal: theme.spacing.xs,
-  },  reviewCard: {
+  },
+  reviewCard: {
     padding: theme.spacing.xs,
     ...theme.borders.apply({}, { preset: 'card' }),
     marginRight: theme.spacing.xs,
@@ -203,7 +204,8 @@ export const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-  },  reviewDescription: {
+  },
+  reviewDescription: {
     fontSize: theme.typography.body2.fontSize,
     flexGrow: 1,
   },

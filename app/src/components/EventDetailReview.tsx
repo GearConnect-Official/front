@@ -31,10 +31,23 @@ const ReviewItem: React.FC<{
   isCurrentUserReview?: boolean;
 }> = ({ item, isCurrentUserReview = false }) => {
   const [showFullText, setShowFullText] = useState(false);
-  const isTextLong = item.description?.length > 200;
+  const textLimit = 100; // Reduced from 200 to 100 for more compact display
+  const description = item.description || '';
+  const isTextLong = description.length > textLimit;
+  
+  const displayText = showFullText 
+    ? description 
+    : isTextLong 
+    ? `${description.substring(0, textLimit).trim()}...` 
+    : description;
+    
+  // Dynamic card style to expand height when text is expanded
+  const cardStyle = showFullText 
+    ? [styles.reviewCard, { minHeight: 150, maxHeight: 300 }] 
+    : styles.reviewCard;
 
   return (
-    <View style={styles.reviewCard}>
+    <View style={cardStyle}>
       <View style={styles.reviewHeader}>
         <Image
           source={
@@ -50,11 +63,7 @@ const ReviewItem: React.FC<{
         </View>
       </View>
       <Text style={styles.reviewDescription}>
-        {showFullText
-          ? item.description
-          : isTextLong
-          ? item.description.substring(0, 200) + '...'
-          : item.description}
+        {displayText}
       </Text>
       {isTextLong && (
         <TouchableOpacity

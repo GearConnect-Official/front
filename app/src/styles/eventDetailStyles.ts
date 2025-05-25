@@ -177,13 +177,12 @@ export const styles = StyleSheet.create({
     ...theme.common.spaceBetween,
     marginBottom: theme.spacing.sm,
     paddingHorizontal: theme.spacing.xs,
-  },
-  reviewCard: {
+  },  reviewCard: {
     padding: theme.spacing.xs,
     ...theme.borders.apply({}, { preset: 'card' }),
     marginRight: theme.spacing.xs,
     width: 220,
-    height: 150,
+    minHeight: 150,
   },
   reviewHeader: {
     ...theme.common.row,
@@ -204,9 +203,9 @@ export const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-  },
-  reviewDescription: {
+  },  reviewDescription: {
     fontSize: theme.typography.body2.fontSize,
+    flexGrow: 1,
   },
   starContainer: {
     ...theme.common.row,

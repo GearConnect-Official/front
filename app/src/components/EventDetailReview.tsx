@@ -31,20 +31,24 @@ const ReviewItem: React.FC<{
   isCurrentUserReview?: boolean;
 }> = ({ item, isCurrentUserReview = false }) => {
   const [showFullText, setShowFullText] = useState(false);
-  const textLimit = 100; // Reduced from 200 to 100 for more compact display
+  const [textExceedsLimit, setTextExceedsLimit] = useState(false);
+  const maxLines = 3;
   const description = item.description || '';
-  const isTextLong = description.length > textLimit;
   
-  const displayText = showFullText 
-    ? description 
-    : isTextLong 
-    ? `${description.substring(0, textLimit).trim()}...` 
-    : description;
-    
   // Dynamic card style to expand height when text is expanded
   const cardStyle = showFullText 
     ? [styles.reviewCard, { minHeight: 150, maxHeight: 300 }] 
     : styles.reviewCard;
+
+  // Function to check if text exceeds the line limit
+  const onTextLayout = (e: any) => {
+    const { lines } = e.nativeEvent;
+    if (lines.length > maxLines) {
+      setTextExceedsLimit(true);
+    } else {
+      setTextExceedsLimit(false);
+    }
+  };
 
   return (
     <View style={cardStyle}>
@@ -62,10 +66,15 @@ const ReviewItem: React.FC<{
           <StarRating rating={item.note} />
         </View>
       </View>
-      <Text style={styles.reviewDescription}>
-        {displayText}
+      <Text 
+        style={styles.reviewDescription}
+        numberOfLines={showFullText ? undefined : maxLines}
+        ellipsizeMode="tail"
+        onTextLayout={onTextLayout}
+      >
+        {description}
       </Text>
-      {isTextLong && (
+      {textExceedsLimit && (
         <TouchableOpacity
           onPress={() => setShowFullText(!showFullText)}
           style={styles.showMoreButton}

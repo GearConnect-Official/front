@@ -117,7 +117,8 @@ const PostItem: React.FC<PostItemProps> = ({
 
       <PostFooter
         username={post.username}
-        caption={post.caption}
+        title={post.caption.split('\n')[0]}
+        description={post.caption}
         likes={post.likes}
         commentsCount={post.comments.length}
         timeAgo={post.timeAgo}

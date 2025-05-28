@@ -22,8 +22,8 @@ import styles from "../styles/homeStyles";
 import StoryModal from "../components/StoryModal";
 import CommentsModal from "../components/CommentsModal";
 import ShareModal from "../components/Feed/ShareModal";
-import PostItem from "../components/Feed/PostItem";
-import { Post as APIPost } from "../services/postService";
+import PostItem, { Comment as PostItemComment } from "../components/Feed/PostItem";
+import { Post as APIPost, Comment as APIComment } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import * as postService from '../services/postService';
 import { useFocusEffect } from '@react-navigation/native';
@@ -37,15 +37,6 @@ interface Story {
   content?: string;
 }
 
-interface Comment {
-  id: string;
-  username: string;
-  avatar: string;
-  text: string;
-  timeAgo: string;
-  likes: number;
-}
-
 interface UIPost {
   id: string;
   username: string;
@@ -55,7 +46,7 @@ interface UIPost {
   likes: number;
   liked: boolean;
   saved: boolean;
-  comments: Comment[];
+  comments: PostItemComment[];
   timeAgo: string;
   isFromToday: boolean;
   tags: string[];
@@ -66,30 +57,52 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const CURRENT_USERNAME = "john_doe";
 const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 
+// Fonction helper pour convertir les commentaires de l'API au format d'UI
+const convertApiCommentToUiComment = (comment: APIComment): PostItemComment => ({
+  id: comment.id,
+  username: comment.user?.username || 'Unknown',
+  avatar: "https://randomuser.me/api/portraits/men/32.jpg", // Placeholder
+  text: comment.content,
+  timeAgo: formatPostDate(comment.createdAt),
+  likes: 0
+});
+
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
   const timeAgo = formatPostDate(apiPost.createdAt || new Date());
   
+  // Traiter les interactions
+  const interactions = apiPost.interactions || [];
+  const likes = interactions.filter(i => i.like).length;
+  const liked = interactions.some(i => i.like && i.userId === currentUserId);
+  const comments = interactions
+    .filter(i => i.comment && i.comment.trim() !== '')
+    .map(i => ({
+      id: `${i.postId}-${i.userId}`,
+      postId: i.postId,
+      userId: i.userId,
+      content: i.comment || '',
+      createdAt: new Date(i.createdAt),
+      user: i.user
+    }))
+    .map(convertApiCommentToUiComment);
+
+  // Traiter les tags
+  const tags = apiPost.tags?.map(tagRelation => tagRelation.tag.name) || [];
+  
   return {
     id: apiPost.id?.toString() || '',
-    username: apiPost.userId.toString(), // À remplacer par le vrai username lorsque disponible
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg", // Placeholder jusqu'à ce que nous ayons des vraies images
-    images: apiPost.image ? [apiPost.image] : ["https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"], // Placeholder
+    username: apiPost.user?.username || apiPost.userId.toString(),
+    avatar: "https://randomuser.me/api/portraits/men/32.jpg", // Placeholder
+    images: apiPost.image?.image ? [apiPost.image.image] : ["https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"],
     caption: `${apiPost.title} - ${apiPost.body}`,
-    likes: apiPost.interactions?.filter(i => i.type === 'like')?.length || 0,
-    liked: apiPost.interactions?.some(i => i.type === 'like' && i.userId === currentUserId) || false,
+    likes,
+    liked,
     saved: false, // Pas encore implémenté dans l'API
-    comments: apiPost.interactions?.filter(i => i.type === 'comment')?.map(c => ({
-      id: c.id?.toString() || '',
-      username: c.userId.toString(), // À remplacer par le vrai username
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      text: c.content || '',
-      timeAgo: formatPostDate(c.createdAt),
-      likes: 0
-    })) || [],
+    comments,
     timeAgo: timeAgo,
     isFromToday: isPostFromToday(apiPost.createdAt || new Date()),
-    tags: apiPost.tags?.map(tag => tag.name) || []
+    tags
   };
 };
 
@@ -239,13 +252,10 @@ const HomeScreen: React.FC = () => {
     );
 
     try {
-      // Mise à jour côté API
-      await postService.default.addInteraction(parseInt(postId), {
-        type: 'like',
-        userId: 1, // Utiliser l'ID de l'utilisateur connecté
-      });
+      // Utiliser la nouvelle méthode toggleLike
+      await postService.default.toggleLike(parseInt(postId), 1); // Utiliser l'ID de l'utilisateur connecté
     } catch (error) {
-      console.error('Erreur lors de l\'ajout du like:', error);
+      console.error('Erreur lors du toggle du like:', error);
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
@@ -309,7 +319,7 @@ const HomeScreen: React.FC = () => {
   const handleAddComment = async (postId: string, text: string) => {
     if (!text.trim()) return;
 
-    const newComment: Comment = {
+    const newComment: PostItemComment = {
       id: Date.now().toString(),
       username: CURRENT_USERNAME,
       avatar: CURRENT_USER_AVATAR,
@@ -331,12 +341,8 @@ const HomeScreen: React.FC = () => {
     );
 
     try {
-      // API update
-      await postService.default.addInteraction(parseInt(postId), {
-        type: 'comment',
-        userId: 1, // Utiliser l'ID de l'utilisateur connecté
-        content: text
-      });
+      // Utiliser la nouvelle méthode addComment
+      await postService.default.addComment(parseInt(postId), 1, text); // Utiliser l'ID de l'utilisateur connecté
     } catch (error) {
       console.error('Erreur lors de l\'ajout du commentaire:', error);
       // En cas d'erreur, annuler l'optimistic update
@@ -356,7 +362,21 @@ const HomeScreen: React.FC = () => {
 
   const getCurrentPostComments = () => {
     const post = posts.find((p) => p.id === currentPostId);
-    return post ? post.comments : [];
+    if (!post) return [];
+    
+    // Convertir les commentaires UI en commentaires API
+    return post.comments.map(comment => ({
+      id: comment.id,
+      postId: parseInt(currentPostId),
+      userId: 1, // ID de l'utilisateur courant
+      content: comment.text,
+      createdAt: new Date(),
+      user: {
+        id: 1,
+        name: comment.username,
+        username: comment.username,
+      }
+    }));
   };
 
   const handleProfilePress = (username: string) => {
@@ -499,9 +519,12 @@ const HomeScreen: React.FC = () => {
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={styles.headerIconBtn}
-            onPress={() => setIsStoryModalVisible(true)}
+            onPress={handleNavigateToProfile}
           >
-            <FontAwesome name="plus-square-o" size={26} color="#000" />
+            <Image 
+              source={{ uri: CURRENT_USER_AVATAR }} 
+              style={styles.profileImage}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -558,7 +581,7 @@ const HomeScreen: React.FC = () => {
         comments={getCurrentPostComments()}
         onClose={handleCloseCommentsModal}
         onAddComment={(text: string) => handleAddComment(currentPostId, text)}
-        postId={currentPostId}
+        postId={parseInt(currentPostId)}
       />
 
       {/* Share Modal */}

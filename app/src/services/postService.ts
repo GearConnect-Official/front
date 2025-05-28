@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_URL_POSTS, API_URL_TAGS } from '../config';
+import { API_URL_POSTS, API_URL_TAGS, API_URL_INTERACTIONS } from '../config';
 
 // Utility function to display request details
 const logRequestDetails = (endpoint: string, method: string, data?: any) => {
@@ -18,13 +18,45 @@ export interface PostTag {
   name: string;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  username: string;
+  email?: string;
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+}
+
+export interface PostTagRelation {
+  id: number;
+  tag: Tag;
+}
+
+export interface Image {
+  id: number;
+  image: string;
+}
+
 export interface Interaction {
-  id?: string;
-  type: 'like' | 'comment' | 'share';
-  userId: number;
   postId: number;
-  content?: string;
+  userId: number;
+  like: boolean;
+  share: boolean;
+  comment?: string | null;
   createdAt: Date;
+  user?: User;
+}
+
+export interface Comment {
+  id: string;
+  postId: number;
+  userId: number;
+  content: string;
+  createdAt: Date;
+  user?: User;
 }
 
 export interface Post {
@@ -33,10 +65,17 @@ export interface Post {
   body: string;
   userId: number;
   imageId?: number;
-  image?: string;
-  tags?: PostTag[];
+  image?: Image;
+  user?: User;
+  tags?: PostTagRelation[];
   interactions?: Interaction[];
   createdAt?: Date;
+}
+
+export interface InteractionInput {
+  type: 'like' | 'comment' | 'share';
+  userId: number;
+  content?: string;
 }
 
 const postService = {
@@ -131,25 +170,162 @@ const postService = {
   },
 
   // Add an interaction to a post (like, comment, share)
-  addInteraction: async (postId: number, interaction: Omit<Interaction, 'id' | 'postId' | 'createdAt'>) => {
-    const endpoint = `${API_URL_POSTS}/${postId}/interactions`;
+  addInteraction: async (postId: number, interaction: InteractionInput) => {
+    const endpoint = `${API_URL_INTERACTIONS}`;
     const interactionData = {
-      ...interaction,
       postId,
-      createdAt: new Date()
+      userId: interaction.userId,
+      like: interaction.type === 'like',
+      share: interaction.type === 'share',
+      comment: interaction.type === 'comment' ? interaction.content : null,
     };
     logRequestDetails(endpoint, 'POST', interactionData);
     try {
       const response = await axios.post(endpoint, interactionData);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding interaction:', error);
-      console.log(`⚠️ To implement this route on the backend: POST /api/posts/${postId}/interactions`);
+      console.log(`⚠️ To implement this route on the backend: POST /api/interactions`);
       console.log('Expected structure in the body:', {
-        type: 'string (like, comment, share)',
+        postId: 'number',
         userId: 'number',
-        content: 'string (optional, required for comments)',
-        createdAt: 'Date'
+        like: 'boolean',
+        share: 'boolean',
+        comment: 'string | null'
+      });
+      throw error;
+    }
+  },
+
+  // Toggle like for a post (simplified method)
+  toggleLike: async (postId: number, userId: number) => {
+    const endpoint = `${API_URL_INTERACTIONS}`;
+    const interactionData = {
+      postId,
+      userId,
+      like: true, // Le backend gérera le toggle automatiquement
+    };
+    logRequestDetails(endpoint, 'POST', interactionData);
+    try {
+      const response = await axios.post(endpoint, interactionData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error toggling like:', error);
+      throw error;
+    }
+  },
+
+  // Add comment to a post
+  addComment: async (postId: number, userId: number, comment: string) => {
+    const endpoint = `${API_URL_INTERACTIONS}`;
+    const interactionData = {
+      postId,
+      userId,
+      comment,
+      like: false,
+      share: false
+    };
+    logRequestDetails(endpoint, 'PATCH', interactionData);
+    try {
+      const response = await axios.patch(endpoint, interactionData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error adding comment:', error);
+      throw error;
+    }
+  },
+
+  // Edit an existing comment
+  editComment: async (postId: number, userId: number, comment: string) => {
+    const endpoint = `${API_URL_INTERACTIONS}`;
+    const interactionData = {
+      postId,
+      userId,
+      comment,
+    };
+    logRequestDetails(endpoint, 'PATCH', interactionData);
+    try {
+      const response = await axios.patch(endpoint, interactionData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error editing comment:', error);
+      throw error;
+    }
+  },
+
+  // Delete a comment
+  deleteComment: async (postId: number, userId: number) => {
+    const endpoint = `${API_URL_INTERACTIONS}`;
+    const interactionData = {
+      postId,
+      userId,
+      comment: null,
+    };
+    logRequestDetails(endpoint, 'PATCH', interactionData);
+    try {
+      const response = await axios.patch(endpoint, interactionData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting comment:', error);
+      throw error;
+    }
+  },
+
+  // Get comments for a post with pagination
+  getComments: async (postId: number, page: number = 1, limit: number = 10) => {
+    const endpoint = `${API_URL_INTERACTIONS}/post/${postId}?page=${page}&limit=${limit}`;
+    logRequestDetails(endpoint, 'GET');
+    try {
+      const response = await axios.get(endpoint);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      throw error;
+    }
+  },
+
+  // Share a post
+  sharePost: async (postId: number, userId: number) => {
+    const endpoint = `${API_URL_INTERACTIONS}`;
+    const interactionData = {
+      postId,
+      userId,
+      share: true,
+    };
+    logRequestDetails(endpoint, 'POST', interactionData);
+    try {
+      const response = await axios.post(endpoint, interactionData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error sharing post:', error);
+      throw error;
+    }
+  },
+
+  // Update an existing interaction
+  updateInteraction: async (postId: number, interaction: InteractionInput) => {
+    const endpoint = `${API_URL_INTERACTIONS}`;
+    const interactionData = {
+      postId,
+      userId: interaction.userId,
+      like: interaction.type === 'like',
+      share: interaction.type === 'share',
+      comment: interaction.type === 'comment' ? interaction.content : null
+    };
+    logRequestDetails(endpoint, 'PATCH', interactionData);
+    try {
+      const response = await axios.patch(endpoint, interactionData);
+      console.log('Interaction mise à jour avec succès:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating interaction:', error);
+      console.log(`⚠️ To implement this route on the backend: PATCH /api/interactions`);
+      console.log('Expected structure in the body:', {
+        postId: 'number',
+        userId: 'number',
+        like: 'boolean',
+        share: 'boolean',
+        comment: 'string | null'
       });
       throw error;
     }
@@ -157,14 +333,14 @@ const postService = {
 
   // Get all interactions for a post
   getPostInteractions: async (postId: number) => {
-    const endpoint = `${API_URL_POSTS}/${postId}/interactions`;
+    const endpoint = `${API_URL_INTERACTIONS}/post/${postId}`;
     logRequestDetails(endpoint, 'GET');
     try {
       const response = await axios.get(endpoint);
       return response.data;
     } catch (error) {
       console.error('Error fetching post interactions:', error);
-      console.log(`⚠️ To implement this route on the backend: GET /api/posts/${postId}/interactions`);
+      console.log(`⚠️ To implement this route on the backend: GET /api/interactions/post/${postId}`);
       throw error;
     }
   },
@@ -183,7 +359,7 @@ const postService = {
       try {
         const tagsResponse = await axios.get(tagsEndpoint);
         // Recherche insensible à la casse
-        existingTag = tagsResponse.data.find(tag => 
+        existingTag = tagsResponse.data.find((tag: { name: string; id: number }) => 
           tag.name.toLowerCase() === tagName.toLowerCase()
         );
         

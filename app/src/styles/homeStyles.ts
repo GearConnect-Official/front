@@ -30,6 +30,12 @@ const styles = StyleSheet.create({
   },
   headerIconBtn: {
     padding: 8,
+    marginLeft: 8,
+  },
+  profileImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   appTitle: {
     fontSize: 24,

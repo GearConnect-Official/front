@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,21 +11,18 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
-interface Comment {
-  id: string;
-  username: string;
-  avatar: string;
-  text: string;
-  timeAgo: string;
-  likes: number;
-}
+import { formatPostDate } from '../utils/dateUtils';
+import postService from '../services/postService';
+import { Comment } from '../services/postService';
+import { useAuth } from '../context/AuthContext';
 
 interface CommentsModalProps {
   isVisible: boolean;
-  postId: string;
+  postId: number;
   comments: Comment[];
   onClose: () => void;
   onAddComment: (postId: string, text: string) => void;
@@ -34,37 +31,175 @@ interface CommentsModalProps {
 const CommentsModal: React.FC<CommentsModalProps> = ({
   isVisible,
   postId,
-  comments,
+  comments: initialComments,
   onClose,
   onAddComment,
 }) => {
+  const { user } = useAuth();
+  const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreComments, setHasMoreComments] = useState(true);
+  const [editingComment, setEditingComment] = useState<Comment | null>(null);
+  const [editText, setEditText] = useState('');
 
-  const handleSubmitComment = () => {
-    if (newComment.trim()) {
-      onAddComment(postId, newComment);
-      setNewComment('');
+  useEffect(() => {
+    if (isVisible) {
+      loadComments();
+    }
+  }, [isVisible]);
+
+  const loadComments = async (page = 1) => {
+    try {
+      setIsLoading(true);
+      const response = await postService.getComments(postId, page);
+      const newComments = response.interactions.map((interaction: any) => ({
+        id: `${interaction.postId}-${interaction.userId}`,
+        postId: interaction.postId,
+        userId: interaction.userId,
+        content: interaction.comment || '',
+        createdAt: new Date(interaction.createdAt),
+        user: interaction.user
+      }));
+
+      if (page === 1) {
+        setComments(newComments);
+      } else {
+        setComments(prev => [...prev, ...newComments]);
+      }
+
+      setHasMoreComments(newComments.length === response.pagination.itemsPerPage);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+      Alert.alert('Error', 'Failed to load comments');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const renderCommentItem = ({ item }: { item: Comment }) => (
-    <View style={styles.commentItem}>
-      <Image source={{ uri: item.avatar }} style={styles.commentAvatar} />
-      <View style={styles.commentContent}>
-        <View style={styles.commentHeader}>
-          <Text style={styles.commentUsername}>{item.username}</Text>
-          <Text style={styles.commentText}>{item.text}</Text>
+  const handleLoadMore = () => {
+    if (!isLoading && hasMoreComments) {
+      loadComments(currentPage + 1);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !user?.id) return;
+
+    try {
+      setIsLoading(true);
+      await postService.addComment(postId, parseInt(user.id), newComment.trim());
+      setNewComment('');
+      // Recharger les commentaires pour avoir l'ordre correct
+      loadComments(1);
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      Alert.alert('Error', 'Failed to add comment');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditComment = async (comment: Comment) => {
+    try {
+      setIsLoading(true);
+      await postService.editComment(comment.postId, comment.userId, editText);
+      setEditingComment(null);
+      setEditText('');
+      // Recharger les commentaires
+      loadComments(1);
+    } catch (error) {
+      console.error('Error editing comment:', error);
+      Alert.alert('Error', 'Failed to edit comment');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteComment = async (comment: Comment) => {
+    Alert.alert(
+      'Delete Comment',
+      'Are you sure you want to delete this comment?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsLoading(true);
+              await postService.deleteComment(comment.postId, comment.userId);
+              // Recharger les commentaires
+              loadComments(1);
+            } catch (error) {
+              console.error('Error deleting comment:', error);
+              Alert.alert('Error', 'Failed to delete comment');
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const renderComment = ({ item: comment }: { item: Comment }) => (
+    <View style={styles.commentContainer}>
+      {editingComment?.id === comment.id ? (
+        <View style={styles.editContainer}>
+          <TextInput
+            style={styles.editInput}
+            value={editText}
+            onChangeText={setEditText}
+            multiline
+            placeholder="Edit your comment..."
+          />
+          <View style={styles.editActions}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => handleEditComment(comment)}
+            >
+              <FontAwesome name="check" size={16} color="#4CAF50" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => {
+                setEditingComment(null);
+                setEditText('');
+              }}
+            >
+              <FontAwesome name="times" size={16} color="#F44336" />
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.commentFooter}>
-          <Text style={styles.commentTime}>{item.timeAgo}</Text>
-          <TouchableOpacity style={styles.commentAction}>
-            <Text style={styles.commentActionText}>Reply</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <TouchableOpacity style={styles.likeButton}>
-        <FontAwesome name="heart-o" size={12} color="#8E8E8E" />
-      </TouchableOpacity>
+      ) : (
+        <>
+          <View style={styles.commentHeader}>
+            <Text style={styles.username}>{comment.user?.username || 'Unknown'}</Text>
+            <Text style={styles.timestamp}>{formatPostDate(comment.createdAt)}</Text>
+          </View>
+          <Text style={styles.commentText}>{comment.content}</Text>
+          <View style={styles.commentActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => {
+                setEditingComment(comment);
+                setEditText(comment.content);
+              }}
+            >
+              <FontAwesome name="edit" size={16} color="#666" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleDeleteComment(comment)}
+            >
+              <FontAwesome name="trash" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 
@@ -88,16 +223,25 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
 
         <FlatList
           data={comments}
-          renderItem={renderCommentItem}
+          renderItem={renderComment}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.commentsList}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isLoading ? (
+              <ActivityIndicator size="small" color="#000" style={styles.loader} />
+            ) : null
+          }
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <FontAwesome name="comments-o" size={60} color="#CCCCCC" />
-              <Text style={styles.emptyText}>No comments yet</Text>
-              <Text style={styles.emptySubText}>Be the first to comment</Text>
-            </View>
+            !isLoading ? (
+              <View style={styles.emptyContainer}>
+                <FontAwesome name="comments-o" size={60} color="#CCCCCC" />
+                <Text style={styles.emptyText}>No comments yet</Text>
+                <Text style={styles.emptySubText}>Be the first to comment</Text>
+              </View>
+            ) : null
           }
         />
 
@@ -119,8 +263,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
             onChangeText={setNewComment}
           />
           <TouchableOpacity
-            onPress={handleSubmitComment}
-            disabled={!newComment.trim()}
+            onPress={handleAddComment}
+            disabled={!newComment.trim() || isLoading}
             style={[
               styles.postButton,
               !newComment.trim() && styles.postButtonDisabled,
@@ -168,51 +312,36 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     flexGrow: 1,
   },
-  commentItem: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  commentAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 12,
-  },
-  commentContent: {
-    flex: 1,
+  commentContainer: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   commentHeader: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
-  commentUsername: {
-    fontWeight: '600',
-    color: '#262626',
-    marginRight: 4,
+  username: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  timestamp: {
+    color: '#666',
+    fontSize: 12,
   },
   commentText: {
-    color: '#262626',
+    fontSize: 14,
+    lineHeight: 20,
   },
-  commentFooter: {
+  commentActions: {
     flexDirection: 'row',
-    marginTop: 4,
+    justifyContent: 'flex-end',
+    marginTop: 8,
   },
-  commentTime: {
-    fontSize: 12,
-    color: '#8E8E8E',
-    marginRight: 12,
-  },
-  commentAction: {
-    marginRight: 12,
-  },
-  commentActionText: {
-    fontSize: 12,
-    color: '#8E8E8E',
-  },
-  likeButton: {
-    paddingHorizontal: 8,
-    justifyContent: 'flex-start',
-    paddingTop: 4,
+  actionButton: {
+    padding: 8,
+    marginLeft: 8,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -266,6 +395,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E8E',
     marginTop: 4,
+  },
+  editContainer: {
+    marginTop: 8,
+  },
+  editInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  editButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  loader: {
+    padding: 16,
   },
 });
 

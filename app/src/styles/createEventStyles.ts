@@ -347,6 +347,36 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  // Nouveaux styles pour l'intégration Cloudinary
+  uploadInfoContainer: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#e8f5e8',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#4caf50',
+  },
+  uploadInfoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2e7d32',
+    marginBottom: 4,
+  },
+  uploadInfoDetails: {
+    fontSize: 12,
+    color: '#388e3c',
+  },
+  addImageButton: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderStyle: 'dashed',
+  },
 });
 
 export default styles;

@@ -1,12 +1,12 @@
 import React from "react";
 import {
   View,
-  Image,
   Text,
   TouchableOpacity,
   FlatList,
   Dimensions,
 } from "react-native";
+import { CloudinaryMedia } from "../";
 import PostHeader from "./PostHeader";
 import PostActions from "./PostActions";
 import PostFooter from "./PostFooter";
@@ -27,6 +27,8 @@ export interface Post {
   username: string;
   avatar: string;
   images: string[];
+  imagePublicIds?: string[]; // Public IDs Cloudinary pour l'optimisation
+  mediaTypes?: ('image' | 'video')[]; // Types de médias pour chaque élément
   caption: string;
   likes: number;
   liked: boolean;
@@ -56,20 +58,72 @@ const PostItem: React.FC<PostItemProps> = ({
 }) => {
   const renderPostImages = () => {
     if (post.images.length === 1) {
-      return (
-        <Image
-          source={{ uri: post.images[0] }}
+      const publicId = post.imagePublicIds?.[0];
+      const mediaType = post.mediaTypes?.[0] || 'auto';
+      return publicId ? (
+        <CloudinaryMedia
+          publicId={publicId}
+          mediaType={mediaType}
+          width={SCREEN_WIDTH}
+          height={SCREEN_WIDTH}
+          crop="fill"
+          quality="auto"
+          format="auto"
           style={styles.postSingleImage}
-          resizeMode="cover"
+          fallbackUrl={post.images[0]}
+          shouldPlay={false}
+          isMuted={true}
+          useNativeControls={true}
+        />
+      ) : (
+        <CloudinaryMedia
+          publicId=""
+          mediaType={mediaType}
+          fallbackUrl={post.images[0]}
+          width={SCREEN_WIDTH}
+          height={SCREEN_WIDTH}
+          style={styles.postSingleImage}
+          shouldPlay={false}
+          isMuted={true}
+          useNativeControls={true}
         />
       );
     } else {
       return (
         <FlatList
           data={post.images}
-          renderItem={({ item }) => (
-            <Image source={{ uri: item }} style={styles.postMultipleImage} />
-          )}
+          renderItem={({ item, index }) => {
+            const publicId = post.imagePublicIds?.[index];
+            const mediaType = post.mediaTypes?.[index] || 'auto';
+            return publicId ? (
+              <CloudinaryMedia
+                publicId={publicId}
+                mediaType={mediaType}
+                width={SCREEN_WIDTH}
+                height={SCREEN_WIDTH}
+                crop="fill"
+                quality="auto"
+                format="auto"
+                style={styles.postMultipleImage}
+                fallbackUrl={item}
+                shouldPlay={false}
+                isMuted={true}
+                useNativeControls={true}
+              />
+            ) : (
+              <CloudinaryMedia
+                publicId=""
+                mediaType={mediaType}
+                fallbackUrl={item}
+                width={SCREEN_WIDTH}
+                height={SCREEN_WIDTH}
+                style={styles.postMultipleImage}
+                shouldPlay={false}
+                isMuted={true}
+                useNativeControls={true}
+              />
+            );
+          }}
           keyExtractor={(_, index) => index.toString()}
           horizontal
           pagingEnabled

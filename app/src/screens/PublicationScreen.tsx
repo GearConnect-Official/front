@@ -6,6 +6,7 @@ import styles from '../styles/publicationStyles';
 import postService from '../services/postService';
 import FeedbackMessage, { FeedbackType } from '../components/FeedbackMessage';
 import { useAuth } from '../context/AuthContext';
+import { CloudinaryUploadResponse } from '../services/cloudinary.service';
 
 import Header from '../components/Publication/Header';
 import MediaSection from '../components/Publication/MediaSection';
@@ -16,13 +17,13 @@ import PublicationForm from '../components/Publication/PublicationForm';
  * Écran de publication de post
  * 
  * TODO: Fonctionnalités à implémenter dans les prochaines itérations:
- * 1. Gestion des images: ajout d'une solution robuste pour la compression et l'upload d'images
+ * 1. Gestion des images: intégration complète avec Cloudinary pour le stockage et l'optimisation
  * 
  * Implémentation actuelle:
  * - Création de posts avec titre et description
+ * - Upload automatique vers Cloudinary avec optimisation
  * - Gestion des tags: implémentation côté client qui crée les tags et tente de les associer aux posts
- * - Nous avons créé une méthode côté client qui suggère également l'implémentation côté serveur
- * - Même si l'API d'association tag-post n'est pas disponible, le code est prêt à l'utiliser dès qu'elle sera implémentée
+ * - URLs optimisées pour les images avec transformations automatiques
  */
 
 const PublicationScreen: React.FC = () => {
@@ -30,11 +31,13 @@ const PublicationScreen: React.FC = () => {
   const { user } = useAuth();
   const [step, setStep] = useState<'select' | 'crop' | 'form'>('select');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImagePublicId, setSelectedImagePublicId] = useState<string | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [resourceType, setResourceType] = useState<string>('image');
   const [feedback, setFeedback] = useState({
     visible: false,
     message: '',
@@ -105,19 +108,25 @@ const PublicationScreen: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // TODO: Implémenter la gestion des images côté front une fois qu'une solution de stockage
-      // appropriée sera mise en place côté back. Pour l'instant, nous ne gérons pas les images
-      // pour éviter les problèmes de performance et de stockage.
-      
-      // Objet post selon la structure dans PostController
+      // Objet post avec informations Cloudinary
       const newPost = {
         title: title,
         body: description,
-        userId: parseInt(user.id)
-        // Ne pas envoyer imageId pour le moment
+        userId: parseInt(user.id),
+        // Inclure les informations Cloudinary directement
+        cloudinaryUrl: imageToShare,
+        cloudinaryPublicId: selectedImagePublicId,
+        // Métadonnées pour l'optimisation (en JSON string)
+        imageMetadata: JSON.stringify({
+          originalUrl: selectedImage,
+          optimizedUrl: imageToShare,
+          publicId: selectedImagePublicId,
+          uploadedAt: new Date().toISOString(),
+          resourceType: resourceType,
+        })
       };
       
-      console.log('Sending post data:', newPost);
+      console.log('Sending post data with Cloudinary info:', newPost);
       console.log('With tags:', tags);
       
       // Appeler l'API pour créer le post avec les tags
@@ -125,6 +134,7 @@ const PublicationScreen: React.FC = () => {
       
       // Réinitialiser le formulaire
       setSelectedImage(null);
+      setSelectedImagePublicId(null);
       setCroppedImage(null);
       setTitle('');
       setDescription('');
@@ -134,7 +144,7 @@ const PublicationScreen: React.FC = () => {
       // Afficher un message de succès
       setFeedback({
         visible: true,
-        message: 'Post created successfully!',
+        message: 'Post created successfully with optimized images!',
         type: FeedbackType.SUCCESS
       });
       
@@ -155,9 +165,14 @@ const PublicationScreen: React.FC = () => {
     }
   };
 
-  const handleImageSelected = (uri: string) => {
-    setSelectedImage(uri);
-    setCroppedImage(uri);
+  const handleImageSelected = (cloudinaryResponse: CloudinaryUploadResponse) => {
+    setSelectedImage(cloudinaryResponse.secure_url);
+    setCroppedImage(cloudinaryResponse.secure_url);
+    setSelectedImagePublicId(cloudinaryResponse.public_id);
+    
+    // Stocker le type de ressource pour les métadonnées
+    const resourceType = cloudinaryResponse.resource_type || 'image';
+    setResourceType(resourceType);
     setStep('crop');
   };
 

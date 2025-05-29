@@ -66,6 +66,9 @@ export interface Post {
   userId: number;
   imageId?: number;
   image?: Image;
+  cloudinaryUrl?: string;        // URL de l'image Cloudinary
+  cloudinaryPublicId?: string;   // Public ID Cloudinary
+  imageMetadata?: string;        // Métadonnées JSON
   user?: User;
   tags?: PostTagRelation[];
   interactions?: Interaction[];
@@ -117,7 +120,12 @@ const postService = {
         title: postData.title,
         body: postData.body,
         userId: postData.userId,
-        ...(postData.imageId ? { imageId: postData.imageId } : {})
+        ...(postData.imageId ? { imageId: postData.imageId } : {}),
+        ...(postData.cloudinaryUrl ? { 
+          cloudinaryUrl: postData.cloudinaryUrl,
+          cloudinaryPublicId: postData.cloudinaryPublicId,
+          imageMetadata: postData.imageMetadata
+        } : {})
       };
       
       const response = await axios.post(endpoint, formattedPostData);
@@ -129,7 +137,10 @@ const postService = {
         title: 'string (required)',
         body: 'string (required)',
         userId: 'number (required)',
-        imageId: 'number (optional)'
+        imageId: 'number (optional)',
+        cloudinaryUrl: 'string (optional)',
+        cloudinaryPublicId: 'string (optional)',
+        imageMetadata: 'string (optional, JSON)'
       });
       throw error;
     }

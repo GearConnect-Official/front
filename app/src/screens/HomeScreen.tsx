@@ -42,6 +42,8 @@ interface UIPost {
   username: string;
   avatar: string;
   images: string[];
+  imagePublicIds?: string[];  // Public IDs Cloudinary pour l'optimisation
+  mediaTypes?: ('image' | 'video')[];  // Types de médias pour chaque élément
   caption: string;
   likes: number;
   liked: boolean;
@@ -90,11 +92,64 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
   // Traiter les tags
   const tags = apiPost.tags?.map(tagRelation => tagRelation.tag.name) || [];
   
+  // Traiter les images : priorité à Cloudinary, sinon image locale
+  let images: string[] = [];
+  let imagePublicIds: string[] = [];
+  let mediaTypes: ('image' | 'video')[] = [];
+  
+  if (apiPost.cloudinaryUrl) {
+    // Image/Vidéo Cloudinary disponible
+    images = [apiPost.cloudinaryUrl];
+    if (apiPost.cloudinaryPublicId) {
+      imagePublicIds = [apiPost.cloudinaryPublicId];
+    }
+    
+    // Détecter le type de média depuis les métadonnées ou l'URL
+    let detectedType: 'image' | 'video' = 'image';
+    
+    try {
+      // Essayer de parser les métadonnées JSON
+      if (apiPost.imageMetadata) {
+        const metadata = JSON.parse(apiPost.imageMetadata);
+        // Le metadata peut contenir des infos sur le type
+        if (metadata.resourceType === 'video') {
+          detectedType = 'video';
+        }
+      }
+    } catch (e) {
+      // Si parsing échoue, détecter depuis l'URL
+    }
+    
+    // Fallback : détecter depuis l'URL
+    if (detectedType === 'image') {
+      const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
+      const lowercaseUrl = apiPost.cloudinaryUrl.toLowerCase();
+      
+      if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
+        detectedType = 'video';
+      }
+    }
+    
+    mediaTypes = [detectedType];
+  } else if (apiPost.image?.image) {
+    // Fallback vers image locale
+    images = [apiPost.image.image];
+    imagePublicIds = []; // Pas de public ID pour les images locales
+    mediaTypes = ['image']; // Les images locales sont toujours des images
+  } else {
+    // Fallback par défaut
+    images = ["https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"];
+    imagePublicIds = [];
+    mediaTypes = ['image'];
+  }
+  
   return {
     id: apiPost.id?.toString() || '',
     username: apiPost.user?.username || apiPost.userId.toString(),
     avatar: "https://randomuser.me/api/portraits/men/32.jpg", // Placeholder
-    images: apiPost.image?.image ? [apiPost.image.image] : ["https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"],
+    images,
+    imagePublicIds,
+    mediaTypes,
     caption: `${apiPost.title} - ${apiPost.body}`,
     likes,
     liked,

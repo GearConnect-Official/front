@@ -1,24 +1,36 @@
 import * as React from "react";
-import { View, Text, TextInput, ScrollView, Image } from "react-native";
+import { View, Text, TextInput, ScrollView } from "react-native";
+import { CloudinaryImage, CloudinaryImageUpload } from "../";
+import { CloudinaryUploadResponse } from "../../services/cloudinary.service";
 import ImageUpload from "./ImageUpload";
 import styles from "../../styles/createEventStyles";
 import { Event } from "../../services/eventService";
 
 interface MediaInfoProps {
   logo: string;
+  logoPublicId?: string;
   images: string[];
+  imagePublicIds?: string[];
   description: string;
   onInputChange: (field: keyof Event, value: any) => void;
-  onAddImage: (uri: string) => void;
+  onAddImage: (url: string, publicId: string) => void;
+  onLogoChange: (url: string, publicId: string) => void;
 }
 
 const MediaInfo: React.FC<MediaInfoProps> = ({
   logo,
+  logoPublicId,
   images,
+  imagePublicIds = [],
   description,
   onInputChange,
   onAddImage,
+  onLogoChange,
 }) => {
+  const handleAdditionalImageUpload = (response: CloudinaryUploadResponse) => {
+    onAddImage(response.secure_url, response.public_id);
+  };
+
   return (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Media & Description</Text>
@@ -30,7 +42,9 @@ const MediaInfo: React.FC<MediaInfoProps> = ({
         <ImageUpload
           title="Event Logo"
           buttonText="Upload"
-          onImageSelected={(uri) => onInputChange("logo", uri)}
+          onImageSelected={onLogoChange}
+          folder="events/logos"
+          tags={['event', 'logo']}
         />
       </View>
 
@@ -54,17 +68,36 @@ const MediaInfo: React.FC<MediaInfoProps> = ({
           showsHorizontalScrollIndicator={false}
           style={styles.imagesRow}
         >
-          {images && images.map((img, index) => (
-            <Image 
-              key={index} 
-              source={{ uri: img }} 
-              style={styles.imagePreview} 
-            />
-          ))}
-          <ImageUpload
-            title="+"
-            buttonText=""
-            onImageSelected={onAddImage}
+          {images && images.map((imageUrl, index) => {
+            const publicId = imagePublicIds[index];
+            return publicId ? (
+              <CloudinaryImage
+                key={index}
+                publicId={publicId}
+                width={100}
+                height={100}
+                style={styles.imagePreview}
+              />
+            ) : (
+              <CloudinaryImage
+                key={index}
+                publicId=""
+                fallbackUrl={imageUrl}
+                width={100}
+                height={100}
+                style={styles.imagePreview}
+              />
+            );
+          })}
+          
+          <CloudinaryImageUpload
+            onUploadComplete={handleAdditionalImageUpload}
+            folder="events/gallery"
+            tags={['event', 'gallery']}
+            allowMultiple={false}
+            buttonText="+"
+            showPreview={false}
+            style={styles.addImageButton}
           />
         </ScrollView>
       </View>

@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import theme from './config';
+import { StyleSheet } from "react-native";
+import theme from "../config";
 
 const styles = StyleSheet.create({
   container: {
@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.paper,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: theme.spacing.xl + 6,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.grey[100],
@@ -51,4 +51,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles; 
+export default styles;

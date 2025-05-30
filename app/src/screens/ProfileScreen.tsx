@@ -11,10 +11,11 @@ import {
   Modal,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { useNavigation } from "@react-navigation/native";
-import styles from "../styles/profileStyles";
+import { useRouter } from "expo-router";
+import styles from "../styles/Profile/profileStyles";
 import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
+import ProfileMenu from "../components/Profile/ProfileMenu";
 
 // Screen width to calculate grid image dimensions
 const { width } = Dimensions.get("window");
@@ -56,9 +57,14 @@ interface DriverStats {
   championshipPosition?: number;
 }
 
-const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const { user } = useAuth();
+// Définir l'interface des props
+interface ProfileScreenProps {
+  userId?: number;
+}
+
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
+  const router = useRouter();
+  const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -78,11 +84,21 @@ const ProfileScreen: React.FC = () => {
   });
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => {
-    // Simulate loading data
+    // Simuler le chargement des données
+    // Si userId est défini, charger les données de cet utilisateur spécifique
+    // Sinon, charger les données de l'utilisateur connecté
     loadMockData();
-  }, []);
+
+    // Dans une vraie application, vous pourriez faire quelque chose comme:
+    // if (userId) {
+    //   loadUserData(userId);
+    // } else {
+    //   loadCurrentUserData();
+    // }
+  }, [userId]); // Recharger les données quand userId change
 
   const loadMockData = () => {
     // Simulated posts for the grid
@@ -316,8 +332,35 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleEventPress = (eventId: string) => {
-    console.log(`View event details for ${eventId}`);
-    // Navigation to the event detail page
+    router.push({
+      pathname: "/(app)/eventDetail",
+      params: { eventId },
+    });
+  };
+
+  const handleSettingsPress = () => {
+    setMenuVisible(false);
+    router.push("/settings");
+  };
+
+  const handleEditProfilePress = () => {
+    setMenuVisible(false);
+    router.push("/editProfile");
+  };
+
+  const handlePreferencesPress = () => {
+    setMenuVisible(false);
+    router.push("/preferences");
+  };
+
+  const handleLogoutPress = async () => {
+    setMenuVisible(false);
+    try {
+      await signOut();
+      router.replace("/auth");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const renderPostItem = ({ item }: { item: Post }) => (
@@ -564,8 +607,7 @@ const ProfileScreen: React.FC = () => {
           <FontAwesome name="calendar-plus-o" size={60} color="#CCCCCC" />
           <Text style={styles.emptyTitle}>No Events</Text>
           <Text style={styles.emptySubtitle}>
-            Your races, championships and training sessions will appear
-            here.
+            Your races, championships and training sessions will appear here.
           </Text>
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareButtonText}>Create Event</Text>
@@ -604,12 +646,15 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
           >
             <FontAwesome name="arrow-left" size={20} color="#1E1E1E" />
           </TouchableOpacity>
           <Text style={styles.username}>Profile</Text>
-          <TouchableOpacity style={styles.menuButton}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => setMenuVisible(true)}
+          >
             <FontAwesome name="ellipsis-v" size={20} color="#1E1E1E" />
           </TouchableOpacity>
         </View>
@@ -812,8 +857,16 @@ const ProfileScreen: React.FC = () => {
             ? renderEventsList()
             : renderEmptyComponent()}
         </View>
-
       </ScrollView>
+
+      <ProfileMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSettingsPress={handleSettingsPress}
+        onEditProfilePress={handleEditProfilePress}
+        onPreferencesPress={handlePreferencesPress}
+        onLogoutPress={handleLogoutPress}
+      />
 
       {/* Modal to display a post in detail */}
       <Modal

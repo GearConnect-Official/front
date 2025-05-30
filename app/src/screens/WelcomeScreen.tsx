@@ -1,11 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "../../App";
+import { useRouter } from "expo-router";
 import styles from "../styles/welcomeStyles";
 
 const WelcomeScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Use correct type
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -13,11 +12,17 @@ const WelcomeScreen: React.FC = () => {
       <Image source={require("../../assets/images/logo-rounded.png")} style={styles.logo} />
 
       {/* Authentication buttons */}
-      <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("Auth")}>
+      <TouchableOpacity 
+        style={styles.loginButton} 
+        onPress={() => router.push("/(auth)/login")}
+      >
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate("Register")}>
+      <TouchableOpacity 
+        style={styles.registerButton} 
+        onPress={() => router.push("/(auth)/register")}
+      >
         <Text style={styles.registerText}>Register</Text>
       </TouchableOpacity>
     </View>

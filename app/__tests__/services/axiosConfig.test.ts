@@ -11,7 +11,9 @@ describe('axiosConfig', () => {
     mockAxios = new MockAdapter(axios);
     
     // On supprime complètement les intercepteurs avant de configurer
+    // @ts-ignore - La propriété handlers n'est pas exposée dans le type mais existe en interne
     axios.interceptors.request.handlers = [];
+    // @ts-ignore - La propriété handlers n'est pas exposée dans le type mais existe en interne
     axios.interceptors.response.handlers = [];
     
     await configureAxios();
@@ -33,7 +35,8 @@ describe('axiosConfig', () => {
       await axios.get('/test-endpoint');
       
       // Vérifier que le header user-id a été ajouté
-      expect(mockAxios.history.get[0].headers['user-id']).toBe('user123');
+      const request = mockAxios.history.get[0];
+      expect(request?.headers && request.headers['user-id']).toBe('user123');
     });
 
     it('should not add user-id to request headers when user is not available', async () => {
@@ -47,7 +50,8 @@ describe('axiosConfig', () => {
       await axios.get('/test-endpoint');
       
       // Vérifier que le header user-id n'est pas présent
-      expect(mockAxios.history.get[0].headers['user-id']).toBeUndefined();
+      const request = mockAxios.history.get[0];
+      expect(request?.headers && request.headers['user-id']).toBeUndefined();
     });
   });
 

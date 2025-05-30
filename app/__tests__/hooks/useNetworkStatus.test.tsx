@@ -37,7 +37,8 @@ describe('useNetworkStatus hook', () => {
       isInternetReachable: true
     });
     (axios.get as jest.Mock).mockResolvedValue({ data: 'OK' });
-    (axios.isAxiosError as jest.Mock).mockReturnValue(false);
+    // Conversion explicite via unknown pour éviter les erreurs de type
+    (axios.isAxiosError as unknown as jest.Mock).mockReturnValue(false);
   });
 
   it('should initialize with loading state', () => {
@@ -110,7 +111,8 @@ describe('useNetworkStatus hook', () => {
     // Simuler une erreur réseau
     const networkError = new Error('Network error');
     (axios.get as jest.Mock).mockRejectedValue(networkError);
-    (axios.isAxiosError as jest.Mock).mockReturnValue(true);
+    // Conversion explicite via unknown pour éviter les erreurs de type
+    (axios.isAxiosError as unknown as jest.Mock).mockReturnValue(true);
 
     // Rendu du hook
     const { result } = renderHook(() => useNetworkStatus());
@@ -139,7 +141,8 @@ describe('useNetworkStatus hook', () => {
     const errorWithResponse = new Error('Server error') as any;
     errorWithResponse.response = { status: 500, data: { message: 'Internal Server Error' } };
     (axios.get as jest.Mock).mockRejectedValue(errorWithResponse);
-    (axios.isAxiosError as jest.Mock).mockReturnValue(true);
+    // Conversion explicite via unknown pour éviter les erreurs de type
+    (axios.isAxiosError as unknown as jest.Mock).mockReturnValue(true);
 
     // Rendu du hook
     const { result } = renderHook(() => useNetworkStatus());

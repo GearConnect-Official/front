@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import styles from "../../styles/feed/postActionsStyles";
+import styles from "../../styles/Feed/postActionsStyles";
 
 interface PostActionsProps {
   postId: string;
@@ -20,49 +20,49 @@ const PostActions: React.FC<PostActionsProps> = ({
   onLike,
   onComment,
   onShare,
-  onSave
+  onSave,
 }) => {
   return (
     <View style={styles.container}>
       <View style={styles.leftActions}>
-        <TouchableOpacity 
-          style={styles.actionButton} 
+        <TouchableOpacity
+          style={styles.actionButton}
           onPress={onLike}
           activeOpacity={0.7}
         >
-          <FontAwesome 
-            name={liked ? "heart" : "heart-o"} 
-            size={24} 
-            color={liked ? "#E1306C" : "#262626"} 
+          <FontAwesome
+            name={liked ? "heart" : "heart-o"}
+            size={24}
+            color={liked ? "#E1306C" : "#262626"}
           />
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.actionButton} 
+
+        <TouchableOpacity
+          style={styles.actionButton}
           onPress={onComment}
           activeOpacity={0.7}
         >
           <FontAwesome name="comment-o" size={22} color="#262626" />
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.actionButton} 
+
+        <TouchableOpacity
+          style={styles.actionButton}
           onPress={onShare}
           activeOpacity={0.7}
         >
           <FontAwesome name="paper-plane-o" size={22} color="#262626" />
         </TouchableOpacity>
       </View>
-      
+
       <TouchableOpacity onPress={onSave} activeOpacity={0.7}>
-        <FontAwesome 
-          name={saved ? "bookmark" : "bookmark-o"} 
-          size={22} 
-          color="#262626" 
+        <FontAwesome
+          name={saved ? "bookmark" : "bookmark-o"}
+          size={22}
+          color="#262626"
         />
       </TouchableOpacity>
     </View>
   );
 };
 
-export default PostActions; 
+export default PostActions;

@@ -18,68 +18,65 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useAuth } from "../context/AuthContext";
 import authStyles from "../styles/authStyles";
 
-interface FormErrors {
-  email?: string;
-  password?: string;
-}
-
 const AuthScreen: React.FC = () => {
   const router = useRouter();
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [hasError, setHasError] = useState(false);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    general?: string;
+  }>({});
+  const [isDeletedAccount, setIsDeletedAccount] = useState(false);
 
   const validateForm = (): boolean => {
-    let isValid = true;
+    const newErrors: { email?: string; password?: string } = {};
+    setIsDeletedAccount(false);
 
     if (!email) {
-      setErrorMessage("L'email est requis");
-      setHasError(true);
-      isValid = false;
+      newErrors.email = "L'email est requis";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setErrorMessage("Format d'email invalide");
-      setHasError(true);
-      isValid = false;
-    } else if (!password) {
-      setErrorMessage("Le mot de passe est requis");
-      setHasError(true);
-      isValid = false;
+      newErrors.email = "Format d'email invalide";
     }
 
-    return isValid;
+    if (!password) {
+      newErrors.password = "Le mot de passe est requis";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleLogin = async () => {
-    setErrorMessage("");
-    setHasError(false);
+    setErrors({});
+    setIsDeletedAccount(false);
+
     if (!validateForm()) {
       return;
     }
 
     const result = await login(email, password);
     if (!result.success) {
-      setHasError(true);
-      // Si le compte a été supprimé ou désactivé
       if (result.error === "Votre compte a été supprimé ou désactivé") {
-        setErrorMessage(result.error);
-      }
-      // Si l'erreur indique que le compte n'existe pas
-      else if (result.error === "Compte non trouvé") {
-        setErrorMessage("Compte non trouvé");
+        setIsDeletedAccount(true);
+        setErrors({ general: result.error });
+      } else if (result.error === "Compte non trouvé") {
+        setErrors({ email: "Compte non trouvé" });
+      } else if (result.error === "Mot de passe incorrect") {
+        setErrors({ password: "Mot de passe incorrect" });
       } else if (result.error === "Impossible de se connecter au serveur") {
-        setErrorMessage("Impossible de se connecter au serveur");
+        setErrors({ general: "Impossible de se connecter au serveur" });
       } else {
-        setErrorMessage(result.error || "Une erreur est survenue");
+        setErrors({ general: result.error || "Une erreur est survenue" });
       }
     }
   };
 
-  const clearError = () => {
-    setErrorMessage("");
-    setHasError(false);
+  const clearErrors = () => {
+    setErrors({});
+    setIsDeletedAccount(false);
   };
 
   return (
@@ -115,24 +112,31 @@ const AuthScreen: React.FC = () => {
 
             <View style={authStyles.inputContainer}>
               <TextInput
-                style={[authStyles.input, hasError && authStyles.inputError]}
+                style={[
+                  authStyles.input,
+                  (errors.email || isDeletedAccount) && authStyles.inputError,
+                ]}
                 placeholder="Enter your email"
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
-                  clearError();
+                  if (errors.email) clearErrors();
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor={authStyles.placeholderColor.color}
               />
+              {errors.email && (
+                <Text style={authStyles.fieldError}>{errors.email}</Text>
+              )}
             </View>
 
             <View style={authStyles.inputContainer}>
               <View
                 style={[
                   authStyles.passwordContainer,
-                  hasError && authStyles.inputError,
+                  (errors.password || isDeletedAccount) &&
+                    authStyles.inputError,
                 ]}
               >
                 <TextInput
@@ -141,7 +145,7 @@ const AuthScreen: React.FC = () => {
                   value={password}
                   onChangeText={(text) => {
                     setPassword(text);
-                    clearError();
+                    if (errors.password) clearErrors();
                   }}
                   secureTextEntry={!showPassword}
                   placeholderTextColor={authStyles.placeholderColor.color}
@@ -157,6 +161,9 @@ const AuthScreen: React.FC = () => {
                   />
                 </TouchableOpacity>
               </View>
+              {errors.password && (
+                <Text style={authStyles.fieldError}>{errors.password}</Text>
+              )}
             </View>
 
             <TouchableOpacity
@@ -168,8 +175,14 @@ const AuthScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
 
-            {errorMessage ? (
-              <Text style={authStyles.errorMessage}>{errorMessage}</Text>
+            {isDeletedAccount && errors.general ? (
+              <Text style={authStyles.deletedAccountError}>
+                {errors.general}
+              </Text>
+            ) : null}
+
+            {!isDeletedAccount && errors.general ? (
+              <Text style={authStyles.fieldError}>{errors.general}</Text>
             ) : null}
 
             <TouchableOpacity

@@ -99,6 +99,22 @@ const authStyles = StyleSheet.create({
     marginBottom: 16,
     width: "100%",
   },
+  deletedAccountError: {
+    color: theme.colors.status.error,
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 16,
+    marginBottom: 16,
+    width: "100%",
+  },
+  fieldError: {
+    color: theme.colors.status.error,
+    fontSize: 14,
+    marginTop: 4,
+    marginBottom: 8,
+    width: "100%",
+  },
   loginButton: {
     width: "100%",
     height: 56,

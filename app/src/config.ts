@@ -18,6 +18,21 @@ const apiConfig: ApiConfig = {
 };
 
 /**
+ * Configuration Cloudinary
+ */
+export const cloudinaryConfig = {
+  cloudName: Constants.expoConfig?.extra?.cloudinaryCloudName,
+  apiKey: Constants.expoConfig?.extra?.cloudinaryApiKey,
+  apiSecret: Constants.expoConfig?.extra?.cloudinaryApiSecret,
+  uploadPreset: Constants.expoConfig?.extra?.cloudinaryUploadPreset,
+};
+
+// Validation de la configuration Cloudinary
+if (!cloudinaryConfig.cloudName) {
+  console.warn('CLOUDINARY_CLOUD_NAME is not defined - image upload will not work');
+}
+
+/**
  * Génère les URLs pour tous les endpoints de l'API
  */
 const generateApiEndpoints = (): ApiEndpoints => {

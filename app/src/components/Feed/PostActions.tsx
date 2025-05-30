@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import styles from "../../styles/Feed/postActionsStyles";
+import styles from "../../styles/feed/postActionsStyles";
 
 interface PostActionsProps {
   postId: string;

@@ -36,37 +36,74 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
   useNativeControls = true,
 }) => {
   const detectMediaType = (): 'image' | 'video' => {
+    console.log('🎯 CloudinaryMedia - Detecting media type:', {
+      mediaType,
+      publicId,
+      fallbackUrl,
+      format
+    });
+
     if (mediaType !== 'auto') {
+      console.log('🎯 Using explicit media type:', mediaType);
       return mediaType;
     }
 
     // Détecter le type basé sur l'URL de fallback
     if (fallbackUrl) {
+      console.log('🎯 Checking fallback URL for video patterns:', fallbackUrl);
+      
       const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
       const lowercaseUrl = fallbackUrl.toLowerCase();
       
       if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
+        console.log('🎯 Detected video from file extension in URL');
+        return 'video';
+      }
+
+      // Vérifier les patterns Cloudinary spécifiques aux vidéos
+      if (lowercaseUrl.includes('/video/') || 
+          lowercaseUrl.includes('video/upload') ||
+          lowercaseUrl.includes('.cloudinary.com') && lowercaseUrl.includes('v_')) {
+        console.log('🎯 Detected video from Cloudinary URL patterns');
         return 'video';
       }
     }
 
-    // Détecter le type basé sur le publicId (si le dossier contient 'video')
-    if (publicId && publicId.toLowerCase().includes('video')) {
-      return 'video';
+    // Détecter le type basé sur le publicId
+    if (publicId && publicId.trim() !== '') {
+      console.log('🎯 Checking publicId for video patterns:', publicId);
+      if (publicId.toLowerCase().includes('video')) {
+        console.log('🎯 Detected video from publicId containing "video"');
+        return 'video';
+      }
     }
 
     // Si on a un format spécifié pour vidéo
     if (format && ['mp4', 'webm', 'mov'].includes(format.toLowerCase())) {
+      console.log('🎯 Detected video from format:', format);
       return 'video';
     }
 
-    // Par défaut, on assume que c'est une image
+    console.log('🎯 Defaulting to image (no video patterns found)');
     return 'image';
   };
 
   const detectedType = detectMediaType();
 
+  console.log('🎯 CloudinaryMedia - Final decision:', {
+    detectedType,
+    willRenderVideo: detectedType === 'video'
+  });
+
   if (detectedType === 'video') {
+    console.log('🎯 Rendering CloudinaryVideo with props:', {
+      publicId,
+      fallbackUrl,
+      shouldPlay,
+      width,
+      height
+    });
+    
     return (
       <CloudinaryVideo
         publicId={publicId}
@@ -84,6 +121,13 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
       />
     );
   }
+
+  console.log('🎯 Rendering CloudinaryImage with props:', {
+    publicId,
+    fallbackUrl,
+    width,
+    height
+  });
 
   return (
     <CloudinaryImage

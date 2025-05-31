@@ -74,6 +74,13 @@ const convertApiCommentToUiComment = (comment: APIComment): PostItemComment => (
 
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
+  console.log('🔄 Converting API post to UI post:', {
+    id: apiPost.id,
+    cloudinaryUrl: apiPost.cloudinaryUrl,
+    cloudinaryPublicId: apiPost.cloudinaryPublicId,
+    imageMetadata: apiPost.imageMetadata
+  });
+
   const liked = apiPost.interactions?.some(
     (interaction) => interaction.userId === currentUserId && interaction.like
   ) || false;
@@ -95,46 +102,71 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
   
   // Améliorer la détection du type de média
   const detectMediaType = (): 'image' | 'video' => {
+    console.log('🔍 Detecting media type for post:', apiPost.id);
+    
     // Vérifier les métadonnées d'image s'il y en a
     if (apiPost.imageMetadata) {
       try {
         const metadata = JSON.parse(apiPost.imageMetadata);
+        console.log('📋 Image metadata:', metadata);
         if (metadata.resource_type === 'video') {
+          console.log('✅ Detected video from metadata');
           return 'video';
         }
       } catch (e) {
-        // Ignore parsing errors
+        console.warn('⚠️ Failed to parse image metadata:', e);
       }
     }
     
     // Vérifier l'URL Cloudinary pour des indices de vidéo
     if (apiPost.cloudinaryUrl) {
+      console.log('🔗 Checking cloudinary URL:', apiPost.cloudinaryUrl);
+      
       const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
       const lowercaseUrl = apiPost.cloudinaryUrl.toLowerCase();
       
       if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
+        console.log('✅ Detected video from file extension');
         return 'video';
       }
       
       // Vérifier si l'URL contient '/video/' (structure Cloudinary)
       if (lowercaseUrl.includes('/video/')) {
+        console.log('✅ Detected video from URL path (/video/)');
+        return 'video';
+      }
+
+      // Vérifier d'autres patterns Cloudinary spécifiques aux vidéos
+      if (lowercaseUrl.includes('video/upload') || lowercaseUrl.includes('v_')) {
+        console.log('✅ Detected video from Cloudinary video patterns');
         return 'video';
       }
     }
     
     // Vérifier le publicId pour des indices de vidéo
     if (apiPost.cloudinaryPublicId) {
+      console.log('🔗 Checking cloudinary publicId:', apiPost.cloudinaryPublicId);
       const lowercaseId = apiPost.cloudinaryPublicId.toLowerCase();
       if (lowercaseId.includes('video')) {
+        console.log('✅ Detected video from publicId containing "video"');
         return 'video';
       }
     }
     
-    // Par défaut, c'est une image
+    console.log('📷 Defaulting to image (no video indicators found)');
     return 'image';
   };
   
-  const mediaTypes: ('image' | 'video')[] = [detectMediaType()];
+  const detectedType = detectMediaType();
+  const mediaTypes: ('image' | 'video')[] = [detectedType];
+  
+  console.log('📋 Final conversion result:', {
+    postId: apiPost.id,
+    detectedType,
+    mediaTypes,
+    hasPublicId: !!imagePublicIds,
+    imageUrl: images[0]
+  });
   
   const timeAgo = formatPostDate(apiPost.createdAt || new Date());
   

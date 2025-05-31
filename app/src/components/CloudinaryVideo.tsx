@@ -32,35 +32,103 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
   isMuted = true,
   useNativeControls = true,
 }) => {
+  // Fonction pour extraire le publicId d'une URL Cloudinary complète
+  const extractPublicIdFromUrl = (url: string): string | null => {
+    try {
+      // Pattern pour URLs Cloudinary: https://res.cloudinary.com/cloud_name/video/upload/...../public_id.ext
+      const cloudinaryPattern = /https:\/\/res\.cloudinary\.com\/[^\/]+\/video\/upload\/(?:[^\/]+\/)*([^\/\.]+)/;
+      const match = url.match(cloudinaryPattern);
+      
+      if (match && match[1]) {
+        console.log('📹 Extracted publicId from URL:', match[1]);
+        return match[1];
+      }
+      
+      // Pattern alternatif pour URLs avec transformations
+      const transformPattern = /\/([^\/\.]+)\.[^\/]+$/;
+      const transformMatch = url.match(transformPattern);
+      
+      if (transformMatch && transformMatch[1]) {
+        console.log('📹 Extracted publicId (alternative):', transformMatch[1]);
+        return transformMatch[1];
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn('Error extracting publicId from URL:', error);
+      return null;
+    }
+  };
+
   const getVideoUrl = () => {
-    if (!publicId && fallbackUrl) {
+    console.log('📹 CloudinaryVideo - Getting video URL...', {
+      publicId,
+      fallbackUrl,
+      hasPublicId: !!publicId,
+      hasFallback: !!fallbackUrl
+    });
+
+    // Si on a un publicId, utiliser le service Cloudinary
+    if (publicId && publicId.trim() !== '') {
+      try {
+        const optimizedUrl = cloudinaryService.generateOptimizedUrl(publicId, {
+          width,
+          height,
+          quality,
+          format,
+          crop,
+          resource_type: 'video'
+        });
+        console.log('📹 Generated optimized URL:', optimizedUrl);
+        return optimizedUrl;
+      } catch (error) {
+        console.error('📹 Error generating optimized URL:', error);
+        return fallbackUrl || null;
+      }
+    }
+    
+    // Si on a une URL de fallback, essayer d'extraire le publicId
+    if (fallbackUrl) {
+      console.log('📹 Using fallback URL:', fallbackUrl);
+      
+      // Vérifier si c'est une URL Cloudinary
+      if (fallbackUrl.includes('cloudinary.com')) {
+        const extractedPublicId = extractPublicIdFromUrl(fallbackUrl);
+        
+        if (extractedPublicId) {
+          try {
+            const optimizedUrl = cloudinaryService.generateOptimizedUrl(extractedPublicId, {
+              width,
+              height,
+              quality,
+              format,
+              crop,
+              resource_type: 'video'
+            });
+            console.log('📹 Generated URL from extracted publicId:', optimizedUrl);
+            return optimizedUrl;
+          } catch (error) {
+            console.warn('📹 Failed to generate URL from extracted publicId, using original:', error);
+          }
+        }
+      }
+      
+      // Utiliser l'URL de fallback directement
       return fallbackUrl;
     }
     
-    if (!publicId) {
-      return null;
-    }
-
-    try {
-      return cloudinaryService.generateOptimizedUrl(publicId, {
-        width,
-        height,
-        quality,
-        format,
-        crop,
-        resource_type: 'video'
-      });
-    } catch (error) {
-      console.error('Error generating Cloudinary video URL:', error);
-      return fallbackUrl || null;
-    }
+    console.warn('📹 No valid URL source available');
+    return null;
   };
 
   const videoUrl = getVideoUrl();
 
   if (!videoUrl) {
+    console.warn('📹 No video URL available, not rendering video');
     return null;
   }
+
+  console.log('📹 Rendering video with URL:', videoUrl);
 
   return (
     <Video
@@ -71,6 +139,12 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
       isLooping={isLooping}
       isMuted={isMuted}
       useNativeControls={useNativeControls}
+      onError={(error) => {
+        console.error('📹 Video playback error:', error);
+      }}
+      onLoad={() => {
+        console.log('📹 Video loaded successfully');
+      }}
     />
   );
 };

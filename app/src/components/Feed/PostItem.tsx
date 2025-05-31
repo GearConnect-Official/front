@@ -66,10 +66,23 @@ const PostItem: React.FC<PostItemProps> = ({
   currentUsername = "john_doe",
 }) => {
   const renderPostImages = () => {
+    console.log('🎬 PostItem - Rendering post images for post:', post.id, {
+      mediaTypes: post.mediaTypes,
+      imagePublicIds: post.imagePublicIds,
+      images: post.images
+    });
+
     if (post.images.length === 1) {
       const publicId = post.imagePublicIds?.[0];
       const mediaType = post.mediaTypes?.[0] || 'auto';
       const isVideo = mediaType === 'video';
+      
+      console.log('🎬 Single media item:', {
+        publicId,
+        mediaType,
+        isVideo,
+        imageUrl: post.images[0]
+      });
       
       return publicId ? (
         <CloudinaryMedia
@@ -102,6 +115,8 @@ const PostItem: React.FC<PostItemProps> = ({
         />
       );
     } else {
+      console.log('🎬 Multiple media items:', post.images.length);
+      
       return (
         <FlatList
           data={post.images}
@@ -109,6 +124,13 @@ const PostItem: React.FC<PostItemProps> = ({
             const publicId = post.imagePublicIds?.[index];
             const mediaType = post.mediaTypes?.[index] || 'auto';
             const isVideo = mediaType === 'video';
+            
+            console.log(`🎬 Media item ${index}:`, {
+              publicId,
+              mediaType,
+              isVideo,
+              imageUrl: item
+            });
             
             return publicId ? (
               <CloudinaryMedia

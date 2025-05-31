@@ -6,6 +6,7 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { CloudinaryMedia } from "../";
 import PostHeader from "./PostHeader";
 import PostActions from "./PostActions";
@@ -68,6 +69,8 @@ const PostItem: React.FC<PostItemProps> = ({
     if (post.images.length === 1) {
       const publicId = post.imagePublicIds?.[0];
       const mediaType = post.mediaTypes?.[0] || 'auto';
+      const isVideo = mediaType === 'video';
+      
       return publicId ? (
         <CloudinaryMedia
           publicId={publicId}
@@ -76,12 +79,13 @@ const PostItem: React.FC<PostItemProps> = ({
           height={SCREEN_WIDTH}
           crop="fill"
           quality="auto"
-          format="auto"
+          format={isVideo ? "mp4" : "auto"}
           style={styles.postSingleImage}
           fallbackUrl={post.images[0]}
-          shouldPlay={false}
+          shouldPlay={isVideo}
           isMuted={true}
-          useNativeControls={true}
+          useNativeControls={isVideo}
+          isLooping={isVideo}
         />
       ) : (
         <CloudinaryMedia
@@ -91,9 +95,10 @@ const PostItem: React.FC<PostItemProps> = ({
           width={SCREEN_WIDTH}
           height={SCREEN_WIDTH}
           style={styles.postSingleImage}
-          shouldPlay={false}
+          shouldPlay={isVideo}
           isMuted={true}
-          useNativeControls={true}
+          useNativeControls={isVideo}
+          isLooping={isVideo}
         />
       );
     } else {
@@ -103,6 +108,8 @@ const PostItem: React.FC<PostItemProps> = ({
           renderItem={({ item, index }) => {
             const publicId = post.imagePublicIds?.[index];
             const mediaType = post.mediaTypes?.[index] || 'auto';
+            const isVideo = mediaType === 'video';
+            
             return publicId ? (
               <CloudinaryMedia
                 publicId={publicId}
@@ -111,12 +118,13 @@ const PostItem: React.FC<PostItemProps> = ({
                 height={SCREEN_WIDTH}
                 crop="fill"
                 quality="auto"
-                format="auto"
+                format={isVideo ? "mp4" : "auto"}
                 style={styles.postMultipleImage}
                 fallbackUrl={item}
-                shouldPlay={false}
+                shouldPlay={isVideo}
                 isMuted={true}
-                useNativeControls={true}
+                useNativeControls={isVideo}
+                isLooping={isVideo}
               />
             ) : (
               <CloudinaryMedia
@@ -126,9 +134,10 @@ const PostItem: React.FC<PostItemProps> = ({
                 width={SCREEN_WIDTH}
                 height={SCREEN_WIDTH}
                 style={styles.postMultipleImage}
-                shouldPlay={false}
+                shouldPlay={isVideo}
                 isMuted={true}
-                useNativeControls={true}
+                useNativeControls={isVideo}
+                isLooping={isVideo}
               />
             );
           }}
@@ -164,7 +173,16 @@ const PostItem: React.FC<PostItemProps> = ({
         onPress={handleDoubleTapLike}
         delayLongPress={180}
       >
-        {renderPostImages()}
+        <View style={{ position: 'relative' }}>
+          {renderPostImages()}
+          {/* Video Indicator */}
+          {post.mediaTypes?.some(type => type === 'video') && (
+            <View style={styles.videoIndicator}>
+              <FontAwesome name="play" size={10} color="#FFFFFF" />
+              <Text style={styles.videoIndicatorText}>VIDEO</Text>
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
 
       <PostActions

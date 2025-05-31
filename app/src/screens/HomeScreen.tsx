@@ -92,7 +92,49 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
 
   const images = [apiPost.image || apiPost.cloudinaryUrl || 'https://via.placeholder.com/300'];
   const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : undefined;
-  const mediaTypes: ('image' | 'video')[] = ['image'];
+  
+  // Améliorer la détection du type de média
+  const detectMediaType = (): 'image' | 'video' => {
+    // Vérifier les métadonnées d'image s'il y en a
+    if (apiPost.imageMetadata) {
+      try {
+        const metadata = JSON.parse(apiPost.imageMetadata);
+        if (metadata.resource_type === 'video') {
+          return 'video';
+        }
+      } catch (e) {
+        // Ignore parsing errors
+      }
+    }
+    
+    // Vérifier l'URL Cloudinary pour des indices de vidéo
+    if (apiPost.cloudinaryUrl) {
+      const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
+      const lowercaseUrl = apiPost.cloudinaryUrl.toLowerCase();
+      
+      if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
+        return 'video';
+      }
+      
+      // Vérifier si l'URL contient '/video/' (structure Cloudinary)
+      if (lowercaseUrl.includes('/video/')) {
+        return 'video';
+      }
+    }
+    
+    // Vérifier le publicId pour des indices de vidéo
+    if (apiPost.cloudinaryPublicId) {
+      const lowercaseId = apiPost.cloudinaryPublicId.toLowerCase();
+      if (lowercaseId.includes('video')) {
+        return 'video';
+      }
+    }
+    
+    // Par défaut, c'est une image
+    return 'image';
+  };
+  
+  const mediaTypes: ('image' | 'video')[] = [detectMediaType()];
   
   const timeAgo = formatPostDate(apiPost.createdAt || new Date());
   

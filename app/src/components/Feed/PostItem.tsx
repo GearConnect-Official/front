@@ -10,7 +10,7 @@ import { CloudinaryMedia } from "../";
 import PostHeader from "./PostHeader";
 import PostActions from "./PostActions";
 import PostFooter from "./PostFooter";
-import styles from "../../styles/feed/postItemStyles";
+import styles from "../../styles/Feed/postItemStyles";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export interface Comment {

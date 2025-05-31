@@ -20,13 +20,15 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 import styles from "../styles/homeStyles";
 import StoryModal from "../components/StoryModal";
-import CommentsModal from "../components/CommentsModal";
+import HierarchicalCommentsModal from "../components/HierarchicalCommentsModal";
 import ShareModal from "../components/Feed/ShareModal";
 import PostItem, { Comment as PostItemComment } from "../components/Feed/PostItem";
 import { Post as APIPost, Comment as APIComment } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import * as postService from '../services/postService';
+import commentService from '../services/commentService';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
 
 // Types
 interface Story {
@@ -165,6 +167,7 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as React.Com
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
   const [posts, setPosts] = useState<UIPost[]>([]);
@@ -196,8 +199,9 @@ const HomeScreen: React.FC = () => {
           return dateB.getTime() - dateA.getTime();
         });
         
-        // Transformer les posts API en posts UI
-        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, 1)); // 1 est l'ID utilisateur courant
+        // Transformer les posts API en posts UI en utilisant l'ID utilisateur réel
+        const currentUserId = user?.id ? parseInt(user.id) : 1;
+        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId));
         
         setPosts(uiPosts);
         setHasMorePosts(uiPosts.length === limit);
@@ -212,7 +216,7 @@ const HomeScreen: React.FC = () => {
       setRefreshing(false);
       setIsLoadingMore(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // Simulation du chargement des données des stories (à remplacer par un appel API réel plus tard)
   const loadStories = useCallback(() => {
@@ -293,6 +297,13 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleLike = async (postId: string) => {
+    if (!user?.id) {
+      Alert.alert('Erreur', 'Vous devez être connecté pour liker un post');
+      return;
+    }
+
+    const currentUserId = parseInt(user.id);
+    
     // Optimistically update UI
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
@@ -308,9 +319,17 @@ const HomeScreen: React.FC = () => {
 
     try {
       // Utiliser la nouvelle méthode toggleLike
-      await postService.default.toggleLike(parseInt(postId), 1); // Utiliser l'ID de l'utilisateur connecté
+      await postService.default.toggleLike(parseInt(postId), currentUserId);
+      
+      // Recharger les posts pour synchroniser avec la base de données
+      // On fait ça de manière silencieuse pour éviter les clignotements
+      setTimeout(() => {
+        loadPosts();
+      }, 500);
+      
     } catch (error) {
       console.error('Erreur lors du toggle du like:', error);
+      
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
@@ -358,8 +377,42 @@ const HomeScreen: React.FC = () => {
     setIsCommentsModalVisible(true);
   };
 
-  const handleCloseCommentsModal = () => {
+  const handleCloseCommentsModal = async () => {
     setIsCommentsModalVisible(false);
+    
+    // Mettre à jour le nombre de commentaires pour le post actuel
+    if (currentPostId && user?.id) {
+      try {
+        // Récupérer le nombre réel de commentaires depuis l'API des commentaires hiérarchiques
+        const response = await commentService.getCommentsByPost(parseInt(currentPostId), 1, 1);
+        const realCommentsCount = response.pagination.totalItems;
+        
+        // Mettre à jour le post dans le state local avec le nouveau nombre de commentaires
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === currentPostId
+              ? {
+                  ...post,
+                  comments: Array(realCommentsCount).fill(null).map((_, index) => ({
+                    id: `comment-${index}`,
+                    username: 'user',
+                    avatar: '',
+                    text: '',
+                    timeAgo: '',
+                    likes: 0,
+                  })), // Créer un tableau factice de la bonne taille pour le compteur
+                }
+              : post
+          )
+        );
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du compteur de commentaires:', error);
+        // En cas d'erreur, on recharge simplement tous les posts après un délai
+        setTimeout(() => {
+          loadPosts();
+        }, 500);
+      }
+    }
   };
 
   const handleSharePost = (postId: string) => {
@@ -372,11 +425,13 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleAddComment = async (postId: string, text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || !user?.id) return;
+
+    const currentUserId = parseInt(user.id);
 
     const newComment: PostItemComment = {
       id: Date.now().toString(),
-      username: CURRENT_USERNAME,
+      username: user.username || CURRENT_USERNAME,
       avatar: CURRENT_USER_AVATAR,
       text,
       timeAgo: "Now",
@@ -397,9 +452,16 @@ const HomeScreen: React.FC = () => {
 
     try {
       // Utiliser la nouvelle méthode addComment
-      await postService.default.addComment(parseInt(postId), 1, text); // Utiliser l'ID de l'utilisateur connecté
+      await postService.default.addComment(parseInt(postId), currentUserId, text);
+      
+      // Recharger les posts après un délai pour synchroniser
+      setTimeout(() => {
+        loadPosts();
+      }, 500);
+      
     } catch (error) {
       console.error('Erreur lors de l\'ajout du commentaire:', error);
+      
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
@@ -631,12 +693,10 @@ const HomeScreen: React.FC = () => {
       />
 
       {/* Comments Modal */}
-      <CommentsModal
+      <HierarchicalCommentsModal
         isVisible={isCommentsModalVisible}
-        comments={getCurrentPostComments()}
-        onClose={handleCloseCommentsModal}
-        onAddComment={(text: string) => handleAddComment(currentPostId, text)}
         postId={parseInt(currentPostId)}
+        onClose={handleCloseCommentsModal}
       />
 
       {/* Share Modal */}

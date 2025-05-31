@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import styles from "../../styles/feed/postFooterStyles";
+import styles from "../../styles/Feed/postFooterStyles";
 
 interface PostFooterProps {
   username: string;

@@ -210,11 +210,10 @@ const postService = {
 
   // Toggle like for a post (simplified method)
   toggleLike: async (postId: number, userId: number) => {
-    const endpoint = `${API_URL_INTERACTIONS}`;
+    const endpoint = `${API_URL_INTERACTIONS}/toggle-like`;
     const interactionData = {
       postId,
       userId,
-      like: true, // Le backend gérera le toggle automatiquement
     };
     logRequestDetails(endpoint, 'POST', interactionData);
     try {

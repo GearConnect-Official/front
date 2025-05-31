@@ -53,9 +53,6 @@ const PostFooter: React.FC<PostFooterProps> = ({
       {/* Post Title */}
       {title && title.trim() && (
         <View style={styles.titleContainer}>
-          <TouchableOpacity onPress={onProfilePress}>
-            <Text style={styles.usernameText}>{username}</Text>
-          </TouchableOpacity>
           <Text style={styles.titleText}>{title}</Text>
         </View>
       )}

@@ -3,66 +3,104 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 12,
-    paddingBottom: 12,
+    paddingBottom: 16,
   },
+  
+  // Likes Section
   likesCount: {
     fontSize: 14,
     fontWeight: '600',
     color: '#262626',
     marginBottom: 8,
   },
-  captionContainer: {
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#262626',
-    marginBottom: 4,
-  },
-  description: {
-    fontSize: 14,
-    color: '#262626',
-    lineHeight: 18,
-    marginBottom: 2,
-  },
-  seeMore: {
-    color: '#E10600',
-    fontSize: 13,
-    fontWeight: '500',
-    marginTop: 2,
-    marginBottom: 4,
+  
+  // Title Section
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+    flexWrap: 'wrap',
   },
   usernameText: {
+    fontSize: 14,
     fontWeight: '600',
+    color: '#262626',
+    marginRight: 6,
   },
+  titleText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#262626',
+    lineHeight: 20,
+    flex: 1,
+  },
+  
+  // Description Section
+  descriptionContainer: {
+    marginBottom: 8,
+  },
+  descriptionText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#262626',
+    lineHeight: 18,
+  },
+  seeMoreText: {
+    fontSize: 14,
+    color: '#8E8E8E',
+    fontWeight: '500',
+  },
+  
+  // Tags Section
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  tagPill: {
+    backgroundColor: '#F0F2F5',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 6,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
+  },
+  tagText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#1877F2',
+  },
+  moreTagsText: {
+    fontSize: 12,
+    color: '#8E8E8E',
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  
+  // Comments Section
   commentsLink: {
     marginBottom: 8,
   },
   commentsLinkText: {
     fontSize: 14,
-    color: '#8e8e8e',
+    color: '#8E8E8E',
+    fontWeight: '500',
+  },
+  
+  // Time Section
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
   timeAgo: {
     fontSize: 12,
-    color: '#8e8e8e',
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 8,
-  },
-  tagText: {
-    color: '#E10600',
-    fontSize: 14,
-    marginRight: 8,
-    marginBottom: 4,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#ececec',
-    marginVertical: 16,
-    borderRadius: 2,
+    color: '#8E8E8E',
+    fontWeight: '400',
+    marginLeft: 4,
   },
 });
 

@@ -22,6 +22,11 @@ export interface Comment {
   likes: number;
 }
 
+export interface PostTag {
+  id?: string;
+  name: string;
+}
+
 export interface Post {
   id: string;
   username: string;
@@ -29,12 +34,15 @@ export interface Post {
   images: string[];
   imagePublicIds?: string[]; // Public IDs Cloudinary pour l'optimisation
   mediaTypes?: ('image' | 'video')[]; // Types de médias pour chaque élément
-  caption: string;
+  title: string;
+  description: string;
+  tags: PostTag[];
   likes: number;
   liked: boolean;
   saved: boolean;
   comments: Comment[];
   timeAgo: string;
+  createdAt?: Date;
 }
 
 interface PostItemProps {
@@ -171,8 +179,9 @@ const PostItem: React.FC<PostItemProps> = ({
 
       <PostFooter
         username={post.username}
-        title={post.caption.split('\n')[0]}
-        description={post.caption}
+        title={post.title}
+        description={post.description}
+        tags={post.tags}
         likes={post.likes}
         commentsCount={post.comments.length}
         timeAgo={post.timeAgo}

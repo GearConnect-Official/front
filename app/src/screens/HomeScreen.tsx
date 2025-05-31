@@ -22,7 +22,7 @@ import styles from "../styles/homeStyles";
 import StoryModal from "../components/StoryModal";
 import HierarchicalCommentsModal from "../components/HierarchicalCommentsModal";
 import ShareModal from "../components/Feed/ShareModal";
-import PostItem, { Comment as PostItemComment } from "../components/Feed/PostItem";
+import PostItem, { Comment as PostItemComment, Post, PostTag } from "../components/Feed/PostItem";
 import { Post as APIPost, Comment as APIComment } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import * as postService from '../services/postService';
@@ -46,14 +46,15 @@ interface UIPost {
   images: string[];
   imagePublicIds?: string[];  // Public IDs Cloudinary pour l'optimisation
   mediaTypes?: ('image' | 'video')[];  // Types de médias pour chaque élément
-  caption: string;
+  title: string;
+  description: string;
+  tags: PostTag[];
   likes: number;
   liked: boolean;
   saved: boolean;
   comments: PostItemComment[];
   timeAgo: string;
   isFromToday: boolean;
-  tags: string[];
 }
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -73,93 +74,55 @@ const convertApiCommentToUiComment = (comment: APIComment): PostItemComment => (
 
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
+  const liked = apiPost.interactions?.some(
+    (interaction) => interaction.userId === currentUserId && interaction.like
+  ) || false;
+  
+  const likes = apiPost.interactions?.filter(interaction => interaction.like).length || 0;
+  
+  const comments = apiPost.interactions?.filter(interaction => interaction.comment)
+    .map(interaction => ({
+      id: `${interaction.userId}`,
+      username: `user_${interaction.userId}`,
+      avatar: `https://randomuser.me/api/portraits/men/${interaction.userId % 50}.jpg`,
+      text: interaction.comment || '',
+      timeAgo: '1h',
+      likes: 0,
+    })) || [];
+
+  const images = [apiPost.image || apiPost.cloudinaryUrl || 'https://via.placeholder.com/300'];
+  const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : undefined;
+  const mediaTypes: ('image' | 'video')[] = ['image'];
+  
   const timeAgo = formatPostDate(apiPost.createdAt || new Date());
   
-  // Traiter les interactions
-  const interactions = apiPost.interactions || [];
-  const likes = interactions.filter(i => i.like).length;
-  const liked = interactions.some(i => i.like && i.userId === currentUserId);
-  const comments = interactions
-    .filter(i => i.comment && i.comment.trim() !== '')
-    .map(i => ({
-      id: `${i.postId}-${i.userId}`,
-      postId: i.postId,
-      userId: i.userId,
-      content: i.comment || '',
-      createdAt: new Date(i.createdAt),
-      user: i.user
-    }))
-    .map(convertApiCommentToUiComment);
+  // Séparer le titre et la description de manière intelligente
+  const fullContent = `${apiPost.title || ''} ${apiPost.body || ''}`.trim();
+  const title = apiPost.title || fullContent.substring(0, 60) || 'Untitled Post';
+  const description = apiPost.body || fullContent || '';
+  
+  // Mapper les tags avec la structure correcte
+  const tags: PostTag[] = apiPost.tags?.map(tagRelation => ({
+    id: tagRelation.tag.id?.toString(),
+    name: tagRelation.tag.name
+  })) || [];
 
-  // Traiter les tags
-  const tags = apiPost.tags?.map(tagRelation => tagRelation.tag.name) || [];
-  
-  // Traiter les images : priorité à Cloudinary, sinon image locale
-  let images: string[] = [];
-  let imagePublicIds: string[] = [];
-  let mediaTypes: ('image' | 'video')[] = [];
-  
-  if (apiPost.cloudinaryUrl) {
-    // Image/Vidéo Cloudinary disponible
-    images = [apiPost.cloudinaryUrl];
-    if (apiPost.cloudinaryPublicId) {
-      imagePublicIds = [apiPost.cloudinaryPublicId];
-    }
-    
-    // Détecter le type de média depuis les métadonnées ou l'URL
-    let detectedType: 'image' | 'video' = 'image';
-    
-    try {
-      // Essayer de parser les métadonnées JSON
-      if (apiPost.imageMetadata) {
-        const metadata = JSON.parse(apiPost.imageMetadata);
-        // Le metadata peut contenir des infos sur le type
-        if (metadata.resourceType === 'video') {
-          detectedType = 'video';
-        }
-      }
-    } catch (e) {
-      // Si parsing échoue, détecter depuis l'URL
-    }
-    
-    // Fallback : détecter depuis l'URL
-    if (detectedType === 'image') {
-      const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
-      const lowercaseUrl = apiPost.cloudinaryUrl.toLowerCase();
-      
-      if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
-        detectedType = 'video';
-      }
-    }
-    
-    mediaTypes = [detectedType];
-  } else if (apiPost.image?.image) {
-    // Fallback vers image locale
-    images = [apiPost.image.image];
-    imagePublicIds = []; // Pas de public ID pour les images locales
-    mediaTypes = ['image']; // Les images locales sont toujours des images
-  } else {
-    // Fallback par défaut
-    images = ["https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"];
-    imagePublicIds = [];
-    mediaTypes = ['image'];
-  }
-  
   return {
     id: apiPost.id?.toString() || '',
-    username: apiPost.user?.username || apiPost.userId.toString(),
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg", // Placeholder
+    username: `user_${apiPost.userId}`,
+    avatar: `https://randomuser.me/api/portraits/men/${apiPost.userId % 50}.jpg`,
     images,
     imagePublicIds,
     mediaTypes,
-    caption: `${apiPost.title} - ${apiPost.body}`,
+    title,
+    description,
+    tags,
     likes,
     liked,
-    saved: false, // Pas encore implémenté dans l'API
+    saved: false,
     comments,
     timeAgo: timeAgo,
     isFromToday: isPostFromToday(apiPost.createdAt || new Date()),
-    tags
   };
 };
 

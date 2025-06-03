@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ViewStyle } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { cloudinaryService } from '../services/cloudinary.service';
 
 interface CloudinaryVideoProps {
@@ -32,6 +32,31 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
   isMuted = true,
   useNativeControls = true,
 }) => {
+  const videoRef = useRef<Video>(null);
+
+  // Force video to play when shouldPlay changes
+  useEffect(() => {
+    const controlVideoPlayback = async () => {
+      if (videoRef.current && shouldPlay) {
+        try {
+          console.log('📹 Attempting to play video...');
+          await videoRef.current.playAsync();
+        } catch (error) {
+          console.error('📹 Error playing video:', error);
+        }
+      } else if (videoRef.current && !shouldPlay) {
+        try {
+          await videoRef.current.pauseAsync();
+        } catch (error) {
+          console.error('📹 Error pausing video:', error);
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(controlVideoPlayback, 100);
+    return () => clearTimeout(timeoutId);
+  }, [shouldPlay]);
+
   // Fonction pour extraire le publicId d'une URL Cloudinary complète
   const extractPublicIdFromUrl = (url: string): string | null => {
     try {
@@ -132,6 +157,7 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
 
   return (
     <Video
+      ref={videoRef}
       source={{ uri: videoUrl }}
       style={[{ width, height }, style]}
       resizeMode={ResizeMode.COVER}
@@ -139,11 +165,29 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
       isLooping={isLooping}
       isMuted={isMuted}
       useNativeControls={useNativeControls}
+      progressUpdateIntervalMillis={1000}
+      positionMillis={0}
       onError={(error) => {
         console.error('📹 Video playback error:', error);
       }}
-      onLoad={() => {
-        console.log('📹 Video loaded successfully');
+      onLoad={async (status) => {
+        console.log('📹 Video loaded successfully:', status);
+        if (shouldPlay && videoRef.current) {
+          try {
+            console.log('📹 Starting video playback after load...');
+            await videoRef.current.playAsync();
+          } catch (error) {
+            console.error('📹 Error starting playback after load:', error);
+          }
+        }
+      }}
+      onLoadStart={() => {
+        console.log('📹 Video loading started');
+      }}
+      onPlaybackStatusUpdate={(status) => {
+        if (status.isLoaded && status.error) {
+          console.error('📹 Video playback status error:', status.error);
+        }
       }}
     />
   );

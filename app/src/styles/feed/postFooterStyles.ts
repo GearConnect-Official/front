@@ -16,23 +16,13 @@ const styles = StyleSheet.create({
   
   // Title Section
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
     marginBottom: 6,
-    flexWrap: 'wrap',
-  },
-  usernameText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#262626',
-    marginRight: 6,
   },
   titleText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#262626',
     lineHeight: 20,
-    flex: 1,
   },
   
   // Description Section

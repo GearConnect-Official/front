@@ -95,20 +95,20 @@ const RegisterScreen: React.FC = () => {
           ...errors,
           password: result.error,
         });
-      } else if (result.error?.toLowerCase().includes("serveur")) {
+      } else if (result.error?.toLowerCase().includes("server")) {
         setErrors({
-          username: "Impossible de contacter le serveur",
-          email: "Impossible de contacter le serveur",
-          password: "Impossible de contacter le serveur",
-          confirmPassword: "Impossible de contacter le serveur",
+          username: "Unable to connect to server",
+          email: "Unable to connect to server",
+          password: "Unable to connect to server",
+          confirmPassword: "Unable to connect to server",
         });
       } else {
-        // Si l'erreur n'est pas spécifique à un champ
+        // If the error is not specific to a field
         setErrors({
-          username: result.error || "Une erreur est survenue",
-          email: result.error || "Une erreur est survenue",
-          password: result.error || "Une erreur est survenue",
-          confirmPassword: result.error || "Une erreur est survenue",
+          username: result.error || "An error occurred",
+          email: result.error || "An error occurred",
+          password: result.error || "An error occurred",
+          confirmPassword: result.error || "An error occurred",
         });
       }
     }

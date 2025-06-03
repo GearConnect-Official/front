@@ -147,21 +147,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!username || username.length < 3) {
         return {
           success: false,
-          error: "Le nom d'utilisateur doit contenir au moins 3 caractères",
+          error: "Username must be at least 3 characters long",
         };
       }
 
       if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
         return {
           success: false,
-          error: "Veuillez fournir une adresse email valide",
+          error: "Please provide a valid email address",
         };
       }
 
       if (!password || password.length < 8) {
         return {
           success: false,
-          error: "Le mot de passe doit contenir au moins 8 caractères",
+          error: "Password must be at least 8 characters long",
         };
       }
 
@@ -171,23 +171,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return {
           success: false,
           error:
-            "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
+            "Password must contain at least one uppercase letter, one lowercase letter, and one number",
         };
       }
 
       console.log(
-        `Tentative d'inscription avec: {"email": "${email}", "password": "***", "username": "${username}"}`
+        `Attempting registration with: {"email": "${email}", "password": "***", "username": "${username}"}`
       );
 
       // Register with backend only
-      // Notre backend crée déjà l'utilisateur dans Clerk et dans notre base de données
       const backendResponse = await authSignUp(username, email, password);
-      console.log("Réponse d'inscription:", backendResponse);
+      console.log("Registration response:", backendResponse);
 
       if (!backendResponse.success) {
         return {
           success: false,
-          error: backendResponse.error || "Erreur lors de l'inscription",
+          error: backendResponse.error || "Error during registration",
         };
       }
 

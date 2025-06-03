@@ -58,7 +58,8 @@ const authStyles = StyleSheet.create({
     borderColor: "#E8ECF4",
   },
   inputError: {
-    borderColor: theme.colors.status.error,
+    borderColor: "#E53935",
+    borderWidth: 1,
   },
   passwordContainer: {
     width: "100%",
@@ -100,20 +101,18 @@ const authStyles = StyleSheet.create({
     width: "100%",
   },
   deletedAccountError: {
-    color: theme.colors.status.error,
-    fontSize: 16,
-    fontWeight: "600",
+    color: "#E53935",
+    fontSize: 14,
     textAlign: "center",
-    marginTop: 16,
-    marginBottom: 16,
+    marginBottom: 20,
+    marginTop: 10,
     width: "100%",
   },
   fieldError: {
-    color: theme.colors.status.error,
+    color: "#E53935",
     fontSize: 14,
-    marginTop: 4,
-    marginBottom: 8,
-    width: "100%",
+    marginTop: 5,
+    marginBottom: 10,
   },
   loginButton: {
     width: "100%",
@@ -176,6 +175,19 @@ const authStyles = StyleSheet.create({
   },
   placeholderColor: {
     color: "rgba(131, 145, 161, 1)",
+  },
+  errorContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    width: "100%",
+  },
+  generalError: {
+    color: "#E53935",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 20,
+    width: "100%",
   },
 });
 

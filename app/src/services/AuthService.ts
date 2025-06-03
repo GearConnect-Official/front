@@ -124,7 +124,7 @@ export const signIn = async (
       if (error.response.status === 401) {
         return {
           success: false,
-          error: "Compte non trouvé",
+          error: "Account does not exist or is disabled",
         };
       }
 

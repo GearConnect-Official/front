@@ -36,13 +36,13 @@ const AuthScreen: React.FC = () => {
     setIsDeletedAccount(false);
 
     if (!email) {
-      newErrors.email = "L'email est requis";
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Format d'email invalide";
+      newErrors.email = "Invalid email format";
     }
 
     if (!password) {
-      newErrors.password = "Le mot de passe est requis";
+      newErrors.password = "Password is required";
     }
 
     setErrors(newErrors);
@@ -59,17 +59,24 @@ const AuthScreen: React.FC = () => {
 
     const result = await login(email, password);
     if (!result.success) {
-      if (result.error === "Votre compte a été supprimé ou désactivé") {
+      if (result.error === "Your account has been deleted or desactivated") {
         setIsDeletedAccount(true);
-        setErrors({ general: result.error });
-      } else if (result.error === "Compte non trouvé") {
-        setErrors({ email: "Compte non trouvé" });
-      } else if (result.error === "Mot de passe incorrect") {
-        setErrors({ password: "Mot de passe incorrect" });
-      } else if (result.error === "Impossible de se connecter au serveur") {
-        setErrors({ general: "Impossible de se connecter au serveur" });
+        setErrors({
+          general: result.error,
+          email: " ",
+          password: " ",
+        });
+      } else if (result.error === "Account not found") {
+        setErrors({
+          email: "Account not found",
+          password: " ",
+        });
+      } else if (result.error === "Incorrect password") {
+        setErrors({ password: "Incorrect password" });
+      } else if (result.error === "Unable to connect to server") {
+        setErrors({ general: "Unable to connect to server" });
       } else {
-        setErrors({ general: result.error || "Une erreur est survenue" });
+        setErrors({ general: result.error || "An error occurred" });
       }
     }
   };
@@ -120,13 +127,15 @@ const AuthScreen: React.FC = () => {
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
-                  if (errors.email) clearErrors();
+                  if (errors.email || isDeletedAccount) {
+                    clearErrors();
+                  }
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor={authStyles.placeholderColor.color}
               />
-              {errors.email && (
+              {errors.email && !isDeletedAccount && errors.email.trim() && (
                 <Text style={authStyles.fieldError}>{errors.email}</Text>
               )}
             </View>
@@ -145,7 +154,9 @@ const AuthScreen: React.FC = () => {
                   value={password}
                   onChangeText={(text) => {
                     setPassword(text);
-                    if (errors.password) clearErrors();
+                    if (errors.password || isDeletedAccount) {
+                      clearErrors();
+                    }
                   }}
                   secureTextEntry={!showPassword}
                   placeholderTextColor={authStyles.placeholderColor.color}
@@ -161,9 +172,11 @@ const AuthScreen: React.FC = () => {
                   />
                 </TouchableOpacity>
               </View>
-              {errors.password && (
-                <Text style={authStyles.fieldError}>{errors.password}</Text>
-              )}
+              {errors.password &&
+                !isDeletedAccount &&
+                errors.password.trim() && (
+                  <Text style={authStyles.fieldError}>{errors.password}</Text>
+                )}
             </View>
 
             <TouchableOpacity
@@ -175,15 +188,17 @@ const AuthScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
 
-            {isDeletedAccount && errors.general ? (
-              <Text style={authStyles.deletedAccountError}>
-                {errors.general}
-              </Text>
-            ) : null}
+            <View style={authStyles.errorContainer}>
+              {isDeletedAccount && errors.general ? (
+                <Text style={authStyles.deletedAccountError}>
+                  {errors.general}
+                </Text>
+              ) : null}
 
-            {!isDeletedAccount && errors.general ? (
-              <Text style={authStyles.fieldError}>{errors.general}</Text>
-            ) : null}
+              {!isDeletedAccount && errors.general ? (
+                <Text style={authStyles.generalError}>{errors.general}</Text>
+              ) : null}
+            </View>
 
             <TouchableOpacity
               style={authStyles.loginButton}

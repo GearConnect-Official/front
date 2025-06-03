@@ -44,7 +44,7 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
       crop,
       quality,
       format,
-      resourceType: 'image',
+      resource_type: 'image',
     });
   };
 
@@ -60,7 +60,7 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
       source={{ uri: optimizedUrl }}
       style={[
         style,
-        width && height && { width, height },
+        width && height ? { width, height } : undefined,
       ]}
     />
   );

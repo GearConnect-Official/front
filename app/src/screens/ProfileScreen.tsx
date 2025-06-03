@@ -9,12 +9,15 @@ import {
   Dimensions,
   SafeAreaView,
   Modal,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 import styles from "../styles/profileStyles";
 import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
+import favoritesService from "../services/favoritesService";
 
 // Screen width to calculate grid image dimensions
 const { width } = Dimensions.get("window");
@@ -33,6 +36,24 @@ interface Post {
   location?: string;
   timeAgo?: string;
   multipleImages?: boolean;
+}
+
+// Type for favorites
+interface FavoritePost {
+  id: number;
+  title: string;
+  body: string;
+  cloudinaryUrl?: string;
+  user: {
+    id: number;
+    name: string;
+    username: string;
+    email: string;
+  };
+  createdAt: string;
+  favorites?: Array<{ userId: number; postId: number }>;
+  interactions?: Array<any>;
+  comments?: Array<any>;
 }
 
 // Type for events
@@ -67,6 +88,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [favorites, setFavorites] = useState<FavoritePost[]>([]);
   const [eventFilter, setEventFilter] = useState<
     "all" | "organized" | "participated"
   >("all");
@@ -74,6 +96,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     posts: 24,
     followers: 1248,
     following: 420,
+    saved: 0,
   });
   const [driverStats, setDriverStats] = useState<DriverStats>({
     races: 12,
@@ -83,6 +106,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   });
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+  const [favoritesPage, setFavoritesPage] = useState(1);
+  const [hasMoreFavorites, setHasMoreFavorites] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     // Simuler le chargement des données
@@ -90,13 +117,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     // Sinon, charger les données de l'utilisateur connecté
     loadMockData();
     
+    // Charger les favoris si l'utilisateur est connecté
+    if (user?.id) {
+      loadFavorites(1, true);
+    }
+    
     // Dans une vraie application, vous pourriez faire quelque chose comme:
     // if (userId) {
     //   loadUserData(userId);
     // } else {
     //   loadCurrentUserData();
     // }
-  }, [userId]); // Recharger les données quand userId change
+  }, [userId, user?.id]); // Recharger les données quand userId change
 
   const loadMockData = () => {
     // Simulated posts for the grid
@@ -278,6 +310,71 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
 
     setPosts(mockPosts);
     setEvents(mockEvents);
+  };
+
+  const loadFavorites = async (page: number = 1, reset: boolean = false) => {
+    if (!user?.id || isLoadingFavorites) return;
+
+    try {
+      setIsLoadingFavorites(true);
+      console.log('📱 Loading favorites for user:', user.id, 'page:', page);
+      
+      const response = await favoritesService.getUserFavorites(user.id, page, 10);
+      
+      if (reset) {
+        setFavorites(response.favorites);
+      } else {
+        setFavorites(prev => [...prev, ...response.favorites]);
+      }
+      
+      setHasMoreFavorites(page < response.pagination.totalPages);
+      setFavoritesPage(page);
+      
+      // Mettre à jour le nombre de favoris dans les stats
+      if (reset) {
+        setStats(prev => ({ ...prev, saved: response.pagination.total }));
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading favorites:', error);
+    } finally {
+      setIsLoadingFavorites(false);
+    }
+  };
+
+  const handleRemoveFromFavorites = async (postId: number) => {
+    if (!user?.id || !postId) return;
+
+    try {
+      await favoritesService.toggleFavorite(postId, user.id);
+      
+      // Retirer le favori de la liste locale
+      setFavorites(prev => prev.filter(fav => fav.id !== postId));
+      
+      // Mettre à jour les stats
+      setStats(prev => ({ ...prev, saved: Math.max(0, (prev.saved || 0) - 1) }));
+      
+    } catch (error) {
+      console.error('❌ Error removing from favorites:', error);
+    }
+  };
+
+  const onRefreshProfile = async () => {
+    setRefreshing(true);
+    
+    // Recharger les données selon l'onglet actif
+    if (activeTab === 'saved' && user?.id) {
+      await loadFavorites(1, true);
+    }
+    // Ici on pourrait ajouter le rechargement des autres onglets
+    
+    setRefreshing(false);
+  };
+
+  const loadMoreFavorites = () => {
+    if (hasMoreFavorites && !isLoadingFavorites) {
+      loadFavorites(favoritesPage + 1, false);
+    }
   };
 
   const formatNumber = (num: number): string => {
@@ -561,6 +658,88 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     );
   };
 
+  const renderFavoritesGrid = () => {
+    if (favorites.length === 0 && !isLoadingFavorites) {
+      return renderEmptyComponent();
+    }
+
+    // Rendu des favoris sans FlatList pour éviter les VirtualizedLists imbriquées
+    return (
+      <View style={styles.favoritesContainer}>
+        {favorites.map((item, index) => (
+          <TouchableOpacity
+            key={`${item.id}-${index}`}
+            style={styles.favoriteItem}
+            activeOpacity={0.8}
+            onPress={() => {
+              // Naviguer vers le détail du post
+              router.push({
+                pathname: '/(app)/postDetail',
+                params: { postId: item.id.toString() }
+              });
+            }}
+          >
+            <View style={styles.favoriteImageContainer}>
+              <Image
+                source={{ 
+                  uri: item.cloudinaryUrl || 'https://via.placeholder.com/300x300?text=No+Image'
+                }}
+                style={styles.favoriteImage}
+              />
+              <TouchableOpacity 
+                style={styles.removeFavoriteButton}
+                onPress={() => handleRemoveFromFavorites(item.id)}
+              >
+                <FontAwesome name="times" size={16} color="#E10600" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.favoriteContent}>
+              <View style={styles.favoriteHeader}>
+                <View style={styles.favoriteUserAvatar}>
+                  <FontAwesome name="user" size={16} color="#6E6E6E" />
+                </View>
+                <Text style={styles.favoriteUsername}>
+                  @{item.user?.username || 'Unknown User'}
+                </Text>
+              </View>
+              
+              <Text style={styles.favoriteTitle} numberOfLines={1}>
+                {item.title || 'Sans titre'}
+              </Text>
+              
+              <Text style={styles.favoriteDescription} numberOfLines={2}>
+                {item.body || 'Aucune description disponible'}
+              </Text>
+              
+              <View style={styles.favoriteMeta}>
+                <Text style={styles.favoriteDate}>
+                  {item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR') : 'Date inconnue'}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+        
+        {isLoadingFavorites && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#E10600" />
+            <Text style={styles.loadingText}>Chargement...</Text>
+          </View>
+        )}
+        
+        {hasMoreFavorites && !isLoadingFavorites && favorites.length > 0 && (
+          <TouchableOpacity 
+            style={styles.loadMoreButton}
+            onPress={loadMoreFavorites}
+          >
+            <Text style={styles.loadMoreText}>Charger plus</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
   const renderEmptyComponent = () => (
     <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
       {activeTab === "posts" ? (
@@ -615,6 +794,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefreshProfile}
+            colors={['#E10600']}
+            tintColor="#E10600"
+          />
+        }
       >
         {/* Header with name and back button */}
         <View style={styles.header}>
@@ -826,6 +1013,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             ? renderPostsGrid()
             : activeTab === "events"
             ? renderEventsList()
+            : activeTab === "saved"
+            ? renderFavoritesGrid()
             : renderEmptyComponent()}
         </View>
 

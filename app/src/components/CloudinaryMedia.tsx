@@ -61,10 +61,17 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
       }
 
       // Vérifier les patterns Cloudinary spécifiques aux vidéos
-      if (lowercaseUrl.includes('/video/') || 
+      if (lowercaseUrl.includes('/video/upload') || 
           lowercaseUrl.includes('video/upload') ||
-          lowercaseUrl.includes('.cloudinary.com') && lowercaseUrl.includes('v_')) {
+          lowercaseUrl.includes('resource_type=video') ||
+          lowercaseUrl.includes('.cloudinary.com') && lowercaseUrl.includes('f_mp4')) {
         console.log('🎯 Detected video from Cloudinary URL patterns');
+        return 'video';
+      }
+      
+      // Nouveau : vérifier si l'URL contient des paramètres de format vidéo
+      if (lowercaseUrl.includes('f_mp4') || lowercaseUrl.includes('f_webm') || lowercaseUrl.includes('f_mov')) {
+        console.log('🎯 Detected video from format parameters in URL');
         return 'video';
       }
     }
@@ -72,14 +79,15 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
     // Détecter le type basé sur le publicId
     if (publicId && publicId.trim() !== '') {
       console.log('🎯 Checking publicId for video patterns:', publicId);
-      if (publicId.toLowerCase().includes('video')) {
-        console.log('🎯 Detected video from publicId containing "video"');
+      const lowercaseId = publicId.toLowerCase();
+      if (lowercaseId.includes('video') || lowercaseId.startsWith('videos/') || lowercaseId.includes('/video/')) {
+        console.log('🎯 Detected video from publicId containing video patterns');
         return 'video';
       }
     }
 
     // Si on a un format spécifié pour vidéo
-    if (format && ['mp4', 'webm', 'mov'].includes(format.toLowerCase())) {
+    if (format && ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(format.toLowerCase())) {
       console.log('🎯 Detected video from format:', format);
       return 'video';
     }

@@ -9,10 +9,14 @@ import {
   ActivityIndicator,
   StyleSheet,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import styles from '../../styles/publicationStyles';
+import CloudinaryMedia from '../CloudinaryMedia';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // Racing color palette
 const THEME_COLORS = {
@@ -46,6 +50,8 @@ interface PublicationFormProps {
   setDescription: (description: string) => void;
   setTags: (tags: string[]) => void;
   isLoading?: boolean;
+  mediaType?: 'image' | 'video';
+  publicId?: string;
 }
 
 const PublicationForm: React.FC<PublicationFormProps> = ({
@@ -58,27 +64,68 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   setTitle,
   setDescription,
   setTags,
-  isLoading = false
+  isLoading = false,
+  mediaType,
+  publicId
 }) => {
   const [tagInput, setTagInput] = useState('');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
+  // Debug logs
+  console.log('PublicationForm rendered with:', {
+    tags: tags,
+    tagsLength: tags.length,
+    setTagsType: typeof setTags,
+    isLoading: isLoading,
+    tagInput: tagInput,
+    tagInputTrimmed: tagInput.trim(),
+    buttonDisabled: isLoading || !tagInput.trim()
+  });
+
   const handleAddTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
+    console.log('=== handleAddTag DEBUT ===');
+    console.log('tagInput raw:', JSON.stringify(tagInput));
+    console.log('tagInput length:', tagInput.length);
+    console.log('tagInput trimmed:', JSON.stringify(tagInput.trim()));
+    console.log('tagInput trimmed length:', tagInput.trim().length);
+    console.log('current tags:', JSON.stringify(tags));
+    console.log('tag already exists?', tags.includes(tagInput.trim()));
+    
+    const trimmedInput = tagInput.trim();
+    if (trimmedInput && !tags.includes(trimmedInput)) {
+      console.log('✅ CONDITIONS REMPLIES - Adding tag:', trimmedInput);
+      const newTags = [...tags, trimmedInput];
+      console.log('New tags array:', JSON.stringify(newTags));
+      setTags(newTags);
       setTagInput('');
+      console.log('✅ setTags called and tagInput cleared');
+    } else {
+      console.log('❌ CONDITIONS NON REMPLIES:', {
+        hasContent: !!trimmedInput,
+        contentLength: trimmedInput.length,
+        notAlreadyIncluded: !tags.includes(trimmedInput),
+        currentTags: tags,
+        inputValue: trimmedInput
+      });
     }
+    console.log('=== handleAddTag FIN ===');
   };
 
   const handleRemoveTag = (index: number) => {
+    console.log('handleRemoveTag called with index:', index);
     const newTags = [...tags];
     newTags.splice(index, 1);
+    console.log('New tags after removal:', newTags);
     setTags(newTags);
   };
   
   const handleAddSuggestedTag = (tag: string) => {
+    console.log('handleAddSuggestedTag called with:', tag);
     if (!tags.includes(tag)) {
+      console.log('Adding suggested tag:', tag);
       setTags([...tags, tag]);
+    } else {
+      console.log('Suggested tag already exists:', tag);
     }
   };
   
@@ -108,11 +155,26 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         
         <ScrollView>
           <View style={styles.formImagePreview}>
-            <Image 
-              source={{ uri: imageUri }} 
-              style={styles.formImagePreview}
-              resizeMode="cover"
-            />
+            {publicId ? (
+              <CloudinaryMedia
+                publicId={publicId}
+                mediaType={mediaType || 'auto'}
+                width={SCREEN_WIDTH}
+                height={SCREEN_WIDTH}
+                style={styles.formImagePreview}
+                fallbackUrl={imageUri}
+                shouldPlay={mediaType === 'video'}
+                isMuted={true}
+                useNativeControls={mediaType === 'video'}
+                isLooping={mediaType === 'video'}
+              />
+            ) : (
+              <Image 
+                source={{ uri: imageUri }} 
+                style={styles.formImagePreview}
+                resizeMode="cover"
+              />
+            )}
           </View>
           
           <View style={localStyles.previewContent}>
@@ -155,11 +217,39 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
     >
       <ScrollView style={styles.formContainer}>
         <View style={styles.formImagePreview}>
-          <Image 
-            source={{ uri: imageUri }} 
-            style={styles.formImagePreview}
-            resizeMode="cover"
-          />
+          {publicId ? (
+            <CloudinaryMedia
+              publicId={publicId}
+              mediaType={mediaType || 'auto'}
+              width={SCREEN_WIDTH}
+              height={SCREEN_WIDTH}
+              style={styles.formImagePreview}
+              fallbackUrl={imageUri}
+              shouldPlay={mediaType === 'video'}
+              isMuted={true}
+              useNativeControls={mediaType === 'video'}
+              isLooping={mediaType === 'video'}
+            />
+          ) : (
+            <Image 
+              source={{ uri: imageUri }} 
+              style={styles.formImagePreview}
+              resizeMode="cover"
+            />
+          )}
+          {/* Debug info */}
+          <Text style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            padding: 5,
+            borderRadius: 5,
+            fontSize: 12
+          }}>
+            {mediaType || 'unknown'} {publicId ? `(${publicId})` : '(no publicId)'}
+          </Text>
         </View>
         
         <View style={styles.formContent}>
@@ -243,8 +333,20 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   placeholder="Add tags"
                   placeholderTextColor={THEME_COLORS.textSecondary}
                   value={tagInput}
-                  onChangeText={setTagInput}
-                  onSubmitEditing={handleAddTag}
+                  onChangeText={(text) => {
+                    console.log('🔄 Tag input changed to:', JSON.stringify(text));
+                    console.log('🔄 Text length:', text.length);
+                    setTagInput(text);
+                    console.log('🔄 setTagInput called with:', JSON.stringify(text));
+                  }}
+                  onSubmitEditing={() => {
+                    console.log('Tag input submitted');
+                    handleAddTag();
+                  }}
+                  returnKeyType="done"
+                  blurOnSubmit={true}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   editable={!isLoading}
                 />
               </View>
@@ -254,7 +356,10 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   styles.addTagButton,
                   (!tagInput.trim() || isLoading) && localStyles.disabledButton
                 ]} 
-                onPress={handleAddTag}
+                onPress={() => {
+                  console.log('Add tag button pressed');
+                  handleAddTag();
+                }}
                 disabled={isLoading || !tagInput.trim()}
               >
                 <Text style={styles.addTagButtonText}>Add</Text>

@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Video } from 'expo-av';
+import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useCloudinary } from '../hooks/useCloudinary';
 import { CloudinaryUploadResponse } from '../services/cloudinary.service';
@@ -156,7 +156,7 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
                 source={{ uri: video.secure_url }}
                 style={styles.previewVideo}
                 useNativeControls
-                resizeMode="cover"
+                resizeMode={ResizeMode.COVER}
                 shouldPlay={false}
               />
               

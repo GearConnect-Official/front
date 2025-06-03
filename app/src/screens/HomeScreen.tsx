@@ -18,15 +18,18 @@ import {
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import * as Clipboard from 'expo-clipboard';
 import styles from "../styles/homeStyles";
 import StoryModal from "../components/StoryModal";
 import HierarchicalCommentsModal from "../components/HierarchicalCommentsModal";
-import ShareModal from "../components/Feed/ShareModal";
 import PostItem, { Comment as PostItemComment, Post, PostTag } from "../components/Feed/PostItem";
 import { Post as APIPost, Comment as APIComment } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import * as postService from '../services/postService';
 import commentService from '../services/commentService';
+import favoritesService from '../services/favoritesService';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 
@@ -78,7 +81,9 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
     id: apiPost.id,
     cloudinaryUrl: apiPost.cloudinaryUrl,
     cloudinaryPublicId: apiPost.cloudinaryPublicId,
-    imageMetadata: apiPost.imageMetadata
+    imageMetadata: apiPost.imageMetadata,
+    isFavorited: (apiPost as any).isFavorited,
+    favoritesCount: (apiPost as any).favoritesCount
   });
 
   const liked = apiPost.interactions?.some(
@@ -109,8 +114,18 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
       try {
         const metadata = JSON.parse(apiPost.imageMetadata);
         console.log('📋 Image metadata:', metadata);
-        if (metadata.resource_type === 'video') {
-          console.log('✅ Detected video from metadata');
+        
+        // Vérifier plusieurs champs possibles pour le type de ressource
+        if (metadata.resource_type === 'video' || 
+            metadata.mediaType === 'video' ||
+            metadata.resourceType === 'video') {
+          console.log('✅ Detected video from metadata.resource_type');
+          return 'video';
+        }
+        
+        // Vérifier le format
+        if (metadata.format && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(metadata.format.toLowerCase())) {
+          console.log('✅ Detected video from metadata.format:', metadata.format);
           return 'video';
         }
       } catch (e) {
@@ -126,19 +141,19 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
       const lowercaseUrl = apiPost.cloudinaryUrl.toLowerCase();
       
       if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
-        console.log('✅ Detected video from file extension');
+        console.log('✅ Detected video from file extension in URL');
         return 'video';
       }
       
       // Vérifier si l'URL contient '/video/' (structure Cloudinary)
-      if (lowercaseUrl.includes('/video/')) {
-        console.log('✅ Detected video from URL path (/video/)');
+      if (lowercaseUrl.includes('/video/upload') || lowercaseUrl.includes('/v_')) {
+        console.log('✅ Detected video from Cloudinary video patterns');
         return 'video';
       }
 
-      // Vérifier d'autres patterns Cloudinary spécifiques aux vidéos
-      if (lowercaseUrl.includes('video/upload') || lowercaseUrl.includes('v_')) {
-        console.log('✅ Detected video from Cloudinary video patterns');
+      // Nouveau : vérifier le paramètre de format dans l'URL
+      if (lowercaseUrl.includes('f_mp4') || lowercaseUrl.includes('f_webm') || lowercaseUrl.includes('f_mov')) {
+        console.log('✅ Detected video from URL format parameter');
         return 'video';
       }
     }
@@ -147,8 +162,8 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
     if (apiPost.cloudinaryPublicId) {
       console.log('🔗 Checking cloudinary publicId:', apiPost.cloudinaryPublicId);
       const lowercaseId = apiPost.cloudinaryPublicId.toLowerCase();
-      if (lowercaseId.includes('video')) {
-        console.log('✅ Detected video from publicId containing "video"');
+      if (lowercaseId.includes('video') || lowercaseId.startsWith('videos/')) {
+        console.log('✅ Detected video from publicId patterns');
         return 'video';
       }
     }
@@ -183,8 +198,8 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
 
   return {
     id: apiPost.id?.toString() || '',
-    username: `user_${apiPost.userId}`,
-    avatar: `https://randomuser.me/api/portraits/men/${apiPost.userId % 50}.jpg`,
+    username: apiPost.user?.username || `user_${apiPost.userId}`,
+    avatar: apiPost.user?.imageUrl || `https://randomuser.me/api/portraits/men/${apiPost.userId % 50}.jpg`,
     images,
     imagePublicIds,
     mediaTypes,
@@ -193,7 +208,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
     tags,
     likes,
     liked,
-    saved: false,
+    saved: (apiPost as any).isFavorited || false,
     comments,
     timeAgo: timeAgo,
     isFromToday: isPostFromToday(apiPost.createdAt || new Date()),
@@ -216,7 +231,6 @@ const HomeScreen: React.FC = () => {
   const [isStoryModalVisible, setIsStoryModalVisible] = useState(false);
   const [currentStoryId, setCurrentStoryId] = useState("");
   const [isCommentsModalVisible, setIsCommentsModalVisible] = useState(false);
-  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [currentPostId, setCurrentPostId] = useState("");
   const scrollY = useRef(new Animated.Value(0)).current;
   const isHeaderVisible = useRef(true);
@@ -226,7 +240,12 @@ const HomeScreen: React.FC = () => {
   const loadPosts = useCallback(async (page = 1, limit = 10) => {
     try {
       setLoadingError(null);
-      const response = await postService.default.getAllPosts();
+      const currentUserId = user?.id ? parseInt(user.id) : null;
+      
+      // Utiliser la nouvelle méthode getPosts avec userId pour récupérer l'état des favoris
+      const response = currentUserId 
+        ? await postService.default.getPosts(page, limit, currentUserId)
+        : await postService.default.getAllPosts();
       
       if (Array.isArray(response)) {
         // Trier les posts du plus récent au plus ancien
@@ -237,8 +256,7 @@ const HomeScreen: React.FC = () => {
         });
         
         // Transformer les posts API en posts UI en utilisant l'ID utilisateur réel
-        const currentUserId = user?.id ? parseInt(user.id) : 1;
-        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId));
+        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId || 1));
         
         setPosts(uiPosts);
         setHasMorePosts(uiPosts.length === limit);
@@ -383,12 +401,42 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  const handleSave = (postId: string) => {
+  const handleSave = async (postId: string) => {
+    if (!user?.id) {
+      Alert.alert('Erreur', 'Vous devez être connecté pour sauvegarder un post');
+      return;
+    }
+
+    const currentUserId = parseInt(user.id);
+    
+    // Optimistically update UI
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
         post.id === postId ? { ...post, saved: !post.saved } : post
       )
     );
+
+    try {
+      // Utiliser le service des favoris pour persister en base de données
+      await favoritesService.toggleFavorite(parseInt(postId), currentUserId);
+      
+      // Recharger les posts pour synchroniser avec la base de données
+      // On fait ça de manière silencieuse pour éviter les clignotements
+      setTimeout(() => {
+        loadPosts();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erreur lors du toggle des favoris:', error);
+      
+      // En cas d'erreur, annuler l'optimistic update
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId ? { ...post, saved: !post.saved } : post
+        )
+      );
+      Alert.alert('Erreur', 'Impossible de sauvegarder ce post pour le moment.');
+    }
   };
 
   const handleViewStory = (storyId: string) => {
@@ -450,87 +498,6 @@ const HomeScreen: React.FC = () => {
         }, 500);
       }
     }
-  };
-
-  const handleSharePost = (postId: string) => {
-    setCurrentPostId(postId);
-    setIsShareModalVisible(true);
-  };
-
-  const handleCloseShareModal = () => {
-    setIsShareModalVisible(false);
-  };
-
-  const handleAddComment = async (postId: string, text: string) => {
-    if (!text.trim() || !user?.id) return;
-
-    const currentUserId = parseInt(user.id);
-
-    const newComment: PostItemComment = {
-      id: Date.now().toString(),
-      username: user.username || CURRENT_USERNAME,
-      avatar: CURRENT_USER_AVATAR,
-      text,
-      timeAgo: "Now",
-      likes: 0,
-    };
-
-    // Optimistic update
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              comments: [...post.comments, newComment],
-            }
-          : post
-      )
-    );
-
-    try {
-      // Utiliser la nouvelle méthode addComment
-      await postService.default.addComment(parseInt(postId), currentUserId, text);
-      
-      // Recharger les posts après un délai pour synchroniser
-      setTimeout(() => {
-        loadPosts();
-      }, 500);
-      
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout du commentaire:', error);
-      
-      // En cas d'erreur, annuler l'optimistic update
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                comments: post.comments.filter((c) => c.id !== newComment.id),
-              }
-            : post
-        )
-      );
-      Alert.alert('Erreur', 'Impossible d\'ajouter un commentaire pour le moment.');
-    }
-  };
-
-  const getCurrentPostComments = () => {
-    const post = posts.find((p) => p.id === currentPostId);
-    if (!post) return [];
-    
-    // Convertir les commentaires UI en commentaires API
-    return post.comments.map(comment => ({
-      id: comment.id,
-      postId: parseInt(currentPostId),
-      userId: 1, // ID de l'utilisateur courant
-      content: comment.text,
-      createdAt: new Date(),
-      user: {
-        id: 1,
-        name: comment.username,
-        username: comment.username,
-      }
-    }));
   };
 
   const handleProfilePress = (username: string) => {
@@ -641,6 +608,152 @@ const HomeScreen: React.FC = () => {
     }
   );
 
+  const handleSharePost = async (postId: string) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    try {
+      console.log('📤 Sharing post:', postId);
+      
+      // TODO: PRODUCTION - Quand l'app sera déployée en production, modifier cette fonction pour :
+      // 1. Partager un lien direct vers le post dans l'app (ex: https://gearconnect.app/post/123)
+      // 2. Inclure une preview du post avec titre/description/image miniature
+      // 3. Ne plus partager directement l'URL Cloudinary mais plutôt rediriger vers le post complet
+      // 4. Permettre aux utilisateurs externes de voir le post même sans avoir l'app installée
+      // 5. Ajouter des métadonnées Open Graph pour un meilleur affichage sur les réseaux sociaux
+      
+      // Vérifier si le partage est disponible sur l'appareil
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert('Erreur', 'Le partage n\'est pas disponible sur cet appareil');
+        return;
+      }
+
+      // Créer le contenu à partager
+      const shareContent = `${post.title}\n\n${post.description}\n\nVu sur GearConnect`;
+      
+      // Si le post a une image, on peut essayer de la partager aussi
+      if (post.images.length > 0) {
+        try {
+          // Partager avec l'image (si possible)
+          await Sharing.shareAsync(post.images[0], {
+            mimeType: 'image/jpeg',
+            dialogTitle: 'Partager ce post',
+            UTI: 'public.jpeg'
+          });
+        } catch (imageError) {
+          console.log('⚠️ Image sharing failed, falling back to text:', imageError);
+          // Fallback vers le partage de texte
+          await shareTextContent(shareContent);
+        }
+      } else {
+        // Partager seulement le texte
+        await shareTextContent(shareContent);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error sharing post:', error);
+      Alert.alert('Erreur', 'Impossible de partager ce post');
+    }
+  };
+
+  const shareTextContent = async (content: string) => {
+    // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
+    try {
+      // Créer un fichier temporaire avec le contenu
+      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
+      await FileSystem.writeAsStringAsync(tempFile, content);
+      
+      await Sharing.shareAsync(tempFile, {
+        mimeType: 'text/plain',
+        dialogTitle: 'Partager ce post',
+      });
+      
+      // Nettoyer le fichier temporaire
+      await FileSystem.deleteAsync(tempFile, { idempotent: true });
+    } catch (error) {
+      console.log('⚠️ Text file sharing failed:', error);
+      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
+        { text: 'OK', onPress: () => {
+          // Fallback: copier dans le presse-papiers
+          Clipboard.setStringAsync(content);
+        }}
+      ]);
+    }
+  };
+
+  const handleAddComment = async (postId: string, text: string) => {
+    if (!text.trim() || !user?.id) return;
+
+    const currentUserId = parseInt(user.id);
+
+    const newComment: PostItemComment = {
+      id: Date.now().toString(),
+      username: user.username || CURRENT_USERNAME,
+      avatar: CURRENT_USER_AVATAR,
+      text,
+      timeAgo: "Now",
+      likes: 0,
+    };
+
+    // Optimistic update
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: [...post.comments, newComment],
+            }
+          : post
+      )
+    );
+
+    try {
+      // Utiliser la nouvelle méthode addComment
+      await postService.default.addComment(parseInt(postId), currentUserId, text);
+      
+      // Recharger les posts après un délai pour synchroniser
+      setTimeout(() => {
+        loadPosts();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du commentaire:', error);
+      
+      // En cas d'erreur, annuler l'optimistic update
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: post.comments.filter((c) => c.id !== newComment.id),
+              }
+            : post
+        )
+      );
+      Alert.alert('Erreur', 'Impossible d\'ajouter un commentaire pour le moment.');
+    }
+  };
+
+  const getCurrentPostComments = () => {
+    const post = posts.find((p) => p.id === currentPostId);
+    if (!post) return [];
+    
+    // Convertir les commentaires UI en commentaires API
+    return post.comments.map(comment => ({
+      id: comment.id,
+      postId: parseInt(currentPostId),
+      userId: 1, // ID de l'utilisateur courant
+      content: comment.text,
+      createdAt: new Date(),
+      user: {
+        id: 1,
+        name: comment.username,
+        username: comment.username,
+      }
+    }));
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -734,13 +847,6 @@ const HomeScreen: React.FC = () => {
         isVisible={isCommentsModalVisible}
         postId={parseInt(currentPostId)}
         onClose={handleCloseCommentsModal}
-      />
-
-      {/* Share Modal */}
-      <ShareModal
-        visible={isShareModalVisible}
-        onClose={handleCloseShareModal}
-        postId={currentPostId}
       />
     </SafeAreaView>
   );

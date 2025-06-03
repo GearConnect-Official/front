@@ -122,7 +122,9 @@ const PublicationScreen: React.FC = () => {
           optimizedUrl: imageToShare,
           publicId: selectedImagePublicId,
           uploadedAt: new Date().toISOString(),
-          resourceType: resourceType,
+          resource_type: resourceType,
+          format: resourceType === 'video' ? 'mp4' : 'auto',
+          mediaType: resourceType,
         })
       };
       
@@ -166,6 +168,13 @@ const PublicationScreen: React.FC = () => {
   };
 
   const handleImageSelected = (cloudinaryResponse: CloudinaryUploadResponse) => {
+    console.log('📸 Media selected from Cloudinary:', {
+      resource_type: cloudinaryResponse.resource_type,
+      format: cloudinaryResponse.format,
+      secure_url: cloudinaryResponse.secure_url,
+      public_id: cloudinaryResponse.public_id
+    });
+    
     setSelectedImage(cloudinaryResponse.secure_url);
     setCroppedImage(cloudinaryResponse.secure_url);
     setSelectedImagePublicId(cloudinaryResponse.public_id);
@@ -173,7 +182,15 @@ const PublicationScreen: React.FC = () => {
     // Stocker le type de ressource pour les métadonnées
     const resourceType = cloudinaryResponse.resource_type || 'image';
     setResourceType(resourceType);
-    setStep('crop');
+    console.log('📸 Resource type set to:', resourceType);
+    
+    // Les vidéos sautent directement au formulaire, pas de crop
+    if (resourceType === 'video') {
+      console.log('📹 Video detected, skipping crop step');
+      setStep('form');
+    } else {
+      setStep('crop');
+    }
   };
 
   const handleImageChange = (newUri: string) => {
@@ -204,7 +221,10 @@ const PublicationScreen: React.FC = () => {
   };
 
   const handleTagsChange = (newTags: string[]) => {
+    console.log('handleTagsChange called with:', newTags);
+    console.log('Current tags before update:', tags);
     setTags(newTags);
+    console.log('Tags updated in PublicationScreen');
   };
 
   const renderContent = () => {
@@ -237,6 +257,8 @@ const PublicationScreen: React.FC = () => {
             username={username}
             userAvatar={userAvatar}
             isLoading={isLoading}
+            mediaType={resourceType as 'image' | 'video'}
+            publicId={selectedImagePublicId || undefined}
           />
         ) : null;
       

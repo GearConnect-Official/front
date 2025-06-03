@@ -174,6 +174,7 @@ const CreateEvent: React.FC<CreateEventProps> = ({
             description={formData.description || ""}
             onInputChange={handleInputChange}
             onAddImage={handleAddImage}
+            onLogoChange={(logo: string) => handleInputChange('logo', logo)}
           />
         );
       case 3:

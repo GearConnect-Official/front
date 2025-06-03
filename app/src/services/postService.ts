@@ -23,6 +23,7 @@ export interface User {
   name: string;
   username: string;
   email?: string;
+  imageUrl?: string;
 }
 
 export interface Tag {
@@ -83,11 +84,12 @@ export interface InteractionInput {
 
 const postService = {
   // Get all posts
-  getAllPosts: async () => {
+  getAllPosts: async (userId?: number) => {
     const endpoint = `${API_URL_POSTS}`;
-    logRequestDetails(endpoint, 'GET');
+    const params = userId ? { userId } : {};
+    logRequestDetails(endpoint, 'GET', params);
     try {
-      const response = await axios.get(endpoint);
+      const response = await axios.get(endpoint, { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -96,12 +98,46 @@ const postService = {
     }
   },
 
-  // Get a post by ID
-  getPostById: async (id: number) => {
-    const endpoint = `${API_URL_POSTS}/${id}`;
-    logRequestDetails(endpoint, 'GET');
+  // Get posts with pagination
+  getPosts: async (page: number = 1, limit: number = 10, userId?: number) => {
+    const endpoint = `${API_URL_POSTS}`;
+    const params: any = { page, limit };
+    if (userId) {
+      params.userId = userId;
+    }
+    logRequestDetails(endpoint, 'GET', params);
     try {
-      const response = await axios.get(endpoint);
+      const response = await axios.get(endpoint, { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching posts with pagination:', error);
+      console.log('⚠️ To implement this route on the backend: GET /api/posts');
+      throw error;
+    }
+  },
+
+  // Get followed posts
+  getFollowedPosts: async (userId: number, page: number = 1, limit: number = 10) => {
+    const endpoint = `${API_URL_POSTS}/followed/${userId}`;
+    const params = { page, limit };
+    logRequestDetails(endpoint, 'GET', params);
+    try {
+      const response = await axios.get(endpoint, { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching followed posts:', error);
+      console.log('⚠️ To implement this route on the backend: GET /api/posts/followed/:userId');
+      throw error;
+    }
+  },
+
+  // Get a post by ID
+  getPostById: async (id: number, userId?: number) => {
+    const endpoint = `${API_URL_POSTS}/${id}`;
+    const params = userId ? { userId } : {};
+    logRequestDetails(endpoint, 'GET', params);
+    try {
+      const response = await axios.get(endpoint, { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching post:', error);

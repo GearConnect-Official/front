@@ -7,9 +7,9 @@ interface CloudinaryVideoProps {
   publicId: string;
   width?: number;
   height?: number;
-  quality?: string;
-  format?: string;
-  crop?: string;
+  quality?: 'auto' | number;
+  format?: 'auto' | 'mp4' | 'webm' | 'mov';
+  crop?: 'fill' | 'fit' | 'limit' | 'scale' | 'crop';
   style?: ViewStyle;
   fallbackUrl?: string;
   shouldPlay?: boolean;
@@ -99,42 +99,40 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
         const optimizedUrl = cloudinaryService.generateOptimizedUrl(publicId, {
           width,
           height,
-          quality,
-          format,
-          crop,
+          quality: quality as 'auto' | number,
+          format: (format || 'mp4') as 'auto' | 'webp' | 'jpg' | 'png' | 'mp4' | 'webm',
+          crop: crop as 'fill' | 'fit' | 'limit' | 'scale' | 'crop',
           resource_type: 'video'
         });
         console.log('📹 Generated optimized URL:', optimizedUrl);
         return optimizedUrl;
       } catch (error) {
         console.error('📹 Error generating optimized URL:', error);
-        return fallbackUrl || null;
+        // Ne pas retourner null tout de suite, essayer le fallback
       }
     }
     
-    // Si on a une URL de fallback, essayer d'extraire le publicId
+    // Si on a une URL de fallback, l'utiliser directement d'abord
     if (fallbackUrl) {
-      console.log('📹 Using fallback URL:', fallbackUrl);
+      console.log('📹 Using fallback URL directly:', fallbackUrl);
       
-      // Vérifier si c'est une URL Cloudinary
+      // Pour Cloudinary, assurer que l'URL est correcte pour les vidéos
       if (fallbackUrl.includes('cloudinary.com')) {
-        const extractedPublicId = extractPublicIdFromUrl(fallbackUrl);
+        // Si l'URL contient 'image/upload', la corriger pour 'video/upload'
+        if (fallbackUrl.includes('/image/upload/')) {
+          const correctedUrl = fallbackUrl.replace('/image/upload/', '/video/upload/');
+          console.log('📹 Corrected URL from image to video:', correctedUrl);
+          return correctedUrl;
+        }
         
-        if (extractedPublicId) {
-          try {
-            const optimizedUrl = cloudinaryService.generateOptimizedUrl(extractedPublicId, {
-              width,
-              height,
-              quality,
-              format,
-              crop,
-              resource_type: 'video'
-            });
-            console.log('📹 Generated URL from extracted publicId:', optimizedUrl);
-            return optimizedUrl;
-          } catch (error) {
-            console.warn('📹 Failed to generate URL from extracted publicId, using original:', error);
-          }
+        // Assurer que l'URL a le bon format vidéo
+        if (!fallbackUrl.includes('f_mp4') && !fallbackUrl.includes('.mp4')) {
+          // Ajouter le format mp4 si absent
+          const urlWithFormat = fallbackUrl.includes('?') 
+            ? `${fallbackUrl}&f_mp4`
+            : `${fallbackUrl}/f_mp4`;
+          console.log('📹 Added MP4 format to URL:', urlWithFormat);
+          return urlWithFormat;
         }
       }
       
@@ -169,9 +167,21 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
       positionMillis={0}
       onError={(error) => {
         console.error('📹 Video playback error:', error);
+        console.error('📹 Error details:', {
+          error: error,
+          url: videoUrl
+        });
+        
+        // Essayer de réessayer avec des paramètres différents si erreur -1100
+        console.log('📹 Error detected, possibly malformed URL or unsupported format');
       }}
       onLoad={async (status) => {
-        console.log('📹 Video loaded successfully:', status);
+        if (status.isLoaded) {
+          console.log('📹 Video loaded successfully:', {
+            isLoaded: status.isLoaded,
+            durationMillis: status.durationMillis,
+          });
+        }
         if (shouldPlay && videoRef.current) {
           try {
             console.log('📹 Starting video playback after load...');
@@ -182,10 +192,19 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
         }
       }}
       onLoadStart={() => {
-        console.log('📹 Video loading started');
+        console.log('📹 Video loading started for URL:', videoUrl);
       }}
       onPlaybackStatusUpdate={(status) => {
-        if (status.isLoaded && status.error) {
+        if (status.isLoaded) {
+          // Log uniquement les changements importants pour éviter le spam
+          if ('isPlaying' in status) {
+            console.log('📹 Video status update:', {
+              isPlaying: status.isPlaying,
+              positionMillis: status.positionMillis,
+              durationMillis: status.durationMillis
+            });
+          }
+        } else if ('error' in status) {
           console.error('📹 Video playback status error:', status.error);
         }
       }}

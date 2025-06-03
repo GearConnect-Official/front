@@ -154,8 +154,8 @@ class CloudinaryService {
       height?: number;
       crop?: 'fill' | 'fit' | 'limit' | 'scale' | 'crop';
       quality?: 'auto' | number;
-      format?: 'auto' | 'webp' | 'jpg' | 'png';
-      resourceType?: 'image' | 'video';
+      format?: 'auto' | 'webp' | 'jpg' | 'png' | 'mp4' | 'webm';
+      resource_type?: 'image' | 'video';
     } = {}
   ): string {
     const {
@@ -164,8 +164,24 @@ class CloudinaryService {
       crop = 'fill',
       quality = 'auto',
       format = 'auto',
-      resourceType = 'image',
+      resource_type = 'image',
     } = options;
+
+    console.log('🔧 CloudinaryService - generateOptimizedUrl called with:', {
+      publicId,
+      options,
+      resource_type
+    });
+
+    // Pour les vidéos, ajouter l'extension .mp4 si elle n'est pas déjà présente
+    let finalPublicId = publicId;
+    let useFormatParam = true;
+    
+    if (resource_type === 'video' && !publicId.includes('.')) {
+      finalPublicId = `${publicId}.mp4`;
+      // Si on ajoute l'extension .mp4, pas besoin du paramètre f_mp4
+      useFormatParam = false;
+    }
 
     let transformationString = '';
     const transformations = [];
@@ -174,13 +190,31 @@ class CloudinaryService {
     if (height) transformations.push(`h_${height}`);
     if (width || height) transformations.push(`c_${crop}`);
     transformations.push(`q_${quality}`);
-    transformations.push(`f_${format}`);
+    
+    // Ajouter le paramètre de format seulement si on n'a pas déjà l'extension
+    if (useFormatParam) {
+      if (resource_type === 'video' && format === 'auto') {
+        transformations.push(`f_mp4`);
+      } else {
+        transformations.push(`f_${format}`);
+      }
+    }
 
     if (transformations.length > 0) {
       transformationString = `/${transformations.join(',')}`;
     }
 
-    return `https://res.cloudinary.com/${this.cloudName}/${resourceType}/upload${transformationString}/${publicId}`;
+    const generatedUrl = `https://res.cloudinary.com/${this.cloudName}/${resource_type}/upload${transformationString}/${finalPublicId}`;
+    
+    console.log('🔧 CloudinaryService - generated URL:', {
+      resource_type,
+      originalPublicId: publicId,
+      finalPublicId,
+      useFormatParam,
+      generatedUrl
+    });
+
+    return generatedUrl;
   }
 
   /**

@@ -109,39 +109,56 @@ export const signIn = async (
     };
   } catch (error: any) {
     if (error.response) {
+      console.log("Login error response:", error.response.data);
+
       // Si l'utilisateur n'existe pas dans Clerk
       if (
         error.response.data &&
-        error.response.data.error === "Utilisateur non trouvé dans Clerk"
+        error.response.data.error === "User not found in Clerk"
       ) {
         return {
           success: false,
-          error: "Votre compte a été supprimé ou désactivé",
+          error: "Your account has been deleted or deactivated",
         };
       }
 
-      // Si les identifiants sont incorrects
+      // Vérifier le message d'erreur spécifique du backend
+      if (error.response.data && error.response.data.error) {
+        return {
+          success: false,
+          error: error.response.data.error,
+        };
+      }
+
+      // Si pas de message spécifique, utiliser le code de statut
       if (error.response.status === 401) {
         return {
           success: false,
-          error: "Account does not exist or is disabled",
+          error: "Incorrect password",
+        };
+      }
+
+      if (error.response.status === 404) {
+        return {
+          success: false,
+          error: "Account not found",
         };
       }
 
       return {
         success: false,
-        error: "Une erreur est survenue lors de la connexion",
+        error: "An error occurred during login",
       };
     } else if (error.request) {
       return {
         success: false,
-        error: "Impossible de se connecter au serveur",
+        error: "Unable to connect to server",
       };
     } else {
       console.error("Error setting up request:", error.message);
       return {
         success: false,
-        error: "Erreur lors de la configuration de la requête",
+        error: "Error configuring the request",
       };
     }
   }

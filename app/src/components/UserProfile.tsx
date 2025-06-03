@@ -20,7 +20,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ navigateToHome }) => {
       {
         text: "Logout",
         onPress: async () => {
-          await logout();
+          try {
+            await logout();
+          } catch (error) {
+            console.error("Error during logout:", error);
+            Alert.alert(
+              "Error",
+              "An error occurred during logout. Please try again."
+            );
+          }
         },
         style: "destructive",
       },

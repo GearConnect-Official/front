@@ -19,9 +19,9 @@ export const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
   reviewButton: { backgroundColor: 'black', padding: 8, borderRadius: 5 },
   reviewText: { color: 'white' },
-  editButton: { 
-    backgroundColor: 'black', 
-    padding: 8, 
+  editButton: {
+    backgroundColor: 'black',
+    padding: 8,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -75,7 +75,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
-  reviewUser: { 
+  reviewUser: {
     fontWeight: 'bold',
     marginLeft: 8,
     fontSize: 14,
@@ -104,9 +104,9 @@ export const styles = StyleSheet.create({
     width: 220, // added explicit width to make card smaller
     height: 150, // added height constraint
   },
-  reviewAvatar: { 
-    width: 30, 
-    height: 30, 
+  reviewAvatar: {
+    width: 30,
+    height: 30,
     borderRadius: 15,
   },
   reviewDescription: {
@@ -138,5 +138,55 @@ export const styles = StyleSheet.create({
   },
   errorText: { fontSize: 16, color: 'red' },
   goBackText: { fontSize: 16, color: 'blue', marginTop: 10 },
+  // Styles for editable fields
+  fieldContainer: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  fieldEditButton: {
+    padding: 5,
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
+  },
+  editFieldContainer: {
+    width: '100%',
+  },
+  editInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 8,
+    borderRadius: 5,
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  editActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50',
+    padding: 8,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+  },
+  cancelButton: {
+    backgroundColor: '#F44336',
+    padding: 8,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+  },
 });
 export default styles;

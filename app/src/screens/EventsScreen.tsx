@@ -134,7 +134,7 @@ const EventsScreen: React.FC = () => {
 
   const handleEventPress = (event: Event) => {
     router.push({
-      pathname: '/(app)/eventDetail',
+      pathname: '/(app)/modifyEventDetail',
       params: { eventId: event.id }
     });
   };

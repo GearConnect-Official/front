@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { EventInterface } from '../services/EventInterface';
-import styles from '../styles/eventDetailStyles';
+import styles from '../styles/screens/eventDetailStyles';
 import {
   API_URL_EVENTS,
   API_URL_EVENTTAGS,

@@ -16,7 +16,7 @@ import favoritesService from '../services/favoritesService';
 import PostItem, { Comment as PostItemComment, Post, PostTag } from '../components/Feed/PostItem';
 import { Post as APIPost } from '../services/postService';
 import { formatPostDate, isPostFromToday } from '../utils/dateUtils';
-import styles from '../styles/favoritesStyles';
+import styles from '../styles/screens/favoritesStyles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 

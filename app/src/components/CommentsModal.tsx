@@ -19,6 +19,7 @@ import { formatPostDate } from '../utils/dateUtils';
 import postService from '../services/postService';
 import { Comment } from '../services/postService';
 import { useAuth } from '../context/AuthContext';
+import { commentsModalStyles } from '../styles/modals/commentsModalStyles';
 
 interface CommentsModalProps {
   isVisible: boolean;
@@ -146,25 +147,25 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   };
 
   const renderComment = ({ item: comment }: { item: Comment }) => (
-    <View style={styles.commentContainer}>
+    <View style={commentsModalStyles.commentContainer}>
       {editingComment?.id === comment.id ? (
-        <View style={styles.editContainer}>
+        <View style={commentsModalStyles.editContainer}>
           <TextInput
-            style={styles.editInput}
+            style={commentsModalStyles.editInput}
             value={editText}
             onChangeText={setEditText}
             multiline
             placeholder="Edit your comment..."
           />
-          <View style={styles.editActions}>
+          <View style={commentsModalStyles.editActions}>
             <TouchableOpacity
-              style={styles.editButton}
+              style={commentsModalStyles.editButton}
               onPress={() => handleEditComment(comment)}
             >
               <FontAwesome name="check" size={16} color="#4CAF50" />
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.editButton}
+              style={commentsModalStyles.editButton}
               onPress={() => {
                 setEditingComment(null);
                 setEditText('');
@@ -176,14 +177,14 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
         </View>
       ) : (
         <>
-          <View style={styles.commentHeader}>
-            <Text style={styles.username}>{comment.user?.username || 'Unknown'}</Text>
-            <Text style={styles.timestamp}>{formatPostDate(comment.createdAt)}</Text>
+          <View style={commentsModalStyles.commentHeader}>
+            <Text style={commentsModalStyles.username}>{comment.user?.username || 'Unknown'}</Text>
+            <Text style={commentsModalStyles.timestamp}>{formatPostDate(comment.createdAt)}</Text>
           </View>
-          <Text style={styles.commentText}>{comment.content}</Text>
-          <View style={styles.commentActions}>
+          <Text style={commentsModalStyles.commentText}>{comment.content}</Text>
+          <View style={commentsModalStyles.commentActions}>
             <TouchableOpacity
-              style={styles.actionButton}
+              style={commentsModalStyles.actionButton}
               onPress={() => {
                 setEditingComment(comment);
                 setEditText(comment.content);
@@ -192,7 +193,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
               <FontAwesome name="edit" size={16} color="#666" />
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.actionButton}
+              style={commentsModalStyles.actionButton}
               onPress={() => handleDeleteComment(comment)}
             >
               <FontAwesome name="trash" size={16} color="#666" />
@@ -210,12 +211,12 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       transparent={false}
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+      <SafeAreaView style={commentsModalStyles.container}>
+        <View style={commentsModalStyles.header}>
+          <TouchableOpacity onPress={onClose} style={commentsModalStyles.closeButton}>
             <FontAwesome name="arrow-left" size={20} color="#262626" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Comments</Text>
+          <Text style={commentsModalStyles.headerTitle}>Comments</Text>
           <TouchableOpacity>
             <FontAwesome name="paper-plane-o" size={20} color="#262626" />
           </TouchableOpacity>
@@ -225,21 +226,21 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
           data={comments}
           renderItem={renderComment}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.commentsList}
+          contentContainerStyle={commentsModalStyles.commentsList}
           showsVerticalScrollIndicator={false}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             isLoading ? (
-              <ActivityIndicator size="small" color="#000" style={styles.loader} />
+              <ActivityIndicator size="small" color="#000" style={commentsModalStyles.loader} />
             ) : null
           }
           ListEmptyComponent={
             !isLoading ? (
-              <View style={styles.emptyContainer}>
+              <View style={commentsModalStyles.emptyContainer}>
                 <FontAwesome name="comments-o" size={60} color="#CCCCCC" />
-                <Text style={styles.emptyText}>No comments yet</Text>
-                <Text style={styles.emptySubText}>Be the first to comment</Text>
+                <Text style={commentsModalStyles.emptyText}>No comments yet</Text>
+                <Text style={commentsModalStyles.emptySubText}>Be the first to comment</Text>
               </View>
             ) : null
           }
@@ -248,175 +249,34 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-          style={styles.inputContainer}
+          style={commentsModalStyles.inputContainer}
         >
-          <Image
-            source={{ uri: 'https://via.placeholder.com/150' }}
-            style={styles.userAvatar}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Add a comment..."
-            placeholderTextColor="#8E8E8E"
-            multiline
-            value={newComment}
-            onChangeText={setNewComment}
-          />
-          <TouchableOpacity
-            onPress={handleAddComment}
-            disabled={!newComment.trim() || isLoading}
-            style={[
-              styles.postButton,
-              !newComment.trim() && styles.postButtonDisabled,
-            ]}
-          >
-            <Text
+          <View style={commentsModalStyles.inputRow}>
+            <TextInput
+              style={commentsModalStyles.textInput}
+              placeholder="Add a comment..."
+              placeholderTextColor="#8E8E8E"
+              multiline
+              value={newComment}
+              onChangeText={setNewComment}
+            />
+            <TouchableOpacity
+              onPress={handleAddComment}
+              disabled={!newComment.trim() || isLoading}
               style={[
-                styles.postButtonText,
-                !newComment.trim() && styles.postButtonTextDisabled,
+                commentsModalStyles.sendButton,
+                (!newComment.trim() || isLoading) && commentsModalStyles.sendButtonDisabled,
               ]}
             >
-              Post
-            </Text>
-          </TouchableOpacity>
+              <Text style={commentsModalStyles.sendButtonText}>
+                Post
+              </Text>
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 50,
-    paddingHorizontal: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#DBDBDB',
-  },
-  closeButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#262626',
-  },
-  commentsList: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    flexGrow: 1,
-  },
-  commentContainer: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  commentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  username: {
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  timestamp: {
-    color: '#666',
-    fontSize: 12,
-  },
-  commentText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  commentActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 8,
-  },
-  actionButton: {
-    padding: 8,
-    marginLeft: 8,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 0.5,
-    borderTopColor: '#DBDBDB',
-  },
-  userAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    minHeight: 36,
-    maxHeight: 80,
-    padding: 8,
-    fontSize: 14,
-    color: '#262626',
-  },
-  postButton: {
-    marginLeft: 8,
-    paddingHorizontal: 8,
-  },
-  postButtonDisabled: {
-    opacity: 0.5,
-  },
-  postButtonText: {
-    color: '#0095F6',
-    fontWeight: '600',
-  },
-  postButtonTextDisabled: {
-    color: '#0095F6',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 80,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#262626',
-    marginTop: 20,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: '#8E8E8E',
-    marginTop: 4,
-  },
-  editContainer: {
-    marginTop: 8,
-  },
-  editInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
-  },
-  editActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  editButton: {
-    padding: 8,
-    marginLeft: 8,
-  },
-  loader: {
-    padding: 16,
-  },
-});
 
 export default CommentsModal; 

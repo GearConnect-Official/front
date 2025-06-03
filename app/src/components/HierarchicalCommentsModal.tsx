@@ -20,6 +20,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useAuth } from '../context/AuthContext';
 import commentService, { HierarchicalComment, CommentsResponse } from '../services/commentService';
 import HierarchicalCommentComponent from './Feed/HierarchicalComment';
+import { hierarchicalCommentsStyles } from '../styles/modals/hierarchicalCommentsStyles';
 
 interface HierarchicalCommentsModalProps {
   isVisible: boolean;
@@ -341,43 +342,46 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
     <Modal
       visible={isVisible}
       animationType="slide"
-      presentationStyle="fullScreen"
+      transparent={false}
+      onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={hierarchicalCommentsStyles.container}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <FontAwesome name="times" size={24} color="#666" />
+        <View style={hierarchicalCommentsStyles.header}>
+          <TouchableOpacity onPress={onClose} style={hierarchicalCommentsStyles.closeButton}>
+            <FontAwesome name="arrow-left" size={20} color="#14171a" />
           </TouchableOpacity>
-          <Text style={styles.title}>Commentaires</Text>
-          <View style={styles.headerSpacer} />
+          <Text style={hierarchicalCommentsStyles.headerTitle}>Commentaires</Text>
+          <View style={hierarchicalCommentsStyles.headerSpacer} />
         </View>
 
-        {/* Comments List */}
-        <View style={[styles.commentsContainer, { marginBottom: inputBottomPosition + 80 }]}>
+        {/* Comments */}
+        <View style={hierarchicalCommentsStyles.contentContainer}>
           <ScrollView
-            style={styles.commentsScrollView}
-            contentContainerStyle={styles.commentsContentContainer}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
+            style={hierarchicalCommentsStyles.commentsList}
+            contentContainerStyle={hierarchicalCommentsStyles.commentsContentContainer}
             showsVerticalScrollIndicator={false}
+            onScrollEndDrag={handleLoadMore}
+            scrollEventThrottle={400}
           >
-            {comments.length === 0 && !isLoading ? (
-              <View style={styles.emptyContainer}>
-                <FontAwesome name="comment-o" size={50} color="#ccc" />
-                <Text style={styles.emptyText}>Aucun commentaire pour le moment</Text>
-                <Text style={styles.emptySubtext}>Soyez le premier à commenter !</Text>
+            {/* Empty state */}
+            {comments.length === 0 && !isLoading && (
+              <View style={hierarchicalCommentsStyles.emptyContainer}>
+                <FontAwesome name="comments-o" size={50} color="#ccc" />
+                <Text style={hierarchicalCommentsStyles.emptyText}>Aucun commentaire</Text>
+                <Text style={hierarchicalCommentsStyles.emptySubText}>Soyez le premier à commenter!</Text>
               </View>
-            ) : (
-              comments.map((item) => (
-                <View key={item.id.toString()}>
-                  {renderComment({ item })}
-                </View>
-              ))
             )}
+
+            {/* Comments list */}
+            {comments.map((item) => (
+              <View key={item.id}>
+                {renderComment({ item })}
+              </View>
+            ))}
             
             {isLoading && (
-              <View style={styles.loadingContainer}>
+              <View style={hierarchicalCommentsStyles.loadingContainer}>
                 <ActivityIndicator size="small" color="#1da1f2" />
               </View>
             )}
@@ -385,27 +389,24 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
         </View>
 
         {/* Fixed Input Container */}
-        <View style={[
-          styles.fixedInputWrapper,
-          { bottom: inputBottomPosition }
-        ]}>
+        <View style={hierarchicalCommentsStyles.inputContainer}>
           {/* Reply indicator */}
           {replyToComment && (
-            <View style={styles.replyIndicator}>
-              <Text style={styles.replyText}>
+            <View style={hierarchicalCommentsStyles.replyIndicator}>
+              <Text style={hierarchicalCommentsStyles.replyText}>
                 En réponse à @{replyToComment.username}
               </Text>
-              <TouchableOpacity onPress={cancelReply}>
+              <TouchableOpacity onPress={cancelReply} style={hierarchicalCommentsStyles.cancelReplyButton}>
                 <FontAwesome name="times" size={16} color="#666" />
               </TouchableOpacity>
             </View>
           )}
 
           {/* Input */}
-          <View style={styles.inputContainer}>
+          <View style={hierarchicalCommentsStyles.inputRow}>
             <TextInput
               ref={textInputRef}
-              style={styles.textInput}
+              style={hierarchicalCommentsStyles.textInput}
               placeholder={replyToComment ? "Écrivez votre réponse..." : "Ajoutez un commentaire..."}
               value={newComment}
               onChangeText={setNewComment}
@@ -418,8 +419,8 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
             />
             <TouchableOpacity
               style={[
-                styles.sendButton,
-                (!newComment.trim() || isSubmitting) && styles.sendButtonDisabled,
+                hierarchicalCommentsStyles.sendButton,
+                (!newComment.trim() || isSubmitting) && hierarchicalCommentsStyles.sendButtonDisabled,
               ]}
               onPress={handleAddComment}
               disabled={!newComment.trim() || isSubmitting}
@@ -436,138 +437,5 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e1e8ed',
-    backgroundColor: '#fff',
-    zIndex: 1000,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  closeButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#14171a',
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  commentsContainer: {
-    flex: 1,
-  },
-  commentsScrollView: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  commentsContentContainer: {
-    paddingVertical: 10,
-    paddingBottom: 20,
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    minHeight: 200,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#657786',
-    marginTop: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#8899a6',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  fixedInputWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e1e8ed',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  replyIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#f7f9fa',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e1e8ed',
-  },
-  replyText: {
-    fontSize: 14,
-    color: '#1da1f2',
-    fontWeight: '500',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
-    backgroundColor: '#fff',
-    minHeight: 70,
-    maxHeight: 120,
-  },
-  textInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginRight: 12,
-    maxHeight: 80,
-    minHeight: 40,
-    fontSize: 14,
-    lineHeight: 18,
-    backgroundColor: '#fff',
-  },
-  sendButton: {
-    backgroundColor: '#1da1f2',
-    borderRadius: 20,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 40,
-    minHeight: 40,
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-});
 
 export default HierarchicalCommentsModal; 

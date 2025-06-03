@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useCloudinary } from '../hooks/useCloudinary';
 import { CloudinaryUploadResponse } from '../services/cloudinary.service';
+import { cloudinaryImageUploadStyles } from '../styles/components/cloudinaryStyles';
 
 export interface CloudinaryImageUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;
@@ -118,11 +119,11 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
   const canAddMore = !allowMultiple ? uploadedImages.length === 0 : uploadedImages.length < maxImages;
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[cloudinaryImageUploadStyles.container, style]}>
       {/* Bouton d'upload */}
       {canAddMore && (
         <TouchableOpacity
-          style={[styles.uploadButton, uploading && styles.uploadButtonDisabled]}
+          style={[cloudinaryImageUploadStyles.uploadButton, uploading && cloudinaryImageUploadStyles.uploadButtonDisabled]}
           onPress={handleUploadOption}
           disabled={uploading}
         >
@@ -131,7 +132,7 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
           ) : (
             <Ionicons name="camera" size={24} color="#007AFF" />
           )}
-          <Text style={styles.uploadButtonText}>
+          <Text style={cloudinaryImageUploadStyles.uploadButtonText}>
             {uploading ? 'Upload en cours...' : buttonText}
           </Text>
         </TouchableOpacity>
@@ -139,8 +140,8 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
 
       {/* Affichage des erreurs */}
       {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={cloudinaryImageUploadStyles.errorContainer}>
+          <Text style={cloudinaryImageUploadStyles.errorText}>{error}</Text>
           <TouchableOpacity onPress={clearError}>
             <Ionicons name="close" size={20} color="#FF3B30" />
           </TouchableOpacity>
@@ -149,16 +150,16 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
 
       {/* Prévisualisation des images */}
       {showPreview && uploadedImages.length > 0 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.previewContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={cloudinaryImageUploadStyles.previewContainer}>
           {uploadedImages.map((image, index) => (
-            <View key={image.public_id} style={styles.imagePreview}>
+            <View key={image.public_id} style={cloudinaryImageUploadStyles.imagePreview}>
               <Image
                 source={{ uri: image.secure_url }}
-                style={styles.previewImage}
+                style={cloudinaryImageUploadStyles.previewImage}
                 resizeMode="cover"
               />
               <TouchableOpacity
-                style={styles.removeButton}
+                style={cloudinaryImageUploadStyles.removeButton}
                 onPress={() => removeImage(index)}
               >
                 <Ionicons name="close" size={16} color="white" />
@@ -170,80 +171,10 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
 
       {/* Informations sur les limites */}
       {allowMultiple && (
-        <Text style={styles.limitText}>
+        <Text style={cloudinaryImageUploadStyles.limitText}>
           {uploadedImages.length} / {maxImages} images
         </Text>
       )}
     </View>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 10,
-  },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
-  },
-  uploadButtonDisabled: {
-    opacity: 0.6,
-  },
-  uploadButtonText: {
-    marginLeft: 8,
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFEBEE',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
-  },
-  errorText: {
-    flex: 1,
-    color: '#FF3B30',
-    fontSize: 14,
-  },
-  previewContainer: {
-    marginTop: 16,
-  },
-  imagePreview: {
-    position: 'relative',
-    marginRight: 12,
-  },
-  previewImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  removeButton: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: '#FF3B30',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  limitText: {
-    marginTop: 8,
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-  },
-}); 
+}; 

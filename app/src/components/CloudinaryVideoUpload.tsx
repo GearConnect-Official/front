@@ -12,6 +12,7 @@ import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useCloudinary } from '../hooks/useCloudinary';
 import { CloudinaryUploadResponse } from '../services/cloudinary.service';
+import { cloudinaryVideoUploadStyles } from '../styles/components/cloudinaryStyles';
 
 export interface CloudinaryVideoUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;
@@ -118,11 +119,11 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
   const canAddMore = !allowMultiple ? uploadedVideos.length === 0 : uploadedVideos.length < maxVideos;
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[cloudinaryVideoUploadStyles.container, style]}>
       {/* Bouton d'upload */}
       {canAddMore && (
         <TouchableOpacity
-          style={[styles.uploadButton, uploading && styles.uploadButtonDisabled]}
+          style={[cloudinaryVideoUploadStyles.uploadButton, uploading && cloudinaryVideoUploadStyles.uploadButtonDisabled]}
           onPress={handleUploadOption}
           disabled={uploading}
         >
@@ -131,7 +132,7 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
           ) : (
             <Ionicons name="videocam" size={24} color="#007AFF" />
           )}
-          <Text style={styles.uploadButtonText}>
+          <Text style={cloudinaryVideoUploadStyles.uploadButtonText}>
             {uploading ? 'Upload en cours...' : buttonText}
           </Text>
         </TouchableOpacity>
@@ -139,8 +140,8 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
 
       {/* Affichage des erreurs */}
       {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={cloudinaryVideoUploadStyles.errorContainer}>
+          <Text style={cloudinaryVideoUploadStyles.errorText}>{error}</Text>
           <TouchableOpacity onPress={clearError}>
             <Ionicons name="close" size={20} color="#FF3B30" />
           </TouchableOpacity>
@@ -149,29 +150,29 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
 
       {/* Prévisualisation des vidéos */}
       {showPreview && uploadedVideos.length > 0 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.previewContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={cloudinaryVideoUploadStyles.previewContainer}>
           {uploadedVideos.map((video, index) => (
-            <View key={video.public_id} style={styles.videoPreview}>
+            <View key={video.public_id} style={cloudinaryVideoUploadStyles.videoPreview}>
               <Video
                 source={{ uri: video.secure_url }}
-                style={styles.previewVideo}
+                style={cloudinaryVideoUploadStyles.previewVideo}
                 useNativeControls
                 resizeMode={ResizeMode.COVER}
                 shouldPlay={false}
               />
               
               {/* Informations sur la vidéo */}
-              <View style={styles.videoInfo}>
-                <Text style={styles.videoDuration}>
+              <View style={cloudinaryVideoUploadStyles.videoInfo}>
+                <Text style={cloudinaryVideoUploadStyles.videoDuration}>
                   {formatDuration(video.duration)}
                 </Text>
-                <Text style={styles.videoSize}>
+                <Text style={cloudinaryVideoUploadStyles.videoSize}>
                   {formatFileSize(video.bytes)}
                 </Text>
               </View>
               
               <TouchableOpacity
-                style={styles.removeButton}
+                style={cloudinaryVideoUploadStyles.removeButton}
                 onPress={() => removeVideo(index)}
               >
                 <Ionicons name="close" size={16} color="white" />
@@ -183,101 +184,10 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
 
       {/* Informations sur les limites */}
       {allowMultiple && (
-        <Text style={styles.limitText}>
+        <Text style={cloudinaryVideoUploadStyles.limitText}>
           {uploadedVideos.length} / {maxVideos} vidéos
         </Text>
       )}
     </View>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 10,
-  },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
-  },
-  uploadButtonDisabled: {
-    opacity: 0.6,
-  },
-  uploadButtonText: {
-    marginLeft: 8,
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFEBEE',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
-  },
-  errorText: {
-    flex: 1,
-    color: '#FF3B30',
-    fontSize: 14,
-  },
-  previewContainer: {
-    marginTop: 16,
-  },
-  videoPreview: {
-    position: 'relative',
-    marginRight: 12,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  previewVideo: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
-  },
-  videoInfo: {
-    position: 'absolute',
-    bottom: 4,
-    left: 4,
-    right: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 4,
-    padding: 4,
-  },
-  videoDuration: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  videoSize: {
-    color: 'white',
-    fontSize: 10,
-    opacity: 0.8,
-  },
-  removeButton: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: '#FF3B30',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  limitText: {
-    marginTop: 8,
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-  },
-}); 
+}; 

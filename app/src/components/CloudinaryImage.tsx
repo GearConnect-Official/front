@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, ImageProps, StyleSheet } from 'react-native';
 import { cloudinaryService } from '../services/cloudinary.service';
 import { cloudinaryConfig } from '../config';
+import { cloudinaryImageStyles } from '../styles/components/cloudinaryStyles';
 
 export interface CloudinaryImageProps extends Omit<ImageProps, 'source'> {
   publicId: string;
@@ -76,7 +77,7 @@ export const CloudinaryAvatar: React.FC<Omit<CloudinaryImageProps, 'width' | 'he
     width={size}
     height={size}
     crop="fill"
-    style={[styles.avatar, props.style]}
+    style={[cloudinaryImageStyles.avatar, props.style]}
   />
 );
 
@@ -88,7 +89,7 @@ export const CloudinaryThumbnail: React.FC<Omit<CloudinaryImageProps, 'width' | 
     {...props}
     width={size}
     height={size}
-    style={[styles.thumbnail, props.style]}
+    style={[cloudinaryImageStyles.thumbnail, props.style]}
   />
 );
 
@@ -100,22 +101,9 @@ export const CloudinaryHeroImage: React.FC<Omit<CloudinaryImageProps, 'width' | 
     {...props}
     crop="fill"
     style={[
-      styles.heroImage,
+      cloudinaryImageStyles.heroImage,
       { aspectRatio },
       props.style
     ]}
   />
-);
-
-const styles = StyleSheet.create({
-  avatar: {
-    borderRadius: 25,
-  },
-  thumbnail: {
-    borderRadius: 8,
-  },
-  heroImage: {
-    width: '100%',
-    borderRadius: 12,
-  },
-}); 
+); 

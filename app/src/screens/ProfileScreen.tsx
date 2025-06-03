@@ -14,10 +14,11 @@ import {
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
-import styles from "../styles/profileStyles";
+import styles from "../styles/Profile/profileStyles";
 import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
 import favoritesService from "../services/favoritesService";
+import ProfileMenu from "../components/Profile/ProfileMenu";
 
 // Screen width to calculate grid image dimensions
 const { width } = Dimensions.get("window");
@@ -84,7 +85,7 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -110,7 +111,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [favoritesPage, setFavoritesPage] = useState(1);
   const [hasMoreFavorites, setHasMoreFavorites] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
+  const [menuVisible, setMenuVisible] = useState(false);
   useEffect(() => {
     // Simuler le chargement des données
     // Si userId est défini, charger les données de cet utilisateur spécifique
@@ -319,7 +320,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
       setIsLoadingFavorites(true);
       console.log('📱 Loading favorites for user:', user.id, 'page:', page);
       
-      const response = await favoritesService.getUserFavorites(user.id, page, 10);
+      const response = await favoritesService.getUserFavorites(Number(user.id), page, 10);
       
       if (reset) {
         setFavorites(response.favorites);
@@ -346,7 +347,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     if (!user?.id || !postId) return;
 
     try {
-      await favoritesService.toggleFavorite(postId, user.id);
+      await favoritesService.toggleFavorite(postId, Number(user.id));
       
       // Retirer le favori de la liste locale
       setFavorites(prev => prev.filter(fav => fav.id !== postId));
@@ -428,9 +429,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
 
   const handleEventPress = (eventId: string) => {
     router.push({
-      pathname: '/(app)/eventDetail',
-      params: { eventId }
+      pathname: "/(app)/eventDetail",
+      params: { eventId },
     });
+  };
+
+  const handleSettingsPress = () => {
+    setMenuVisible(false);
+    router.push("/settings");
+  };
+
+  const handleEditProfilePress = () => {
+    setMenuVisible(false);
+    router.push("/editProfile");
+  };
+
+  const handlePreferencesPress = () => {
+    setMenuVisible(false);
+    router.push("/preferences");
+  };
+
+  const handleLogoutPress = async () => {
+    setMenuVisible(false);
+    try {
+      await signOut();
+      router.replace("/auth");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const renderPostItem = ({ item }: { item: Post }) => (
@@ -759,8 +785,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
           <FontAwesome name="calendar-plus-o" size={60} color="#CCCCCC" />
           <Text style={styles.emptyTitle}>No Events</Text>
           <Text style={styles.emptySubtitle}>
-            Your races, championships and training sessions will appear
-            here.
+            Your races, championships and training sessions will appear here.
           </Text>
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareButtonText}>Create Event</Text>
@@ -812,7 +837,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             <FontAwesome name="arrow-left" size={20} color="#1E1E1E" />
           </TouchableOpacity>
           <Text style={styles.username}>Profile</Text>
-          <TouchableOpacity style={styles.menuButton}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => setMenuVisible(true)}
+          >
             <FontAwesome name="ellipsis-v" size={20} color="#1E1E1E" />
           </TouchableOpacity>
         </View>
@@ -1017,8 +1045,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             ? renderFavoritesGrid()
             : renderEmptyComponent()}
         </View>
-
       </ScrollView>
+
+      <ProfileMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSettingsPress={handleSettingsPress}
+        onEditProfilePress={handleEditProfilePress}
+        onPreferencesPress={handlePreferencesPress}
+        onLogoutPress={handleLogoutPress}
+      />
 
       {/* Modal to display a post in detail */}
       <Modal

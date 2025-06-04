@@ -46,31 +46,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
     commentId: number;
     username: string;
   } | null>(null);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const textInputRef = useRef<TextInput>(null);
-
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      (e) => {
-        setKeyboardHeight(e.endCoordinates.height);
-        setIsKeyboardVisible(true);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardHeight(0);
-        setIsKeyboardVisible(false);
-      }
-    );
-
-    return () => {
-      keyboardDidHideListener?.remove();
-      keyboardDidShowListener?.remove();
-    };
-  }, []);
 
   useEffect(() => {
     if (isVisible && postId) {
@@ -335,9 +311,6 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
     />
   );
 
-  const adjustedHeight = screenHeight - keyboardHeight;
-  const inputBottomPosition = isKeyboardVisible ? keyboardHeight + 20 : 20;
-
   return (
     <Modal
       visible={isVisible}
@@ -346,93 +319,100 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
       onRequestClose={onClose}
     >
       <SafeAreaView style={hierarchicalCommentsStyles.container}>
-        {/* Header */}
-        <View style={hierarchicalCommentsStyles.header}>
-          <TouchableOpacity onPress={onClose} style={hierarchicalCommentsStyles.closeButton}>
-            <FontAwesome name="arrow-left" size={20} color="#14171a" />
-          </TouchableOpacity>
-          <Text style={hierarchicalCommentsStyles.headerTitle}>Commentaires</Text>
-          <View style={hierarchicalCommentsStyles.headerSpacer} />
-        </View>
+        <KeyboardAvoidingView
+          style={hierarchicalCommentsStyles.container}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          {/* Header */}
+          <View style={hierarchicalCommentsStyles.header}>
+            <TouchableOpacity onPress={onClose} style={hierarchicalCommentsStyles.closeButton}>
+              <FontAwesome name="arrow-left" size={20} color="#14171a" />
+            </TouchableOpacity>
+            <Text style={hierarchicalCommentsStyles.headerTitle}>Commentaires</Text>
+            <View style={hierarchicalCommentsStyles.headerSpacer} />
+          </View>
 
-        {/* Comments */}
-        <View style={hierarchicalCommentsStyles.contentContainer}>
-          <ScrollView
-            style={hierarchicalCommentsStyles.commentsList}
-            contentContainerStyle={hierarchicalCommentsStyles.commentsContentContainer}
-            showsVerticalScrollIndicator={false}
-            onScrollEndDrag={handleLoadMore}
-            scrollEventThrottle={400}
-          >
-            {/* Empty state */}
-            {comments.length === 0 && !isLoading && (
-              <View style={hierarchicalCommentsStyles.emptyContainer}>
-                <FontAwesome name="comments-o" size={50} color="#ccc" />
-                <Text style={hierarchicalCommentsStyles.emptyText}>Aucun commentaire</Text>
-                <Text style={hierarchicalCommentsStyles.emptySubText}>Soyez le premier à commenter!</Text>
+          {/* Comments */}
+          <View style={hierarchicalCommentsStyles.contentContainer}>
+            <ScrollView
+              style={hierarchicalCommentsStyles.commentsList}
+              contentContainerStyle={hierarchicalCommentsStyles.commentsContentContainer}
+              showsVerticalScrollIndicator={false}
+              onScrollEndDrag={handleLoadMore}
+              scrollEventThrottle={400}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Empty state */}
+              {comments.length === 0 && !isLoading && (
+                <View style={hierarchicalCommentsStyles.emptyContainer}>
+                  <FontAwesome name="comments-o" size={50} color="#ccc" />
+                  <Text style={hierarchicalCommentsStyles.emptyText}>Aucun commentaire</Text>
+                  <Text style={hierarchicalCommentsStyles.emptySubText}>Soyez le premier à commenter!</Text>
+                </View>
+              )}
+
+              {/* Comments list */}
+              {comments.map((item) => (
+                <View key={item.id}>
+                  {renderComment({ item })}
+                </View>
+              ))}
+              
+              {isLoading && (
+                <View style={hierarchicalCommentsStyles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#1da1f2" />
+                </View>
+              )}
+            </ScrollView>
+          </View>
+
+          {/* Fixed Input Container */}
+          <View style={hierarchicalCommentsStyles.inputContainer}>
+            {/* Reply indicator */}
+            {replyToComment && (
+              <View style={hierarchicalCommentsStyles.replyIndicator}>
+                <Text style={hierarchicalCommentsStyles.replyText}>
+                  En réponse à @{replyToComment.username}
+                </Text>
+                <TouchableOpacity onPress={cancelReply} style={hierarchicalCommentsStyles.cancelReplyButton}>
+                  <FontAwesome name="times" size={16} color="#666" />
+                </TouchableOpacity>
               </View>
             )}
 
-            {/* Comments list */}
-            {comments.map((item) => (
-              <View key={item.id}>
-                {renderComment({ item })}
-              </View>
-            ))}
-            
-            {isLoading && (
-              <View style={hierarchicalCommentsStyles.loadingContainer}>
-                <ActivityIndicator size="small" color="#1da1f2" />
-              </View>
-            )}
-          </ScrollView>
-        </View>
-
-        {/* Fixed Input Container */}
-        <View style={hierarchicalCommentsStyles.inputContainer}>
-          {/* Reply indicator */}
-          {replyToComment && (
-            <View style={hierarchicalCommentsStyles.replyIndicator}>
-              <Text style={hierarchicalCommentsStyles.replyText}>
-                En réponse à @{replyToComment.username}
-              </Text>
-              <TouchableOpacity onPress={cancelReply} style={hierarchicalCommentsStyles.cancelReplyButton}>
-                <FontAwesome name="times" size={16} color="#666" />
+            {/* Input */}
+            <View style={hierarchicalCommentsStyles.inputRow}>
+              <TextInput
+                ref={textInputRef}
+                style={hierarchicalCommentsStyles.textInput}
+                placeholder={replyToComment ? "Écrivez votre réponse..." : "Ajoutez un commentaire..."}
+                value={newComment}
+                onChangeText={setNewComment}
+                multiline
+                maxLength={500}
+                textAlignVertical="top"
+                returnKeyType="send"
+                blurOnSubmit={false}
+                onSubmitEditing={handleAddComment}
+              />
+              <TouchableOpacity
+                style={[
+                  hierarchicalCommentsStyles.sendButton,
+                  (!newComment.trim() || isSubmitting) && hierarchicalCommentsStyles.sendButtonDisabled,
+                ]}
+                onPress={handleAddComment}
+                disabled={!newComment.trim() || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <FontAwesome name="send" size={16} color="#fff" />
+                )}
               </TouchableOpacity>
             </View>
-          )}
-
-          {/* Input */}
-          <View style={hierarchicalCommentsStyles.inputRow}>
-            <TextInput
-              ref={textInputRef}
-              style={hierarchicalCommentsStyles.textInput}
-              placeholder={replyToComment ? "Écrivez votre réponse..." : "Ajoutez un commentaire..."}
-              value={newComment}
-              onChangeText={setNewComment}
-              multiline
-              maxLength={500}
-              textAlignVertical="top"
-              returnKeyType="send"
-              blurOnSubmit={false}
-              onSubmitEditing={handleAddComment}
-            />
-            <TouchableOpacity
-              style={[
-                hierarchicalCommentsStyles.sendButton,
-                (!newComment.trim() || isSubmitting) && hierarchicalCommentsStyles.sendButtonDisabled,
-              ]}
-              onPress={handleAddComment}
-              disabled={!newComment.trim() || isSubmitting}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <FontAwesome name="send" size={16} color="#fff" />
-              )}
-            </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );

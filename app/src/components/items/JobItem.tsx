@@ -1,8 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/jobsStyles";
-import theme from "../styles/config";
+import theme from "../../styles/config/theme";
 
 // Palette de couleurs racing
 const RACING_COLORS = {

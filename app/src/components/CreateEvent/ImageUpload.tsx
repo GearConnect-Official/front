@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { CloudinaryImageUpload } from '../CloudinaryImageUpload';
+import { View, Text, Alert } from 'react-native';
+import { CloudinaryImageUpload } from '../media/CloudinaryImageUpload';
 import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
 import styles from '../../styles/screens/createEventStyles';
 

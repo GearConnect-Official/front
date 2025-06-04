@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,13 @@ import {
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import { useCloudinary } from '../hooks/useCloudinary';
-import { CloudinaryUploadResponse } from '../services/cloudinary.service';
-import { cloudinaryVideoUploadStyles } from '../styles/components/cloudinaryStyles';
+import { useCloudinary } from '../../hooks/useCloudinary';
+import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
+import { cloudinaryVideoUploadStyles } from '../../styles/components/cloudinaryStyles';
+import * as ImagePicker from 'expo-image-picker';
+import { FontAwesome } from '@expo/vector-icons';
+import { CloudinaryUploadOptions } from '../../services/cloudinary.service';
+import { cloudinaryUploadStyles } from '../../styles/components/cloudinaryStyles';
 
 export interface CloudinaryVideoUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;

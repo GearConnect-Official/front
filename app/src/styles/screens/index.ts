@@ -11,4 +11,5 @@ export { default as publicationStyles } from './publicationStyles';
 export { default as friendRequestItemStyles } from './friendRequestItemStyles';
 export { default as friendRequestStyles } from './friendRequestStyles';
 export { default as createJobOfferStyles } from './createJobOfferStyles';
-export { default as eventsStyles } from './eventsStyles'; 
+export { default as eventsStyles } from './eventsStyles';
+export * from './jobsScreenStyles'; 

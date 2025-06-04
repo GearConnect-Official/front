@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Alert, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as FileSystem from 'expo-file-system';
 import styles from '../styles/screens/publicationStyles';
 import postService from '../services/postService';
-import FeedbackMessage, { FeedbackType } from '../components/FeedbackMessage';
+import FeedbackMessage, { FeedbackType } from '../components/ui/FeedbackMessage';
 import { useAuth } from '../context/AuthContext';
 import { CloudinaryUploadResponse } from '../services/cloudinary.service';
 
@@ -115,7 +114,7 @@ const PublicationScreen: React.FC = () => {
         userId: parseInt(user.id),
         // Inclure les informations Cloudinary directement
         cloudinaryUrl: imageToShare,
-        cloudinaryPublicId: selectedImagePublicId,
+        cloudinaryPublicId: selectedImagePublicId || undefined,
         // Métadonnées pour l'optimisation (en JSON string)
         imageMetadata: JSON.stringify({
           originalUrl: selectedImage,
@@ -132,7 +131,7 @@ const PublicationScreen: React.FC = () => {
       console.log('With tags:', tags);
       
       // Appeler l'API pour créer le post avec les tags
-      const createdPost = await postService.createPostWithTags(newPost, tags);
+      await postService.createPostWithTags(newPost, tags);
       
       // Réinitialiser le formulaire
       setSelectedImage(null);

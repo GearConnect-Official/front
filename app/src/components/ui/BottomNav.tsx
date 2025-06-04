@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import styles from "../styles/components/bottomNavStyles";
+import styles from "../../styles/components/bottomNavStyles";
 import { useRouter, usePathname } from "expo-router";
 
 // Adapter le composant pour ne pas dépendre de react-navigation

@@ -10,7 +10,7 @@ import {
   Image,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import styles from "../styles/modals/addFriendModalStyles";
+import styles from "../../styles/modals/addFriendModalStyles";
 
 interface UserSuggestion {
   id: string;

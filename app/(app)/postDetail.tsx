@@ -15,7 +15,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import { useAuth } from '../src/context/AuthContext';
 import PostItem, { Post } from '../src/components/Feed/PostItem';
-import HierarchicalCommentsModal from '../src/components/HierarchicalCommentsModal';
+import HierarchicalCommentsModal from '../src/components/modals/HierarchicalCommentsModal';
 import postService, { PostTagRelation, Interaction } from '../src/services/postService';
 import favoritesService from '../src/services/favoritesService';
 import { formatPostDate } from '../src/utils/dateUtils';

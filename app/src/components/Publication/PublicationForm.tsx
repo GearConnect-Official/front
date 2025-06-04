@@ -7,38 +7,17 @@ import {
   ScrollView, 
   TouchableOpacity, 
   ActivityIndicator,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Dimensions,
-  Alert
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import styles from '../../styles/screens/publicationStyles';
-import CloudinaryMedia from '../CloudinaryMedia';
+import { publicationFormStyles, MAX_DESCRIPTION_LENGTH, SUGGESTED_TAGS } from '../../styles/components/publicationFormStyles';
+import theme from '../../styles/config/theme';
+import CloudinaryMedia from '../media/CloudinaryMedia';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
-// Racing color palette
-const THEME_COLORS = {
-  primary: '#E10600', // Racing Red
-  secondary: '#1E1E1E', // Racing Black
-  background: '#FFFFFF',
-  textPrimary: '#1E1E1E',
-  textSecondary: '#6E6E6E',
-  border: '#E0E0E0',
-  card: '#F2F2F2',
-  cardLight: '#F8F8F8',
-};
-
-// Popular suggested tags
-const SUGGESTED_TAGS = [
-  'racing', 'f1', 'circuit', 'karting', 'driving', 'motorsport', 
-  'performance', 'mechanics', 'car', 'speed', 'competition'
-];
-
-// Character limit
-const MAX_DESCRIPTION_LENGTH = 2200;
 
 interface PublicationFormProps {
   imageUri: string;
@@ -143,14 +122,14 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   if (isPreviewMode) {
     return (
       <View style={styles.formContainer}>
-        <View style={localStyles.previewHeader}>
-          <Text style={localStyles.previewTitle}>Post Preview</Text>
+        <View style={publicationFormStyles.previewHeader}>
+          <Text style={publicationFormStyles.previewTitle}>Post Preview</Text>
           <TouchableOpacity
-            style={localStyles.previewCloseButton}
+            style={publicationFormStyles.previewCloseButton}
             onPress={togglePreviewMode}
           >
-            <FontAwesome name="edit" size={18} color={THEME_COLORS.primary} />
-            <Text style={localStyles.previewCloseText}>Edit</Text>
+            <FontAwesome name="edit" size={18} color={theme.colors.primary.main} />
+            <Text style={publicationFormStyles.previewCloseText}>Edit</Text>
           </TouchableOpacity>
         </View>
         
@@ -178,8 +157,8 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
             )}
           </View>
           
-          <View style={localStyles.previewContent}>
-            <View style={localStyles.previewUserInfo}>
+          <View style={publicationFormStyles.previewContent}>
+            <View style={publicationFormStyles.previewUserInfo}>
               <Image 
                 source={{ uri: userAvatar }} 
                 style={styles.userAvatar}
@@ -187,22 +166,22 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               <Text style={styles.headerText}>{username}</Text>
             </View>
             
-            <Text style={localStyles.previewPostTitle}>{title || "Untitled"}</Text>
+            <Text style={publicationFormStyles.previewPostTitle}>{title || "Untitled"}</Text>
             
             {description ? (
-              <Text style={localStyles.previewDescription}>{description}</Text>
+              <Text style={publicationFormStyles.previewDescription}>{description}</Text>
             ) : (
-              <Text style={localStyles.previewNoContent}>No description</Text>
+              <Text style={publicationFormStyles.previewNoContent}>No description</Text>
             )}
             
             {tags.length > 0 ? (
-              <View style={localStyles.previewTags}>
+              <View style={publicationFormStyles.previewTags}>
                 {tags.map((tag, index) => (
-                  <Text key={index} style={localStyles.previewTag}>#{tag}</Text>
+                  <Text key={index} style={publicationFormStyles.previewTag}>#{tag}</Text>
                 ))}
               </View>
             ) : (
-              <Text style={localStyles.previewNoContent}>No tags</Text>
+              <Text style={publicationFormStyles.previewNoContent}>No tags</Text>
             )}
           </View>
         </ScrollView>
@@ -239,16 +218,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
             />
           )}
           {/* Debug info */}
-          <Text style={{
-            position: 'absolute',
-            top: 10,
-            right: 10,
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            color: 'white',
-            padding: 5,
-            borderRadius: 5,
-            fontSize: 12
-          }}>
+          <Text style={publicationFormStyles.debugInfo}>
             {mediaType || 'unknown'} {publicId ? `(${publicId})` : '(no publicId)'}
           </Text>
         </View>
@@ -262,22 +232,22 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
             <Text style={styles.headerText}>{username}</Text>
             
             <TouchableOpacity
-              style={localStyles.previewButton}
+              style={publicationFormStyles.previewButton}
               onPress={togglePreviewMode}
               disabled={isLoading}
             >
-              <FontAwesome name="eye" size={16} color={THEME_COLORS.primary} />
-              <Text style={localStyles.previewButtonText}>Preview</Text>
+              <FontAwesome name="eye" size={16} color={theme.colors.primary.main} />
+              <Text style={publicationFormStyles.previewButtonText}>Preview</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputContainer}>
-            <View style={localStyles.inputSection}>
-              <Text style={localStyles.inputLabel}>Title</Text>
+            <View style={publicationFormStyles.inputSection}>
+              <Text style={publicationFormStyles.inputLabel}>Title</Text>
               <TextInput
                 style={styles.titleInput}
                 placeholder="Enter your title"
-                placeholderTextColor={THEME_COLORS.textSecondary}
+                placeholderTextColor={theme.colors.text.secondary}
                 value={title}
                 onChangeText={setTitle}
                 editable={!isLoading}
@@ -285,12 +255,12 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               />
             </View>
 
-            <View style={localStyles.inputSection}>
-              <View style={localStyles.labelRow}>
-                <Text style={localStyles.inputLabel}>Description</Text>
+            <View style={publicationFormStyles.inputSection}>
+              <View style={publicationFormStyles.labelRow}>
+                <Text style={publicationFormStyles.inputLabel}>Description</Text>
                 <Text style={[
-                  localStyles.charCounter,
-                  isDescriptionLimitWarning && localStyles.charCounterWarning
+                  publicationFormStyles.charCounter,
+                  isDescriptionLimitWarning && publicationFormStyles.charCounterWarning
                 ]}>
                   {descriptionCharactersLeft}
                 </Text>
@@ -298,19 +268,19 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               <TextInput
                 style={styles.descriptionInput}
                 placeholder="Write your description"
-                placeholderTextColor={THEME_COLORS.textSecondary}
+                placeholderTextColor={theme.colors.text.secondary}
                 value={description}
                 onChangeText={text => setDescription(text.slice(0, MAX_DESCRIPTION_LENGTH))}
                 multiline
                 editable={!isLoading}
               />
-              <Text style={localStyles.helperText}>
+              <Text style={publicationFormStyles.helperText}>
                 Share details about your photo, the circuit, the event...
               </Text>
             </View>
 
-            <View style={localStyles.inputSection}>
-              <Text style={localStyles.inputLabel}>Tags</Text>
+            <View style={publicationFormStyles.inputSection}>
+              <Text style={publicationFormStyles.inputLabel}>Tags</Text>
               
               {tags.length > 0 && (
                 <View style={styles.tagsContainer}>
@@ -321,7 +291,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                         onPress={() => handleRemoveTag(index)}
                         disabled={isLoading}
                       >
-                        <FontAwesome name="times" size={14} color={THEME_COLORS.textSecondary} />
+                        <FontAwesome name="times" size={14} color={theme.colors.text.secondary} />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -332,7 +302,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 <TextInput
                   style={styles.tagInput}
                   placeholder="Add tags"
-                  placeholderTextColor={THEME_COLORS.textSecondary}
+                  placeholderTextColor={theme.colors.text.secondary}
                   value={tagInput}
                   onChangeText={(text) => {
                     console.log('🔄 Tag input changed to:', JSON.stringify(text));
@@ -355,7 +325,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               <TouchableOpacity 
                 style={[
                   styles.addTagButton,
-                  (!tagInput.trim() || isLoading) && localStyles.disabledButton
+                  (!tagInput.trim() || isLoading) && publicationFormStyles.disabledButton
                 ]} 
                 onPress={() => {
                   console.log('Add tag button pressed');
@@ -367,36 +337,36 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               </TouchableOpacity>
               
               {tagInput.trim() && filteredSuggestions.length > 0 ? (
-                <View style={localStyles.suggestionsContainer}>
-                  <Text style={localStyles.suggestionsTitle}>Suggestions:</Text>
+                <View style={publicationFormStyles.suggestionsContainer}>
+                  <Text style={publicationFormStyles.suggestionsTitle}>Suggestions:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={localStyles.suggestionsList}>
+                    <View style={publicationFormStyles.suggestionsList}>
                       {filteredSuggestions.map((tag, index) => (
                         <TouchableOpacity
                           key={index}
-                          style={localStyles.suggestionTag}
+                          style={publicationFormStyles.suggestionTag}
                           onPress={() => handleAddSuggestedTag(tag)}
                           disabled={isLoading}
                         >
-                          <Text style={localStyles.suggestionTagText}>#{tag}</Text>
+                          <Text style={publicationFormStyles.suggestionTagText}>#{tag}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
                   </ScrollView>
                 </View>
               ) : !tagInput.trim() ? (
-                <View style={localStyles.suggestionsContainer}>
-                  <Text style={localStyles.suggestionsTitle}>Popular tags:</Text>
+                <View style={publicationFormStyles.suggestionsContainer}>
+                  <Text style={publicationFormStyles.suggestionsTitle}>Popular tags:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={localStyles.suggestionsList}>
+                    <View style={publicationFormStyles.suggestionsList}>
                       {SUGGESTED_TAGS.filter(tag => !tags.includes(tag)).slice(0, 8).map((tag, index) => (
                         <TouchableOpacity
                           key={index}
-                          style={localStyles.suggestionTag}
+                          style={publicationFormStyles.suggestionTag}
                           onPress={() => handleAddSuggestedTag(tag)}
                           disabled={isLoading}
                         >
-                          <Text style={localStyles.suggestionTagText}>#{tag}</Text>
+                          <Text style={publicationFormStyles.suggestionTagText}>#{tag}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -407,9 +377,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
           </View>
 
           {isLoading && (
-            <View style={localStyles.loadingContainer}>
-              <ActivityIndicator size="large" color={THEME_COLORS.primary} />
-              <Text style={localStyles.loadingText}>Publishing...</Text>
+            <View style={publicationFormStyles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.primary.main} />
+              <Text style={publicationFormStyles.loadingText}>Publishing...</Text>
             </View>
           )}
         </View>
@@ -417,148 +387,5 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
     </KeyboardAvoidingView>
   );
 };
-
-const localStyles = StyleSheet.create({
-  inputSection: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    color: THEME_COLORS.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  charCounter: {
-    color: THEME_COLORS.textSecondary,
-    fontSize: 14,
-  },
-  charCounterWarning: {
-    color: THEME_COLORS.primary,
-  },
-  helperText: {
-    color: THEME_COLORS.textSecondary,
-    fontSize: 12,
-    marginTop: 6,
-  },
-  suggestionsContainer: {
-    marginTop: 16,
-  },
-  suggestionsTitle: {
-    color: THEME_COLORS.textSecondary,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  suggestionsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  suggestionTag: {
-    backgroundColor: THEME_COLORS.card,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  suggestionTagText: {
-    color: THEME_COLORS.primary,
-    fontSize: 14,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-    marginTop: 10,
-  },
-  loadingText: {
-    color: THEME_COLORS.textPrimary,
-    marginTop: 10,
-    fontSize: 16,
-  },
-  previewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 'auto',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: THEME_COLORS.cardLight,
-  },
-  previewButtonText: {
-    color: THEME_COLORS.primary,
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: THEME_COLORS.background,
-    borderBottomWidth: 1,
-    borderBottomColor: THEME_COLORS.border,
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: THEME_COLORS.textPrimary,
-  },
-  previewCloseButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  previewCloseText: {
-    color: THEME_COLORS.primary,
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  previewContent: {
-    padding: 16,
-  },
-  previewUserInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  previewPostTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: THEME_COLORS.textPrimary,
-    marginBottom: 10,
-  },
-  previewDescription: {
-    fontSize: 16,
-    color: THEME_COLORS.textPrimary,
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  previewTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
-  previewTag: {
-    color: THEME_COLORS.primary,
-    fontSize: 14,
-    marginRight: 8,
-    marginBottom: 5,
-  },
-  previewNoContent: {
-    color: THEME_COLORS.textSecondary,
-    fontStyle: 'italic',
-    marginVertical: 10,
-  },
-});
 
 export default PublicationForm; 

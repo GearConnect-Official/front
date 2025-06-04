@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
-  Image,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -15,11 +13,10 @@ import {
   Alert,
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { formatPostDate } from '../utils/dateUtils';
-import postService from '../services/postService';
-import { Comment } from '../services/postService';
-import { useAuth } from '../context/AuthContext';
-import { commentsModalStyles } from '../styles/modals/commentsModalStyles';
+import { formatPostDate } from '../../utils/dateUtils';
+import postService, { Comment } from '../../services/postService';
+import { useAuth } from '../../context/AuthContext';
+import { commentsModalStyles } from '../../styles/modals/commentsModalStyles';
 
 interface CommentsModalProps {
   isVisible: boolean;
@@ -45,13 +42,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
   const [editText, setEditText] = useState('');
 
-  useEffect(() => {
-    if (isVisible) {
-      loadComments();
-    }
-  }, [isVisible]);
-
-  const loadComments = async (page = 1) => {
+  const loadComments = useCallback(async (page = 1) => {
     try {
       setIsLoading(true);
       const response = await postService.getComments(postId, page);
@@ -78,7 +69,13 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [postId]);
+
+  useEffect(() => {
+    if (isVisible) {
+      loadComments();
+    }
+  }, [isVisible, loadComments]);
 
   const handleLoadMore = () => {
     if (!isLoading && hasMoreComments) {

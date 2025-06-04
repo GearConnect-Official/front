@@ -1,8 +1,8 @@
-import React from 'react';
-import { Image, ImageProps, StyleSheet } from 'react-native';
-import { cloudinaryService } from '../services/cloudinary.service';
-import { cloudinaryConfig } from '../config';
-import { cloudinaryImageStyles } from '../styles/components/cloudinaryStyles';
+import React, { useState, useEffect } from 'react';
+import { View, Image, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { cloudinaryService } from '../../services/cloudinary.service';
+import { CLOUDINARY_CONFIG } from '../../config';
+import { cloudinaryImageStyles } from '../../styles/components/cloudinaryStyles';
 
 export interface CloudinaryImageProps extends Omit<ImageProps, 'source'> {
   publicId: string;
@@ -35,7 +35,7 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
 
     if (transformation) {
       // Utiliser une transformation personnalisée
-      return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformation}/${publicId}`;
+      return `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${transformation}/${publicId}`;
     }
 
     // Utiliser la méthode de génération d'URL optimisée

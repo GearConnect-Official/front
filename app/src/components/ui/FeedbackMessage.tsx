@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ErrorType } from '../services/axiosConfig';
+import { ErrorType } from '../../services/axiosConfig';
+import { feedbackMessageStyles } from '../../styles/components/feedbackMessageStyles';
 
 // Types de feedback
 export enum FeedbackType {
@@ -37,6 +38,20 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
 }) => {
   const [opacity] = useState(new Animated.Value(0));
 
+  const handleDismiss = useCallback(() => {
+    // Animation de disparition
+    Animated.timing(opacity, {
+      toValue: 0,
+      duration: 300,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start(() => {
+      if (onDismiss) {
+        onDismiss();
+      }
+    });
+  }, [opacity, onDismiss]);
+
   useEffect(() => {
     if (visible) {
       // Animation d'apparition
@@ -59,21 +74,7 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
       // Réinitialiser l'opacité si le composant devient invisible
       opacity.setValue(0);
     }
-  }, [visible]);
-
-  const handleDismiss = () => {
-    // Animation de disparition
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 300,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start(() => {
-      if (onDismiss) {
-        onDismiss();
-      }
-    });
-  };
+  }, [visible, duration, handleDismiss, opacity]);
 
   // Définir l'icône et les couleurs en fonction du type
   let iconName: string;
@@ -82,20 +83,20 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
   switch (type) {
     case FeedbackType.ERROR:
       iconName = 'alert-circle';
-      containerStyle = styles.errorContainer;
+      containerStyle = feedbackMessageStyles.errorContainer;
       break;
     case FeedbackType.WARNING:
       iconName = 'warning';
-      containerStyle = styles.warningContainer;
+      containerStyle = feedbackMessageStyles.warningContainer;
       break;
     case FeedbackType.SUCCESS:
       iconName = 'checkmark-circle';
-      containerStyle = styles.successContainer;
+      containerStyle = feedbackMessageStyles.successContainer;
       break;
     case FeedbackType.INFO:
     default:
       iconName = 'information-circle';
-      containerStyle = styles.infoContainer;
+      containerStyle = feedbackMessageStyles.infoContainer;
       break;
   }
 
@@ -123,7 +124,7 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
   return (
     <Animated.View 
       style={[
-        styles.container,
+        feedbackMessageStyles.container,
         containerStyle,
         { opacity, transform: [{ translateY: opacity.interpolate({
           inputRange: [0, 1],
@@ -132,13 +133,13 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
       ]}
       testID={testID || 'feedback-container'}
     >
-      <View style={styles.content}>
-        <Ionicons name={iconName as any} size={24} color="white" style={styles.icon} />
-        <Text style={styles.message}>{displayMessage}</Text>
+      <View style={feedbackMessageStyles.content}>
+        <Ionicons name={iconName as any} size={24} color="white" style={feedbackMessageStyles.icon} />
+        <Text style={feedbackMessageStyles.message}>{displayMessage}</Text>
       </View>
       <TouchableOpacity 
         onPress={handleDismiss} 
-        style={styles.closeButton}
+        style={feedbackMessageStyles.closeButton}
         testID="feedback-close-button"
       >
         <Ionicons name="close" size={20} color="white" />
@@ -146,53 +147,5 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    right: 20,
-    padding: 10,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    zIndex: 1000,
-  },
-  errorContainer: {
-    backgroundColor: '#FF3B30',
-  },
-  warningContainer: {
-    backgroundColor: '#FF9500',
-  },
-  successContainer: {
-    backgroundColor: '#34C759',
-  },
-  infoContainer: {
-    backgroundColor: '#007AFF',
-  },
-  content: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  icon: {
-    marginRight: 10,
-  },
-  message: {
-    color: 'white',
-    flex: 1,
-    fontSize: 14,
-  },
-  closeButton: {
-    padding: 5,
-  },
-});
 
 export default FeedbackMessage; 

@@ -1,34 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   Modal,
   TouchableOpacity,
   TextInput,
-  FlatList,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
   ActivityIndicator,
   Alert,
   Keyboard,
-  Dimensions,
   ScrollView,
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useAuth } from '../context/AuthContext';
-import commentService, { HierarchicalComment, CommentsResponse } from '../services/commentService';
-import HierarchicalCommentComponent from './Feed/HierarchicalComment';
-import { hierarchicalCommentsStyles } from '../styles/modals/hierarchicalCommentsStyles';
+import { useAuth } from '../../context/AuthContext';
+import commentService, { HierarchicalComment, CommentsResponse } from '../../services/commentService';
+import HierarchicalCommentComponent from '../Feed/HierarchicalComment';
+import { hierarchicalCommentsStyles } from '../../styles/modals/hierarchicalCommentsStyles';
 
+// Modal pour affichage des commentaires hiérarchiques
 interface HierarchicalCommentsModalProps {
   isVisible: boolean;
   postId: number;
   onClose: () => void;
 }
-
-const { height: screenHeight } = Dimensions.get('window');
 
 const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   isVisible,
@@ -48,13 +44,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   } | null>(null);
   const textInputRef = useRef<TextInput>(null);
 
-  useEffect(() => {
-    if (isVisible && postId) {
-      loadComments();
-    }
-  }, [isVisible, postId]);
-
-  const loadComments = async (page = 1) => {
+  const loadComments = useCallback(async (page = 1) => {
     try {
       setIsLoading(true);
       const response: CommentsResponse = await commentService.getCommentsByPost(postId, page);
@@ -73,7 +63,13 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [postId]);
+
+  useEffect(() => {
+    if (isVisible && postId) {
+      loadComments();
+    }
+  }, [isVisible, postId, loadComments]);
 
   const handleLoadMore = () => {
     if (!isLoading && hasMoreComments) {

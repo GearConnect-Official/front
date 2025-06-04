@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/screens/eventsStyles";
-import EventItem from "../components/EventItem";
+import EventItem from "../components/items/EventItem";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";

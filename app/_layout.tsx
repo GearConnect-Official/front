@@ -1,11 +1,11 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import { ClerkProvider } from '@clerk/clerk-expo';
-import ThemeProvider from './src/styles/ThemeProvider';
+import { ThemeProvider } from './src/context/ThemeContext';
 import AxiosConfigProvider from './src/services/axiosConfig';
 import { AuthProvider } from './src/context/AuthContext';
-import ErrorBoundary from './src/components/ErrorBoundary';
-import FeedbackMessage from './src/components/FeedbackMessage';
+import ErrorBoundary from './src/components/ui/ErrorBoundary';
+import FeedbackMessage from './src/components/ui/FeedbackMessage';
 import useFeedback from './src/hooks/useFeedback';
 import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import BottomNav from '../../src/components/BottomNav';
+import BottomNav from '../../src/components/ui/BottomNav';
 import React from 'react';
 
 export default function TabsLayout() {

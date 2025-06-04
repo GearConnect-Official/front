@@ -1,8 +1,8 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { useAuth } from "../context/AuthContext";
-import styles from "../styles/Profile/userProfileStyles";
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
+import styles from '../../styles/Profile/userProfileStyles';
 
 interface UserProfileProps {
   navigateToHome?: () => void;

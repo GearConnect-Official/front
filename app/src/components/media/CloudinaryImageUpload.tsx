@@ -6,13 +6,14 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-  StyleSheet,
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useCloudinary } from '../hooks/useCloudinary';
-import { CloudinaryUploadResponse } from '../services/cloudinary.service';
-import { cloudinaryImageUploadStyles } from '../styles/components/cloudinaryStyles';
+import * as ImagePicker from 'expo-image-picker';
+import { FontAwesome } from '@expo/vector-icons';
+import { useCloudinary } from '../../hooks/useCloudinary';
+import { CloudinaryUploadResponse, CloudinaryUploadOptions } from '../../services/cloudinary.service';
+import { cloudinaryImageUploadStyles } from '../../styles/components/cloudinaryStyles';
 
 export interface CloudinaryImageUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;

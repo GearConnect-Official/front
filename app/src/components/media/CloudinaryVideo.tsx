@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import { ViewStyle } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
-import { cloudinaryService } from '../services/cloudinary.service';
+import { cloudinaryService } from '../../services/cloudinary.service';
 
 interface CloudinaryVideoProps {
   publicId: string;

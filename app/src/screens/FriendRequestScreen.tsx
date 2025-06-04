@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import AddFriendModal from "../components/AddFriendModal";
+import AddFriendModal from "../components/modals/AddFriendModal";
 import styles from "../styles/screens/friendRequestStyles";
 
 // Racing color palette inspired by automotive and racing world

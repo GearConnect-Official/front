@@ -3,7 +3,7 @@ import { View, Text, TextInput, ScrollView } from "react-native";
 import { CloudinaryImage, CloudinaryImageUpload } from "../";
 import { CloudinaryUploadResponse } from "../../services/cloudinary.service";
 import ImageUpload from "./ImageUpload";
-import styles from "../../styles/createEventStyles";
+import styles from "../../styles/screens/createEventStyles";
 import { Event } from "../../services/eventService";
 
 interface MediaInfoProps {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,16 @@ import {
   ScrollView,
   SafeAreaView,
   ActivityIndicator,
-  Alert,
   RefreshControl,
   Image,
-  FlatList,
   Animated,
   Dimensions,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/eventsStyles";
+import styles from "../styles/screens/eventsStyles";
 import EventItem from "../components/EventItem";
 import { useRouter, useFocusEffect } from "expo-router";
-import eventService, { Event } from "../services/eventService";
+import { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS } from '../config';
 

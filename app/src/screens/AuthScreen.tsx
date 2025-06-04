@@ -16,7 +16,7 @@ import {
 import { useRouter } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useAuth } from "../context/AuthContext";
-import styles from "../styles/authStyles";
+import styles from "../styles/auth/authStyles";
 
 const AuthScreen: React.FC = () => {
   const router = useRouter();
@@ -138,7 +138,7 @@ const AuthScreen: React.FC = () => {
               onPress={() => router.push("/(auth)/register")}
             >
               <Text style={styles.registerText}>
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Text style={styles.registerLink}>Register Now</Text>
               </Text>
             </TouchableOpacity>

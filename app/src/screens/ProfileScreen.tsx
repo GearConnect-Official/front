@@ -5,8 +5,6 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  FlatList,
-  Dimensions,
   SafeAreaView,
   Modal,
   RefreshControl,
@@ -21,11 +19,7 @@ import favoritesService from "../services/favoritesService";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 
 // Screen width to calculate grid image dimensions
-const { width } = Dimensions.get("window");
 const NUM_COLUMNS = 3;
-const TILE_WIDTH = width / NUM_COLUMNS;
-const TILE_HEIGHT = TILE_WIDTH;
-const TILE_SPACING = 1;
 
 // Type for posts
 interface Post {
@@ -52,9 +46,9 @@ interface FavoritePost {
     email: string;
   };
   createdAt: string;
-  favorites?: Array<{ userId: number; postId: number }>;
-  interactions?: Array<any>;
-  comments?: Array<any>;
+  favorites?: { userId: number; postId: number }[];
+  interactions?: any[];
+  comments?: any[];
 }
 
 // Type for events
@@ -99,7 +93,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     following: 420,
     saved: 0,
   });
-  const [driverStats, setDriverStats] = useState<DriverStats>({
+  const [driverStats] = useState<DriverStats>({
     races: 12,
     wins: 3,
     podiums: 7,
@@ -112,6 +106,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [hasMoreFavorites, setHasMoreFavorites] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+
   useEffect(() => {
     // Simuler le chargement des données
     // Si userId est défini, charger les données de cet utilisateur spécifique
@@ -129,7 +124,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     // } else {
     //   loadCurrentUserData();
     // }
-  }, [userId, user?.id]); // Recharger les données quand userId change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, user?.id]); // loadFavorites will be stable since it doesn't depend on changing values
 
   const loadMockData = () => {
     // Simulated posts for the grid
@@ -458,21 +454,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
       console.error("Logout error:", error);
     }
   };
-
-  const renderPostItem = ({ item }: { item: Post }) => (
-    <TouchableOpacity
-      style={styles.postTile}
-      activeOpacity={0.8}
-      onPress={() => handlePostPress(item)}
-    >
-      <Image source={{ uri: item.imageUrl }} style={styles.postTileImage} />
-      {item.multipleImages && (
-        <View style={styles.multipleImagesIcon}>
-          <FontAwesome name="clone" size={14} color="#FFFFFF" />
-        </View>
-      )}
-    </TouchableOpacity>
-  );
 
   const renderEventItem = ({ item }: { item: Event }) => (
     <TouchableOpacity

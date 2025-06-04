@@ -8,7 +8,6 @@ import {
   Animated,
   RefreshControl,
   FlatList,
-  Dimensions,
   StatusBar,
   ActivityIndicator,
   Alert,
@@ -17,20 +16,19 @@ import {
   FlatListProps,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
-import styles from "../styles/homeStyles";
+import styles from "../styles/screens/homeStyles";
 import StoryModal from "../components/StoryModal";
 import HierarchicalCommentsModal from "../components/HierarchicalCommentsModal";
-import PostItem, { Comment as PostItemComment, Post, PostTag } from "../components/Feed/PostItem";
-import { Post as APIPost, Comment as APIComment } from "../services/postService";
+import PostItem, { Comment as PostItemComment, PostTag } from "../components/Feed/PostItem";
+import { Post as APIPost } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import * as postService from '../services/postService';
 import commentService from '../services/commentService';
 import favoritesService from '../services/favoritesService';
-import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 
 // Types
@@ -60,20 +58,9 @@ interface UIPost {
   isFromToday: boolean;
 }
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
 // Nom d'utilisateur courant
 const CURRENT_USERNAME = "john_doe";
 const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
-
-// Fonction helper pour convertir les commentaires de l'API au format d'UI
-const convertApiCommentToUiComment = (comment: APIComment): PostItemComment => ({
-  id: comment.id,
-  username: comment.user?.username || 'Unknown',
-  avatar: "https://randomuser.me/api/portraits/men/32.jpg", // Placeholder
-  text: comment.content,
-  timeAgo: formatPostDate(comment.createdAt),
-  likes: 0
-});
 
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
@@ -102,7 +89,11 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
       likes: 0,
     })) || [];
 
-  const images = [apiPost.image || apiPost.cloudinaryUrl || 'https://via.placeholder.com/300'];
+  const images: string[] = [
+    (typeof apiPost.image === 'string' ? apiPost.image : null) || 
+    apiPost.cloudinaryUrl || 
+    'https://via.placeholder.com/300'
+  ].filter(Boolean) as string[];
   const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : undefined;
   
   // Améliorer la détection du type de média
@@ -444,8 +435,8 @@ const HomeScreen: React.FC = () => {
     setIsStoryModalVisible(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleStoryComplete = (storyId: string) => {
-    // Mise à jour de l'état "viewed" de l'histoire
     setStories((prevStories) =>
       prevStories.map((story) =>
         story.id === storyId ? { ...story, viewed: true } : story
@@ -565,6 +556,7 @@ const HomeScreen: React.FC = () => {
     );
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCreatePost = () => {
     // Rafraîchir la liste des posts avant de naviguer
     loadPosts();
@@ -593,7 +585,7 @@ const HomeScreen: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       loadPosts();
-    }, [])
+    }, [loadPosts])
   );
 
   const handleScroll = Animated.event(
@@ -682,6 +674,7 @@ const HomeScreen: React.FC = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddComment = async (postId: string, text: string) => {
     if (!text.trim() || !user?.id) return;
 
@@ -735,6 +728,7 @@ const HomeScreen: React.FC = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getCurrentPostComments = () => {
     const post = posts.find((p) => p.id === currentPostId);
     if (!post) return [];

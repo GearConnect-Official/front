@@ -7,14 +7,12 @@ import {
   ScrollView,
   SafeAreaView,
   StyleSheet,
-  StatusBar,
   ActivityIndicator,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/jobsStyles";
+import styles from "../styles/screens/jobsStyles";
 import JobItem from "../components/JobItem";
 import { useRouter } from "expo-router";
-import theme from "../styles/config";
 
 // Racing color palette
 const RACING_COLORS = {

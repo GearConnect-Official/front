@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
-import styles from "../styles/welcomeStyles";
+import styles from "../styles/screens/welcomeStyles";
 
 const WelcomeScreen: React.FC = () => {
   const router = useRouter();

@@ -2,7 +2,7 @@ import * as React from "react";
 import { View, Text, TextInput, Image } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import styles from "../../styles/createEventStyles";
+import styles from "../../styles/screens/createEventStyles";
 import { Event } from "../../services/eventService";
 
 interface AdditionalInfoProps {

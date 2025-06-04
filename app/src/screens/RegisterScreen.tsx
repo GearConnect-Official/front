@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import styles from "../styles/registerStyles";
-import componentStyles from "../styles/registerComponentStyles";
+import styles from "../styles/auth/registerStyles";
+import componentStyles from "../styles/auth/registerComponentStyles";
 import { useAuth } from "../context/AuthContext"; // Import useAuth hook
 
 const RegisterScreen: React.FC = () => {

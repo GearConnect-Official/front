@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import theme from "./config";
+import { colors, typography, spacing, borders } from "../config";
 
 const styles = StyleSheet.create({
   modalOverlay: {
@@ -8,9 +8,9 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: theme.colors.background.paper,
-    borderTopLeftRadius: theme.borders.radius.lg,
-    borderTopRightRadius: theme.borders.radius.lg,
+    backgroundColor: colors.background.paper,
+    borderTopLeftRadius: borders.radius.lg,
+    borderTopRightRadius: borders.radius.lg,
     paddingBottom: 30, // Extra padding for bottom to handle notch phones
     height: "80%",
   },
@@ -18,38 +18,38 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    borderBottomColor: colors.border.light,
   },
   modalTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.text.primary,
+    ...typography.h3,
+    color: colors.text.primary,
   },
   closeButton: {
-    padding: theme.spacing.xs,
+    padding: spacing.xs,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    margin: theme.spacing.md,
-    padding: theme.spacing.sm,
-    backgroundColor: theme.colors.grey[50],
-    borderRadius: theme.borders.radius.md,
+    margin: spacing.md,
+    padding: spacing.sm,
+    backgroundColor: colors.grey[50],
+    borderRadius: borders.radius.md,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
+    borderColor: colors.border.light,
   },
   searchIcon: {
-    marginRight: theme.spacing.xs,
+    marginRight: spacing.xs,
   },
   searchInput: {
     flex: 1,
     height: 40,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
   },
   clearButton: {
-    padding: theme.spacing.xs,
+    padding: spacing.xs,
   },
   resultsList: {
     flex: 1,
@@ -63,42 +63,42 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: theme.spacing.xl,
+    padding: spacing.xl,
   },
   emptyStateText: {
-    ...theme.typography.body1,
-    color: theme.colors.text.secondary,
+    ...typography.body1,
+    color: colors.text.secondary,
     textAlign: "center",
-    marginTop: theme.spacing.md,
+    marginTop: spacing.md,
   },
   tipContainer: {
-    padding: theme.spacing.md,
+    padding: spacing.md,
     alignItems: "center",
   },
   tipText: {
-    ...theme.typography.caption,
-    color: theme.colors.text.secondary,
+    ...typography.caption,
+    color: colors.text.secondary,
   },
   userItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: theme.spacing.md,
+    padding: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    borderBottomColor: colors.border.light,
   },
   userAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: theme.spacing.md,
+    marginRight: spacing.md,
   },
   userName: {
-    ...theme.typography.subtitle1,
-    color: theme.colors.text.primary,
+    ...typography.subtitle1,
+    color: colors.text.primary,
     flex: 1,
   },
   addButton: {
-    backgroundColor: theme.colors.primary.main,
+    backgroundColor: colors.primary.main,
     width: 36,
     height: 36,
     borderRadius: 18,

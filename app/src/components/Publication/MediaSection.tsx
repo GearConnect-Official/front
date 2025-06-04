@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useCloudinary } from '../../hooks/useCloudinary';
-import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
-import styles from '../../styles/publicationStyles';
+import { CloudinaryUploadResponse, cloudinaryService } from '../../services/cloudinary.service';
+import styles from '../../styles/screens/publicationStyles';
 import * as ImagePicker from 'expo-image-picker';
 
 // Racing color palette
@@ -56,9 +56,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
       
       setUploadProgress(`Upload ${resourceType}...`);
       
-      // Import du service Cloudinary ici pour upload direct
-      const { cloudinaryService } = await import('../../services/cloudinary.service');
-      
+      // Utiliser le service Cloudinary importé statiquement
       const uploadResult = await cloudinaryService.uploadMedia(
         asset.uri,
         {

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { CloudinaryImageUpload } from '../CloudinaryImageUpload';
 import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
-import styles from '../../styles/createEventStyles';
+import styles from '../../styles/screens/createEventStyles';
 
 interface ImageUploadProps {
   title: string;

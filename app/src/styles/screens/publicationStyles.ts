@@ -1,11 +1,10 @@
 import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native';
-import theme from './config';
+import theme from '../config/theme';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
 const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 const SCREEN_WIDTH = width;
-const SCREEN_HEIGHT = height;
 
 // Palette de couleurs inspirée du monde automobile et du racing
 const THEME_COLORS = {

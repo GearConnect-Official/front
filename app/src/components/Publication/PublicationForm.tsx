@@ -10,10 +10,11 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Dimensions
+  Dimensions,
+  Alert
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import styles from '../../styles/publicationStyles';
+import styles from '../../styles/screens/publicationStyles';
 import CloudinaryMedia from '../CloudinaryMedia';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
-  Dimensions,
   Alert,
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -15,16 +14,12 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import { useAuth } from '../src/context/AuthContext';
-import PostItem, { Post, PostTag, Comment as PostItemComment } from '../src/components/Feed/PostItem';
+import PostItem, { Post } from '../src/components/Feed/PostItem';
 import HierarchicalCommentsModal from '../src/components/HierarchicalCommentsModal';
-import { Post as APIPost } from '../src/services/postService';
-import postService from '../src/services/postService';
-import commentService from '../src/services/commentService';
+import postService, { PostTagRelation, Interaction } from '../src/services/postService';
 import favoritesService from '../src/services/favoritesService';
-import { formatPostDate, isPostFromToday } from '../src/utils/dateUtils';
-import styles from '../src/styles/postDetailStyles';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
+import { formatPostDate } from '../src/utils/dateUtils';
+import styles from '../src/styles/screens/postDetailStyles';
 
 const PostDetailScreen: React.FC = () => {
   const router = useRouter();
@@ -35,24 +30,10 @@ const PostDetailScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [commentsVisible, setCommentsVisible] = useState(false);
 
-  useEffect(() => {
-    if (postId) {
-      loadPost();
-    }
-  }, [postId]);
-
-  // Debug des modals
-  useEffect(() => {
-    console.log('🎭 Modal states changed:', {
-      commentsVisible,
-      postId
-    });
-  }, [commentsVisible]);
-
-  const loadPost = async () => {
+  const loadPost = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await postService.getPostById(Number(postId), user?.id);
+      const response = await postService.getPostById(Number(postId), user?.id ? Number(user.id) : undefined);
       
       if (response) {
         const uiPost: Post = {
@@ -64,16 +45,15 @@ const PostDetailScreen: React.FC = () => {
           mediaTypes: ['image'],
           title: response.title || '',
           description: response.body || '',
-          tags: response.tags?.map(tagRelation => ({
+          tags: response.tags?.map((tagRelation: PostTagRelation) => ({
             id: tagRelation.tag.id.toString(),
             name: tagRelation.tag.name
           })) || [],
-          likes: response.interactions?.filter(interaction => interaction.like).length || 0,
-          liked: response.interactions?.some(interaction => interaction.userId === user?.id && interaction.like) || false,
+          likes: response.interactions?.filter((interaction: Interaction) => interaction.like).length || 0,
+          liked: response.interactions?.some((interaction: Interaction) => interaction.userId === Number(user?.id) && interaction.like) || false,
           saved: response.isFavorited || false,
           comments: [],
           timeAgo: formatPostDate(response.createdAt),
-          isFromToday: isPostFromToday(response.createdAt),
         };
         
         console.log('📊 Post loaded successfully:', {
@@ -93,7 +73,21 @@ const PostDetailScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId, user?.id, router]);
+
+  useEffect(() => {
+    if (postId) {
+      loadPost();
+    }
+  }, [postId, loadPost]);
+
+  // Debug des modals
+  useEffect(() => {
+    console.log('🎭 Modal states changed:', {
+      commentsVisible,
+      postId
+    });
+  }, [commentsVisible, postId]);
 
   const handleLike = async (postId: string) => {
     if (!user?.id) return;
@@ -129,7 +123,7 @@ const PostDetailScreen: React.FC = () => {
         saved: !prev.saved
       } : prev);
       
-      await favoritesService.toggleFavorite(Number(postId), user.id);
+      await favoritesService.toggleFavorite(Number(postId), Number(user.id));
     } catch (error) {
       console.error('❌ Error saving post:', error);
       // Revert optimistic update
@@ -160,7 +154,7 @@ const PostDetailScreen: React.FC = () => {
       // Vérifier si le partage est disponible sur l'appareil
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
-        Alert.alert('Erreur', 'Le partage n\'est pas disponible sur cet appareil');
+        Alert.alert('Erreur', 'Le partage n&apos;est pas disponible sur cet appareil');
         return;
       }
 
@@ -224,7 +218,7 @@ const PostDetailScreen: React.FC = () => {
     });
   };
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     // Fermer tous les modals d'abord
     if (commentsVisible) {
       setCommentsVisible(false);
@@ -232,20 +226,7 @@ const PostDetailScreen: React.FC = () => {
     }
     // Ensuite retourner à la page précédente
     router.back();
-  };
-
-  // Gérer le bouton retour Android
-  useEffect(() => {
-    const handleBackPress = () => {
-      handleBack();
-      return true; // Empêcher le comportement par défaut
-    };
-
-    // Note: Dans Expo Router, on peut utiliser router.canGoBack() pour vérifier
-    return () => {
-      // Cleanup si nécessaire
-    };
-  }, [commentsVisible]);
+  }, [commentsVisible, router]);
 
   if (loading) {
     return (
@@ -278,7 +259,7 @@ const PostDetailScreen: React.FC = () => {
         <View style={styles.errorContainer}>
           <FontAwesome name="exclamation-circle" size={60} color="#CCCCCC" />
           <Text style={styles.errorTitle}>Post introuvable</Text>
-          <Text style={styles.errorSubtitle}>Ce post n'existe plus ou a été supprimé</Text>
+          <Text style={styles.errorSubtitle}>Ce post n&apos;existe plus ou a été supprimé</Text>
         </View>
       </SafeAreaView>
     );
@@ -311,7 +292,6 @@ const PostDetailScreen: React.FC = () => {
         isVisible={commentsVisible}
         onClose={() => setCommentsVisible(false)}
         postId={Number(post.id)}
-        currentUserId={user?.id}
       />
     </SafeAreaView>
   );

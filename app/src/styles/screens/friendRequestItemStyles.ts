@@ -1,24 +1,24 @@
 import { StyleSheet } from "react-native";
-import theme from "./config";
+import { colors, typography, spacing, borders, shadows } from "../config";
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: theme.colors.background.paper,
-    borderRadius: theme.borders.radius.md,
-    marginBottom: theme.spacing.sm,
-    ...theme.shadows.apply({}, "sm"),
+    backgroundColor: colors.background.paper,
+    borderRadius: borders.radius.md,
+    marginBottom: spacing.sm,
+    ...shadows.apply({}, "sm"),
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
-    padding: theme.spacing.md,
+    padding: spacing.md,
   },
   avatarContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
     overflow: "hidden",
-    backgroundColor: theme.colors.grey[100],
+    backgroundColor: colors.grey[100],
   },
   avatar: {
     width: "100%",
@@ -26,36 +26,36 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     flex: 1,
-    marginLeft: theme.spacing.md,
+    marginLeft: spacing.md,
   },
   name: {
-    ...theme.typography.subtitle1,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xxs,
+    ...typography.subtitle1,
+    color: colors.text.primary,
+    marginBottom: spacing.xxs,
   },
   mutualFriends: {
-    ...theme.typography.caption,
-    color: theme.colors.text.secondary,
+    ...typography.caption,
+    color: colors.text.secondary,
   },
   actionsContainer: {
     flexDirection: "row",
-    padding: theme.spacing.sm,
+    padding: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
+    borderTopColor: colors.border.light,
   },
   actionButton: {
     flex: 1,
     height: 40,
-    borderRadius: theme.borders.radius.sm,
+    borderRadius: borders.radius.sm,
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: theme.spacing.xs,
+    marginHorizontal: spacing.xs,
   },
   acceptButton: {
-    backgroundColor: theme.colors.primary.main,
+    backgroundColor: colors.primary.main,
   },
   declineButton: {
-    backgroundColor: theme.colors.grey[100],
+    backgroundColor: colors.grey[100],
   },
 });
 

@@ -7,7 +7,7 @@ import {
   Animated,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import styles from "../styles/friendRequestItemStyles";
+import styles from "../styles/screens/friendRequestItemStyles";
 
 interface FriendRequestItemProps {
   name: string;

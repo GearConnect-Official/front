@@ -7,7 +7,7 @@ import {
   Dimensions,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { CloudinaryMedia } from "../";
+import { CloudinaryMedia } from "../media";
 import PostHeader from "./PostHeader";
 import PostActions from "./PostActions";
 import PostFooter from "./PostFooter";
@@ -54,6 +54,8 @@ interface PostItemProps {
   onShare: (postId: string) => void;
   onProfilePress: (username: string) => void;
   currentUsername?: string;
+  isVisible?: boolean;
+  isCurrentlyVisible?: boolean;
 }
 
 const PostItem: React.FC<PostItemProps> = ({
@@ -64,12 +66,16 @@ const PostItem: React.FC<PostItemProps> = ({
   onShare,
   onProfilePress,
   currentUsername = "john_doe",
+  isVisible = true,
+  isCurrentlyVisible = false,
 }) => {
   const renderPostImages = () => {
     console.log('🎬 PostItem - Rendering post images for post:', post.id, {
       mediaTypes: post.mediaTypes,
       imagePublicIds: post.imagePublicIds,
-      images: post.images
+      images: post.images,
+      isVisible,
+      isCurrentlyVisible,
     });
 
     if (post.images.length === 1) {
@@ -77,11 +83,15 @@ const PostItem: React.FC<PostItemProps> = ({
       const mediaType = post.mediaTypes?.[0] || 'auto';
       const isVideo = mediaType === 'video';
       
+      const shouldPlayVideo = isVideo && isVisible && isCurrentlyVisible;
+      
       console.log('🎬 Single media item:', {
         publicId,
         mediaType,
         isVideo,
-        imageUrl: post.images[0]
+        imageUrl: post.images[0],
+        shouldPlayVideo,
+        visibilityReason: !isVideo ? 'not-video' : !isVisible ? 'not-visible' : !isCurrentlyVisible ? 'not-currently-visible' : 'should-play'
       });
       
       return publicId ? (
@@ -95,7 +105,7 @@ const PostItem: React.FC<PostItemProps> = ({
           format={isVideo ? "mp4" : "auto"}
           style={styles.postSingleImage}
           fallbackUrl={post.images[0]}
-          shouldPlay={isVideo}
+          shouldPlay={shouldPlayVideo}
           isMuted={true}
           useNativeControls={isVideo}
           isLooping={isVideo}
@@ -108,7 +118,7 @@ const PostItem: React.FC<PostItemProps> = ({
           width={SCREEN_WIDTH}
           height={SCREEN_WIDTH}
           style={styles.postSingleImage}
-          shouldPlay={isVideo}
+          shouldPlay={shouldPlayVideo}
           isMuted={true}
           useNativeControls={isVideo}
           isLooping={isVideo}
@@ -125,11 +135,15 @@ const PostItem: React.FC<PostItemProps> = ({
             const mediaType = post.mediaTypes?.[index] || 'auto';
             const isVideo = mediaType === 'video';
             
+            const shouldPlayVideo = isVideo && isVisible && isCurrentlyVisible && index === 0;
+            
             console.log(`🎬 Media item ${index}:`, {
               publicId,
               mediaType,
               isVideo,
-              imageUrl: item
+              imageUrl: item,
+              shouldPlayVideo,
+              isFirstItem: index === 0,
             });
             
             return publicId ? (
@@ -143,7 +157,7 @@ const PostItem: React.FC<PostItemProps> = ({
                 format={isVideo ? "mp4" : "auto"}
                 style={styles.postMultipleImage}
                 fallbackUrl={item}
-                shouldPlay={isVideo}
+                shouldPlay={shouldPlayVideo}
                 isMuted={true}
                 useNativeControls={isVideo}
                 isLooping={isVideo}
@@ -156,7 +170,7 @@ const PostItem: React.FC<PostItemProps> = ({
                 width={SCREEN_WIDTH}
                 height={SCREEN_WIDTH}
                 style={styles.postMultipleImage}
-                shouldPlay={isVideo}
+                shouldPlay={shouldPlayVideo}
                 isMuted={true}
                 useNativeControls={isVideo}
                 isLooping={isVideo}
@@ -197,13 +211,6 @@ const PostItem: React.FC<PostItemProps> = ({
       >
         <View style={{ position: 'relative' }}>
           {renderPostImages()}
-          {/* Video Indicator */}
-          {post.mediaTypes?.some(type => type === 'video') && (
-            <View style={styles.videoIndicator}>
-              <FontAwesome name="play" size={10} color="#FFFFFF" />
-              <Text style={styles.videoIndicatorText}>VIDEO</Text>
-            </View>
-          )}
         </View>
       </TouchableOpacity>
 

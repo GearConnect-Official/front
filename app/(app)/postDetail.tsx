@@ -284,6 +284,8 @@ const PostDetailScreen: React.FC = () => {
           onShare={handleShare}
           onProfilePress={handleProfilePress}
           currentUsername={user?.username}
+          isVisible={true}
+          isCurrentlyVisible={true}
         />
       </ScrollView>
 

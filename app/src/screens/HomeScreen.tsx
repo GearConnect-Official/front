@@ -30,6 +30,7 @@ import * as postService from '../services/postService';
 import commentService from '../services/commentService';
 import favoritesService from '../services/favoritesService';
 import { useAuth } from '../context/AuthContext';
+import useVisibilityTracker from '../hooks/useVisibilityTracker';
 
 // Types
 interface Story {
@@ -226,6 +227,18 @@ const HomeScreen: React.FC = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const isHeaderVisible = useRef(true);
   const lastScrollY = useRef(0);
+
+  // Hook de visibilité pour tracker les posts visibles
+  const {
+    visiblePosts,
+    currentlyVisiblePost,
+    viewabilityConfigCallbackPairs,
+    isPostVisible,
+    isPostCurrentlyVisible,
+  } = useVisibilityTracker({
+    minimumViewTime: 300, // 300ms pour être considéré comme visible
+    itemVisiblePercentThreshold: 60, // 60% de l'item doit être visible
+  });
 
   // Fonction pour charger les posts depuis l'API
   const loadPosts = useCallback(async (page = 1, limit = 10) => {
@@ -540,6 +553,18 @@ const HomeScreen: React.FC = () => {
     const previousPost = index > 0 ? posts[index - 1] : null;
     const needsSeparator = previousPost && previousPost.isFromToday && !item.isFromToday;
 
+    // Calculer la visibilité du post
+    const postIsVisible = isPostVisible(item.id);
+    const postIsCurrentlyVisible = isPostCurrentlyVisible(item.id);
+
+    console.log('📱 Rendering post:', {
+      postId: item.id,
+      index,
+      postIsVisible,
+      postIsCurrentlyVisible,
+      hasVideo: item.mediaTypes?.some(type => type === 'video'),
+    });
+
     return (
       <>
         {needsSeparator && renderSeparator()}
@@ -551,6 +576,8 @@ const HomeScreen: React.FC = () => {
           onShare={handleSharePost}
           onProfilePress={handleProfilePress}
           currentUsername={CURRENT_USERNAME}
+          isVisible={postIsVisible}
+          isCurrentlyVisible={postIsCurrentlyVisible}
         />
       </>
     );
@@ -800,6 +827,7 @@ const HomeScreen: React.FC = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
+        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
         ListHeaderComponent={
           <View style={styles.storiesContainer}>
             <FlatList

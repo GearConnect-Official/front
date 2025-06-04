@@ -1,5 +1,17 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+} from "react-native";
 import { useRouter } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import styles from "../styles/auth/registerStyles";
@@ -15,42 +27,43 @@ const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Validate form
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
-    
+    const newErrors: { [key: string]: string } = {};
+
     // Username validation
     if (!username) {
       newErrors.username = "Username is required";
     } else if (username.length < 3) {
       newErrors.username = "Username must contain at least 3 characters";
     }
-    
+
     // Email validation
     if (!email) {
       newErrors.email = "Email is required";
     } else if (!/^\S+@\S+\.\S+$/.test(email)) {
       newErrors.email = "Please provide a valid email address";
     }
-    
+
     // Password validation
     if (!password) {
       newErrors.password = "Password is required";
     } else if (password.length < 8) {
       newErrors.password = "Password must contain at least 8 characters";
     } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(password)) {
-      newErrors.password = "Password must contain at least one uppercase letter, one lowercase letter, and one number";
+      newErrors.password =
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number";
     }
-    
+
     // Confirm password validation
     if (!confirmPassword) {
       newErrors.confirmPassword = "Password confirmation is required";
     } else if (password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -64,16 +77,47 @@ const RegisterScreen: React.FC = () => {
     const result = await register(username, email, password);
 
     if (result.success) {
-      Alert.alert("Success", "Registration successful!");
+      router.push("/(auth)/login");
     } else {
-      Alert.alert("Error", result.error || "Registration failed. Please try again.");
+      // Gestion des différents types d'erreurs
+      if (result.error?.toLowerCase().includes("email")) {
+        setErrors({
+          ...errors,
+          email: result.error,
+        });
+      } else if (result.error?.toLowerCase().includes("username")) {
+        setErrors({
+          ...errors,
+          username: result.error,
+        });
+      } else if (result.error?.toLowerCase().includes("password")) {
+        setErrors({
+          ...errors,
+          password: result.error,
+        });
+      } else if (result.error?.toLowerCase().includes("server")) {
+        setErrors({
+          username: "Unable to connect to server",
+          email: "Unable to connect to server",
+          password: "Unable to connect to server",
+          confirmPassword: "Unable to connect to server",
+        });
+      } else {
+        // If the error is not specific to a field
+        setErrors({
+          username: result.error || "An error occurred",
+          email: result.error || "An error occurred",
+          password: result.error || "An error occurred",
+          confirmPassword: result.error || "An error occurred",
+        });
+      }
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <StatusBar barStyle="dark-content" />
-      
+
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => router.push("/(auth)/welcome")}
@@ -81,8 +125,8 @@ const RegisterScreen: React.FC = () => {
       >
         <FontAwesome name="arrow-left" size={24} color="#1E232C" />
       </TouchableOpacity>
-      
-      <KeyboardAvoidingView 
+
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={componentStyles.flexContainer}
       >
@@ -94,17 +138,22 @@ const RegisterScreen: React.FC = () => {
             {/* Input fields */}
             <View style={styles.inputContainer}>
               <TextInput
-                style={[styles.input, errors.username ? styles.inputError : null]}
+                style={[
+                  styles.input,
+                  errors.username ? styles.inputError : null,
+                ]}
                 placeholder="Username"
                 value={username}
                 onChangeText={(text) => {
                   setUsername(text);
                   if (errors.username) {
-                    setErrors({...errors, username: ""});
+                    setErrors({ ...errors, username: "" });
                   }
                 }}
               />
-              {errors.username ? <Text style={styles.errorText}>{errors.username}</Text> : null}
+              {errors.username ? (
+                <Text style={styles.errorText}>{errors.username}</Text>
+              ) : null}
             </View>
 
             <View style={styles.inputContainer}>
@@ -116,55 +165,69 @@ const RegisterScreen: React.FC = () => {
                 onChangeText={(text) => {
                   setEmail(text);
                   if (errors.email) {
-                    setErrors({...errors, email: ""});
+                    setErrors({ ...errors, email: "" });
                   }
                 }}
               />
-              {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+              {errors.email ? (
+                <Text style={styles.errorText}>{errors.email}</Text>
+              ) : null}
             </View>
 
             <View style={styles.inputContainer}>
               <TextInput
-                style={[styles.input, errors.password ? styles.inputError : null]}
+                style={[
+                  styles.input,
+                  errors.password ? styles.inputError : null,
+                ]}
                 placeholder="Password"
                 secureTextEntry
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
                   if (errors.password) {
-                    setErrors({...errors, password: ""});
+                    setErrors({ ...errors, password: "" });
                   }
                 }}
               />
-              {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+              {errors.password ? (
+                <Text style={styles.errorText}>{errors.password}</Text>
+              ) : null}
             </View>
 
             <View style={styles.inputContainer}>
               <TextInput
-                style={[styles.input, errors.confirmPassword ? styles.inputError : null]}
+                style={[
+                  styles.input,
+                  errors.confirmPassword ? styles.inputError : null,
+                ]}
                 placeholder="Confirm password"
                 secureTextEntry
                 value={confirmPassword}
                 onChangeText={(text) => {
                   setConfirmPassword(text);
                   if (errors.confirmPassword) {
-                    setErrors({...errors, confirmPassword: ""});
+                    setErrors({ ...errors, confirmPassword: "" });
                   }
                 }}
               />
-              {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
+              {errors.confirmPassword ? (
+                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+              ) : null}
             </View>
 
             {/* Register button */}
-            <TouchableOpacity 
-              style={styles.registerButton} 
+            <TouchableOpacity
+              style={styles.registerButton}
               onPress={handleRegister}
               disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={styles.registerButtonText}>Accept and Register</Text>
+                <Text style={styles.registerButtonText}>
+                  Accept and Register
+                </Text>
               )}
             </TouchableOpacity>
 
@@ -183,13 +246,15 @@ const RegisterScreen: React.FC = () => {
             </View>
 
             {/* Login text link - Fixed structure */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={{ marginTop: 20 }}
               onPress={() => router.push("/(auth)/login")}
             >
-              <Text style={{ color: '#6A707C', fontSize: 15, textAlign: 'center' }}>
+              <Text
+                style={{ color: "#6A707C", fontSize: 15, textAlign: "center" }}
+              >
                 Already have an account?{" "}
-                <Text style={{ color: '#E53935', fontWeight: 'bold' }}>
+                <Text style={{ color: "#E53935", fontWeight: "bold" }}>
                   Log in
                 </Text>
               </Text>

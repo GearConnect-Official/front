@@ -9,6 +9,7 @@ import {
   Dimensions,
   SafeAreaView,
   Modal,
+  Alert,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
@@ -64,7 +65,7 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, signOut, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -356,10 +357,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const handleLogoutPress = async () => {
     setMenuVisible(false);
     try {
-      await signOut();
-      router.replace("/auth");
+      await logout();
+      // La redirection est déjà gérée dans la fonction logout()
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Erreur lors de la déconnexion:", error);
+      Alert.alert(
+        "Erreur",
+        "Une erreur est survenue lors de la déconnexion. Veuillez réessayer."
+      );
     }
   };
 

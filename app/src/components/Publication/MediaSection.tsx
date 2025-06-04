@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useCloudinary } from '../../hooks/useCloudinary';
 import { CloudinaryUploadResponse, cloudinaryService } from '../../services/cloudinary.service';
@@ -109,173 +109,70 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
 
   return (
     <View style={styles.mediaSectionContainer}>
-      <Text style={localStyles.title}>Create a Post</Text>
+      <Text style={styles.mediaSectionTitle}>Create a Post</Text>
       
-      <Text style={localStyles.subtitle}>
+      <Text style={styles.mediaSectionSubtitle}>
         Share your best racing photos, videos, cars, events and more.
       </Text>
       
       {uploadProgress && (
-        <View style={localStyles.progressContainer}>
-          <Text style={localStyles.progressText}>{uploadProgress}</Text>
+        <View style={styles.mediaSectionProgressContainer}>
+          <Text style={styles.mediaSectionProgressText}>{uploadProgress}</Text>
         </View>
       )}
       
       {error && (
-        <View style={localStyles.errorContainer}>
-          <Text style={localStyles.errorText}>{error}</Text>
+        <View style={styles.mediaSectionErrorContainer}>
+          <Text style={styles.mediaSectionErrorText}>{error}</Text>
           <TouchableOpacity onPress={clearLocalError}>
             <FontAwesome name="times" size={16} color="#FF3B30" />
           </TouchableOpacity>
         </View>
       )}
       
-      <View style={localStyles.buttonContainer}>
+      <View style={styles.mediaSectionButtonContainer}>
         <TouchableOpacity 
-          style={[localStyles.mediaOptionButton, uploading && localStyles.disabledButton]}
+          style={[styles.mediaSectionOptionButton, uploading && styles.mediaSectionDisabledButton]}
           onPress={handleSelectFromGallery}
           disabled={uploading}
         >
-          <View style={localStyles.iconContainer}>
+          <View style={styles.mediaSectionIconContainer}>
             <FontAwesome name="image" size={30} color={THEME_COLORS.background} />
           </View>
-          <Text style={localStyles.buttonLabel}>Gallery</Text>
-          <Text style={localStyles.buttonDescription}>
+          <Text style={styles.mediaSectionButtonLabel}>Gallery</Text>
+          <Text style={styles.mediaSectionButtonDescription}>
             {uploading ? 'Uploading...' : 'Photos & Videos'}
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[localStyles.mediaOptionButton, uploading && localStyles.disabledButton]}
+          style={[styles.mediaSectionOptionButton, uploading && styles.mediaSectionDisabledButton]}
           onPress={handleTakePhoto}
           disabled={uploading}
         >
-          <View style={localStyles.iconContainer}>
+          <View style={styles.mediaSectionIconContainer}>
             <FontAwesome name="camera" size={30} color={THEME_COLORS.background} />
           </View>
-          <Text style={localStyles.buttonLabel}>Camera</Text>
-          <Text style={localStyles.buttonDescription}>
+          <Text style={styles.mediaSectionButtonLabel}>Camera</Text>
+          <Text style={styles.mediaSectionButtonDescription}>
             {uploading ? 'Uploading...' : 'Photo/Video'}
           </Text>
         </TouchableOpacity>
       </View>
       
-      <View style={localStyles.infoContainer}>
-        <Text style={localStyles.infoText}>
+      <View style={styles.mediaSectionInfoContainer}>
+        <Text style={styles.mediaSectionInfoText}>
           📷 Images & videos are automatically optimized and stored securely
         </Text>
-        <Text style={localStyles.infoText}>
+        <Text style={styles.mediaSectionInfoText}>
           ⚡ Fast loading with automatic format conversion
         </Text>
-        <Text style={localStyles.infoText}>
+        <Text style={styles.mediaSectionInfoText}>
           🎬 Support for photos and videos up to 100MB
         </Text>
       </View>
     </View>
   );
 };
-
-const localStyles = StyleSheet.create({
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: THEME_COLORS.primary,
-    textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: THEME_COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 22,
-    paddingHorizontal: 20,
-  },
-  progressContainer: {
-    backgroundColor: THEME_COLORS.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  progressText: {
-    color: THEME_COLORS.background,
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFEBEE',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  errorText: {
-    flex: 1,
-    color: '#FF3B30',
-    fontSize: 14,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  mediaOptionButton: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 24,
-    marginHorizontal: 8,
-    borderRadius: 16,
-    backgroundColor: THEME_COLORS.primary,
-    shadowColor: THEME_COLORS.secondary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  buttonLabel: {
-    color: THEME_COLORS.background,
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 4,
-    letterSpacing: 0.3,
-  },
-  buttonDescription: {
-    color: THEME_COLORS.background,
-    fontSize: 12,
-    opacity: 0.9,
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  infoContainer: {
-    paddingHorizontal: 20,
-  },
-  infoText: {
-    fontSize: 14,
-    color: THEME_COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-});
 
 export default MediaSection;

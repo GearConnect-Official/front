@@ -34,19 +34,21 @@ const ReviewItem: React.FC<{
   const [textExceedsLimit, setTextExceedsLimit] = useState(false);
   const maxLines = 3;
   const description = item.description || '';
+
+  React.useEffect(() => {
+    if (description.length > 120) {
+      setTextExceedsLimit(true);
+    }
+  }, [description]);
   
-  // Dynamic card style to expand height when text is expanded
   const cardStyle = showFullText 
     ? [styles.reviewCard, { minHeight: 150, maxHeight: 300 }] 
     : styles.reviewCard;
 
-  // Function to check if text exceeds the line limit
   const onTextLayout = (e: any) => {
     const { lines } = e.nativeEvent;
-    if (lines.length > maxLines) {
+    if (lines && lines.length > maxLines) {
       setTextExceedsLimit(true);
-    } else {
-      setTextExceedsLimit(false);
     }
   };
 

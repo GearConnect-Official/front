@@ -1,6 +1,6 @@
 import * as React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import styles from "../../styles/createEventStyles";
+import styles from "../../styles/screens/createEventStyles";
 
 interface ActionButtonsProps {
   onCancel: () => void;

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
+import { View, Text, TouchableOpacity, Modal } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import styles from "../../styles/Profile/menuProfileStyles";
 

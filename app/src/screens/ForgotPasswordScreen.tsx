@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   Alert,
   SafeAreaView,
   StatusBar,
@@ -14,7 +13,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/forgotPasswordStyles";
+import styles from "../styles/auth/forgotPasswordStyles";
 
 const ForgotPasswordScreen: React.FC = () => {
   const router = useRouter();
@@ -52,7 +51,7 @@ const ForgotPasswordScreen: React.FC = () => {
           <Text style={styles.title}>Forgot Password?</Text>
 
           <Text style={styles.subtitle}>
-            Don't worry! It happens. Please enter the email address associated with your account.
+            Don&apos;t worry! It happens. Please enter the email address associated with your account.
           </Text>
 
           <TextInput

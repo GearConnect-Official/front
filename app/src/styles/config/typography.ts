@@ -28,6 +28,28 @@ const createTextStyle = (options: Partial<TypographyStyles>): TextStyle => ({
 });
 
 const typography = {
+  // Sizes pour faciliter l'utilisation
+  sizes: {
+    xs: 12,
+    sm: 14,
+    md: 16,
+    lg: 18,
+    xl: 22,
+    xxl: 24,
+    xxxl: 30,
+  },
+  
+  // Weights pour faciliter l'utilisation  
+  weights: {
+    light: '300' as FontWeight,
+    regular: '400' as FontWeight,
+    medium: '500' as FontWeight,
+    semiBold: '600' as FontWeight,
+    bold: '700' as FontWeight,
+    extraBold: '800' as FontWeight,
+    black: '900' as FontWeight,
+  },
+
   // Headings
   h1: createTextStyle({
     fontSize: 30,

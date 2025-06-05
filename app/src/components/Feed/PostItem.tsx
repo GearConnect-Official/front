@@ -1,16 +1,15 @@
 import React from "react";
 import {
   View,
-  Image,
-  Text,
   TouchableOpacity,
   FlatList,
   Dimensions,
 } from "react-native";
+import { CloudinaryMedia } from "../media";
 import PostHeader from "./PostHeader";
 import PostActions from "./PostActions";
 import PostFooter from "./PostFooter";
-import styles from "../../styles/Feed/postItemStyles";
+import styles from "../../styles/feed/postItemStyles";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export interface Comment {
@@ -22,17 +21,27 @@ export interface Comment {
   likes: number;
 }
 
+export interface PostTag {
+  id?: string;
+  name: string;
+}
+
 export interface Post {
   id: string;
   username: string;
   avatar: string;
   images: string[];
-  caption: string;
+  imagePublicIds?: string[]; // Public IDs Cloudinary pour l'optimisation
+  mediaTypes?: ('image' | 'video')[]; // Types de médias pour chaque élément
+  title: string;
+  description: string;
+  tags: PostTag[];
   likes: number;
   liked: boolean;
   saved: boolean;
   comments: Comment[];
   timeAgo: string;
+  createdAt?: Date;
 }
 
 interface PostItemProps {
@@ -43,6 +52,8 @@ interface PostItemProps {
   onShare: (postId: string) => void;
   onProfilePress: (username: string) => void;
   currentUsername?: string;
+  isVisible?: boolean;
+  isCurrentlyVisible?: boolean;
 }
 
 const PostItem: React.FC<PostItemProps> = ({
@@ -53,23 +64,117 @@ const PostItem: React.FC<PostItemProps> = ({
   onShare,
   onProfilePress,
   currentUsername = "john_doe",
+  isVisible = true,
+  isCurrentlyVisible = false,
 }) => {
   const renderPostImages = () => {
+    console.log('🎬 PostItem - Rendering post images for post:', post.id, {
+      mediaTypes: post.mediaTypes,
+      imagePublicIds: post.imagePublicIds,
+      images: post.images,
+      isVisible,
+      isCurrentlyVisible,
+    });
+
     if (post.images.length === 1) {
-      return (
-        <Image
-          source={{ uri: post.images[0] }}
+      const publicId = post.imagePublicIds?.[0];
+      const mediaType = post.mediaTypes?.[0] || 'auto';
+      const isVideo = mediaType === 'video';
+      
+      const shouldPlayVideo = isVideo && isVisible && isCurrentlyVisible;
+      
+      console.log('🎬 Single media item:', {
+        publicId,
+        mediaType,
+        isVideo,
+        imageUrl: post.images[0],
+        shouldPlayVideo,
+        visibilityReason: !isVideo ? 'not-video' : !isVisible ? 'not-visible' : !isCurrentlyVisible ? 'not-currently-visible' : 'should-play'
+      });
+      
+      return publicId ? (
+        <CloudinaryMedia
+          publicId={publicId}
+          mediaType={mediaType}
+          width={SCREEN_WIDTH}
+          height={SCREEN_WIDTH}
+          crop="fill"
+          quality="auto"
+          format={isVideo ? "mp4" : "auto"}
           style={styles.postSingleImage}
-          resizeMode="cover"
+          fallbackUrl={post.images[0]}
+          shouldPlay={shouldPlayVideo}
+          isMuted={true}
+          useNativeControls={isVideo}
+          isLooping={isVideo}
+        />
+      ) : (
+        <CloudinaryMedia
+          publicId=""
+          mediaType={mediaType}
+          fallbackUrl={post.images[0]}
+          width={SCREEN_WIDTH}
+          height={SCREEN_WIDTH}
+          style={styles.postSingleImage}
+          shouldPlay={shouldPlayVideo}
+          isMuted={true}
+          useNativeControls={isVideo}
+          isLooping={isVideo}
         />
       );
     } else {
+      console.log('🎬 Multiple media items:', post.images.length);
+      
       return (
         <FlatList
           data={post.images}
-          renderItem={({ item }) => (
-            <Image source={{ uri: item }} style={styles.postMultipleImage} />
-          )}
+          renderItem={({ item, index }) => {
+            const publicId = post.imagePublicIds?.[index];
+            const mediaType = post.mediaTypes?.[index] || 'auto';
+            const isVideo = mediaType === 'video';
+            
+            const shouldPlayVideo = isVideo && isVisible && isCurrentlyVisible && index === 0;
+            
+            console.log(`🎬 Media item ${index}:`, {
+              publicId,
+              mediaType,
+              isVideo,
+              imageUrl: item,
+              shouldPlayVideo,
+              isFirstItem: index === 0,
+            });
+            
+            return publicId ? (
+              <CloudinaryMedia
+                publicId={publicId}
+                mediaType={mediaType}
+                width={SCREEN_WIDTH}
+                height={SCREEN_WIDTH}
+                crop="fill"
+                quality="auto"
+                format={isVideo ? "mp4" : "auto"}
+                style={styles.postMultipleImage}
+                fallbackUrl={item}
+                shouldPlay={shouldPlayVideo}
+                isMuted={true}
+                useNativeControls={isVideo}
+                isLooping={isVideo}
+              />
+            ) : (
+              <CloudinaryMedia
+                publicId=""
+                mediaType={mediaType}
+                fallbackUrl={item}
+                width={SCREEN_WIDTH}
+                height={SCREEN_WIDTH}
+                style={styles.postMultipleImage}
+                shouldPlay={shouldPlayVideo}
+                isMuted={true}
+                useNativeControls={isVideo}
+                isLooping={isVideo}
+              />
+            );
+          }}
           keyExtractor={(_, index) => index.toString()}
           horizontal
           pagingEnabled
@@ -102,7 +207,9 @@ const PostItem: React.FC<PostItemProps> = ({
         onPress={handleDoubleTapLike}
         delayLongPress={180}
       >
-        {renderPostImages()}
+        <View style={{ position: 'relative' }}>
+          {renderPostImages()}
+        </View>
       </TouchableOpacity>
 
       <PostActions
@@ -117,7 +224,9 @@ const PostItem: React.FC<PostItemProps> = ({
 
       <PostFooter
         username={post.username}
-        caption={post.caption}
+        title={post.title}
+        description={post.description}
+        tags={post.tags}
         likes={post.likes}
         commentsCount={post.comments.length}
         timeAgo={post.timeAgo}

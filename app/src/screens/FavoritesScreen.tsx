@@ -235,6 +235,8 @@ const FavoritesScreen: React.FC = () => {
       onShare={() => handleShare()}
       onSave={() => handleRemoveFromFavorites(item.id)}
       onProfilePress={() => {}}
+      isVisible={true}
+      isCurrentlyVisible={true}
     />
   );
 

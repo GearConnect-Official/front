@@ -17,6 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
 import favoritesService from "../services/favoritesService";
 import ProfileMenu from "../components/Profile/ProfileMenu";
+import { CloudinaryMedia } from '../components/media';
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -39,6 +40,8 @@ interface FavoritePost {
   title: string;
   body: string;
   cloudinaryUrl?: string;
+  cloudinaryPublicId?: string;
+  imageMetadata?: string;
   user: {
     id: number;
     name: string;
@@ -673,60 +676,117 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     // Rendu des favoris sans FlatList pour éviter les VirtualizedLists imbriquées
     return (
       <View style={styles.favoritesContainer}>
-        {favorites.map((item, index) => (
-          <TouchableOpacity
-            key={`${item.id}-${index}`}
-            style={styles.favoriteItem}
-            activeOpacity={0.8}
-            onPress={() => {
-              // Naviguer vers le détail du post
-              router.push({
-                pathname: '/(app)/postDetail',
-                params: { postId: item.id.toString() }
-              });
-            }}
-          >
-            <View style={styles.favoriteImageContainer}>
-              <Image
-                source={{ 
-                  uri: item.cloudinaryUrl || 'https://via.placeholder.com/300x300?text=No+Image'
-                }}
-                style={styles.favoriteImage}
-              />
-              <TouchableOpacity 
-                style={styles.removeFavoriteButton}
-                onPress={() => handleRemoveFromFavorites(item.id)}
-              >
-                <FontAwesome name="times" size={16} color="#E10600" />
-              </TouchableOpacity>
-            </View>
+        {favorites.map((item, index) => {
+          // Detect media type for the favorite item
+          const detectMediaType = (): 'image' | 'video' => {
+            if (item.imageMetadata) {
+              try {
+                const metadata = JSON.parse(item.imageMetadata);
+                if (metadata.resource_type === 'video' || 
+                    metadata.mediaType === 'video' ||
+                    metadata.resourceType === 'video') {
+                  return 'video';
+                }
+                if (metadata.format && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(metadata.format.toLowerCase())) {
+                  return 'video';
+                }
+              } catch (e) {
+                console.warn('Failed to parse image metadata:', e);
+              }
+            }
             
-            <View style={styles.favoriteContent}>
-              <View style={styles.favoriteHeader}>
-                <View style={styles.favoriteUserAvatar}>
-                  <FontAwesome name="user" size={16} color="#6E6E6E" />
+            if (item.cloudinaryUrl) {
+              const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
+              const lowercaseUrl = item.cloudinaryUrl.toLowerCase();
+              
+              if (videoExtensions.some(ext => lowercaseUrl.includes(ext)) ||
+                  lowercaseUrl.includes('/video/upload') || 
+                  lowercaseUrl.includes('/v_') ||
+                  lowercaseUrl.includes('f_mp4') || 
+                  lowercaseUrl.includes('f_webm') || 
+                  lowercaseUrl.includes('f_mov')) {
+                return 'video';
+              }
+            }
+            
+            return 'image';
+          };
+
+          const mediaType = detectMediaType();
+          const isVideo = mediaType === 'video';
+
+          return (
+            <TouchableOpacity
+              key={`${item.id}-${index}`}
+              style={styles.favoriteItem}
+              activeOpacity={0.8}
+              onPress={() => {
+                // Naviguer vers le détail du post
+                router.push({
+                  pathname: '/(app)/postDetail',
+                  params: { postId: item.id.toString() }
+                });
+              }}
+            >
+              <View style={styles.favoriteImageContainer}>
+                {isVideo ? (
+                  <CloudinaryMedia
+                    publicId={item.cloudinaryPublicId || ''}
+                    mediaType={mediaType}
+                    width={300}
+                    height={200}
+                    crop="fill"
+                    quality="auto"
+                    format="mp4"
+                    style={styles.favoriteImage}
+                    fallbackUrl={item.cloudinaryUrl || 'https://via.placeholder.com/300x300?text=No+Image'}
+                    shouldPlay={false}
+                    isMuted={true}
+                    useNativeControls={false}
+                    isLooping={false}
+                  />
+                ) : (
+                  <Image
+                    source={{ uri: item.cloudinaryUrl || 'https://via.placeholder.com/300x300?text=No+Image' }}
+                    style={styles.favoriteImage}
+                    resizeMode="cover"
+                  />
+                )}
+                <TouchableOpacity 
+                  style={styles.removeFavoriteButton}
+                  onPress={() => handleRemoveFromFavorites(item.id)}
+                >
+                  <FontAwesome name="times" size={16} color="#E10600" />
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.favoriteContent}>
+                <View style={styles.favoriteHeader}>
+                  <View style={styles.favoriteUserAvatar}>
+                    <FontAwesome name="user" size={16} color="#6E6E6E" />
+                  </View>
+                  <Text style={styles.favoriteUsername}>
+                    @{item.user?.username || 'Unknown User'}
+                  </Text>
                 </View>
-                <Text style={styles.favoriteUsername}>
-                  @{item.user?.username || 'Unknown User'}
+                
+                <Text style={styles.favoriteTitle} numberOfLines={1}>
+                  {item.title || 'Sans titre'}
                 </Text>
-              </View>
-              
-              <Text style={styles.favoriteTitle} numberOfLines={1}>
-                {item.title || 'Sans titre'}
-              </Text>
-              
-              <Text style={styles.favoriteDescription} numberOfLines={2}>
-                {item.body || 'Aucune description disponible'}
-              </Text>
-              
-              <View style={styles.favoriteMeta}>
-                <Text style={styles.favoriteDate}>
-                  {item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR') : 'Date inconnue'}
+                
+                <Text style={styles.favoriteDescription} numberOfLines={2}>
+                  {item.body || 'Aucune description disponible'}
                 </Text>
+                
+                <View style={styles.favoriteMeta}>
+                  <Text style={styles.favoriteDate}>
+                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR') : 'Date inconnue'}
+                  </Text>
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          );
+        })}
         
         {isLoadingFavorites && (
           <View style={styles.loadingContainer}>

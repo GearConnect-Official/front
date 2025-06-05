@@ -36,13 +36,51 @@ const PostDetailScreen: React.FC = () => {
       const response = await postService.getPostById(Number(postId), user?.id ? Number(user.id) : undefined);
       
       if (response) {
+        // Media type detection - same logic as in other screens
+        const detectMediaType = (): 'image' | 'video' => {
+          if (response.imageMetadata) {
+            try {
+              const metadata = JSON.parse(response.imageMetadata);
+              if (metadata.resource_type === 'video' || 
+                  metadata.mediaType === 'video' ||
+                  metadata.resourceType === 'video') {
+                return 'video';
+              }
+              if (metadata.format && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(metadata.format.toLowerCase())) {
+                return 'video';
+              }
+            } catch (e) {
+              console.warn('Failed to parse image metadata:', e);
+            }
+          }
+          
+          if (response.cloudinaryUrl) {
+            const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
+            const lowercaseUrl = response.cloudinaryUrl.toLowerCase();
+            
+            if (videoExtensions.some(ext => lowercaseUrl.includes(ext)) ||
+                lowercaseUrl.includes('/video/upload') || 
+                lowercaseUrl.includes('/v_') ||
+                lowercaseUrl.includes('f_mp4') || 
+                lowercaseUrl.includes('f_webm') || 
+                lowercaseUrl.includes('f_mov')) {
+              return 'video';
+            }
+          }
+          
+          return 'image';
+        };
+
+        const detectedType = detectMediaType();
+        const mediaTypes: ('image' | 'video')[] = [detectedType];
+
         const uiPost: Post = {
           id: response.id.toString(),
           username: response.user?.username || response.user?.name || 'Unknown User',
           avatar: response.user?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user?.username || 'User')}&background=E10600&color=fff`,
           images: response.cloudinaryUrl ? [response.cloudinaryUrl] : [],
           imagePublicIds: response.cloudinaryPublicId ? [response.cloudinaryPublicId] : [],
-          mediaTypes: ['image'],
+          mediaTypes,
           title: response.title || '',
           description: response.body || '',
           tags: response.tags?.map((tagRelation: PostTagRelation) => ({
@@ -59,6 +97,7 @@ const PostDetailScreen: React.FC = () => {
         console.log('📊 Post loaded successfully:', {
           id: uiPost.id,
           title: uiPost.title,
+          mediaType: detectedType,
           commentsCount: uiPost.comments.length,
           liked: uiPost.liked,
           saved: uiPost.saved

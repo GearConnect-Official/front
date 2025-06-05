@@ -14,6 +14,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   FlatListProps,
+  Dimensions,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -31,6 +32,7 @@ import commentService from '../services/commentService';
 import favoritesService from '../services/favoritesService';
 import { useAuth } from '../context/AuthContext';
 import useVisibilityTracker from '../hooks/useVisibilityTracker';
+import { detectMediaType } from '../utils/mediaUtils';
 
 // Types
 interface Story {
@@ -98,73 +100,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
   const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : undefined;
   
   // Améliorer la détection du type de média
-  const detectMediaType = (): 'image' | 'video' => {
-    console.log('🔍 Detecting media type for post:', apiPost.id);
-    
-    // Vérifier les métadonnées d'image s'il y en a
-    if (apiPost.imageMetadata) {
-      try {
-        const metadata = JSON.parse(apiPost.imageMetadata);
-        console.log('📋 Image metadata:', metadata);
-        
-        // Vérifier plusieurs champs possibles pour le type de ressource
-        if (metadata.resource_type === 'video' || 
-            metadata.mediaType === 'video' ||
-            metadata.resourceType === 'video') {
-          console.log('✅ Detected video from metadata.resource_type');
-          return 'video';
-        }
-        
-        // Vérifier le format
-        if (metadata.format && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(metadata.format.toLowerCase())) {
-          console.log('✅ Detected video from metadata.format:', metadata.format);
-          return 'video';
-        }
-      } catch (e) {
-        console.warn('⚠️ Failed to parse image metadata:', e);
-      }
-    }
-    
-    // Vérifier l'URL Cloudinary pour des indices de vidéo
-    if (apiPost.cloudinaryUrl) {
-      console.log('🔗 Checking cloudinary URL:', apiPost.cloudinaryUrl);
-      
-      const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
-      const lowercaseUrl = apiPost.cloudinaryUrl.toLowerCase();
-      
-      if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
-        console.log('✅ Detected video from file extension in URL');
-        return 'video';
-      }
-      
-      // Vérifier si l'URL contient '/video/' (structure Cloudinary)
-      if (lowercaseUrl.includes('/video/upload') || lowercaseUrl.includes('/v_')) {
-        console.log('✅ Detected video from Cloudinary video patterns');
-        return 'video';
-      }
-
-      // Nouveau : vérifier le paramètre de format dans l'URL
-      if (lowercaseUrl.includes('f_mp4') || lowercaseUrl.includes('f_webm') || lowercaseUrl.includes('f_mov')) {
-        console.log('✅ Detected video from URL format parameter');
-        return 'video';
-      }
-    }
-    
-    // Vérifier le publicId pour des indices de vidéo
-    if (apiPost.cloudinaryPublicId) {
-      console.log('🔗 Checking cloudinary publicId:', apiPost.cloudinaryPublicId);
-      const lowercaseId = apiPost.cloudinaryPublicId.toLowerCase();
-      if (lowercaseId.includes('video') || lowercaseId.startsWith('videos/')) {
-        console.log('✅ Detected video from publicId patterns');
-        return 'video';
-      }
-    }
-    
-    console.log('📷 Defaulting to image (no video indicators found)');
-    return 'image';
-  };
-  
-  const detectedType = detectMediaType();
+  const detectedType = detectMediaType(apiPost.cloudinaryUrl, apiPost.cloudinaryPublicId, apiPost.imageMetadata);
   const mediaTypes: ('image' | 'video')[] = [detectedType];
   
   console.log('📋 Final conversion result:', {

@@ -2,6 +2,7 @@ import React from 'react';
 import { ViewStyle } from 'react-native';
 import { CloudinaryImage } from './CloudinaryImage';
 import CloudinaryVideo from './CloudinaryVideo';
+import { VIDEO_EXTENSIONS, VIDEO_URL_PATTERNS, VIDEO_METADATA_FORMATS } from '../../utils/mediaUtils';
 
 interface CloudinaryMediaProps {
   publicId: string;
@@ -52,10 +53,9 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
     if (fallbackUrl) {
       console.log('🎯 Checking fallback URL for video patterns:', fallbackUrl);
       
-      const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
       const lowercaseUrl = fallbackUrl.toLowerCase();
       
-      if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
+      if (VIDEO_EXTENSIONS.some(ext => lowercaseUrl.includes(ext))) {
         console.log('🎯 Detected video from file extension in URL');
         return 'video';
       }
@@ -70,7 +70,7 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
       }
       
       // Nouveau : vérifier si l'URL contient des paramètres de format vidéo
-      if (lowercaseUrl.includes('f_mp4') || lowercaseUrl.includes('f_webm') || lowercaseUrl.includes('f_mov')) {
+      if (VIDEO_URL_PATTERNS.some(pattern => lowercaseUrl.includes(pattern))) {
         console.log('🎯 Detected video from format parameters in URL');
         return 'video';
       }
@@ -87,7 +87,7 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
     }
 
     // Si on a un format spécifié pour vidéo
-    if (format && ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(format.toLowerCase())) {
+    if (format && VIDEO_METADATA_FORMATS.includes(format.toLowerCase() as any)) {
       console.log('🎯 Detected video from format:', format);
       return 'video';
     }

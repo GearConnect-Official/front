@@ -18,6 +18,7 @@ import ProfilePost from "../components/Feed/ProfilePost";
 import favoritesService from "../services/favoritesService";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from '../components/media';
+import { detectMediaType } from '../utils/mediaUtils';
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -677,42 +678,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     return (
       <View style={styles.favoritesContainer}>
         {favorites.map((item, index) => {
-          // Detect media type for the favorite item
-          const detectMediaType = (): 'image' | 'video' => {
-            if (item.imageMetadata) {
-              try {
-                const metadata = JSON.parse(item.imageMetadata);
-                if (metadata.resource_type === 'video' || 
-                    metadata.mediaType === 'video' ||
-                    metadata.resourceType === 'video') {
-                  return 'video';
-                }
-                if (metadata.format && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(metadata.format.toLowerCase())) {
-                  return 'video';
-                }
-              } catch (e) {
-                console.warn('Failed to parse image metadata:', e);
-              }
-            }
-            
-            if (item.cloudinaryUrl) {
-              const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
-              const lowercaseUrl = item.cloudinaryUrl.toLowerCase();
-              
-              if (videoExtensions.some(ext => lowercaseUrl.includes(ext)) ||
-                  lowercaseUrl.includes('/video/upload') || 
-                  lowercaseUrl.includes('/v_') ||
-                  lowercaseUrl.includes('f_mp4') || 
-                  lowercaseUrl.includes('f_webm') || 
-                  lowercaseUrl.includes('f_mov')) {
-                return 'video';
-              }
-            }
-            
-            return 'image';
-          };
-
-          const mediaType = detectMediaType();
+          const mediaType = detectMediaType(item.cloudinaryUrl, item.cloudinaryPublicId, item.imageMetadata);
           const isVideo = mediaType === 'video';
 
           return (

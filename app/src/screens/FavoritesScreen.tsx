@@ -16,6 +16,7 @@ import favoritesService from '../services/favoritesService';
 import PostItem, { Comment as PostItemComment, Post, PostTag } from '../components/Feed/PostItem';
 import { Post as APIPost } from '../services/postService';
 import { formatPostDate, isPostFromToday } from '../utils/dateUtils';
+import { detectMediaType } from '../utils/mediaUtils';
 import styles from '../styles/screens/favoritesStyles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -59,42 +60,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
   const images = [apiPost.image || apiPost.cloudinaryUrl || 'https://via.placeholder.com/300'];
   const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : undefined;
   
-  // Media type detection
-  const detectMediaType = (): 'image' | 'video' => {
-    if (apiPost.imageMetadata) {
-      try {
-        const metadata = JSON.parse(apiPost.imageMetadata);
-        if (metadata.resource_type === 'video' || 
-            metadata.mediaType === 'video' ||
-            metadata.resourceType === 'video') {
-          return 'video';
-        }
-        if (metadata.format && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(metadata.format.toLowerCase())) {
-          return 'video';
-        }
-      } catch (e) {
-        console.warn('Failed to parse image metadata:', e);
-      }
-    }
-    
-    if (apiPost.cloudinaryUrl) {
-      const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
-      const lowercaseUrl = apiPost.cloudinaryUrl.toLowerCase();
-      
-      if (videoExtensions.some(ext => lowercaseUrl.includes(ext)) ||
-          lowercaseUrl.includes('/video/upload') || 
-          lowercaseUrl.includes('/v_') ||
-          lowercaseUrl.includes('f_mp4') || 
-          lowercaseUrl.includes('f_webm') || 
-          lowercaseUrl.includes('f_mov')) {
-        return 'video';
-      }
-    }
-    
-    return 'image';
-  };
-  
-  const detectedType = detectMediaType();
+  const detectedType = detectMediaType(apiPost.cloudinaryUrl, apiPost.cloudinaryPublicId, apiPost.imageMetadata);
   const mediaTypes: ('image' | 'video')[] = [detectedType];
   
   const timeAgo = formatPostDate(apiPost.createdAt || new Date());

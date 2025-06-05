@@ -19,6 +19,7 @@ import HierarchicalCommentsModal from '../src/components/modals/HierarchicalComm
 import postService, { PostTagRelation, Interaction } from '../src/services/postService';
 import favoritesService from '../src/services/favoritesService';
 import { formatPostDate } from '../src/utils/dateUtils';
+import { detectMediaType } from '../src/utils/mediaUtils';
 import styles from '../src/styles/screens/postDetailStyles';
 
 const PostDetailScreen: React.FC = () => {
@@ -36,42 +37,7 @@ const PostDetailScreen: React.FC = () => {
       const response = await postService.getPostById(Number(postId), user?.id ? Number(user.id) : undefined);
       
       if (response) {
-        // Media type detection - same logic as in other screens
-        const detectMediaType = (): 'image' | 'video' => {
-          if (response.imageMetadata) {
-            try {
-              const metadata = JSON.parse(response.imageMetadata);
-              if (metadata.resource_type === 'video' || 
-                  metadata.mediaType === 'video' ||
-                  metadata.resourceType === 'video') {
-                return 'video';
-              }
-              if (metadata.format && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(metadata.format.toLowerCase())) {
-                return 'video';
-              }
-            } catch (e) {
-              console.warn('Failed to parse image metadata:', e);
-            }
-          }
-          
-          if (response.cloudinaryUrl) {
-            const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
-            const lowercaseUrl = response.cloudinaryUrl.toLowerCase();
-            
-            if (videoExtensions.some(ext => lowercaseUrl.includes(ext)) ||
-                lowercaseUrl.includes('/video/upload') || 
-                lowercaseUrl.includes('/v_') ||
-                lowercaseUrl.includes('f_mp4') || 
-                lowercaseUrl.includes('f_webm') || 
-                lowercaseUrl.includes('f_mov')) {
-              return 'video';
-            }
-          }
-          
-          return 'image';
-        };
-
-        const detectedType = detectMediaType();
+        const detectedType = detectMediaType(response.cloudinaryUrl, response.cloudinaryPublicId, response.imageMetadata);
         const mediaTypes: ('image' | 'video')[] = [detectedType];
 
         const uiPost: Post = {

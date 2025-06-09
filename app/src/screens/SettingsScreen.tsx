@@ -13,9 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
-import styles from '../styles/screens/settingsStyles';
-import theme from '../styles/config/theme';
-import { API_URL_AUTH } from '../config';
+import styles, { colors } from '../styles/screens/settingsStyles';
 
 
 interface SettingsSectionProps {
@@ -55,14 +53,15 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
   >
-    <View style={styles.settingsItemLeft}>      <View style={[
+    <View style={styles.settingsItemLeft}>
+      <View style={[
         styles.iconContainer, 
         isDestructive ? styles.destructiveIconContainer : null
       ]}>
         <FontAwesome 
           name={icon} 
           size={20} 
-          color={isDestructive ? theme.colors.status.error : theme.colors.primary.main} 
+          color={isDestructive ? colors.iconError : colors.iconPrimary} 
         />
       </View>
       <View style={styles.settingsItemTextContainer}>
@@ -77,8 +76,9 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
         )}
       </View>
     </View>
-    <View style={styles.settingsItemRight}>      {rightElement || (
-        onPress && <FontAwesome name="chevron-right" size={16} color={theme.colors.grey[400]} />
+    <View style={styles.settingsItemRight}>
+      {rightElement || (
+        onPress && <FontAwesome name="chevron-right" size={16} color={colors.iconChevron} />
       )}
     </View>
   </TouchableOpacity>
@@ -86,7 +86,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
 
 const SettingsScreen: React.FC = () => {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [isPushNotificationsEnabled, setIsPushNotificationsEnabled] = useState(true);
   const [isEmailNotificationsEnabled, setIsEmailNotificationsEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -196,16 +196,17 @@ const SettingsScreen: React.FC = () => {
       ]
     );
   };  if (isFetchingUser) {
-    return (      <SafeAreaView style={styles.loadingContainer} edges={['top', 'left', 'right']}>
-        <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background.paper} translucent={true} />
-        <ActivityIndicator size="large" color={theme.colors.primary.main} />
+    return (
+      <SafeAreaView style={styles.loadingContainer} edges={['top', 'left', 'right']}>
+        <StatusBar barStyle="dark-content" backgroundColor={colors.statusBarBackground} translucent={true} />
+        <ActivityIndicator size="large" color={colors.activityIndicator} />
         <Text style={styles.loadingText}>Loading settings...</Text>
       </SafeAreaView>
     );
   }
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background.paper} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.statusBarBackground} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -213,7 +214,7 @@ const SettingsScreen: React.FC = () => {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <FontAwesome name="arrow-left" size={20} color={theme.colors.text.primary} />
+          <FontAwesome name="arrow-left" size={20} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
         <View style={styles.placeholderRight} />
@@ -248,11 +249,12 @@ const SettingsScreen: React.FC = () => {
             icon="bell"
             title="Push Notifications"
             subtitle="Receive alerts and updates"
-            rightElement={              <Switch
+            rightElement={
+              <Switch
                 value={isPushNotificationsEnabled}
                 onValueChange={handleTogglePushNotifications}
-                trackColor={{ false: theme.colors.grey[300], true: `${theme.colors.primary.main}80` }}
-                thumbColor={isPushNotificationsEnabled ? theme.colors.primary.main : theme.colors.grey[50]}
+                trackColor={{ false: colors.switchTrackInactive, true: colors.switchTrackActive }}
+                thumbColor={isPushNotificationsEnabled ? colors.switchThumbActive : colors.switchThumbInactive}
               />
             }
           />
@@ -260,11 +262,12 @@ const SettingsScreen: React.FC = () => {
             icon="envelope"
             title="Email Notifications"
             subtitle="Receive email updates"
-            rightElement={              <Switch
+            rightElement={
+              <Switch
                 value={isEmailNotificationsEnabled}
                 onValueChange={handleToggleEmailNotifications}
-                trackColor={{ false: theme.colors.grey[300], true: `${theme.colors.primary.main}80` }}
-                thumbColor={isEmailNotificationsEnabled ? theme.colors.primary.main : theme.colors.grey[50]}
+                trackColor={{ false: colors.switchTrackInactive, true: colors.switchTrackActive }}
+                thumbColor={isEmailNotificationsEnabled ? colors.switchThumbActive : colors.switchThumbInactive}
               />
             }
           />
@@ -318,8 +321,9 @@ const SettingsScreen: React.FC = () => {
             icon="sign-out"
             title="Logout"
             subtitle="Sign out of your account"
-            onPress={isLoading ? undefined : handleLogout}            rightElement={isLoading ? (
-              <ActivityIndicator size="small" color={theme.colors.primary.main} />
+            onPress={isLoading ? undefined : handleLogout}            
+            rightElement={isLoading ? (
+              <ActivityIndicator size="small" color={colors.activityIndicator} />
             ) : undefined}
           />
           <SettingsItem

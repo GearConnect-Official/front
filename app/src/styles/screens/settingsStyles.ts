@@ -1,6 +1,20 @@
 import { StyleSheet } from 'react-native';
 import theme from '../config/theme';
 
+// Color constants extracted from theme for direct use in the component
+export const colors = {
+  iconPrimary: theme.colors.primary.main,
+  iconError: theme.colors.status.error,
+  iconChevron: theme.colors.grey[400],
+  switchTrackInactive: theme.colors.grey[300],
+  switchTrackActive: `${theme.colors.primary.main}80`,
+  switchThumbActive: theme.colors.primary.main,
+  switchThumbInactive: theme.colors.grey[50],
+  statusBarBackground: theme.colors.background.paper,
+  activityIndicator: theme.colors.primary.main,
+  textPrimary: theme.colors.text.primary,
+};
+
 export default StyleSheet.create({
   container: {
     ...theme.common.container,

@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/screens/settingsStyles';
 import theme from '../styles/config/theme';
+import { API_URL_AUTH } from '../config';
 
 
 interface SettingsSectionProps {
@@ -162,6 +163,7 @@ const SettingsScreen: React.FC = () => {
             setIsLoading(true);
             try {
               await logout();
+                // await fetch(API_URL_AUTH + '/logout');
               router.replace("/(auth)");
             } catch (error) {
               console.error("Error during logout:", error);

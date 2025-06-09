@@ -548,13 +548,16 @@ const postService = {
     }
   },
 
-  // Get posts from a specific user
+  // Get user posts
   getUserPosts: async (userId: number) => {
     const endpoint = `${API_URL_POSTS}/user/${userId}`;
     logRequestDetails(endpoint, "GET");
     try {
       const response = await axios.get(endpoint);
-      return response.data.posts;
+      // S'assurer que nous retournons toujours un tableau
+      return Array.isArray(response.data)
+        ? response.data
+        : response.data.posts || [];
     } catch (error) {
       console.error("Error fetching user posts:", error);
       console.log(
@@ -596,17 +599,39 @@ const postService = {
     }
   },
 
-  // Get liked posts from a user
+  // Get liked posts
   getLikedPosts: async (userId: number) => {
     const endpoint = `${API_URL_POSTS}/liked/${userId}`;
     logRequestDetails(endpoint, "GET");
     try {
       const response = await axios.get(endpoint);
-      return response.data;
+      // S'assurer que nous retournons toujours un tableau
+      return Array.isArray(response.data)
+        ? response.data
+        : response.data.posts || [];
     } catch (error) {
       console.error("Error fetching liked posts:", error);
       console.log(
         `⚠️ To implement this route on the backend: GET /api/posts/liked/${userId}`
+      );
+      throw error;
+    }
+  },
+
+  // Get favorite posts
+  getFavorites: async (userId: number) => {
+    const endpoint = `${API_URL_POSTS}/favorites/${userId}`;
+    logRequestDetails(endpoint, "GET");
+    try {
+      const response = await axios.get(endpoint);
+      // S'assurer que nous retournons toujours un tableau
+      return Array.isArray(response.data)
+        ? response.data
+        : response.data.posts || [];
+    } catch (error) {
+      console.error("Error fetching favorite posts:", error);
+      console.log(
+        `⚠️ To implement this route on the backend: GET /api/posts/favorites/${userId}`
       );
       throw error;
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import postService from "../services/postService";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from "../components/media";
 import { detectMediaType } from "../utils/mediaUtils";
+import { defaultImages } from "../config/defaultImages";
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -87,7 +88,7 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const auth = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -119,18 +120,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [isLoadingLikedPosts, setIsLoadingLikedPosts] = useState(false);
 
   useEffect(() => {
-    // Charger les données de l'utilisateur
-    if (user?.id) {
-      loadUserPosts();
-      loadFavorites(1, true);
-      loadLikedPosts();
-    }
-  }, [userId, user?.id]);
+    if (!auth?.user?.id) return;
+    loadUserPosts();
+    loadFavorites(1, true);
+    loadLikedPosts();
+  }, [userId, auth?.user?.id]);
 
   const loadUserPosts = async () => {
     try {
       setIsLoadingPosts(true);
-      const userPosts = await postService.getUserPosts(Number(user?.id));
+      const userPosts = await postService.getUserPosts(Number(auth?.user?.id));
+
+      if (!Array.isArray(userPosts)) {
+        console.error("Expected array of posts but got:", userPosts);
+        return;
+      }
 
       // Convertir les posts de l'API en format attendu par l'interface
       const formattedPosts = userPosts.map((post: any) => ({
@@ -162,21 +166,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   };
 
   const loadFavorites = async (page: number = 1, reset: boolean = false) => {
-    if (!user?.id || isLoadingFavorites) return;
+    if (!auth?.user?.id || isLoadingFavorites) return;
 
     try {
       setIsLoadingFavorites(true);
-      const allPosts = await postService.getAllPosts();
-
-      // Filtrer les posts qui sont dans les favoris de l'utilisateur
-      const favoritedPosts = allPosts.filter((post: any) =>
-        post.favorites?.some(
-          (favorite: any) => favorite.userId === Number(user.id)
-        )
+      const response = await favoritesService.getUserFavorites(
+        Number(auth?.user?.id),
+        page
       );
 
-      // Convertir les posts en format FavoritePost
-      const formattedFavorites = favoritedPosts.map((post: any) => ({
+      if (!response.favorites || !Array.isArray(response.favorites)) {
+        console.error("Expected array of favorites but got:", response);
+        return;
+      }
+
+      // Convertir les posts de l'API en format FavoritePost
+      const formattedFavorites = response.favorites.map((post: any) => ({
         id: post.id,
         title: post.title,
         body: post.body,
@@ -198,23 +203,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
 
       // Mettre à jour le nombre de favoris dans les stats
       if (reset) {
-        setStats((prev) => ({ ...prev, saved: formattedFavorites.length }));
+        setStats((prev) => ({ ...prev, saved: response.pagination.total }));
       }
 
-      setHasMoreFavorites(false); // Puisqu'on charge tout d'un coup
-      setFavoritesPage(1);
+      setHasMoreFavorites(page < response.pagination.totalPages);
+      setFavoritesPage(page);
     } catch (error) {
-      console.error("❌ Error loading favorites:", error);
+      console.error("Error loading favorites:", error);
     } finally {
       setIsLoadingFavorites(false);
     }
   };
 
   const handleRemoveFromFavorites = async (postId: number) => {
-    if (!user?.id || !postId) return;
+    if (!auth?.user?.id || !postId) return;
 
     try {
-      await favoritesService.toggleFavorite(postId, Number(user.id));
+      await favoritesService.toggleFavorite(postId, Number(auth?.user?.id));
 
       // Retirer le favori de la liste locale
       setFavorites((prev) => prev.filter((fav) => fav.id !== postId));
@@ -233,7 +238,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     setRefreshing(true);
 
     // Recharger les données selon l'onglet actif
-    if (activeTab === "saved" && user?.id) {
+    if (activeTab === "saved" && auth?.user?.id) {
       await loadFavorites(1, true);
     }
     // Ici on pourrait ajouter le rechargement des autres onglets
@@ -321,8 +326,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const handleLogoutPress = async () => {
     setMenuVisible(false);
     try {
-      await signOut();
-      router.replace("/auth");
+      await auth?.logout();
+      // No need to manually redirect as it's handled in the logout function
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -331,18 +336,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const loadLikedPosts = async () => {
     try {
       setIsLoadingLikedPosts(true);
-      const allPosts = await postService.getAllPosts();
+      const response = await postService.getLikedPosts(Number(auth?.user?.id));
 
-      // Filtrer les posts qui ont été likés par l'utilisateur connecté
-      const likedPosts = allPosts.filter((post: any) =>
-        post.interactions?.some(
-          (interaction: any) =>
-            interaction.userId === Number(user?.id) && interaction.like
-        )
-      );
+      if (!Array.isArray(response)) {
+        console.error("Expected array of posts but got:", response);
+        return;
+      }
 
-      // Convertir les posts filtrés au format attendu par l'interface
-      const formattedPosts = likedPosts.map((post: any) => ({
+      // Convertir les posts de l'API en format attendu
+      const formattedLikedPosts = response.map((post: any) => ({
         id: post.id.toString(),
         imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
         likes: post.interactions?.filter((i: any) => i.like).length || 0,
@@ -361,7 +363,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         imageMetadata: post.imageMetadata,
       }));
 
-      setLikedPosts(formattedPosts);
+      setLikedPosts(formattedLikedPosts);
     } catch (error) {
       console.error("Error loading liked posts:", error);
     } finally {
@@ -892,6 +894,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     </View>
   );
 
+  if (!auth) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#E10600" />
+      </View>
+    );
+  }
+
+  const { user } = auth;
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -926,33 +938,28 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         {/* Profile section with avatar and statistics */}
         <View style={styles.profileContainer}>
           <View style={styles.profileSection}>
-            <View style={styles.profileInfo}>
+            <View style={styles.profileHeader}>
               <Image
-                source={{
-                  uri: "https://images.pexels.com/photos/3482523/pexels-photo-3482523.jpeg",
-                }}
-                style={styles.profileAvatar}
+                source={
+                  user?.photoURL
+                    ? { uri: user.photoURL }
+                    : defaultImages.profile
+                }
+                style={styles.profileImage}
               />
-
-              <View style={styles.profileDetails}>
-                <Text style={styles.displayName}>Esteban Dardillac</Text>
+              <View style={styles.profileInfo}>
+                <Text style={styles.username}>{user?.username || "User"}</Text>
                 <View style={styles.statsContainer}>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
-                      {formatNumber(stats.posts)}
-                    </Text>
+                    <Text style={styles.statNumber}>{stats.posts}</Text>
                     <Text style={styles.statLabel}>Posts</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
-                      {formatNumber(stats.followers)}
-                    </Text>
+                    <Text style={styles.statNumber}>{stats.followers}</Text>
                     <Text style={styles.statLabel}>Followers</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
-                      {formatNumber(stats.following)}
-                    </Text>
+                    <Text style={styles.statNumber}>{stats.following}</Text>
                     <Text style={styles.statLabel}>Following</Text>
                   </View>
                 </View>
@@ -1002,70 +1009,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
                 </Text>
               </View>
             </View>
-
-            {/* Featured stories */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.highlightsContainer}
-              contentContainerStyle={styles.highlightsContent}
-            >
-              <TouchableOpacity key="highlight-1" style={styles.highlightItem}>
-                <View style={styles.highlightImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.pexels.com/photos/12012678/pexels-photo-12012678.jpeg",
-                    }}
-                    style={styles.highlightImage}
-                  />
-                </View>
-                <Text style={styles.highlightText}>F3 2023</Text>
-              </TouchableOpacity>
-              <TouchableOpacity key="highlight-2" style={styles.highlightItem}>
-                <View style={styles.highlightImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.pexels.com/photos/461705/pexels-photo-461705.jpeg",
-                    }}
-                    style={styles.highlightImage}
-                  />
-                </View>
-                <Text style={styles.highlightText}>Victories</Text>
-              </TouchableOpacity>
-              <TouchableOpacity key="highlight-3" style={styles.highlightItem}>
-                <View style={styles.highlightImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.pexels.com/photos/12120941/pexels-photo-12120941.jpeg",
-                    }}
-                    style={styles.highlightImage}
-                  />
-                </View>
-                <Text style={styles.highlightText}>Karting</Text>
-              </TouchableOpacity>
-              <TouchableOpacity key="highlight-4" style={styles.highlightItem}>
-                <View style={styles.highlightImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.pexels.com/photos/17236741/pexels-photo-17236741/free-photo-of-sport-auto-rapide-puissant.jpeg",
-                    }}
-                    style={styles.highlightImage}
-                  />
-                </View>
-                <Text style={styles.highlightText}>Team</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                key="highlight-new"
-                style={styles.highlightItem}
-              >
-                <View style={styles.highlightImageContainer}>
-                  <View style={styles.newHighlightPlus}>
-                    <FontAwesome name="plus" size={24} color="#1E1E1E" />
-                  </View>
-                </View>
-                <Text style={styles.highlightText}>New</Text>
-              </TouchableOpacity>
-            </ScrollView>
           </View>
 
           {/* Tabs */}
@@ -1081,6 +1024,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
               />
             </TouchableOpacity>
             <TouchableOpacity
+              style={[styles.tab, activeTab === "reels" && styles.activeTab]}
+              onPress={() => setActiveTab("reels")}
+            >
+              <FontAwesome
+                name="play-circle-o"
+                size={22}
+                color={activeTab === "reels" ? "#E10600" : "#6E6E6E"}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[styles.tab, activeTab === "liked" && styles.activeTab]}
               onPress={() => setActiveTab("liked")}
             >
@@ -1091,35 +1044,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
               />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tab, activeTab === "reels" && styles.activeTab]}
-              onPress={() => setActiveTab("reels")}
-            >
-              <FontAwesome
-                name="film"
-                size={22}
-                color={activeTab === "reels" ? "#E10600" : "#6E6E6E"}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === "saved" && styles.activeTab]}
-              onPress={() => setActiveTab("saved")}
+              style={[
+                styles.tab,
+                activeTab === "favorites" && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab("favorites")}
             >
               <FontAwesome
                 name="bookmark-o"
                 size={22}
-                color={activeTab === "saved" ? "#E10600" : "#6E6E6E"}
+                color={activeTab === "favorites" ? "#E10600" : "#6E6E6E"}
               />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Tab content */}
         <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
           {activeTab === "posts"
             ? renderPostsGrid()
             : activeTab === "liked"
             ? renderLikedPostsGrid()
-            : activeTab === "saved"
+            : activeTab === "favorites"
             ? renderFavoritesGrid()
             : activeTab === "reels"
             ? renderReelsGrid()
@@ -1136,7 +1081,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         onLogoutPress={handleLogoutPress}
       />
 
-      {/* Modal to display a post in detail */}
       <Modal
         visible={postModalVisible}
         animationType="slide"

@@ -73,9 +73,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   username: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: THEME_COLORS.secondary,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
   },
   profileContainer: {
     flex: 0,
@@ -89,10 +89,7 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
   },
   profileInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 18,
+    flex: 1,
   },
   profileAvatar: {
     width: 90,
@@ -113,22 +110,20 @@ const styles = StyleSheet.create({
   },
 
   statsContainer: {
-    flex: 1,
     flexDirection: "row",
     justifyContent: "space-around",
-    alignItems: "center",
   },
   statItem: {
     alignItems: "center",
   },
-  statValue: {
+  statNumber: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: THEME_COLORS.secondary,
+    fontWeight: "600",
+    color: "#1E1E1E",
   },
   statLabel: {
-    fontSize: 12,
-    color: THEME_COLORS.textSecondary,
+    fontSize: 14,
+    color: "#666666",
   },
   bioSection: {
     marginBottom: 18,
@@ -684,6 +679,22 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.background,
     fontSize: 14,
     fontWeight: "600",
+  },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  profileImageContainer: {
+    marginRight: 16,
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: "#E10600",
   },
 });
 

@@ -212,7 +212,7 @@ const AddPerformanceScreen: React.FC = () => {
           ]
         );
       } else {
-        Alert.alert('Error', 'An unexpected error occurred while saving your performance');
+      Alert.alert('Error', 'An unexpected error occurred while saving your performance');
       }
     } finally {
       setIsLoading(false);
@@ -576,8 +576,8 @@ const AddPerformanceScreen: React.FC = () => {
       {/* Track Condition Modal */}
       {showConditionModal && (
         <Modal transparent animationType="slide">
-          <View style={performanceStyles.modalOverlay}>
-            <View style={performanceStyles.modalContent}>
+        <View style={performanceStyles.modalOverlay}>
+          <View style={performanceStyles.modalContent}>
               <View style={performanceStyles.modalHeader}>
                 <Text style={performanceStyles.modalTitle}>Select Track Condition</Text>
                 <TouchableOpacity onPress={() => setShowConditionModal(false)}>
@@ -585,31 +585,31 @@ const AddPerformanceScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
               <ScrollView style={performanceStyles.modalList}>
-                {TRACK_CONDITIONS.map((condition) => (
-                  <TouchableOpacity
-                    key={condition.value}
-                    style={[
+            {TRACK_CONDITIONS.map((condition) => (
+              <TouchableOpacity
+                key={condition.value}
+                style={[
                       performanceStyles.modalItem,
                       formData.trackCondition === condition.value && performanceStyles.modalItemSelected
-                    ]}
-                    onPress={() => {
-                      updateField('trackCondition', condition.value);
-                      setShowConditionModal(false);
-                    }}
-                  >
+                ]}
+                onPress={() => {
+                  updateField('trackCondition', condition.value);
+                  setShowConditionModal(false);
+                }}
+              >
                     <Text style={performanceStyles.modalItemEmoji}>{condition.emoji}</Text>
-                    <Text style={[
+                <Text style={[
                       performanceStyles.modalItemText,
                       formData.trackCondition === condition.value && performanceStyles.modalItemTextSelected
-                    ]}>
-                      {condition.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                ]}>
+                  {condition.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
               </ScrollView>
-            </View>
           </View>
-        </Modal>
+        </View>
+      </Modal>
       )}
 
       {/* Date Picker */}

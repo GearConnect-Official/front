@@ -125,6 +125,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [likedPosts, setLikedPosts] = useState<Post[]>([]);
   const [isLoadingLikedPosts, setIsLoadingLikedPosts] = useState(false);
 
+  // Get user from auth context
+  const { user } = auth || {};
+
   const loadDriverStats = useCallback(async () => {
     if (!user?.id) return;
 
@@ -157,6 +160,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     loadUserPosts();
     loadFavorites(1, true);
     loadLikedPosts();
+    loadDriverStats();
   }, [userId, auth?.user?.id]);
 
   const loadUserPosts = async () => {
@@ -243,21 +247,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
       setFavoritesPage(page);
     } catch (error) {
       console.error("Error loading favorites:", error);
-
     } finally {
       setIsLoadingFavorites(false);
     }
-  }, [user?.id]);
-
-  useEffect(() => {
-    loadMockData();
-    
-    // Charger les performances réelles depuis l'API
-    if (user?.id) {
-      loadDriverStats();
-      loadFavorites(1, true);
-    }
-  }, [userId, user?.id, loadDriverStats, loadFavorites]);
+  };
 
   const handleRemoveFromFavorites = async (postId: number) => {
     if (!auth?.user?.id || !postId) return;
@@ -282,7 +275,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     setRefreshing(true);
 
     // Recharger les données selon l'onglet actif
-    if (activeTab === "saved" && auth?.user?.id) {
+    if (activeTab === "favorites" && auth?.user?.id) {
       await loadFavorites(1, true);
     }
     
@@ -290,7 +283,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     if (user?.id) {
       await loadDriverStats();
     }
-    
+
     setRefreshing(false);
   };
 
@@ -954,8 +947,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     );
   }
 
-  const { user } = auth;
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -1130,7 +1121,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
                   color="#E10600" 
                 />
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Tabs */}
@@ -1154,41 +1145,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
                 size={22}
                 color={activeTab === "reels" ? "#E10600" : "#6E6E6E"}
               />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.performanceTab,
-                activeTab === "performances" && styles.activePerformanceTab
-              ]}
-              onPress={() => handlePerformancesPress()}
-            >
-              <View style={{ alignItems: 'center', position: 'relative' }}>
-                <FontAwesome
-                  name="tachometer"
-                  size={24}
-                  color={activeTab === "performances" ? "#FFFFFF" : "#E10600"}
-                />
-                <View style={{
-                  position: 'absolute',
-                  top: -8,
-                  right: -12,
-                  backgroundColor: '#FF6B1A',
-                  borderRadius: 8,
-                  paddingHorizontal: 4,
-                  paddingVertical: 1,
-                  minWidth: 24,
-                  alignItems: 'center'
-                }}>
-                  <Text style={{
-                    color: '#FFFFFF',
-                    fontSize: 9,
-                    fontWeight: 'bold',
-                    textAlign: 'center'
-                  }}>
-                    🔥
-                  </Text>
-                </View>
-              </View>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.tab, activeTab === "liked" && styles.activeTab]}

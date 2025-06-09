@@ -73,9 +73,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   username: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: THEME_COLORS.secondary,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
   },
   profileContainer: {
     flex: 0,
@@ -89,10 +89,7 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
   },
   profileInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 18,
+    flex: 1,
   },
   profileAvatar: {
     width: 90,
@@ -113,22 +110,20 @@ const styles = StyleSheet.create({
   },
 
   statsContainer: {
-    flex: 1,
     flexDirection: "row",
     justifyContent: "space-around",
-    alignItems: "center",
   },
   statItem: {
     alignItems: "center",
   },
-  statValue: {
+  statNumber: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: THEME_COLORS.secondary,
+    fontWeight: "600",
+    color: "#1E1E1E",
   },
   statLabel: {
-    fontSize: 12,
-    color: THEME_COLORS.textSecondary,
+    fontSize: 14,
+    color: "#666666",
   },
   bioSection: {
     marginBottom: 18,
@@ -549,7 +544,7 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.background,
     fontWeight: "600",
   },
-  
+
   // Styles pour les favoris
   favoritesContainer: {
     padding: 10,
@@ -566,40 +561,39 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: THEME_COLORS.border,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   favoriteImageContainer: {
-    position: 'relative',
+    position: "relative",
     height: 200,
-    width: '100%',
+    width: "100%",
   },
   favoriteImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   videoIcon: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -12 }, { translateY: -12 }],
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeFavoriteButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  removeFavoriteButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 15,
     width: 30,
     height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: THEME_COLORS.secondary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
@@ -610,8 +604,8 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   favoriteHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
   favoriteUserAvatar: {
@@ -620,17 +614,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginRight: 10,
     backgroundColor: THEME_COLORS.card,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   favoriteUsername: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: THEME_COLORS.secondary,
   },
   favoriteTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: THEME_COLORS.secondary,
     marginBottom: 5,
   },
@@ -641,27 +635,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   favoriteMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   favoriteDate: {
     fontSize: 12,
     color: THEME_COLORS.textSecondary,
   },
   favoriteLikesContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   favoriteLikes: {
     fontSize: 12,
     color: THEME_COLORS.primary,
     marginLeft: 4,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   loadingContainer: {
     paddingVertical: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 14,
@@ -674,7 +668,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     marginTop: 15,
-    alignSelf: 'center',
+    alignSelf: "center",
     shadowColor: THEME_COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -684,7 +678,23 @@ const styles = StyleSheet.create({
   loadMoreText: {
     color: THEME_COLORS.background,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
+  },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  profileImageContainer: {
+    marginRight: 16,
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: "#E10600",
   },
 });
 

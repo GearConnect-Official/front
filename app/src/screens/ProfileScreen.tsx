@@ -5,11 +5,12 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Modal,
   RefreshControl,
   ActivityIndicator,
+  StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 import styles from "../styles/Profile/profileStyles";
@@ -433,10 +434,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
       params: { eventId },
     });
   };
-
   const handleSettingsPress = () => {
     setMenuVisible(false);
-    router.push("/settings");
+    router.push("/(app)/settings");
   };
 
   const handleEditProfilePress = () => {
@@ -819,10 +819,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         </>
       )}
     </View>
-  );
-
-  return (
-    <SafeAreaView style={styles.container}>
+  );  return (
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
@@ -1063,14 +1062,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         onLogoutPress={handleLogoutPress}
       />
 
-      {/* Modal to display a post in detail */}
-      <Modal
+      {/* Modal to display a post in detail */}      <Modal
         visible={postModalVisible}
         animationType="slide"
         transparent={false}
-        onRequestClose={handleClosePostModal}
-      >
-        <SafeAreaView style={styles.container}>
+        onRequestClose={handleClosePostModal}      >
+        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
           {selectedPost && (
             <ProfilePost
               post={{

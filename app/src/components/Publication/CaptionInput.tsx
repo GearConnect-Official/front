@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, Image } from 'react-native';
-import styles from '../../styles/captionInputStyles';
+import styles from '../../styles/components/captionInputStyles';
 
 interface CaptionInputProps {
   value: string;

@@ -13,11 +13,9 @@ import {
     StyleSheet
 } from "react-native";
 import * as ImageManipulator from "expo-image-manipulator";
-import { FontAwesome } from "@expo/vector-icons";
-import { MaterialIcons } from "@expo/vector-icons";
-import { PinchGestureHandler, State, PinchGestureHandlerStateChangeEvent } from "react-native-gesture-handler";
-import styles from "../../styles/publicationStyles";
-import imageViewerStyles from "../../styles/imageViewerStyles";
+import { State, PinchGestureHandlerStateChangeEvent, PinchGestureHandler } from "react-native-gesture-handler";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import styles from "../../styles/screens/publicationStyles";
 
 // Racing color palette
 const THEME_COLORS = {
@@ -32,7 +30,6 @@ const THEME_COLORS = {
 };
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export interface ImageViewerProps {
     imageUri: string;
@@ -100,6 +97,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         pinchScale.setValue(1);
         setOffset({ x: 0, y: 0 });
         pan.setValue({ x: 0, y: 0 });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [imageUri]);
 
     const onPinchGestureEvent = Animated.event(

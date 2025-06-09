@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { useCloudinary } from '../../hooks/useCloudinary';
+import { CloudinaryUploadResponse, cloudinaryService } from '../../services/cloudinary.service';
+import styles from '../../styles/screens/publicationStyles';
 import * as ImagePicker from 'expo-image-picker';
-import styles from '../../styles/publicationStyles';
 
 // Racing color palette
 const THEME_COLORS = {
@@ -15,167 +17,162 @@ const THEME_COLORS = {
 };
 
 interface MediaSectionProps {
-  onImageSelected: (uri: string) => void;
+  onImageSelected: (cloudinaryResponse: CloudinaryUploadResponse) => void;
 }
 
 const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
-  const requestGalleryPermissions = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'We need access to your photo library for this feature.',
-        [{ text: 'OK' }]
-      );
-      return false;
-    }
-    return true;
-  };
-  
-  const requestCameraPermissions = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'We need access to your camera for this feature.',
-        [{ text: 'OK' }]
-      );
-      return false;
-    }
-    return true;
+  const { uploadFromCamera, clearError } = useCloudinary();
+  const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const clearLocalError = () => {
+    setError(null);
   };
 
   const handleSelectFromGallery = async () => {
-    const hasPermission = await requestGalleryPermissions();
-    if (!hasPermission) return;
-
     try {
+      setUploading(true);
+      setError(null);
+      setUploadProgress('Sélection du média...');
+      
+      // Utiliser directement expo-image-picker avec support images et vidéos
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: "images",
+        mediaTypes: ImagePicker.MediaTypeOptions.All, // Support images ET vidéos
         allowsEditing: true,
-        quality: 0.8,
         aspect: [4, 3],
+        quality: 0.8,
       });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        onImageSelected(result.assets[0].uri);
+      if (result.canceled || !result.assets[0]) {
+        setUploadProgress('');
+        return;
       }
-    } catch (error) {
-      Alert.alert('Error', 'Unable to select image');
-      console.error(error);
+
+      const asset = result.assets[0];
+      const resourceType = asset.type === 'video' ? 'video' : 'image';
+      
+      setUploadProgress(`Upload ${resourceType}...`);
+      
+      // Utiliser le service Cloudinary importé statiquement
+      const uploadResult = await cloudinaryService.uploadMedia(
+        asset.uri,
+        {
+          folder: 'posts',
+          tags: ['post', 'gallery', resourceType],
+          resource_type: resourceType,
+        }
+      );
+      
+      if (uploadResult) {
+        setUploadProgress('Upload terminé !');
+        onImageSelected(uploadResult);
+        setTimeout(() => setUploadProgress(''), 2000);
+      } else {
+        setUploadProgress('');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'upload';
+      setError(errorMessage);
+      Alert.alert('Erreur', errorMessage);
+      setUploadProgress('');
+    } finally {
+      setUploading(false);
     }
   };
-  
+
   const handleTakePhoto = async () => {
-    const hasPermission = await requestCameraPermissions();
-    if (!hasPermission) return;
-    
     try {
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: "images",
-        allowsEditing: true,
-        quality: 0.8,
-        aspect: [4, 3],
+      clearError();
+      setUploadProgress('Prise de photo/vidéo...');
+      
+      const result = await uploadFromCamera({
+        folder: 'posts',
+        tags: ['post', 'camera'],
       });
       
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        onImageSelected(result.assets[0].uri);
+      if (result) {
+        setUploadProgress('Upload terminé !');
+        onImageSelected(result);
+        setTimeout(() => setUploadProgress(''), 2000);
+      } else {
+        setUploadProgress('');
       }
-    } catch (error) {
-      Alert.alert('Error', 'Unable to take photo');
-      console.error(error);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'upload';
+      Alert.alert('Erreur', errorMessage);
+      setUploadProgress('');
     }
   };
 
   return (
     <View style={styles.mediaSectionContainer}>
-      <Text style={localStyles.title}>Create a Post</Text>
+      <Text style={styles.mediaSectionTitle}>Create a Post</Text>
       
-      <Text style={localStyles.subtitle}>
-        Share your best racing photos, cars, events and more.
+      <Text style={styles.mediaSectionSubtitle}>
+        Share your best racing photos, videos, cars, events and more.
       </Text>
       
-      <View style={localStyles.buttonContainer}>
+      {uploadProgress && (
+        <View style={styles.mediaSectionProgressContainer}>
+          <Text style={styles.mediaSectionProgressText}>{uploadProgress}</Text>
+        </View>
+      )}
+      
+      {error && (
+        <View style={styles.mediaSectionErrorContainer}>
+          <Text style={styles.mediaSectionErrorText}>{error}</Text>
+          <TouchableOpacity onPress={clearLocalError}>
+            <FontAwesome name="times" size={16} color="#FF3B30" />
+          </TouchableOpacity>
+        </View>
+      )}
+      
+      <View style={styles.mediaSectionButtonContainer}>
         <TouchableOpacity 
-          style={localStyles.mediaOptionButton}
+          style={[styles.mediaSectionOptionButton, uploading && styles.mediaSectionDisabledButton]}
           onPress={handleSelectFromGallery}
+          disabled={uploading}
         >
-          <View style={localStyles.iconContainer}>
+          <View style={styles.mediaSectionIconContainer}>
             <FontAwesome name="image" size={30} color={THEME_COLORS.background} />
           </View>
-          <Text style={localStyles.buttonLabel}>Gallery</Text>
-          <Text style={localStyles.buttonDescription}>Choose from gallery</Text>
+          <Text style={styles.mediaSectionButtonLabel}>Gallery</Text>
+          <Text style={styles.mediaSectionButtonDescription}>
+            {uploading ? 'Uploading...' : 'Photos & Videos'}
+          </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={localStyles.mediaOptionButton}
+          style={[styles.mediaSectionOptionButton, uploading && styles.mediaSectionDisabledButton]}
           onPress={handleTakePhoto}
+          disabled={uploading}
         >
-          <View style={localStyles.iconContainer}>
+          <View style={styles.mediaSectionIconContainer}>
             <FontAwesome name="camera" size={30} color={THEME_COLORS.background} />
           </View>
-          <Text style={localStyles.buttonLabel}>Camera</Text>
-          <Text style={localStyles.buttonDescription}>Take a new photo</Text>
+          <Text style={styles.mediaSectionButtonLabel}>Camera</Text>
+          <Text style={styles.mediaSectionButtonDescription}>
+            {uploading ? 'Uploading...' : 'Photo/Video'}
+          </Text>
         </TouchableOpacity>
+      </View>
+      
+      <View style={styles.mediaSectionInfoContainer}>
+        <Text style={styles.mediaSectionInfoText}>
+          📷 Images & videos are automatically optimized and stored securely
+        </Text>
+        <Text style={styles.mediaSectionInfoText}>
+          ⚡ Fast loading with automatic format conversion
+        </Text>
+        <Text style={styles.mediaSectionInfoText}>
+          🎬 Support for photos and videos up to 100MB
+        </Text>
       </View>
     </View>
   );
 };
-
-const localStyles = StyleSheet.create({
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: THEME_COLORS.secondary,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: THEME_COLORS.textSecondary,
-    marginBottom: 30,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  buttonContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-start',
-  },
-  mediaOptionButton: {
-    alignItems: 'center',
-    width: '45%',
-    padding: 16,
-    backgroundColor: THEME_COLORS.cardLight,
-    borderRadius: 12,
-    shadowColor: THEME_COLORS.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: THEME_COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  buttonLabel: {
-    color: THEME_COLORS.secondary,
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  buttonDescription: {
-    color: THEME_COLORS.textSecondary,
-    fontSize: 12,
-    textAlign: 'center',
-  },
-});
 
 export default MediaSection;

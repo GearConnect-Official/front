@@ -1,111 +1,89 @@
-# Design System GearConnect
+# Styles Organization
 
-Ce dossier contient le design system de l'application GearConnect, conçu pour assurer la cohérence visuelle et faciliter la maintenance des styles.
+Les styles sont désormais organisés en sous-dossiers logiques pour une meilleure maintenabilité :
 
 ## Structure
 
-Le design system est organisé comme suit :
-
 ```
 styles/
-├── config/               # Configuration du design system
-│   ├── colors.ts         # Palette de couleurs
-│   ├── typography.ts     # Styles de typographie
-│   ├── spacing.ts        # Espacements et dimensions
-│   ├── shadows.ts        # Ombres et élévations
-│   ├── borders.ts        # Styles de bordures
-│   ├── theme.ts          # Configuration globale du thème
-│   └── index.ts          # Point d'entrée pour l'import
-└── [composant]Styles.ts  # Styles spécifiques aux composants
+├── components/           # Styles des composants réutilisables
+│   ├── cloudinaryStyles.ts    # Styles pour Cloudinary (images, vidéos, upload)
+│   ├── postStyles.ts          # Styles pour les composants de post
+│   ├── bottomNavStyles.ts     # Styles pour la navigation du bas
+│   ├── captionInputStyles.ts  # Styles pour les inputs de caption
+│   ├── cardComponentStyles.ts # Styles pour les composants de carte
+│   └── index.ts              # Exports centralisés
+│
+├── auth/                # Styles d'authentification
+│   ├── authStyles.ts           # Styles d'auth généraux
+│   ├── registerStyles.ts      # Styles d'inscription
+│   ├── registerComponentStyles.ts
+│   ├── verifyStyles.ts        # Styles de vérification
+│   ├── forgotPasswordStyles.ts # Styles mot de passe oublié
+│   └── index.ts              # Exports centralisés
+│
+├── screens/             # Styles des écrans
+│   ├── homeStyles.ts          # Styles de l'écran d'accueil
+│   ├── favoritesStyles.ts     # Styles des favoris
+│   ├── eventsStyles.ts        # Styles des événements
+│   ├── jobsStyles.ts          # Styles des emplois
+│   ├── publicationStyles.ts   # Styles de publication
+│   ├── createEventStyles.ts   # Styles de création d'événement
+│   ├── createJobOfferStyles.ts # Styles de création d'offre d'emploi
+│   ├── friendRequestStyles.ts # Styles des demandes d'amis
+│   ├── postDetailStyles.ts    # Styles de détail de post
+│   ├── eventDetailStyles.ts   # Styles de détail d'événement
+│   ├── welcomeStyles.ts       # Styles d'accueil
+│   ├── loadingStyles.ts       # Styles de chargement
+│   └── index.ts              # Exports centralisés
+│
+├── modals/              # Styles des modales
+│   ├── commentsModalStyles.ts      # Styles modal de commentaires
+│   ├── hierarchicalCommentsStyles.ts # Styles commentaires hiérarchiques
+│   ├── addFriendModalStyles.ts     # Styles modal d'ajout d'ami
+│   └── index.ts                   # Exports centralisés
+│
+├── media/               # Styles des médias
+│   ├── mediaStyles.ts         # Styles pour la section média
+│   ├── imageViewerStyles.ts   # Styles pour le visualiseur d'images
+│   └── index.ts              # Exports centralisés
+│
+├── Feed/                # Styles du feed (existant)
+├── Profile/             # Styles du profil (existant)
+├── config/              # Configuration des styles (existant)
+├── ThemeProvider.tsx    # Fournisseur de thème
+└── index.ts             # Export principal de tous les styles
 ```
 
 ## Utilisation
 
-### Importer le design system
-
+### Import direct depuis un sous-dossier
 ```typescript
-// Import du thème complet
-import theme from './styles/config';
-
-// Import de parties spécifiques
-import { colors, typography, spacing } from './styles/config';
+import { cloudinaryImageStyles } from '../styles/components/cloudinaryStyles';
+import { commentsModalStyles } from '../styles/modals/commentsModalStyles';
 ```
 
-### Utiliser les éléments du design system
-
+### Import depuis les index
 ```typescript
-import { StyleSheet } from 'react-native';
-import theme from './styles/config';
+// Import depuis l'index de catégorie
+import { cloudinaryImageStyles, postStyles } from '../styles/components';
 
-const styles = StyleSheet.create({
-  container: {
-    ...theme.common.container,
-    padding: theme.spacing.md,
-  },
-  
-  title: {
-    ...theme.typography.h1,
-    color: theme.colors.primary.main,
-  },
-  
-  card: {
-    ...theme.common.card,
-    marginBottom: theme.spacing.lg,
-  },
-  
-  button: {
-    ...theme.common.button,
-    backgroundColor: theme.colors.secondary.main,
-  },
-});
+// Import depuis l'index principal
+import { cloudinaryImageStyles, commentsModalStyles, homeStyles } from '../styles';
 ```
 
-### Utiliser les utilitaires
+## Avantages de cette organisation
 
-#### Bordures
+1. **Clarté** : Plus facile de trouver les styles liés à un composant spécifique
+2. **Maintenabilité** : Évite d'avoir trop de fichiers à la racine
+3. **Scalabilité** : Facilite l'ajout de nouveaux styles dans les bonnes catégories
+4. **Imports centralisés** : Les fichiers index permettent des imports propres
+5. **Consistance** : Organisation logique par type de composant/écran
 
-```typescript
-// Utiliser une bordure prédéfinie
-const cardStyle = theme.borders.apply({}, { preset: 'card' });
+## Migration
 
-// Personnaliser une bordure
-const customBorder = theme.borders.apply({}, { 
-  width: 2, 
-  color: theme.colors.primary.main, 
-  radius: 'lg' 
-});
-```
+Tous les anciens imports ont été mis à jour automatiquement. Si vous ajoutez de nouveaux styles :
 
-#### Ombres
-
-```typescript
-// Appliquer une ombre prédéfinie avec la méthode apply
-const cardWithShadow = theme.shadows.apply({}, 'md');
-
-// Récupérer une ombre avec la méthode getShadow
-const shadow = theme.getShadow('lg');
-
-// Combiner avec d'autres styles
-const card = {
-  ...theme.borders.apply({}, { preset: 'card' }),
-  ...theme.shadows.apply({}, 'md'),
-  padding: theme.spacing.md,
-};
-```
-
-## Bonnes pratiques
-
-1. **Toujours utiliser le design system** pour les nouveaux composants
-2. **Éviter les valeurs codées en dur** pour les couleurs, espacements, etc.
-3. **Utiliser les styles communs** (`theme.common`) pour la cohérence
-4. **Préférer les valeurs sémantiques** (`theme.colors.primary.main` au lieu de `'#1E232C'`)
-5. **Refactoriser progressivement** les anciens composants pour utiliser le design system
-
-## Contribution
-
-Pour ajouter ou modifier des éléments du design system :
-
-1. Identifier le fichier approprié dans `styles/config/`
-2. Ajouter ou modifier les valeurs nécessaires
-3. Mettre à jour la documentation si nécessaire
-4. Vérifier que les modifications sont compatibles avec l'existant 
+1. Placez-les dans le bon sous-dossier selon leur usage
+2. Ajoutez l'export dans le fichier `index.ts` du sous-dossier correspondant
+3. L'export sera automatiquement disponible via l'index principal 

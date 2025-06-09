@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,16 +8,31 @@ import {
   Animated,
   RefreshControl,
   FlatList,
-  Dimensions,
   StatusBar,
+  ActivityIndicator,
+  Alert,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  FlatListProps,
+  Dimensions,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { useRouter } from "expo-router";
-import styles from "../styles/homeStyles";
-import StoryModal from "../components/StoryModal";
-import CommentsModal from "../components/CommentsModal";
-import ShareModal from "../components/Feed/ShareModal";
-import PostItem, { Post } from "../components/Feed/PostItem";
+import { useRouter, useFocusEffect } from "expo-router";
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import * as Clipboard from 'expo-clipboard';
+import styles from "../styles/screens/homeStyles";
+import StoryModal from "../components/modals/StoryModal";
+import HierarchicalCommentsModal from "../components/modals/HierarchicalCommentsModal";
+import PostItem, { Comment as PostItemComment, PostTag } from "../components/Feed/PostItem";
+import { Post as APIPost } from "../services/postService";
+import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
+import * as postService from '../services/postService';
+import commentService from '../services/commentService';
+import favoritesService from '../services/favoritesService';
+import { useAuth } from '../context/AuthContext';
+import useVisibilityTracker from '../hooks/useVisibilityTracker';
+import { detectMediaType } from '../utils/mediaUtils';
 
 // Types
 interface Story {
@@ -28,40 +43,178 @@ interface Story {
   content?: string;
 }
 
-interface Comment {
+interface UIPost {
   id: string;
   username: string;
   avatar: string;
-  text: string;
-  timeAgo: string;
+  images: string[];
+  imagePublicIds?: string[];  // Public IDs Cloudinary pour l'optimisation
+  mediaTypes?: ('image' | 'video')[];  // Types de médias pour chaque élément
+  title: string;
+  description: string;
+  tags: PostTag[];
   likes: number;
+  liked: boolean;
+  saved: boolean;
+  comments: PostItemComment[];
+  timeAgo: string;
+  isFromToday: boolean;
 }
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
 // Nom d'utilisateur courant
 const CURRENT_USERNAME = "john_doe";
 const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 
+// Fonction helper pour convertir les posts de l'API au format d'UI
+const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
+  console.log('🔄 Converting API post to UI post:', {
+    id: apiPost.id,
+    cloudinaryUrl: apiPost.cloudinaryUrl,
+    cloudinaryPublicId: apiPost.cloudinaryPublicId,
+    imageMetadata: apiPost.imageMetadata,
+    isFavorited: (apiPost as any).isFavorited,
+    favoritesCount: (apiPost as any).favoritesCount
+  });
+
+  const liked = apiPost.interactions?.some(
+    (interaction) => interaction.userId === currentUserId && interaction.like
+  ) || false;
+  
+  const likes = apiPost.interactions?.filter(interaction => interaction.like).length || 0;
+  
+  const comments = apiPost.interactions?.filter(interaction => interaction.comment)
+    .map(interaction => ({
+      id: `${interaction.userId}`,
+      username: `user_${interaction.userId}`,
+      avatar: `https://randomuser.me/api/portraits/men/${interaction.userId % 50}.jpg`,
+      text: interaction.comment || '',
+      timeAgo: '1h',
+      likes: 0,
+    })) || [];
+
+  const images: string[] = [
+    (typeof apiPost.image === 'string' ? apiPost.image : null) || 
+    apiPost.cloudinaryUrl || 
+    'https://via.placeholder.com/300'
+  ].filter(Boolean) as string[];
+  const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : undefined;
+  
+  // Améliorer la détection du type de média
+  const detectedType = detectMediaType(apiPost.cloudinaryUrl, apiPost.cloudinaryPublicId, apiPost.imageMetadata);
+  const mediaTypes: ('image' | 'video')[] = [detectedType];
+  
+  console.log('📋 Final conversion result:', {
+    postId: apiPost.id,
+    detectedType,
+    mediaTypes,
+    hasPublicId: !!imagePublicIds,
+    imageUrl: images[0]
+  });
+  
+  const timeAgo = formatPostDate(apiPost.createdAt || new Date());
+  
+  // Séparer le titre et la description de manière intelligente
+  const fullContent = `${apiPost.title || ''} ${apiPost.body || ''}`.trim();
+  const title = apiPost.title || fullContent.substring(0, 60) || 'Untitled Post';
+  const description = apiPost.body || fullContent || '';
+  
+  // Mapper les tags avec la structure correcte
+  const tags: PostTag[] = apiPost.tags?.map(tagRelation => ({
+    id: tagRelation.tag.id?.toString(),
+    name: tagRelation.tag.name
+  })) || [];
+
+  return {
+    id: apiPost.id?.toString() || '',
+    username: apiPost.user?.username || `user_${apiPost.userId}`,
+    avatar: apiPost.user?.imageUrl || `https://randomuser.me/api/portraits/men/${apiPost.userId % 50}.jpg`,
+    images,
+    imagePublicIds,
+    mediaTypes,
+    title,
+    description,
+    tags,
+    likes,
+    liked,
+    saved: (apiPost as any).isFavorited || false,
+    comments,
+    timeAgo: timeAgo,
+    isFromToday: isPostFromToday(apiPost.createdAt || new Date()),
+  };
+};
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as React.ComponentType<FlatListProps<UIPost>>;
+
 const HomeScreen: React.FC = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<UIPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isStoryModalVisible, setIsStoryModalVisible] = useState(false);
   const [currentStoryId, setCurrentStoryId] = useState("");
   const [isCommentsModalVisible, setIsCommentsModalVisible] = useState(false);
-  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [currentPostId, setCurrentPostId] = useState("");
   const scrollY = useRef(new Animated.Value(0)).current;
   const isHeaderVisible = useRef(true);
   const lastScrollY = useRef(0);
 
-  // Simuler le chargement des données
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Hook de visibilité pour tracker les posts visibles
+  const {
+    visiblePosts,
+    currentlyVisiblePost,
+    viewabilityConfigCallbackPairs,
+    isPostVisible,
+    isPostCurrentlyVisible,
+  } = useVisibilityTracker({
+    minimumViewTime: 300, // 300ms pour être considéré comme visible
+    itemVisiblePercentThreshold: 60, // 60% de l'item doit être visible
+  });
 
-  const loadData = () => {
+  // Fonction pour charger les posts depuis l'API
+  const loadPosts = useCallback(async (page = 1, limit = 10) => {
+    try {
+      setLoadingError(null);
+      const currentUserId = user?.id ? parseInt(user.id) : null;
+      
+      // Utiliser la nouvelle méthode getPosts avec userId pour récupérer l'état des favoris
+      const response = currentUserId 
+        ? await postService.default.getPosts(page, limit, currentUserId)
+        : await postService.default.getAllPosts();
+      
+      if (Array.isArray(response)) {
+        // Trier les posts du plus récent au plus ancien
+        const sortedPosts = [...response].sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        // Transformer les posts API en posts UI en utilisant l'ID utilisateur réel
+        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId || 1));
+        
+        setPosts(uiPosts);
+        setHasMorePosts(uiPosts.length === limit);
+      } else {
+        setLoadingError('Format de réponse API inattendu');
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des posts:', error);
+      setLoadingError('Impossible de charger les posts. Veuillez réessayer plus tard.');
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+      setIsLoadingMore(false);
+    }
+  }, [user?.id]);
+
+  // Simulation du chargement des données des stories (à remplacer par un appel API réel plus tard)
+  const loadStories = useCallback(() => {
     // Stories mock data avec des images réalistes
     const mockStories: Story[] = [
       {
@@ -114,199 +267,116 @@ const HomeScreen: React.FC = () => {
       },
     ];
 
-    // Préparons des commentaires d'exemple
-    const exampleComments1 = [
-      {
-        id: "c1",
-        username: "user123",
-        avatar: "https://randomuser.me/api/portraits/women/76.jpg",
-        text: "Great photo! I love the team atmosphere 👏",
-        timeAgo: "30m",
-        likes: 3,
-      },
-      {
-        id: "c2",
-        username: "julie_design",
-        avatar: "https://randomuser.me/api/portraits/women/45.jpg",
-        text: "Looks like you all had a great time!",
-        timeAgo: "1h",
-        likes: 0,
-      },
-    ];
-
-    const exampleComments2 = [
-      {
-        id: "c3",
-        username: "tech_enthusiast",
-        avatar: "https://randomuser.me/api/portraits/men/22.jpg",
-        text: "I can't wait to try this product! Where can we buy it?",
-        timeAgo: "45m",
-        likes: 12,
-      },
-      {
-        id: "c4",
-        username: "sarah_dev",
-        avatar: "https://randomuser.me/api/portraits/women/37.jpg",
-        text: "What are the technical specifications?",
-        timeAgo: "1h",
-        likes: 4,
-      },
-      {
-        id: "c5",
-        username: "marketing_pro",
-        avatar: "https://randomuser.me/api/portraits/men/56.jpg",
-        text: "Congrats on the launch! The design is superb.",
-        timeAgo: "2h",
-        likes: 8,
-      },
-    ];
-
-    const exampleComments3 = [
-      {
-        id: "c6",
-        username: "design_student",
-        avatar: "https://randomuser.me/api/portraits/women/14.jpg",
-        text: "This quote is so true. Thanks for the inspiration!",
-        timeAgo: "3h",
-        likes: 15,
-      },
-    ];
-
-    // Realistic mock posts data
-    const mockPosts: Post[] = [
-      {
-        id: "1",
-        username: "john_doe",
-        avatar: "https://randomuser.me/api/portraits/men/85.jpg",
-        images: [
-          "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-        ],
-        caption:
-          "Amazing day at work with the GearConnect team! #networking #team",
-        likes: 124,
-        liked: false,
-        saved: false,
-        comments: exampleComments1,
-        timeAgo: "35m",
-      },
-      {
-        id: "2",
-        username: "tech_company",
-        avatar: "https://randomuser.me/api/portraits/men/81.jpg",
-        images: [
-          "https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-        ],
-        caption:
-          "Our new product is finally available! Discover all its features on our website. #innovation #tech",
-        likes: 457,
-        liked: true,
-        saved: true,
-        comments: exampleComments2,
-        timeAgo: "2h",
-      },
-      {
-        id: "3",
-        username: CURRENT_USERNAME,
-        avatar: CURRENT_USER_AVATAR,
-        images: [
-          "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1611095970111-fc87b5315dc3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1542744094-3a95b1b9c9fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-        ],
-        caption:
-          "Design is not just what it looks like and feels like. Design is how it works. #uxdesign",
-        likes: 892,
-        liked: false,
-        saved: false,
-        comments: exampleComments3,
-        timeAgo: "5h",
-      },
-      {
-        id: "4",
-        username: "travel_addict",
-        avatar: "https://randomuser.me/api/portraits/women/52.jpg",
-        images: [
-          "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1519046904884-53103b34b206?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80",
-        ],
-        caption:
-          "Finally back on vacation! ☀️ Paradise exists and it's in the Maldives. #travel #beach #relaxation",
-        likes: 1023,
-        liked: false,
-        saved: true,
-        comments: [],
-        timeAgo: "4h",
-      },
-    ];
-
     setStories(mockStories);
-    setPosts(mockPosts);
-  };
+  }, []);
+
+  // Charger les données au démarrage
+  useEffect(() => {
+    loadPosts();
+    loadStories();
+  }, [loadPosts, loadStories]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    // Simuler un chargement
-    setTimeout(() => {
-      loadData();
-      setRefreshing(false);
-    }, 1500);
+    setCurrentPage(1);
+    loadPosts(1);
   };
 
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    {
-      useNativeDriver: false,
-      listener: (event: any) => {
-        const currentScrollY = event.nativeEvent.contentOffset.y;
-        if (currentScrollY <= 0) {
-          isHeaderVisible.current = true;
-        } else {
-          // Determiner la direction du scroll
-          const direction =
-            currentScrollY > lastScrollY.current ? "down" : "up";
-          if (direction === "down" && isHeaderVisible.current) {
-            isHeaderVisible.current = false;
-          } else if (direction === "up" && !isHeaderVisible.current) {
-            isHeaderVisible.current = true;
-          }
-        }
-        lastScrollY.current = currentScrollY;
-      },
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMorePosts) {
+      setIsLoadingMore(true);
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      loadPosts(nextPage);
     }
-  );
-
-  const headerTranslateY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, isHeaderVisible.current ? 0 : -60],
-    extrapolate: "clamp",
-  });
-
-  const handleLike = (postId: string) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            liked: !post.liked,
-            likes: post.liked ? post.likes - 1 : post.likes + 1,
-          };
-        }
-        return post;
-      })
-    );
   };
 
-  const handleSave = (postId: string) => {
+  const handleLike = async (postId: string) => {
+    if (!user?.id) {
+      Alert.alert('Erreur', 'Vous devez être connecté pour liker un post');
+      return;
+    }
+
+    const currentUserId = parseInt(user.id);
+    
+    // Optimistically update UI
     setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === postId) {
-          return { ...post, saved: !post.saved };
-        }
-        return post;
-      })
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              liked: !post.liked,
+              likes: post.liked ? post.likes - 1 : post.likes + 1,
+            }
+          : post
+      )
     );
+
+    try {
+      // Utiliser la nouvelle méthode toggleLike
+      await postService.default.toggleLike(parseInt(postId), currentUserId);
+      
+      // Recharger les posts pour synchroniser avec la base de données
+      // On fait ça de manière silencieuse pour éviter les clignotements
+      setTimeout(() => {
+        loadPosts();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erreur lors du toggle du like:', error);
+      
+      // En cas d'erreur, annuler l'optimistic update
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                liked: !post.liked,
+                likes: post.liked ? post.likes + 1 : post.likes - 1,
+              }
+            : post
+        )
+      );
+      Alert.alert('Erreur', 'Impossible d\'ajouter un like pour le moment.');
+    }
+  };
+
+  const handleSave = async (postId: string) => {
+    if (!user?.id) {
+      Alert.alert('Erreur', 'Vous devez être connecté pour sauvegarder un post');
+      return;
+    }
+
+    const currentUserId = parseInt(user.id);
+    
+    // Optimistically update UI
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, saved: !post.saved } : post
+      )
+    );
+
+    try {
+      // Utiliser le service des favoris pour persister en base de données
+      await favoritesService.toggleFavorite(parseInt(postId), currentUserId);
+      
+      // Recharger les posts pour synchroniser avec la base de données
+      // On fait ça de manière silencieuse pour éviter les clignotements
+      setTimeout(() => {
+        loadPosts();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erreur lors du toggle des favoris:', error);
+      
+      // En cas d'erreur, annuler l'optimistic update
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId ? { ...post, saved: !post.saved } : post
+        )
+      );
+      Alert.alert('Erreur', 'Impossible de sauvegarder ce post pour le moment.');
+    }
   };
 
   const handleViewStory = (storyId: string) => {
@@ -314,14 +384,12 @@ const HomeScreen: React.FC = () => {
     setIsStoryModalVisible(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleStoryComplete = (storyId: string) => {
     setStories((prevStories) =>
-      prevStories.map((story) => {
-        if (story.id === storyId) {
-          return { ...story, viewed: true };
-        }
-        return story;
-      })
+      prevStories.map((story) =>
+        story.id === storyId ? { ...story, viewed: true } : story
+      )
     );
   };
 
@@ -334,172 +402,409 @@ const HomeScreen: React.FC = () => {
     setIsCommentsModalVisible(true);
   };
 
-  const handleCloseCommentsModal = () => {
+  const handleCloseCommentsModal = async () => {
     setIsCommentsModalVisible(false);
-  };
-
-  const handleSharePost = (postId: string) => {
-    setCurrentPostId(postId);
-    setIsShareModalVisible(true);
-  };
-
-  const handleCloseShareModal = () => {
-    setIsShareModalVisible(false);
-  };
-
-  const handleAddComment = (postId: string, text: string) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === postId) {
-          const newComment = {
-            id: `c${Date.now()}`,
-            username: CURRENT_USERNAME,
-            avatar: CURRENT_USER_AVATAR,
-            text,
-            timeAgo: "just now",
-            likes: 0,
-          };
-          return {
-            ...post,
-            comments: [...post.comments, newComment],
-          };
-        }
-        return post;
-      })
-    );
-  };
-
-  const getCurrentPostComments = () => {
-    const post = posts.find((p) => p.id === currentPostId);
-    return post ? post.comments : [];
+    
+    // Mettre à jour le nombre de commentaires pour le post actuel
+    if (currentPostId && user?.id) {
+      try {
+        // Récupérer le nombre réel de commentaires depuis l'API des commentaires hiérarchiques
+        const response = await commentService.getCommentsByPost(parseInt(currentPostId), 1, 1);
+        const realCommentsCount = response.pagination.totalItems;
+        
+        // Mettre à jour le post dans le state local avec le nouveau nombre de commentaires
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === currentPostId
+              ? {
+                  ...post,
+                  comments: Array(realCommentsCount).fill(null).map((_, index) => ({
+                    id: `comment-${index}`,
+                    username: 'user',
+                    avatar: '',
+                    text: '',
+                    timeAgo: '',
+                    likes: 0,
+                  })), // Créer un tableau factice de la bonne taille pour le compteur
+                }
+              : post
+          )
+        );
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du compteur de commentaires:', error);
+        // En cas d'erreur, on recharge simplement tous les posts après un délai
+        setTimeout(() => {
+          loadPosts();
+        }, 500);
+      }
+    }
   };
 
   const handleProfilePress = (username: string) => {
-    // Naviguer vers le profil utilisateur
     if (username === CURRENT_USERNAME) {
-      router.push('/(app)/profile');
+      handleNavigateToProfile();
     } else {
-      router.push({
-        pathname: '/(app)/userProfile',
-        params: { username }
-      });
+      // Pourrait naviguer vers le profil d'un autre utilisateur
+      console.log("Navigate to profile:", username);
     }
   };
 
   const handleNavigateToProfile = () => {
-    router.push('/(app)/profile');
+    router.push("/profile");
+  };
+
+  const renderSeparator = () => {
+    return (
+      <View style={styles.dateSeperatorContainer}>
+        <View style={styles.dateSeparatorLine} />
+        <Text style={styles.dateSeparatorText}>Earlier</Text>
+        <View style={styles.dateSeparatorLine} />
+      </View>
+    );
   };
 
   const renderStoryItem = ({ item }: { item: Story }) => (
     <TouchableOpacity
-      style={styles.storyContainer}
+      style={styles.storyItem}
       onPress={() => handleViewStory(item.id)}
       activeOpacity={0.7}
     >
       <View
         style={[
           styles.storyRing,
-          item.viewed ? styles.storyRingViewed : styles.storyRingUnviewed,
+          { borderColor: item.viewed ? "#8e8e8e" : "#FF5864" },
         ]}
       >
         <Image source={{ uri: item.avatar }} style={styles.storyAvatar} />
       </View>
-      <Text style={styles.storyUsername} numberOfLines={1}>
-        {item.username}
+      <Text style={styles.storyUsername}>
+        {item.username === CURRENT_USERNAME ? "Your story" : item.username}
       </Text>
     </TouchableOpacity>
   );
 
-  const renderPost = ({ item }: { item: Post }) => (
-    <PostItem
-      post={item}
-      onLike={handleLike}
-      onSave={handleSave}
-      onComment={handleViewComments}
-      onShare={handleSharePost}
-      onProfilePress={handleProfilePress}
-      currentUsername={CURRENT_USERNAME}
-    />
-  );
+  // Fonction de rendu des posts avec gestion des séparateurs de date
+  const renderPost = ({ item, index }: { item: UIPost; index: number }) => {
+    // Vérifier si nous devons afficher un séparateur avant ce post
+    const previousPost = index > 0 ? posts[index - 1] : null;
+    const needsSeparator = previousPost && previousPost.isFromToday && !item.isFromToday;
 
-  const handleCreatePost = () => {
-    router.push('/(app)/publicationScreen');
+    // Calculer la visibilité du post
+    const postIsVisible = isPostVisible(item.id);
+    const postIsCurrentlyVisible = isPostCurrentlyVisible(item.id);
+
+    console.log('📱 Rendering post:', {
+      postId: item.id,
+      index,
+      postIsVisible,
+      postIsCurrentlyVisible,
+      hasVideo: item.mediaTypes?.some(type => type === 'video'),
+    });
+
+    return (
+      <>
+        {needsSeparator && renderSeparator()}
+        <PostItem
+          post={item}
+          onLike={handleLike}
+          onSave={handleSave}
+          onComment={handleViewComments}
+          onShare={handleSharePost}
+          onProfilePress={handleProfilePress}
+          currentUsername={CURRENT_USERNAME}
+          isVisible={postIsVisible}
+          isCurrentlyVisible={postIsCurrentlyVisible}
+        />
+      </>
+    );
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <Animated.View
-        style={[
-          styles.header,
-          { transform: [{ translateY: headerTranslateY }] },
-        ]}
-      >
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>GearConnect</Text>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.headerIcon}>
-              <FontAwesome name="paper-plane-o" size={24} color="#262626" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerIcon}
-              onPress={handleNavigateToProfile}
-            >
-              <Image
-                source={{ uri: CURRENT_USER_AVATAR }}
-                style={styles.headerProfileImage}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Animated.View>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleCreatePost = () => {
+    // Rafraîchir la liste des posts avant de naviguer
+    loadPosts();
+    // Naviguer vers l'écran de création
+    router.push("/publication");
+  };
 
-      <FlatList
+  const renderEmptyState = () => (
+    <View style={styles.emptyStateContainer}>
+      <FontAwesome name="camera" size={60} color="#CCCCCC" />
+      <Text style={styles.emptyStateTitle}>No posts yet</Text>
+      <Text style={styles.emptyStateDescription}>
+        Be the first to share your passion for cars!
+      </Text>
+      <TouchableOpacity 
+        style={styles.createPostButton}
+        onPress={() => router.push('/publication')}
+      >
+        <FontAwesome name="plus" size={16} color="#FFFFFF" style={styles.createPostIcon} />
+        <Text style={styles.createPostText}>Create my first post</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Rafraîchir la liste des posts lorsque l'écran est focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPosts();
+    }, [loadPosts])
+  );
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      useNativeDriver: true,
+      listener: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const currentY = event.nativeEvent.contentOffset.y;
+        isHeaderVisible.current = currentY <= lastScrollY.current;
+        lastScrollY.current = currentY;
+      },
+    }
+  );
+
+  const handleSharePost = async (postId: string) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    try {
+      console.log('📤 Sharing post:', postId);
+      
+      // TODO: PRODUCTION - Quand l'app sera déployée en production, modifier cette fonction pour :
+      // 1. Partager un lien direct vers le post dans l'app (ex: https://gearconnect.app/post/123)
+      // 2. Inclure une preview du post avec titre/description/image miniature
+      // 3. Ne plus partager directement l'URL Cloudinary mais plutôt rediriger vers le post complet
+      // 4. Permettre aux utilisateurs externes de voir le post même sans avoir l'app installée
+      // 5. Ajouter des métadonnées Open Graph pour un meilleur affichage sur les réseaux sociaux
+      
+      // Vérifier si le partage est disponible sur l'appareil
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert('Erreur', 'Le partage n\'est pas disponible sur cet appareil');
+        return;
+      }
+
+      // Créer le contenu à partager
+      const shareContent = `${post.title}\n\n${post.description}\n\nVu sur GearConnect`;
+      
+      // Si le post a une image, on peut essayer de la partager aussi
+      if (post.images.length > 0) {
+        try {
+          // Partager avec l'image (si possible)
+          await Sharing.shareAsync(post.images[0], {
+            mimeType: 'image/jpeg',
+            dialogTitle: 'Partager ce post',
+            UTI: 'public.jpeg'
+          });
+        } catch (imageError) {
+          console.log('⚠️ Image sharing failed, falling back to text:', imageError);
+          // Fallback vers le partage de texte
+          await shareTextContent(shareContent);
+        }
+      } else {
+        // Partager seulement le texte
+        await shareTextContent(shareContent);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error sharing post:', error);
+      Alert.alert('Erreur', 'Impossible de partager ce post');
+    }
+  };
+
+  const shareTextContent = async (content: string) => {
+    // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
+    try {
+      // Créer un fichier temporaire avec le contenu
+      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
+      await FileSystem.writeAsStringAsync(tempFile, content);
+      
+      await Sharing.shareAsync(tempFile, {
+        mimeType: 'text/plain',
+        dialogTitle: 'Partager ce post',
+      });
+      
+      // Nettoyer le fichier temporaire
+      await FileSystem.deleteAsync(tempFile, { idempotent: true });
+    } catch (error) {
+      console.log('⚠️ Text file sharing failed:', error);
+      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
+        { text: 'OK', onPress: () => {
+          // Fallback: copier dans le presse-papiers
+          Clipboard.setStringAsync(content);
+        }}
+      ]);
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleAddComment = async (postId: string, text: string) => {
+    if (!text.trim() || !user?.id) return;
+
+    const currentUserId = parseInt(user.id);
+
+    const newComment: PostItemComment = {
+      id: Date.now().toString(),
+      username: user.username || CURRENT_USERNAME,
+      avatar: CURRENT_USER_AVATAR,
+      text,
+      timeAgo: "Now",
+      likes: 0,
+    };
+
+    // Optimistic update
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: [...post.comments, newComment],
+            }
+          : post
+      )
+    );
+
+    try {
+      // Utiliser la nouvelle méthode addComment
+      await postService.default.addComment(parseInt(postId), currentUserId, text);
+      
+      // Recharger les posts après un délai pour synchroniser
+      setTimeout(() => {
+        loadPosts();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du commentaire:', error);
+      
+      // En cas d'erreur, annuler l'optimistic update
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: post.comments.filter((c) => c.id !== newComment.id),
+              }
+            : post
+        )
+      );
+      Alert.alert('Erreur', 'Impossible d\'ajouter un commentaire pour le moment.');
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getCurrentPostComments = () => {
+    const post = posts.find((p) => p.id === currentPostId);
+    if (!post) return [];
+    
+    // Convertir les commentaires UI en commentaires API
+    return post.comments.map(comment => ({
+      id: comment.id,
+      postId: parseInt(currentPostId),
+      userId: 1, // ID de l'utilisateur courant
+      content: comment.text,
+      createdAt: new Date(),
+      user: {
+        id: 1,
+        name: comment.username,
+        username: comment.username,
+      }
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF5864" />
+      </View>
+    );
+  }
+
+  if (loadingError) {
+    return (
+      <View style={styles.errorContainer}>
+        <FontAwesome name="warning" size={50} color="#FF5864" />
+        <Text style={styles.errorText}>{loadingError}</Text>
+        <TouchableOpacity style={styles.reloadButton} onPress={() => loadPosts()}>
+          <Text style={styles.reloadButtonText}>Réessayer</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.appTitle}>GearConnect</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={handleNavigateToProfile}
+          >
+            <Image 
+              source={{ uri: CURRENT_USER_AVATAR }} 
+              style={styles.profileImage}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Main Content */}
+      <AnimatedFlatList
         data={posts}
         renderItem={renderPost}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: UIPost) => item.id}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
-        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
+        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
         ListHeaderComponent={
-          <View>
+          <View style={styles.storiesContainer}>
             <FlatList
               data={stories}
               renderItem={renderStoryItem}
               keyExtractor={(item) => item.id}
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={styles.storiesList}
-              contentContainerStyle={styles.storiesListContent}
+              contentContainerStyle={styles.storiesList}
             />
-            <View style={styles.separator} />
           </View>
+        }
+        ListEmptyComponent={renderEmptyState}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isLoadingMore ? (
+            <View style={styles.footerLoader}>
+              <ActivityIndicator size="small" color="#FF5864" />
+            </View>
+          ) : null
         }
       />
 
+      {/* Story Modal */}
       <StoryModal
         isVisible={isStoryModalVisible}
         stories={stories}
         currentStoryId={currentStoryId}
         onClose={handleCloseStoryModal}
-        onStoryComplete={handleStoryComplete}
+        onStoryComplete={() => {
+          // Handle story completion if needed
+          handleCloseStoryModal();
+        }}
       />
 
-      <CommentsModal
+      {/* Comments Modal */}
+      <HierarchicalCommentsModal
         isVisible={isCommentsModalVisible}
-        postId={currentPostId}
-        comments={getCurrentPostComments()}
+        postId={parseInt(currentPostId)}
         onClose={handleCloseCommentsModal}
-        onAddComment={handleAddComment}
-      />
-
-      <ShareModal
-        visible={isShareModalVisible}
-        onClose={handleCloseShareModal}
-        postId={currentPostId}
       />
     </SafeAreaView>
   );

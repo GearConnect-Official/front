@@ -6,27 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
-  StyleSheet,
-  StatusBar,
   ActivityIndicator,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/jobsStyles";
-import JobItem from "../components/JobItem";
+import styles from "../styles/screens/jobsStyles";
+import { jobsScreenStyles, RACING_COLORS } from "../styles/screens/jobsScreenStyles";
+import JobItem from "../components/items/JobItem";
 import { useRouter } from "expo-router";
-import theme from "../styles/config";
-
-// Racing color palette
-const RACING_COLORS = {
-  primary: '#E10600', // Racing Red
-  secondary: '#1E1E1E', // Racing Black
-  background: '#FFFFFF',
-  textPrimary: '#1E1E1E',
-  textSecondary: '#6E6E6E',
-  card: '#F8F8F8',
-  redLight: '#FF3333',
-  redDark: '#CC0000',
-};
 
 const JobsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("suggested");
@@ -139,13 +125,13 @@ const JobsScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView style={localStyles.scrollContent}>
+      <ScrollView style={jobsScreenStyles.scrollContent}>
         {/* Search Section */}
-        <View style={localStyles.searchSection}>
-          <View style={localStyles.searchBar}>
+        <View style={jobsScreenStyles.searchSection}>
+          <View style={jobsScreenStyles.searchBar}>
             <FontAwesome name="search" size={18} color={RACING_COLORS.textSecondary} />
             <TextInput
-              style={localStyles.searchInput}
+              style={jobsScreenStyles.searchInput}
               placeholder="Search for a job or company"
               placeholderTextColor={RACING_COLORS.textSecondary}
               value={searchQuery}
@@ -159,31 +145,31 @@ const JobsScreen: React.FC = () => {
             )}
           </View>
           {searchQuery.length > 0 && searchQuery.length < 3 && (
-            <Text style={localStyles.searchInfo}>Enter at least 3 characters</Text>
+            <Text style={jobsScreenStyles.searchInfo}>Enter at least 3 characters</Text>
           )}
         </View>
 
         {/* Tabs Section */}
-        <View style={localStyles.tabGroup}>
+        <View style={jobsScreenStyles.tabGroup}>
           {tabs.map((tab: TabItem) => (
             <TouchableOpacity
               key={tab.key}
               onPress={() => setActiveTab(tab.key)}
               style={[
-                localStyles.tab,
-                activeTab === tab.key ? localStyles.activeTab : {},
+                jobsScreenStyles.tab,
+                activeTab === tab.key ? jobsScreenStyles.activeTab : {},
               ]}
             >
               <FontAwesome
                 name={tab.icon}
                 size={18}
                 color={activeTab === tab.key ? "#FFFFFF" : RACING_COLORS.textPrimary}
-                style={localStyles.tabIcon}
+                style={jobsScreenStyles.tabIcon}
               />
               <Text
                 style={[
-                  localStyles.tabText,
-                  activeTab === tab.key ? localStyles.activeTabText : {},
+                  jobsScreenStyles.tabText,
+                  activeTab === tab.key ? jobsScreenStyles.activeTabText : {},
                 ]}
               >
                 {tab.label}
@@ -193,28 +179,28 @@ const JobsScreen: React.FC = () => {
         </View>
 
         {/* Jobs List Section */}
-        <View style={localStyles.jobsSection}>
-          <View style={localStyles.sectionHeader}>
-            <Text style={localStyles.sectionTitle}>
+        <View style={jobsScreenStyles.jobsSection}>
+          <View style={jobsScreenStyles.sectionHeader}>
+            <Text style={jobsScreenStyles.sectionTitle}>
               {activeTab === "followed" && "Followed Jobs"}
               {activeTab === "suggested" && "Job Suggestions"}
               {activeTab === "applied" && "Submitted Applications"}
             </Text>
-            <Text style={localStyles.jobCount}>
+            <Text style={jobsScreenStyles.jobCount}>
               {jobsData[activeTab as keyof typeof jobsData].length} results
             </Text>
           </View>
 
           {isLoading ? (
-            <View style={localStyles.loadingContainer}>
+            <View style={jobsScreenStyles.loadingContainer}>
               <ActivityIndicator size="large" color={RACING_COLORS.primary} />
-              <Text style={localStyles.loadingText}>Searching...</Text>
+              <Text style={jobsScreenStyles.loadingText}>Searching...</Text>
             </View>
           ) : jobsData[activeTab as keyof typeof jobsData].length === 0 ? (
-            <View style={localStyles.emptyContainer}>
+            <View style={jobsScreenStyles.emptyContainer}>
               <FontAwesome name="search" size={50} color={RACING_COLORS.textSecondary} />
-              <Text style={localStyles.emptyText}>No jobs found</Text>
-              <Text style={localStyles.emptySubtext}>
+              <Text style={jobsScreenStyles.emptyText}>No jobs found</Text>
+              <Text style={jobsScreenStyles.emptySubtext}>
                 Try modifying your search criteria
               </Text>
             </View>
@@ -235,161 +221,5 @@ const JobsScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const localStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  scrollContent: {
-    flex: 1,
-  },
-  topBar: {
-    backgroundColor: RACING_COLORS.secondary,
-    paddingVertical: 12,
-  },
-  topBarContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notificationButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  topBarTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: RACING_COLORS.background,
-  },
-  searchSection: {
-    padding: 16,
-    backgroundColor: RACING_COLORS.background,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    marginBottom: 16,
-    shadowColor: RACING_COLORS.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    height: 45,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 15,
-    color: RACING_COLORS.textPrimary,
-  },
-  searchInfo: {
-    color: RACING_COLORS.textSecondary,
-    fontSize: 12,
-    marginTop: 6,
-    marginLeft: 4,
-  },
-  tabGroup: {
-    flexDirection: "row",
-    backgroundColor: RACING_COLORS.background,
-    marginHorizontal: 16,
-    borderRadius: 12,
-    overflow: "hidden",
-    height: 50,
-    marginBottom: 16,
-    shadowColor: RACING_COLORS.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-  },
-  activeTab: {
-    backgroundColor: RACING_COLORS.primary,
-  },
-  tabIcon: {
-    marginRight: 6,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: RACING_COLORS.textPrimary,
-  },
-  activeTabText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-  },
-  jobsSection: {
-    paddingVertical: 8,
-    flex: 1,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: RACING_COLORS.textPrimary,
-  },
-  jobCount: {
-    fontSize: 13,
-    color: RACING_COLORS.textSecondary,
-  },
-  loadingContainer: {
-    padding: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loadingText: {
-    color: RACING_COLORS.textSecondary,
-    marginTop: 12,
-    fontSize: 14,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-  },
-  emptyText: {
-    color: RACING_COLORS.textPrimary,
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 16,
-  },
-  emptySubtext: {
-    color: RACING_COLORS.textSecondary,
-    textAlign: "center",
-    fontSize: 14,
-    marginTop: 8,
-  },
-});
 
 export default JobsScreen;

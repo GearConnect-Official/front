@@ -2,7 +2,7 @@ import * as React from "react";
 import { View, ScrollView } from "react-native";
 import TopBar from "../components/CreateEvent/TopBar";
 import CreateEvent from "../components/CreateEvent";
-import styles from "../styles/createEventStyles";
+import styles from "../styles/screens/createEventStyles";
 import { useRouter } from "expo-router";
 
 const CreateEventScreen: React.FC = () => {

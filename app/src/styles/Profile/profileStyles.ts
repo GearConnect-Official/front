@@ -283,10 +283,40 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginHorizontal: 5,
   },
+  // Style spécial pour l'onglet performance - le plus important
+  performanceTab: {
+    flex: 1,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginHorizontal: 5,
+    backgroundColor: 'rgba(225, 6, 0, 0.1)', // Fond rouge subtil
+    borderWidth: 2,
+    borderColor: 'rgba(225, 6, 0, 0.3)',
+    shadowColor: THEME_COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    transform: [{ scale: 1.05 }], // Légèrement plus grand
+  },
   activeTab: {
     backgroundColor: THEME_COLORS.card,
     borderLeftWidth: 3,
     borderLeftColor: THEME_COLORS.primary,
+  },
+  // Style spécial pour l'onglet performance actif
+  activePerformanceTab: {
+    backgroundColor: THEME_COLORS.primary,
+    borderWidth: 2,
+    borderColor: THEME_COLORS.primary,
+    shadowColor: THEME_COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+    transform: [{ scale: 1.1 }], // Plus grand quand actif
   },
   postsContainer: {
     flex: 1,
@@ -477,6 +507,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+    borderWidth: 2,
+    borderColor: 'rgba(225, 6, 0, 0.2)',
+    position: 'relative',
+    overflow: 'visible',
+    backgroundImage: 'linear-gradient(45deg, rgba(225, 6, 0, 0.05), rgba(225, 6, 0, 0.02))',
   },
   statColumn: {
     flex: 1,

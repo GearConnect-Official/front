@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import favoritesService from "../services/favoritesService";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from '../components/media';
 import { detectMediaType } from '../utils/mediaUtils';
+import PerformanceService from '../services/performanceService';
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -68,12 +69,14 @@ interface Event {
   result?: string; // For race results
 }
 
-// Type for driver statistics
+// Type for driver statistics (adapted for API data)
 interface DriverStats {
   races: number;
   wins: number;
   podiums: number;
   championshipPosition?: number;
+  bestPosition?: number;
+  averagePosition?: number;
 }
 
 // Définir l'interface des props
@@ -97,12 +100,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     following: 420,
     saved: 0,
   });
-  const [driverStats] = useState<DriverStats>({
-    races: 12,
-    wins: 3,
-    podiums: 7,
-    championshipPosition: 2,
+  const [driverStats, setDriverStats] = useState<DriverStats>({
+    races: 0,
+    wins: 0,
+    podiums: 0,
+    championshipPosition: 0,
   });
+  const [isLoadingDriverStats, setIsLoadingDriverStats] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
@@ -110,26 +114,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [hasMoreFavorites, setHasMoreFavorites] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-
-  useEffect(() => {
-    // Simuler le chargement des données
-    // Si userId est défini, charger les données de cet utilisateur spécifique
-    // Sinon, charger les données de l'utilisateur connecté
-    loadMockData();
-    
-    // Charger les favoris si l'utilisateur est connecté
-    if (user?.id) {
-      loadFavorites(1, true);
-    }
-    
-    // Dans une vraie application, vous pourriez faire quelque chose comme:
-    // if (userId) {
-    //   loadUserData(userId);
-    // } else {
-    //   loadCurrentUserData();
-    // }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, user?.id]); // loadFavorites will be stable since it doesn't depend on changing values
 
   const loadMockData = () => {
     // Simulated posts for the grid
@@ -313,35 +297,71 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     setEvents(mockEvents);
   };
 
-  const loadFavorites = async (page: number = 1, reset: boolean = false) => {
-    if (!user?.id || isLoadingFavorites) return;
+  const loadDriverStats = useCallback(async () => {
+    if (!user?.id) return;
 
     try {
-      setIsLoadingFavorites(true);
-      console.log('📱 Loading favorites for user:', user.id, 'page:', page);
+      setIsLoadingDriverStats(true);
       
-      const response = await favoritesService.getUserFavorites(Number(user.id), page, 10);
+      const response = await PerformanceService.getUserStats(user.id);
       
-      if (reset) {
-        setFavorites(response.favorites);
-      } else {
-        setFavorites(prev => [...prev, ...response.favorites]);
+      if (response.success && response.data) {
+        const apiStats = response.data;
+        
+        // Mapper les données de l'API vers notre interface DriverStats
+        setDriverStats({
+          races: apiStats.totalRaces || 0,
+          wins: apiStats.wins || 0,
+          podiums: apiStats.podiumFinishes || 0,
+          bestPosition: apiStats.bestPosition || 0,
+          averagePosition: apiStats.averagePosition || 0,
+        });
       }
-      
-      setHasMoreFavorites(page < response.pagination.totalPages);
-      setFavoritesPage(page);
-      
-      // Mettre à jour le nombre de favoris dans les stats
-      if (reset) {
-        setStats(prev => ({ ...prev, saved: response.pagination.total }));
-      }
-      
     } catch (error) {
-      console.error('❌ Error loading favorites:', error);
+      console.error('Error loading driver stats:', error);
+    } finally {
+      setIsLoadingDriverStats(false);
+    }
+  }, [user?.id]);
+
+  const loadFavorites = useCallback(async (page: number = 1, reset: boolean = false) => {
+    if (!user?.id) return;
+
+    try {
+      if (reset) {
+        setIsLoadingFavorites(true);
+        setFavoritesPage(1);
+      }
+
+      const favoritesService = require('../services/favoritesService').default;
+      const response = await favoritesService.getUserFavorites(user.id, page, 10);
+
+      if (response.success && response.data) {
+        if (reset) {
+          setFavorites(response.data);
+        } else {
+          setFavorites(prev => [...prev, ...response.data]);
+        }
+        
+        setHasMoreFavorites(response.data.length === 10);
+        setStats(prev => ({ ...prev, saved: response.count || prev.saved }));
+      }
+    } catch (error) {
+      console.error('Error loading favorites:', error);
     } finally {
       setIsLoadingFavorites(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadMockData();
+    
+    // Charger les performances réelles depuis l'API
+    if (user?.id) {
+      loadDriverStats();
+      loadFavorites(1, true);
+    }
+  }, [userId, user?.id, loadDriverStats, loadFavorites]);
 
   const handleRemoveFromFavorites = async (postId: number) => {
     if (!user?.id || !postId) return;
@@ -367,7 +387,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     if (activeTab === 'saved' && user?.id) {
       await loadFavorites(1, true);
     }
-    // Ici on pourrait ajouter le rechargement des autres onglets
+    
+    // Recharger les statistiques de performance
+    if (user?.id) {
+      await loadDriverStats();
+    }
     
     setRefreshing(false);
   };
@@ -457,6 +481,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     } catch (error) {
       console.error("Logout error:", error);
     }
+  };
+
+  const handlePerformancesPress = () => {
+    router.push("/performances");
   };
 
   const renderEventItem = ({ item }: { item: Event }) => (
@@ -901,36 +929,130 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Driver statistics */}
-            <View style={styles.statsCard}>
-              <View style={styles.statColumn}>
-                <FontAwesome
-                  name="flag-checkered"
-                  size={20}
-                  style={styles.statIcon}
-                />
-                <Text style={styles.driverStatLabel}>Races</Text>
-                <Text style={styles.driverStatValue}>{driverStats.races}</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.statColumn}>
-                <FontAwesome name="trophy" size={20} style={styles.statIcon} />
-                <Text style={styles.driverStatLabel}>Wins</Text>
-                <Text style={styles.driverStatValue}>{driverStats.wins}</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.statColumn}>
-                <FontAwesome
-                  name="certificate"
-                  size={20}
-                  style={styles.statIcon}
-                />
-                <Text style={styles.driverStatLabel}>Podiums</Text>
-                <Text style={styles.driverStatValue}>
-                  {driverStats.podiums}
+            {/* Driver statistics - SECTION MISE EN VALEUR */}
+            <TouchableOpacity style={styles.statsCard} onPress={handlePerformancesPress}>
+              <View style={{
+                position: 'absolute',
+                top: 5,
+                right: 10,
+                backgroundColor: '#FF6B1A',
+                borderRadius: 12,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                zIndex: 1
+              }}>
+                <Text style={{
+                  color: '#FFFFFF',
+                  fontSize: 10,
+                  fontWeight: 'bold'
+                }}>
+                  📊 TRACK NOW
                 </Text>
               </View>
-            </View>
+              
+              {isLoadingDriverStats ? (
+                <View style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingVertical: 20
+                }}>
+                  <ActivityIndicator size="small" color="#E10600" />
+                  <Text style={{
+                    fontSize: 12,
+                    color: '#6E6E6E',
+                    marginTop: 8
+                  }}>
+                    Loading performance data...
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.statColumn}>
+                    <FontAwesome
+                      name="flag-checkered"
+                      size={20}
+                      style={[styles.statIcon, { color: '#E10600' }]}
+                    />
+                    <Text style={styles.driverStatLabel}>Races</Text>
+                    <Text style={[styles.driverStatValue, { color: '#E10600', fontWeight: 'bold' }]}>
+                      {driverStats.races}
+                    </Text>
+                  </View>
+                  <View style={styles.divider} />
+                  <View style={styles.statColumn}>
+                    <FontAwesome 
+                      name="trophy" 
+                      size={20} 
+                      style={[styles.statIcon, { color: '#FFD700' }]} 
+                    />
+                    <Text style={styles.driverStatLabel}>Wins</Text>
+                    <Text style={[styles.driverStatValue, { color: '#FFD700', fontWeight: 'bold' }]}>
+                      {driverStats.wins}
+                    </Text>
+                  </View>
+                  <View style={styles.divider} />
+                  <View style={styles.statColumn}>
+                    <FontAwesome
+                      name="certificate"
+                      size={20}
+                      style={[styles.statIcon, { color: '#C0C0C0' }]}
+                    />
+                    <Text style={styles.driverStatLabel}>Podiums</Text>
+                    <Text style={[styles.driverStatValue, { color: '#C0C0C0', fontWeight: 'bold' }]}>
+                      {driverStats.podiums}
+                    </Text>
+                  </View>
+                </>
+              )}
+              
+              {/* Indication que c'est cliquable */}
+              <View style={{
+                position: 'absolute',
+                bottom: 5,
+                right: 10,
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}>
+                <Text style={{
+                  fontSize: 12,
+                  color: '#E10600',
+                  fontWeight: '600',
+                  marginRight: 5
+                }}>
+                  View Details
+                </Text>
+                <FontAwesome 
+                  name="chevron-right" 
+                  size={12} 
+                  color="#E10600" 
+                />
+              </View>
+              
+              {/* Afficher des informations supplémentaires si disponibles */}
+              {!isLoadingDriverStats && driverStats.races > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  bottom: 25,
+                  left: 10,
+                  right: 50,
+                }}>
+                  <Text style={{
+                    fontSize: 10,
+                    color: '#6E6E6E',
+                    textAlign: 'left'
+                  }}>
+                    {driverStats.bestPosition && driverStats.bestPosition > 0 
+                      ? `Best: P${driverStats.bestPosition}` 
+                      : 'Keep racing!'
+                    }
+                    {driverStats.averagePosition && driverStats.averagePosition > 0 
+                      ? ` • Avg: P${driverStats.averagePosition.toFixed(1)}`
+                      : ''}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
 
             {/* Featured stories */}
             <ScrollView
@@ -1020,6 +1142,41 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
               />
             </TouchableOpacity>
             <TouchableOpacity
+              style={[
+                styles.performanceTab,
+                activeTab === "performances" && styles.activePerformanceTab
+              ]}
+              onPress={() => handlePerformancesPress()}
+            >
+              <View style={{ alignItems: 'center', position: 'relative' }}>
+                <FontAwesome
+                  name="tachometer"
+                  size={24}
+                  color={activeTab === "performances" ? "#FFFFFF" : "#E10600"}
+                />
+                <View style={{
+                  position: 'absolute',
+                  top: -8,
+                  right: -12,
+                  backgroundColor: '#FF6B1A',
+                  borderRadius: 8,
+                  paddingHorizontal: 4,
+                  paddingVertical: 1,
+                  minWidth: 24,
+                  alignItems: 'center'
+                }}>
+                  <Text style={{
+                    color: '#FFFFFF',
+                    fontSize: 9,
+                    fontWeight: 'bold',
+                    textAlign: 'center'
+                  }}>
+                    🔥
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[styles.tab, activeTab === "reels" && styles.activeTab]}
               onPress={() => setActiveTab("reels")}
             >
@@ -1061,6 +1218,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         onEditProfilePress={handleEditProfilePress}
         onPreferencesPress={handlePreferencesPress}
         onLogoutPress={handleLogoutPress}
+        onPerformancesPress={handlePerformancesPress}
       />
 
       {/* Modal to display a post in detail */}

@@ -95,9 +95,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     "all" | "organized" | "participated"
   >("all");
   const [stats, setStats] = useState({
-    posts: 24,
-    followers: 1248,
-    following: 420,
+    posts: 0,
+    followers: 0,
+    following: 0,
     saved: 0,
   });
   const [driverStats, setDriverStats] = useState<DriverStats>({
@@ -105,6 +105,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     wins: 0,
     podiums: 0,
     championshipPosition: 0,
+    bestPosition: 0,
+    averagePosition: 0,
   });
   const [isLoadingDriverStats, setIsLoadingDriverStats] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -1028,30 +1030,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
                   color="#E10600" 
                 />
               </View>
-              
-              {/* Afficher des informations supplémentaires si disponibles */}
-              {!isLoadingDriverStats && driverStats.races > 0 && (
-                <View style={{
-                  position: 'absolute',
-                  bottom: 25,
-                  left: 10,
-                  right: 50,
-                }}>
-                  <Text style={{
-                    fontSize: 10,
-                    color: '#6E6E6E',
-                    textAlign: 'left'
-                  }}>
-                    {driverStats.bestPosition && driverStats.bestPosition > 0 
-                      ? `Best: P${driverStats.bestPosition}` 
-                      : 'Keep racing!'
-                    }
-                    {driverStats.averagePosition && driverStats.averagePosition > 0 
-                      ? ` • Avg: P${driverStats.averagePosition.toFixed(1)}`
-                      : ''}
-                  </Text>
-                </View>
-              )}
             </TouchableOpacity>
 
             {/* Featured stories */}

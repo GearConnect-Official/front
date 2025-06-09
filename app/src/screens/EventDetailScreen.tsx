@@ -19,7 +19,7 @@ import {
   API_URL_TAGS,
   API_URL_USERS,
 } from '../config';
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 
 interface MeteoInfo {
   condition: string;
@@ -35,7 +35,7 @@ const StarRating: React.FC<{ rating: number; maxRating?: number }> = ({
     <View style={styles.starContainer}>
       {Array.from({ length: maxRating }).map((_, index) => (
         <Ionicons
-          key={`star-${index}`}  // Changed to ensure uniqueness
+          key={`star-${index}`} // Changed to ensure uniqueness
           name={index < rating ? 'star' : 'star-outline'}
           size={14}
           color={index < rating ? '#FFD700' : '#aaa'}
@@ -57,7 +57,11 @@ const ReviewItem: React.FC<{ item: EventInterface['reviews'][0] }> = ({
     <View style={styles.reviewCard}>
       <View style={styles.reviewHeader}>
         <Image
-          source={ item.avatar  ? { uri: item.avatar } : require('../../assets/images/logo-rounded.png')}
+          source={
+            item.avatar
+              ? { uri: item.avatar }
+              : require('../../assets/images/logo-rounded.png')
+          }
           style={styles.reviewAvatar}
         />
         <View style={styles.reviewUserInfo}>
@@ -108,19 +112,23 @@ const EventDetailScreen: React.FC = () => {
     try {
       console.log('Fetched Event:', fetchedEvent);
       console.log('Current User ID:', user?.id);
-      
+
       if (user && fetchedEvent.creatorId && user.id) {
         // Convert both to strings for comparison if they might be different types
-        const eventCreatorId = typeof fetchedEvent.creatorId === 'object' 
-          ? fetchedEvent.creatorId.id || fetchedEvent.creatorId.toString()
-          : String(fetchedEvent.creatorId);
-          
-        const currentUserId = typeof user.id === 'object'
-          ? String(user.id)
-          : user.id.toString();
-          
+        const eventCreatorId =
+          typeof fetchedEvent.creatorId === 'object'
+            ? fetchedEvent.creatorId.id || fetchedEvent.creatorId.toString()
+            : String(fetchedEvent.creatorId);
+
+        const currentUserId =
+          typeof user.id === 'object' ? String(user.id) : user.id.toString();
+
         setIsCreator(eventCreatorId === currentUserId);
-        console.log('Creator check:', { eventCreatorId, currentUserId, isCreator: eventCreatorId === currentUserId });
+        console.log('Creator check:', {
+          eventCreatorId,
+          currentUserId,
+          isCreator: eventCreatorId === currentUserId,
+        });
       } else {
         setIsCreator(false);
       }
@@ -132,7 +140,10 @@ const EventDetailScreen: React.FC = () => {
 
   const handleEditEvent = () => {
     if (event) {
-      navigation.navigate('EditEvent', { eventId: event.id });
+      router.push({
+        pathname: '/(app)/editEvent',
+        params: { eventId: event.id },
+      });
     }
   };
 
@@ -145,10 +156,10 @@ const EventDetailScreen: React.FC = () => {
         );
       }
       const fetchedEvent: EventInterface = await response.json();
-      
+
       // Check if current user is the creator
       await checkIfCreator(fetchedEvent);
-      
+
       // Fetch event tags
       try {
         const fetchEventTags = await fetch(
@@ -203,16 +214,17 @@ const EventDetailScreen: React.FC = () => {
                     userData.name ||
                     (userData.user ? userData.user.username : null) ||
                     'Anonymous';
-                  
+
                   // Access avatar from additionalData
-                  const avatarUrl = userData.additionalData?.avatar || 
-                                   userData.avatar || 
-                                   'https://via.placeholder.com/30';
-                  
+                  const avatarUrl =
+                    userData.additionalData?.avatar ||
+                    userData.avatar ||
+                    'https://via.placeholder.com/30';
+
                   return {
                     ...review,
                     username: username,
-                    avatar: avatarUrl
+                    avatar: avatarUrl,
                   };
                 } else {
                   console.error(
@@ -302,9 +314,12 @@ const EventDetailScreen: React.FC = () => {
 
         <View style={styles.eventInfo}>
           <Text style={styles.eventTitle}>{event.name}</Text>
-          
+
           {isCreator ? (
-            <TouchableOpacity style={styles.editButton} onPress={handleEditEvent}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handleEditEvent}
+            >
               <Ionicons name="create-outline" size={24} color="white" />
             </TouchableOpacity>
           ) : (
@@ -329,7 +344,10 @@ const EventDetailScreen: React.FC = () => {
             <Text style={styles.aboutTitle}>About</Text>
             <View style={styles.tagContainer}>
               {event?.tags?.map((tag, index) => (
-                <Text key={`tag-${index}-${typeof tag === 'object' ? tag.id : tag}`} style={styles.tag}>
+                <Text
+                  key={`tag-${index}-${typeof tag === 'object' ? tag.id : tag}`}
+                  style={styles.tag}
+                >
                   {typeof tag === 'object' && tag !== null ? tag.name : tag}
                 </Text>
               ))}
@@ -396,7 +414,9 @@ const EventDetailScreen: React.FC = () => {
         <FlatList
           horizontal
           data={event.reviews}
-          keyExtractor={(item, index) => item.id ? `review-${item.id}` : `review-index-${index}`}
+          keyExtractor={(item, index) =>
+            item.id ? `review-${item.id}` : `review-index-${index}`
+          }
           renderItem={({ item }) => <ReviewItem item={item} />}
         />
 

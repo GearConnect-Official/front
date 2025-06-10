@@ -13,6 +13,9 @@ export interface Event {
   logo?: string;
   images?: string[];
   description?: string;
+  // Additional fields for image metadata
+  logoPublicId?: string;
+  imagePublicIds?: string[];
 }
 
 const eventService = {
@@ -66,28 +69,12 @@ const eventService = {
         images:
           eventData.images && Array.isArray(eventData.images)
             ? eventData.images.map((img) => extractFilename(img))
-            : [],
-      };
-
-      console.log(
-        'Processed data avant envoi:',
-        JSON.stringify(processedData, null, 2)
-      );
-
+            : [],      };      
       try {
         const response = await axios.post(API_URL_EVENTS, processedData);
-        console.log('Réponse succès:', response.status);
         return response.data;
       } catch (axiosError: any) {
         console.error('Erreur axios détaillée:', axiosError.message);
-        if (axiosError.response) {
-          console.error('Status:', axiosError.response.status);
-          console.error(
-            'Data:',
-            JSON.stringify(axiosError.response.data, null, 2)
-          );
-          console.error('Headers:', axiosError.response.headers);
-        }
         throw axiosError;
       }
     } catch (error) {
@@ -105,30 +92,13 @@ const eventService = {
           ? new Date(eventData.date).toISOString()
           : undefined,
         // Add any other necessary transformations
-      };
-
-      console.log('Updating event with ID:', id);
-      console.log('Update data:', JSON.stringify(formattedEvent, null, 2));
-      console.log('API endpoint:', `${API_URL_EVENTS}/${id}`);
-
-      try {
+      };      try {
         const response = await axios.patch(
           `${API_URL_EVENTS}/${id}`,
           formattedEvent
         );
-        console.log('Update successful, status:', response.status);
-        console.log('Response data:', response.data);
-        return response.data;
-      } catch (axiosError: any) {
+        return response.data;      } catch (axiosError: any) {
         console.error('Update request failed:', axiosError.message);
-        if (axiosError.response) {
-          console.error('Status:', axiosError.response.status);
-          console.error(
-            'Response data:',
-            JSON.stringify(axiosError.response.data, null, 2)
-          );
-          console.error('Response headers:', axiosError.response.headers);
-        }
         throw axiosError;
       }
     } catch (error) {
@@ -136,28 +106,13 @@ const eventService = {
       throw error;
     }
   },
-
   // Delete an event
   deleteEvent: async (id: string) => {
     try {
-      console.log('Deleting event with ID:', id);
-      console.log('API endpoint:', `${API_URL_EVENTS}/${id}`);
-
       try {
         const response = await axios.delete(`${API_URL_EVENTS}/${id}`);
-        console.log('Delete successful, status:', response.status);
-        console.log('Response data:', response.data);
-        return response.data;
-      } catch (axiosError: any) {
+        return response.data;      } catch (axiosError: any) {
         console.error('Delete request failed:', axiosError.message);
-        if (axiosError.response) {
-          console.error('Status:', axiosError.response.status);
-          console.error(
-            'Response data:',
-            JSON.stringify(axiosError.response.data, null, 2)
-          );
-          console.error('Response headers:', axiosError.response.headers);
-        }
         throw axiosError;
       }
     } catch (error) {

@@ -32,14 +32,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
   
   // Validate inputs once on component mount
   React.useEffect(() => {
-    if (!eventData) {
-      console.error("ModifyEvent: Event data is missing");
-    }
-    if (!eventId) {
-      console.error("ModifyEvent: Event ID is missing");
-    }
-    
-    // Debug output suppressed to prevent excessive logging
+    // Validation only, no logging
   }, [eventData, eventId]);
   
   const [formData, setFormData] = React.useState<Event>({
@@ -110,16 +103,8 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
         description: formData.description ? formData.description.trim() : "",
         logo: formData.logo || "",
         images: formData.images || [],
-      };
-      
-      // Debug logging
-      console.log("Updating event:", eventId);
-      console.log("Update data:", JSON.stringify(updatedData, null, 2));
-      
-      try {
-        const result = await eventService.updateEvent(eventId, updatedData);
-        console.log("Server response:", result);
-        
+      };      try {
+        await eventService.updateEvent(eventId, updatedData);
         Alert.alert(
           "Success", 
           "Event has been updated successfully!", 
@@ -134,18 +119,9 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
           console.error("Response data:", updateError.response.data);
         }
         
-        throw updateError;
-      }
+        throw updateError;      }
     } catch (err: any) {
       console.error("Error updating event:", err);
-      
-      // Log more details about the error for debugging
-      if (err?.response) {
-        console.error("Response data:", err.response.data);
-        console.error("Response status:", err.response.status);
-        console.error("Response headers:", err.response.headers);
-      }
-      
       // Show a more specific error message
       if (err?.response?.data?.error) {
         setError(`Error: ${err.response.data.error}`);
@@ -231,20 +207,18 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
       style={{ flex: 1 }}
     >
       <View style={styles.container}>
-
-        
         <ScrollView style={styles.scrollView}>
           {renderStepContent()}
-        </ScrollView>        <NavigationButtons
-          currentStep={currentStep}
-          isLastStep={isLastStep}
-          loading={loading}
-          onPrev={prevStep}
-          onNext={nextStep}
-          onSubmit={handleSubmit}
-          isEditing={true}
-        />
-        
+        </ScrollView>
+          <NavigationButtons
+            currentStep={currentStep}
+            isLastStep={isLastStep}
+            loading={loading}
+            onPrev={prevStep}
+            onNext={nextStep}
+            onSubmit={handleSubmit}
+            isEditing={true}
+          />        
         {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     </KeyboardAvoidingView>

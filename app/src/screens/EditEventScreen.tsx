@@ -19,25 +19,20 @@ const EditEventScreen: React.FC = () => {
   const [deletingEvent, setDeletingEvent] = React.useState(false);
 
   React.useEffect(() => {
-    const fetchEvent = async () => {
-      try {
+    const fetchEvent = async () => {      try {
         if (!eventId) {
-          console.error("No eventId provided in URL params");
           setError("No event ID provided");
           setLoading(false);
           return;
-        }        // Fetch event data
+        }        
+        // Fetch event data
           try {
-          
           const event = await eventService.getEventById(eventId);
-          
           if (!event) {
-            console.error("Event not found or returned null");
             setError("Event not found");
           } else {
             const processedEventData = {
               ...event,
-              // Ensure all fields exist
               name: event.name || "",
               location: event.location || "",
               creators: (typeof event.creators === 'string' ? event.creators : 
@@ -54,17 +49,7 @@ const EditEventScreen: React.FC = () => {
             
             setEventData(processedEventData);
           }
-        } catch (error) {
-          // More detailed error logging
-          console.error("API request failed:", error);
-          
-          // Handle axios error response if available
-          const axiosError = error as any;
-          if (axiosError.response) {
-            console.error("Response status:", axiosError.response.status);
-            console.error("Response data:", axiosError.response.data);
-          }
-          
+        } catch (error) {          console.error("API request failed:", error);
           throw error;
         }
       } catch (err) {
@@ -83,7 +68,7 @@ const EditEventScreen: React.FC = () => {
   };
 
   const handleSuccess = () => {
-    router.back(); // Navigate back after successful update
+    router.back();
   };
   const handleDeletePress = () => {
     Alert.alert(
@@ -111,9 +96,8 @@ const EditEventScreen: React.FC = () => {
         "Success",
         "Event deleted successfully",
         [{ text: "OK", onPress: () => router.replace("/(app)/events") }]
-      );
-    } catch (error) {
-      console.error("Error deleting event:", error);
+      );    } catch (error) {
+      console.error("Failed to delete event:", error);
       
       Alert.alert(
         "Error",

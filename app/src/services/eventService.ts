@@ -53,19 +53,27 @@ const eventService = {
       const processedData = {
         ...eventData,
         // Renommer creators en creatorId pour le backend
-        creatorId: eventData.creators ? parseInt(eventData.creators) : undefined,
+        creatorId: eventData.creators
+          ? parseInt(eventData.creators)
+          : undefined,
         // Ne pas envoyer le champ creators au backend
         creators: undefined,
-        date: eventData.date ? new Date(eventData.date).toISOString() : new Date().toISOString(),
+        date: eventData.date
+          ? new Date(eventData.date).toISOString()
+          : new Date().toISOString(),
         // Extraire seulement les noms de fichiers des URLs d'images
         logo: eventData.logo ? extractFilename(eventData.logo) : '',
-        images: eventData.images && Array.isArray(eventData.images) 
-          ? eventData.images.map(img => extractFilename(img))
-          : []
+        images:
+          eventData.images && Array.isArray(eventData.images)
+            ? eventData.images.map((img) => extractFilename(img))
+            : [],
       };
-      
-      console.log('Processed data avant envoi:', JSON.stringify(processedData, null, 2));
-      
+
+      console.log(
+        'Processed data avant envoi:',
+        JSON.stringify(processedData, null, 2)
+      );
+
       try {
         const response = await axios.post(API_URL_EVENTS, processedData);
         console.log('Réponse succès:', response.status);
@@ -74,7 +82,10 @@ const eventService = {
         console.error('Erreur axios détaillée:', axiosError.message);
         if (axiosError.response) {
           console.error('Status:', axiosError.response.status);
-          console.error('Data:', JSON.stringify(axiosError.response.data, null, 2));
+          console.error(
+            'Data:',
+            JSON.stringify(axiosError.response.data, null, 2)
+          );
           console.error('Headers:', axiosError.response.headers);
         }
         throw axiosError;
@@ -84,21 +95,76 @@ const eventService = {
       throw error;
     }
   },
-
   // Update an event
   updateEvent: async (id: string, eventData: Partial<Event>) => {
     try {
+      // Format event data for the API
       const formattedEvent = {
         ...eventData,
-        date: eventData.date ? new Date(eventData.date).toISOString() : undefined,
+        date: eventData.date
+          ? new Date(eventData.date).toISOString()
+          : undefined,
+        // Add any other necessary transformations
       };
-      const response = await axios.patch(`${API_URL_EVENTS}/${id}`, formattedEvent);
-      return response.data;
+
+      console.log('Updating event with ID:', id);
+      console.log('Update data:', JSON.stringify(formattedEvent, null, 2));
+      console.log('API endpoint:', `${API_URL_EVENTS}/${id}`);
+
+      try {
+        const response = await axios.patch(
+          `${API_URL_EVENTS}/${id}`,
+          formattedEvent
+        );
+        console.log('Update successful, status:', response.status);
+        console.log('Response data:', response.data);
+        return response.data;
+      } catch (axiosError: any) {
+        console.error('Update request failed:', axiosError.message);
+        if (axiosError.response) {
+          console.error('Status:', axiosError.response.status);
+          console.error(
+            'Response data:',
+            JSON.stringify(axiosError.response.data, null, 2)
+          );
+          console.error('Response headers:', axiosError.response.headers);
+        }
+        throw axiosError;
+      }
     } catch (error) {
       console.error('Error updating event:', error);
       throw error;
     }
-  }
+  },
+
+  // Delete an event
+  deleteEvent: async (id: string) => {
+    try {
+      console.log('Deleting event with ID:', id);
+      console.log('API endpoint:', `${API_URL_EVENTS}/${id}`);
+
+      try {
+        const response = await axios.delete(`${API_URL_EVENTS}/${id}`);
+        console.log('Delete successful, status:', response.status);
+        console.log('Response data:', response.data);
+        return response.data;
+      } catch (axiosError: any) {
+        console.error('Delete request failed:', axiosError.message);
+        if (axiosError.response) {
+          console.error('Status:', axiosError.response.status);
+          console.error(
+            'Response data:',
+            JSON.stringify(axiosError.response.data, null, 2)
+          );
+          console.error('Response headers:', axiosError.response.headers);
+        }
+        throw axiosError;
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      throw error;
+    }
+  },
 };
 
-export default eventService; 
+export default eventService;

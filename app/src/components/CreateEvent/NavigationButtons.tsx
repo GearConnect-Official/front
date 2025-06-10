@@ -10,6 +10,7 @@ interface NavigationButtonsProps {
   onPrev: () => void;
   onNext: () => void;
   onSubmit: () => void;
+  isEditing?: boolean; // Optional flag to indicate we're editing an existing event
 }
 
 const NavigationButtons: React.FC<NavigationButtonsProps> = ({
@@ -19,6 +20,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   onPrev,
   onNext,
   onSubmit,
+  isEditing = false,
 }) => {
   return (
     <View style={styles.buttonsContainer}>
@@ -37,12 +39,15 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           style={[styles.nextButton, { backgroundColor: '#28a745' }]} 
           onPress={onSubmit}
           disabled={loading}
-        >
-          {loading ? (
-            <Text style={styles.nextButtonText}>Publishing...</Text>
+        >          {loading ? (
+            <Text style={styles.nextButtonText}>
+              {isEditing ? "Saving..." : "Publishing..."}
+            </Text>
           ) : (
             <>
-              <Text style={styles.nextButtonText}>Publish Event</Text>
+              <Text style={styles.nextButtonText}>
+                {isEditing ? "Save Changes" : "Publish Event"}
+              </Text>
               <FontAwesome name="check" size={16} color="#fff" />
             </>
           )}

@@ -36,6 +36,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8,
   },
+  deleteButton: {
+    position: 'absolute',
+    right: 15,
+    padding: 10,
+    borderRadius: 8,
+  },
   title: {
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,

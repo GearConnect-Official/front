@@ -361,26 +361,28 @@ const AddPerformanceScreen: React.FC = () => {
       >
         <View style={performanceStyles.modalOverlay}>
           <View style={performanceStyles.modalContent}>
-            <Text style={performanceStyles.modalTitle}>Select Racing Category</Text>
+            {/* Modal Header */}
+            <View style={performanceStyles.modalHeader}>
+              <Text style={performanceStyles.modalTitle}>Select Racing Category</Text>
+              <TouchableOpacity
+                onPress={() => setShowCategoryModal(false)}
+                style={{ padding: LAYOUT.SPACING_XS }}
+              >
+                <FontAwesome name="times" size={18} color={THEME_COLORS.TEXT_SECONDARY} />
+              </TouchableOpacity>
+            </View>
             
-            <ScrollView style={{ maxHeight: 400 }}>
+            {/* Modal Content */}
+            <ScrollView style={performanceStyles.modalList}>
               {RACE_CATEGORIES.map((category) => (
                 <TouchableOpacity
                   key={category.value}
                   style={[
-                    {
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      padding: LAYOUT.SPACING_MD,
-                      borderRadius: LAYOUT.BORDER_RADIUS,
-                      marginBottom: LAYOUT.SPACING_SM,
-                      backgroundColor: formData.category === category.value 
-                        ? `${category.color}20` 
-                        : THEME_COLORS.BACKGROUND,
-                      borderWidth: formData.category === category.value ? 2 : 1,
-                      borderColor: formData.category === category.value 
-                        ? category.color 
-                        : THEME_COLORS.BORDER,
+                    performanceStyles.modalItem,
+                    formData.category === category.value && performanceStyles.modalItemSelected,
+                    formData.category === category.value && {
+                      backgroundColor: `${category.color}20`,
+                      borderColor: category.color,
                     }
                   ]}
                   onPress={() => {
@@ -388,20 +390,15 @@ const AddPerformanceScreen: React.FC = () => {
                     setShowCategoryModal(false);
                   }}
                 >
-                  <Text style={{ fontSize: 24, marginRight: LAYOUT.SPACING_MD }}>
+                  <Text style={performanceStyles.modalItemEmoji}>
                     {category.emoji}
                   </Text>
                   <View style={{ flex: 1 }}>
                     <Text style={[
-                      performanceStyles.inputLabel,
-                      { 
-                        marginBottom: 0,
-                        color: formData.category === category.value 
-                          ? category.color 
-                          : THEME_COLORS.TEXT_PRIMARY,
-                        fontWeight: formData.category === category.value 
-                          ? TYPOGRAPHY.WEIGHT_BOLD 
-                          : TYPOGRAPHY.WEIGHT_MEDIUM,
+                      performanceStyles.modalItemText,
+                      formData.category === category.value && {
+                        color: category.color,
+                        fontWeight: TYPOGRAPHY.WEIGHT_SEMIBOLD,
                       }
                     ]}>
                       {category.label}
@@ -413,13 +410,6 @@ const AddPerformanceScreen: React.FC = () => {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-
-            <TouchableOpacity
-              style={[performanceStyles.secondaryButton, { marginTop: LAYOUT.SPACING_MD }]}
-              onPress={() => setShowCategoryModal(false)}
-            >
-              <Text style={performanceStyles.secondaryButtonText}>Close</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>

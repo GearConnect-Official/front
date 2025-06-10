@@ -1,38 +1,38 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 // Racing theme colors
 export const THEME_COLORS = {
   // Primary racing colors
-  RACING_RED: '#E10600',
-  RACING_BLUE: '#003DA5',
-  SPEED_ORANGE: '#FF6B1A',
-  VICTORY_GOLD: '#FFD700',
-  
+  RACING_RED: "#E10600",
+  RACING_BLUE: "#003DA5",
+  SPEED_ORANGE: "#FF6B1A",
+  VICTORY_GOLD: "#FFD700",
+
   // Performance colors
-  POLE_POSITION: '#FFD700',
-  PODIUM_SILVER: '#C0C0C0', 
-  PODIUM_BRONZE: '#CD7F32',
-  FASTEST_LAP: '#FF1493',
-  
+  POLE_POSITION: "#FFD700",
+  PODIUM_SILVER: "#C0C0C0",
+  PODIUM_BRONZE: "#CD7F32",
+  FASTEST_LAP: "#FF1493",
+
   // UI colors
-  PRIMARY: '#3a86ff',
-  BACKGROUND: '#F8F9FA',
-  CARD_BACKGROUND: '#FFFFFF',
-  BORDER: '#E1E8ED',
-  TEXT_PRIMARY: '#14171A',
-  TEXT_SECONDARY: '#657786',
-  TEXT_MUTED: '#AAB8C2',
-  
+  PRIMARY: "#E10600",
+  BACKGROUND: "#F8F9FA",
+  CARD_BACKGROUND: "#FFFFFF",
+  BORDER: "#E1E8ED",
+  TEXT_PRIMARY: "#14171A",
+  TEXT_SECONDARY: "#657786",
+  TEXT_MUTED: "#AAB8C2",
+
   // Status colors
-  SUCCESS: '#10B981',
-  WARNING: '#F59E0B',
-  ERROR: '#EF4444',
-  INFO: '#3B82F6',
-  
+  SUCCESS: "#10B981",
+  WARNING: "#F59E0B",
+  ERROR: "#EF4444",
+  INFO: "#3B82F6",
+
   // Gradient colors
-  GRADIENT_START: '#667eea',
-  GRADIENT_END: '#764ba2',
-  RACING_GRADIENT_START: '#FF6B1A',
-  RACING_GRADIENT_END: '#E10600',
+  GRADIENT_START: "#E10600",
+  GRADIENT_END: "#B71C1C",
+  RACING_GRADIENT_START: "#FF6B1A",
+  RACING_GRADIENT_END: "#E10600",
 };
 
 // Animation and layout constants
@@ -45,7 +45,7 @@ export const LAYOUT = {
   SPACING_MD: 16,
   SPACING_LG: 24,
   SPACING_XL: 32,
-  
+
   // Performance specific
   CARD_HEIGHT: 120,
   STATS_CARD_HEIGHT: 80,
@@ -59,20 +59,20 @@ export const TYPOGRAPHY = {
   SECTION_TITLE: 20,
   CARD_TITLE: 18,
   SUBTITLE: 16,
-  
+
   // Body text
   BODY_LARGE: 16,
   BODY: 14,
   BODY_SMALL: 12,
   CAPTION: 10,
-  
+
   // Weights
-  WEIGHT_LIGHT: '300' as any,
-  WEIGHT_REGULAR: '400' as any,
-  WEIGHT_MEDIUM: '500' as any,
-  WEIGHT_SEMIBOLD: '600' as any,
-  WEIGHT_BOLD: '700' as any,
-  WEIGHT_BLACK: '900' as any,
+  WEIGHT_LIGHT: "300" as any,
+  WEIGHT_REGULAR: "400" as any,
+  WEIGHT_MEDIUM: "500" as any,
+  WEIGHT_SEMIBOLD: "600" as any,
+  WEIGHT_BOLD: "700" as any,
+  WEIGHT_BLACK: "900" as any,
 };
 
 export const performanceStyles = StyleSheet.create({
@@ -94,15 +94,15 @@ export const performanceStyles = StyleSheet.create({
 
   // Header styles
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: LAYOUT.SPACING_MD,
     paddingVertical: LAYOUT.SPACING_MD,
     backgroundColor: THEME_COLORS.CARD_BACKGROUND,
     borderBottomWidth: 1,
     borderBottomColor: THEME_COLORS.BORDER,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -117,17 +117,17 @@ export const performanceStyles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: THEME_COLORS.BACKGROUND,
   },
-  
+
   // Hero section styles
   heroSection: {
     margin: LAYOUT.SPACING_MD,
     borderRadius: LAYOUT.CARD_BORDER_RADIUS,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -136,42 +136,42 @@ export const performanceStyles = StyleSheet.create({
   heroGradient: {
     padding: LAYOUT.SPACING_LG,
     minHeight: LAYOUT.HERO_HEIGHT,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   heroTitle: {
     fontSize: TYPOGRAPHY.HERO_TITLE,
     fontWeight: TYPOGRAPHY.WEIGHT_BLACK,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginBottom: LAYOUT.SPACING_SM,
-    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowColor: "rgba(0,0,0,0.3)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   heroSubtitle: {
     fontSize: TYPOGRAPHY.SUBTITLE,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: "rgba(255, 255, 255, 0.9)",
     lineHeight: 22,
     fontWeight: TYPOGRAPHY.WEIGHT_MEDIUM,
   },
   heroStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: LAYOUT.SPACING_MD,
   },
   heroStatItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   heroStatValue: {
     fontSize: TYPOGRAPHY.CARD_TITLE,
     fontWeight: TYPOGRAPHY.WEIGHT_BOLD,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginBottom: LAYOUT.SPACING_XS,
   },
   heroStatLabel: {
     fontSize: TYPOGRAPHY.BODY_SMALL,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
   },
 
   // Stats section styles
@@ -180,8 +180,8 @@ export const performanceStyles = StyleSheet.create({
     marginTop: 0,
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginHorizontal: -LAYOUT.SPACING_XS,
   },
   statsCard: {
@@ -193,7 +193,7 @@ export const performanceStyles = StyleSheet.create({
     minHeight: LAYOUT.STATS_CARD_HEIGHT,
     borderWidth: 1,
     borderColor: THEME_COLORS.BORDER,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -241,7 +241,7 @@ export const performanceStyles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.WEIGHT_MEDIUM,
   },
   filterChipTextActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontWeight: TYPOGRAPHY.WEIGHT_SEMIBOLD,
   },
 
@@ -254,16 +254,16 @@ export const performanceStyles = StyleSheet.create({
     marginBottom: LAYOUT.SPACING_MD,
     borderWidth: 1,
     borderColor: THEME_COLORS.BORDER,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
   },
   performanceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: LAYOUT.SPACING_MD,
   },
   performanceTitle: {
@@ -279,41 +279,41 @@ export const performanceStyles = StyleSheet.create({
     marginTop: LAYOUT.SPACING_XS,
   },
   performanceActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: LAYOUT.SPACING_SM,
   },
   actionButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: THEME_COLORS.BACKGROUND,
   },
   deleteButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
   },
-  
+
   // Performance details
   performanceDetails: {
     gap: LAYOUT.SPACING_MD,
   },
   performanceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   performanceMetric: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
     gap: LAYOUT.SPACING_SM,
   },
   metricIcon: {
     width: 24,
     height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   metricLabel: {
     fontSize: TYPOGRAPHY.BODY,
@@ -333,9 +333,9 @@ export const performanceStyles = StyleSheet.create({
     fontSize: TYPOGRAPHY.BODY,
     fontWeight: TYPOGRAPHY.WEIGHT_BOLD,
     color: THEME_COLORS.PRIMARY,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
-  
+
   // Notes section
   notesContainer: {
     paddingTop: LAYOUT.SPACING_MD,
@@ -347,13 +347,13 @@ export const performanceStyles = StyleSheet.create({
     fontSize: TYPOGRAPHY.BODY,
     color: THEME_COLORS.TEXT_SECONDARY,
     lineHeight: 20,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
 
   // Empty state styles
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: LAYOUT.SPACING_XL,
     minHeight: 300,
   },
@@ -365,27 +365,27 @@ export const performanceStyles = StyleSheet.create({
     fontSize: TYPOGRAPHY.SECTION_TITLE,
     fontWeight: TYPOGRAPHY.WEIGHT_BOLD,
     color: THEME_COLORS.TEXT_PRIMARY,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: LAYOUT.SPACING_SM,
   },
   emptySubtitle: {
     fontSize: TYPOGRAPHY.BODY,
     color: THEME_COLORS.TEXT_SECONDARY,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
     marginBottom: LAYOUT.SPACING_LG,
     maxWidth: 280,
   },
-  
+
   // Button styles
   primaryButton: {
     backgroundColor: THEME_COLORS.PRIMARY,
     borderRadius: LAYOUT.BUTTON_BORDER_RADIUS,
     paddingVertical: LAYOUT.SPACING_MD,
     paddingHorizontal: LAYOUT.SPACING_LG,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: LAYOUT.SPACING_SM,
     shadowColor: THEME_COLORS.PRIMARY,
     shadowOffset: { width: 0, height: 4 },
@@ -394,7 +394,7 @@ export const performanceStyles = StyleSheet.create({
     elevation: 6,
   },
   primaryButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: TYPOGRAPHY.SUBTITLE,
     fontWeight: TYPOGRAPHY.WEIGHT_SEMIBOLD,
   },
@@ -403,9 +403,9 @@ export const performanceStyles = StyleSheet.create({
     borderRadius: LAYOUT.BUTTON_BORDER_RADIUS,
     paddingVertical: LAYOUT.SPACING_MD,
     paddingHorizontal: LAYOUT.SPACING_LG,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: LAYOUT.SPACING_SM,
     borderWidth: 1,
     borderColor: THEME_COLORS.BORDER,
@@ -419,8 +419,8 @@ export const performanceStyles = StyleSheet.create({
   // Loading styles
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: THEME_COLORS.BACKGROUND,
   },
   loadingText: {
@@ -470,14 +470,14 @@ export const performanceStyles = StyleSheet.create({
     marginTop: LAYOUT.SPACING_XS,
     fontWeight: TYPOGRAPHY.WEIGHT_MEDIUM,
   },
-  
+
   // Chart styles
   chartContainer: {
     backgroundColor: THEME_COLORS.CARD_BACKGROUND,
     margin: LAYOUT.SPACING_MD,
     borderRadius: LAYOUT.CARD_BORDER_RADIUS,
     padding: LAYOUT.SPACING_MD,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -488,37 +488,37 @@ export const performanceStyles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.WEIGHT_SEMIBOLD,
     color: THEME_COLORS.TEXT_PRIMARY,
     marginBottom: LAYOUT.SPACING_MD,
-    textAlign: 'center',
+    textAlign: "center",
   },
   chartWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  
+
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: LAYOUT.SPACING_MD,
   },
   modalContent: {
     backgroundColor: THEME_COLORS.CARD_BACKGROUND,
     borderRadius: LAYOUT.CARD_BORDER_RADIUS,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
-    maxHeight: '80%',
-    shadowColor: '#000',
+    maxHeight: "80%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 10,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: LAYOUT.SPACING_MD,
     borderBottomWidth: 1,
     borderBottomColor: THEME_COLORS.BORDER,
@@ -533,8 +533,8 @@ export const performanceStyles = StyleSheet.create({
     padding: LAYOUT.SPACING_MD,
   },
   modalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: LAYOUT.SPACING_MD,
     borderRadius: LAYOUT.BORDER_RADIUS,
     marginBottom: LAYOUT.SPACING_SM,
@@ -563,4 +563,4 @@ export const performanceStyles = StyleSheet.create({
   },
 });
 
-export default performanceStyles; 
+export default performanceStyles;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,14 +12,14 @@ import {
   ActivityIndicator,
   Animated,
   KeyboardAvoidingView,
-} from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { LinearGradient } from 'expo-linear-gradient';
+} from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { LinearGradient } from "expo-linear-gradient";
 
-import { useAuth } from '../context/AuthContext';
-import PerformanceService from '../services/performanceService';
+import { useAuth } from "../context/AuthContext";
+import PerformanceService from "../services/performanceService";
 import {
   PerformanceFormData,
   PerformanceFormErrors,
@@ -28,13 +28,13 @@ import {
   WEATHER_CONDITIONS,
   RaceCategory,
   CreatePerformanceData,
-} from '../types/performance.types';
+} from "../types/performance.types";
 import {
   performanceStyles,
   THEME_COLORS,
   LAYOUT,
   TYPOGRAPHY,
-} from '../styles/screens/performanceStyles';
+} from "../styles/screens/performanceStyles";
 
 const AddPerformanceScreen: React.FC = () => {
   const router = useRouter();
@@ -43,15 +43,15 @@ const AddPerformanceScreen: React.FC = () => {
 
   // Form state
   const [formData, setFormData] = useState<PerformanceFormData>({
-    circuitName: '',
-    lapTime: '',
-    racePosition: '',
-    totalParticipants: '',
-    category: 'karting',
+    circuitName: "",
+    lapTime: "",
+    racePosition: "",
+    totalParticipants: "",
+    category: "karting",
     date: new Date(),
-    notes: '',
-    weather: '',
-    trackCondition: 'dry',
+    notes: "",
+    weather: "",
+    trackCondition: "dry",
   });
 
   // Form validation errors
@@ -91,33 +91,34 @@ const AddPerformanceScreen: React.FC = () => {
 
     // Circuit name validation
     if (!formData.circuitName.trim()) {
-      newErrors.circuitName = 'Circuit name is required';
+      newErrors.circuitName = "Circuit name is required";
     }
 
     // Lap time validation (MM:SS.sss format)
     const lapTimeRegex = /^\d+:\d{2}\.\d{3}$/;
     if (!formData.lapTime.trim()) {
-      newErrors.lapTime = 'Lap time is required';
+      newErrors.lapTime = "Lap time is required";
     } else if (!lapTimeRegex.test(formData.lapTime)) {
-      newErrors.lapTime = 'Invalid format. Use MM:SS.sss (e.g., 1:23.456)';
+      newErrors.lapTime = "Invalid format. Use MM:SS.sss (e.g., 1:23.456)";
     }
 
     // Position validation
     const racePosition = parseInt(formData.racePosition);
     if (!formData.racePosition.trim()) {
-      newErrors.racePosition = 'Position is required';
+      newErrors.racePosition = "Position is required";
     } else if (isNaN(racePosition) || racePosition < 1) {
-      newErrors.racePosition = 'Position must be greater than 0';
+      newErrors.racePosition = "Position must be greater than 0";
     }
 
     // Participants validation
     const participants = parseInt(formData.totalParticipants);
     if (!formData.totalParticipants.trim()) {
-      newErrors.totalParticipants = 'Number of participants is required';
+      newErrors.totalParticipants = "Number of participants is required";
     } else if (isNaN(participants) || participants < 1) {
-      newErrors.totalParticipants = 'Participants must be greater than 0';
+      newErrors.totalParticipants = "Participants must be greater than 0";
     } else if (racePosition > participants) {
-      newErrors.racePosition = 'Position cannot be greater than total participants';
+      newErrors.racePosition =
+        "Position cannot be greater than total participants";
     }
 
     setErrors(newErrors);
@@ -133,7 +134,7 @@ const AddPerformanceScreen: React.FC = () => {
     }
 
     if (!user?.id) {
-      Alert.alert('Error', 'You must be logged in to add a performance');
+      Alert.alert("Error", "You must be logged in to add a performance");
       return;
     }
 
@@ -146,37 +147,40 @@ const AddPerformanceScreen: React.FC = () => {
         racePosition: parseInt(formData.racePosition),
         totalParticipants: parseInt(formData.totalParticipants),
         category: formData.category,
-        date: formData.date.toISOString().split('T')[0], // YYYY-MM-DD format
+        date: formData.date.toISOString().split("T")[0], // YYYY-MM-DD format
         notes: formData.notes.trim() || undefined,
         weather: formData.weather.trim() || undefined,
         trackCondition: formData.trackCondition,
       };
 
-      const response = await PerformanceService.createPerformance(performanceData, user.id);
+      const response = await PerformanceService.createPerformance(
+        performanceData,
+        user.id
+      );
 
       if (response.success) {
         Alert.alert(
-          'Success! 🏆',
-          'Your race performance has been recorded successfully!',
+          "Success! 🏆",
+          "Your race performance has been recorded successfully!",
           [
             {
-              text: 'View Dashboard',
-              onPress: () => router.replace('/performances'),
+              text: "View Dashboard",
+              onPress: () => router.replace("/performances"),
             },
             {
-              text: 'Add Another',
+              text: "Add Another",
               onPress: () => {
                 // Reset form
                 setFormData({
-                  circuitName: '',
-                  lapTime: '',
-                  racePosition: '',
-                  totalParticipants: '',
-                  category: 'karting',
+                  circuitName: "",
+                  lapTime: "",
+                  racePosition: "",
+                  totalParticipants: "",
+                  category: "karting",
                   date: new Date(),
-                  notes: '',
-                  weather: '',
-                  trackCondition: 'dry',
+                  notes: "",
+                  weather: "",
+                  trackCondition: "dry",
                 });
                 setErrors({});
               },
@@ -184,37 +188,39 @@ const AddPerformanceScreen: React.FC = () => {
           ]
         );
       } else {
-        Alert.alert(
-          'Error', 
-          response.error || 'Failed to save performance',
-          [
-            {
-              text: 'Retry',
-              onPress: () => handleSubmit()
-            },
-            {
-              text: 'OK'
-            }
-          ]
-        );
+        Alert.alert("Error", response.error || "Failed to save performance", [
+          {
+            text: "Retry",
+            onPress: () => handleSubmit(),
+          },
+          {
+            text: "OK",
+          },
+        ]);
       }
     } catch (error: any) {
-      if (error?.code === 'NETWORK_ERROR' || error?.message?.includes('Network')) {
+      if (
+        error?.code === "NETWORK_ERROR" ||
+        error?.message?.includes("Network")
+      ) {
         Alert.alert(
-          'Network Error',
-          'Please check your internet connection and try again.',
+          "Network Error",
+          "Please check your internet connection and try again.",
           [
             {
-              text: 'Retry',
-              onPress: () => handleSubmit()
+              text: "Retry",
+              onPress: () => handleSubmit(),
             },
             {
-              text: 'OK'
-            }
+              text: "OK",
+            },
           ]
         );
       } else {
-      Alert.alert('Error', 'An unexpected error occurred while saving your performance');
+        Alert.alert(
+          "Error",
+          "An unexpected error occurred while saving your performance"
+        );
       }
     } finally {
       setIsLoading(false);
@@ -225,7 +231,7 @@ const AddPerformanceScreen: React.FC = () => {
    * Handle date change
    */
   const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
+    setShowDatePicker(Platform.OS === "ios");
     if (selectedDate) {
       setFormData({ ...formData, date: selectedDate });
     }
@@ -245,14 +251,20 @@ const AddPerformanceScreen: React.FC = () => {
    * Get category data
    */
   const getCategoryData = (category: RaceCategory) => {
-    return RACE_CATEGORIES.find(cat => cat.value === category) || RACE_CATEGORIES[0];
+    return (
+      RACE_CATEGORIES.find((cat) => cat.value === category) ||
+      RACE_CATEGORIES[0]
+    );
   };
 
   /**
    * Get condition data
    */
-  const getConditionData = (condition: 'dry' | 'wet' | 'mixed') => {
-    return TRACK_CONDITIONS.find(cond => cond.value === condition) || TRACK_CONDITIONS[0];
+  const getConditionData = (condition: "dry" | "wet" | "mixed") => {
+    return (
+      TRACK_CONDITIONS.find((cond) => cond.value === condition) ||
+      TRACK_CONDITIONS[0]
+    );
   };
 
   /**
@@ -271,7 +283,7 @@ const AddPerformanceScreen: React.FC = () => {
     onChangeText: (text: string) => void,
     placeholder: string,
     error?: string,
-    keyboardType: 'default' | 'numeric' = 'default',
+    keyboardType: "default" | "numeric" = "default",
     multiline = false
   ) => {
     return (
@@ -281,9 +293,9 @@ const AddPerformanceScreen: React.FC = () => {
           style={[
             performanceStyles.textInput,
             error && performanceStyles.textInputError,
-            multiline && { 
-              height: 100, 
-              textAlignVertical: 'top',
+            multiline && {
+              height: 100,
+              textAlignVertical: "top",
               paddingTop: 12,
             },
           ]}
@@ -295,17 +307,19 @@ const AddPerformanceScreen: React.FC = () => {
           multiline={multiline}
           numberOfLines={multiline ? 4 : 1}
           maxLength={multiline ? 500 : undefined}
-          submitBehavior={multiline ? 'newline' : 'submit'}
-          returnKeyType={multiline ? 'default' : 'done'}
+          submitBehavior={multiline ? "newline" : "submit"}
+          returnKeyType={multiline ? "default" : "done"}
         />
         {error && <Text style={performanceStyles.errorText}>{error}</Text>}
         {multiline && (
-          <Text style={{
-            fontSize: 12,
-            color: THEME_COLORS.TEXT_MUTED,
-            textAlign: 'right',
-            marginTop: 4,
-          }}>
+          <Text
+            style={{
+              fontSize: 12,
+              color: THEME_COLORS.TEXT_MUTED,
+              textAlign: "right",
+              marginTop: 4,
+            }}
+          >
             {value.length}/500
           </Text>
         )}
@@ -329,20 +343,31 @@ const AddPerformanceScreen: React.FC = () => {
         <TouchableOpacity
           style={[
             performanceStyles.textInput,
-            { 
-              flexDirection: 'row', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              backgroundColor: color ? `${color}15` : THEME_COLORS.CARD_BACKGROUND,
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              backgroundColor: color
+                ? `${color}15`
+                : THEME_COLORS.CARD_BACKGROUND,
               borderColor: color || THEME_COLORS.BORDER,
-            }
+            },
           ]}
           onPress={onPress}
         >
-          <Text style={[performanceStyles.textInput, { borderWidth: 0, padding: 0, flex: 1 }]}>
+          <Text
+            style={[
+              performanceStyles.textInput,
+              { borderWidth: 0, padding: 0, flex: 1 },
+            ]}
+          >
             {emoji} {value}
           </Text>
-          <FontAwesome name="chevron-down" size={16} color={THEME_COLORS.TEXT_SECONDARY} />
+          <FontAwesome
+            name="chevron-down"
+            size={16}
+            color={THEME_COLORS.TEXT_SECONDARY}
+          />
         </TouchableOpacity>
       </View>
     );
@@ -363,15 +388,21 @@ const AddPerformanceScreen: React.FC = () => {
           <View style={performanceStyles.modalContent}>
             {/* Modal Header */}
             <View style={performanceStyles.modalHeader}>
-              <Text style={performanceStyles.modalTitle}>Select Racing Category</Text>
+              <Text style={performanceStyles.modalTitle}>
+                Select Racing Category
+              </Text>
               <TouchableOpacity
                 onPress={() => setShowCategoryModal(false)}
                 style={{ padding: LAYOUT.SPACING_XS }}
               >
-                <FontAwesome name="times" size={18} color={THEME_COLORS.TEXT_SECONDARY} />
+                <FontAwesome
+                  name="times"
+                  size={18}
+                  color={THEME_COLORS.TEXT_SECONDARY}
+                />
               </TouchableOpacity>
             </View>
-            
+
             {/* Modal Content */}
             <ScrollView style={performanceStyles.modalList}>
               {RACE_CATEGORIES.map((category) => (
@@ -379,14 +410,15 @@ const AddPerformanceScreen: React.FC = () => {
                   key={category.value}
                   style={[
                     performanceStyles.modalItem,
-                    formData.category === category.value && performanceStyles.modalItemSelected,
+                    formData.category === category.value &&
+                      performanceStyles.modalItemSelected,
                     formData.category === category.value && {
-                      backgroundColor: `${category.color}20`,
-                      borderColor: category.color,
-                    }
+                      backgroundColor: `${THEME_COLORS.RACING_RED}20`,
+                      borderColor: THEME_COLORS.RACING_RED,
+                    },
                   ]}
                   onPress={() => {
-                    updateField('category', category.value);
+                    updateField("category", category.value);
                     setShowCategoryModal(false);
                   }}
                 >
@@ -394,18 +426,24 @@ const AddPerformanceScreen: React.FC = () => {
                     {category.emoji}
                   </Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={[
-                      performanceStyles.modalItemText,
-                      formData.category === category.value && {
-                        color: category.color,
-                        fontWeight: TYPOGRAPHY.WEIGHT_SEMIBOLD,
-                      }
-                    ]}>
+                    <Text
+                      style={[
+                        performanceStyles.modalItemText,
+                        formData.category === category.value && {
+                          color: THEME_COLORS.RACING_RED,
+                          fontWeight: TYPOGRAPHY.WEIGHT_SEMIBOLD,
+                        },
+                      ]}
+                    >
                       {category.label}
                     </Text>
                   </View>
                   {formData.category === category.value && (
-                    <FontAwesome name="check" size={20} color={category.color} />
+                    <FontAwesome
+                      name="check"
+                      size={20}
+                      color={THEME_COLORS.RACING_RED}
+                    />
                   )}
                 </TouchableOpacity>
               ))}
@@ -422,190 +460,214 @@ const AddPerformanceScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={performanceStyles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-      <ScrollView 
-        style={performanceStyles.scrollContainer} 
-        contentContainerStyle={performanceStyles.contentContainer}
-        showsVerticalScrollIndicator={false}
+        <ScrollView
+          style={performanceStyles.scrollContainer}
+          contentContainerStyle={performanceStyles.contentContainer}
+          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
           automaticallyAdjustKeyboardInsets={true}
-      >
-        {/* Header */}
-        <View style={performanceStyles.header}>
-          <TouchableOpacity 
-            style={performanceStyles.headerButton} 
-            onPress={() => router.back()}
-          >
-            <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.TEXT_PRIMARY} />
-          </TouchableOpacity>
-          
-          <Text style={performanceStyles.headerTitle}>Add Performance</Text>
-          
-          <View style={performanceStyles.headerButton} />
-        </View>
-
-        {/* Hero Section */}
-        <Animated.View 
-          style={[
-            performanceStyles.heroSection,
-            { 
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }
-          ]}
         >
-          <LinearGradient
-            colors={[THEME_COLORS.RACING_GRADIENT_START, THEME_COLORS.RACING_GRADIENT_END]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={performanceStyles.heroGradient}
-          >
-            <Text style={performanceStyles.heroTitle}>Record Your Race 🏁</Text>
-            <Text style={performanceStyles.heroSubtitle}>
-              Track every lap, celebrate every achievement, and watch your racing journey unfold
-            </Text>
-          </LinearGradient>
-        </Animated.View>
-
-        {/* Form */}
-        <Animated.View 
-          style={[
-            performanceStyles.formContainer,
-            { 
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }
-          ]}
-        >
-          {/* Circuit Name */}
-          {renderInputField(
-            'Circuit Name *',
-            formData.circuitName,
-            (text) => updateField('circuitName', text),
-            'e.g., Silverstone Circuit',
-            errors.circuitName
-          )}
-
-          {/* Lap Time */}
-          {renderInputField(
-            'Best Lap Time *',
-            formData.lapTime,
-            (text) => updateField('lapTime', text),
-            'MM:SS.sss (e.g., 1:23.456)',
-            errors.lapTime,
-            'default'
-          )}
-
-          {/* Position and Participants Row */}
-          <View style={{ flexDirection: 'row', gap: LAYOUT.SPACING_MD }}>
-            <View style={{ flex: 1 }}>
-              {renderInputField(
-                'Position *',
-                formData.racePosition,
-                (text) => updateField('racePosition', text),
-                 'Final position',
-                errors.racePosition,
-                'numeric'
-              )}
-            </View>
-            <View style={{ flex: 1 }}>
-              {renderInputField(
-                'Total Participants *',
-                formData.totalParticipants,
-                (text) => updateField('totalParticipants', text),
-                'Total racers',
-                errors.totalParticipants,
-                'numeric'
-              )}
-            </View>
-          </View>
-
-          {/* Category Selector */}
-          {renderSelector(
-            'Racing Category *',
-            categoryData.label,
-            categoryData.emoji,
-            () => setShowCategoryModal(true),
-            categoryData.color
-          )}
-
-          {/* Date Selector */}
-          <View style={performanceStyles.inputGroup}>
-            <Text style={performanceStyles.inputLabel}>Race Date *</Text>
+          {/* Header */}
+          <View style={performanceStyles.header}>
             <TouchableOpacity
-              style={performanceStyles.textInput}
-              onPress={() => setShowDatePicker(true)}
+              style={performanceStyles.headerButton}
+              onPress={() => router.back()}
             >
-              <Text style={{ fontSize: TYPOGRAPHY.BODY, color: THEME_COLORS.TEXT_PRIMARY }}>
-                📅 {formData.date.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </Text>
+              <FontAwesome
+                name="arrow-left"
+                size={20}
+                color={THEME_COLORS.TEXT_PRIMARY}
+              />
             </TouchableOpacity>
+
+            <Text style={performanceStyles.headerTitle}>Add Performance</Text>
+
+            <View style={performanceStyles.headerButton}>
+              <FontAwesome
+                name="plus"
+                size={20}
+                color={THEME_COLORS.RACING_RED}
+              />
+            </View>
           </View>
 
-          {/* Track Condition Selector */}
-          {renderSelector(
-            'Track Conditions *',
-            conditionData.label,
-            conditionData.emoji,
-            () => setShowConditionModal(true),
-            conditionData.color
-          )}
+          {/* Hero Section */}
+          <Animated.View
+            style={[
+              performanceStyles.heroSection,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={[
+                THEME_COLORS.RACING_GRADIENT_START,
+                THEME_COLORS.RACING_GRADIENT_END,
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={performanceStyles.heroGradient}
+            >
+              <Text style={performanceStyles.heroTitle}>
+                Record Your Race 🏁
+              </Text>
+              <Text style={performanceStyles.heroSubtitle}>
+                Track every lap, celebrate every achievement, and watch your
+                racing journey unfold
+              </Text>
+            </LinearGradient>
+          </Animated.View>
+
+          {/* Form */}
+          <Animated.View
+            style={[
+              performanceStyles.formContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            {/* Circuit Name */}
+            {renderInputField(
+              "Circuit Name *",
+              formData.circuitName,
+              (text) => updateField("circuitName", text),
+              "e.g., Silverstone Circuit",
+              errors.circuitName
+            )}
+
+            {/* Lap Time */}
+            {renderInputField(
+              "Best Lap Time *",
+              formData.lapTime,
+              (text) => updateField("lapTime", text),
+              "MM:SS.sss (e.g., 1:23.456)",
+              errors.lapTime,
+              "default"
+            )}
+
+            {/* Position and Participants Row */}
+            <View style={{ flexDirection: "row", gap: LAYOUT.SPACING_MD }}>
+              <View style={{ flex: 1 }}>
+                {renderInputField(
+                  "Position *",
+                  formData.racePosition,
+                  (text) => updateField("racePosition", text),
+                  "Final position",
+                  errors.racePosition,
+                  "numeric"
+                )}
+              </View>
+              <View style={{ flex: 1 }}>
+                {renderInputField(
+                  "Total Participants *",
+                  formData.totalParticipants,
+                  (text) => updateField("totalParticipants", text),
+                  "Total racers",
+                  errors.totalParticipants,
+                  "numeric"
+                )}
+              </View>
+            </View>
+
+            {/* Category Selector */}
+            {renderSelector(
+              "Racing Category *",
+              categoryData.label,
+              categoryData.emoji,
+              () => setShowCategoryModal(true),
+              categoryData.color
+            )}
+
+            {/* Date Selector */}
+            <View style={performanceStyles.inputGroup}>
+              <Text style={performanceStyles.inputLabel}>Race Date *</Text>
+              <TouchableOpacity
+                style={performanceStyles.textInput}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text
+                  style={{
+                    fontSize: TYPOGRAPHY.BODY,
+                    color: THEME_COLORS.TEXT_PRIMARY,
+                  }}
+                >
+                  📅{" "}
+                  {formData.date.toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Track Condition Selector */}
+            {renderSelector(
+              "Track Conditions *",
+              conditionData.label,
+              conditionData.emoji,
+              () => setShowConditionModal(true),
+              conditionData.color
+            )}
 
             {/* Weather Selector */}
             {renderSelector(
-              'Weather (Optional)',
-              weatherData || 'Select weather',
-              weatherData ? '' : '🌤️',
+              "Weather (Optional)",
+              weatherData || "Select weather",
+              weatherData ? "" : "🌤️",
               () => setShowWeatherModal(true)
             )}
 
-          {/* Notes */}
-          {renderInputField(
-            'Race Notes (Optional)',
-            formData.notes,
-            (text) => updateField('notes', text),
-            'Share your experience, strategy, or memorable moments...',
-            errors.notes,
-            'default',
-            true
-          )}
-
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[
-              performanceStyles.primaryButton,
-              { 
-                marginTop: LAYOUT.SPACING_LG,
-                opacity: isLoading ? 0.7 : 1,
-              }
-            ]}
-            onPress={handleSubmit}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <>
-                <FontAwesome name="trophy" size={18} color="#FFFFFF" />
-                <Text style={performanceStyles.primaryButtonText}>Save Performance</Text>
-              </>
+            {/* Notes */}
+            {renderInputField(
+              "Race Notes (Optional)",
+              formData.notes,
+              (text) => updateField("notes", text),
+              "Share your experience, strategy, or memorable moments...",
+              errors.notes,
+              "default",
+              true
             )}
-          </TouchableOpacity>
-        </Animated.View>
-      </ScrollView>
 
-      {/* Modals */}
-      {renderCategoryModal()}
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={[
+                performanceStyles.primaryButton,
+                {
+                  marginTop: LAYOUT.SPACING_LG,
+                  opacity: isLoading ? 0.7 : 1,
+                },
+              ]}
+              onPress={handleSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <>
+                  <FontAwesome name="trophy" size={18} color="#FFFFFF" />
+                  <Text style={performanceStyles.primaryButtonText}>
+                    Save Performance
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
+        </ScrollView>
+
+        {/* Modals */}
+        {renderCategoryModal()}
 
         {/* Weather Modal */}
         {showWeatherModal && (
@@ -613,9 +675,15 @@ const AddPerformanceScreen: React.FC = () => {
             <View style={performanceStyles.modalOverlay}>
               <View style={performanceStyles.modalContent}>
                 <View style={performanceStyles.modalHeader}>
-                  <Text style={performanceStyles.modalTitle}>Select Weather</Text>
+                  <Text style={performanceStyles.modalTitle}>
+                    Select Weather
+                  </Text>
                   <TouchableOpacity onPress={() => setShowWeatherModal(false)}>
-                    <FontAwesome name="times" size={24} color={THEME_COLORS.TEXT_SECONDARY} />
+                    <FontAwesome
+                      name="times"
+                      size={24}
+                      color={THEME_COLORS.TEXT_SECONDARY}
+                    />
                   </TouchableOpacity>
                 </View>
                 <ScrollView style={performanceStyles.modalList}>
@@ -624,17 +692,21 @@ const AddPerformanceScreen: React.FC = () => {
                       key={index}
                       style={[
                         performanceStyles.modalItem,
-                        formData.weather === weather && performanceStyles.modalItemSelected
+                        formData.weather === weather &&
+                          performanceStyles.modalItemSelected,
                       ]}
                       onPress={() => {
-                        updateField('weather', weather);
+                        updateField("weather", weather);
                         setShowWeatherModal(false);
                       }}
                     >
-                      <Text style={[
-                        performanceStyles.modalItemText,
-                        formData.weather === weather && performanceStyles.modalItemTextSelected
-                      ]}>
+                      <Text
+                        style={[
+                          performanceStyles.modalItemText,
+                          formData.weather === weather &&
+                            performanceStyles.modalItemTextSelected,
+                        ]}
+                      >
                         {weather}
                       </Text>
                     </TouchableOpacity>
@@ -645,58 +717,72 @@ const AddPerformanceScreen: React.FC = () => {
           </Modal>
         )}
 
-      {/* Track Condition Modal */}
-      {showConditionModal && (
-        <Modal transparent animationType="slide">
-        <View style={performanceStyles.modalOverlay}>
-          <View style={performanceStyles.modalContent}>
-              <View style={performanceStyles.modalHeader}>
-                <Text style={performanceStyles.modalTitle}>Select Track Condition</Text>
-                <TouchableOpacity onPress={() => setShowConditionModal(false)}>
-                  <FontAwesome name="times" size={24} color={THEME_COLORS.TEXT_SECONDARY} />
-                </TouchableOpacity>
+        {/* Track Condition Modal */}
+        {showConditionModal && (
+          <Modal transparent animationType="slide">
+            <View style={performanceStyles.modalOverlay}>
+              <View style={performanceStyles.modalContent}>
+                <View style={performanceStyles.modalHeader}>
+                  <Text style={performanceStyles.modalTitle}>
+                    Select Track Condition
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowConditionModal(false)}
+                  >
+                    <FontAwesome
+                      name="times"
+                      size={24}
+                      color={THEME_COLORS.TEXT_SECONDARY}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={performanceStyles.modalList}>
+                  {TRACK_CONDITIONS.map((condition) => (
+                    <TouchableOpacity
+                      key={condition.value}
+                      style={[
+                        performanceStyles.modalItem,
+                        formData.trackCondition === condition.value &&
+                          performanceStyles.modalItemSelected,
+                      ]}
+                      onPress={() => {
+                        updateField("trackCondition", condition.value);
+                        setShowConditionModal(false);
+                      }}
+                    >
+                      <Text style={performanceStyles.modalItemEmoji}>
+                        {condition.emoji}
+                      </Text>
+                      <Text
+                        style={[
+                          performanceStyles.modalItemText,
+                          formData.trackCondition === condition.value &&
+                            performanceStyles.modalItemTextSelected,
+                        ]}
+                      >
+                        {condition.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
-              <ScrollView style={performanceStyles.modalList}>
-            {TRACK_CONDITIONS.map((condition) => (
-              <TouchableOpacity
-                key={condition.value}
-                style={[
-                      performanceStyles.modalItem,
-                      formData.trackCondition === condition.value && performanceStyles.modalItemSelected
-                ]}
-                onPress={() => {
-                  updateField('trackCondition', condition.value);
-                  setShowConditionModal(false);
-                }}
-              >
-                    <Text style={performanceStyles.modalItemEmoji}>{condition.emoji}</Text>
-                <Text style={[
-                      performanceStyles.modalItemText,
-                      formData.trackCondition === condition.value && performanceStyles.modalItemTextSelected
-                ]}>
-                  {condition.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-              </ScrollView>
-          </View>
-        </View>
-      </Modal>
-      )}
+            </View>
+          </Modal>
+        )}
 
-      {/* Date Picker */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={formData.date}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onDateChange}
-          maximumDate={new Date()}
-        />
-      )}
+        {/* Date Picker */}
+        {showDatePicker && (
+          <DateTimePicker
+            value={formData.date}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={onDateChange}
+            maximumDate={new Date()}
+          />
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-export default AddPerformanceScreen; 
+export default AddPerformanceScreen;

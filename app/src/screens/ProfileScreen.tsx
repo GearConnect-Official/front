@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -61,19 +61,6 @@ interface FavoritePost {
   comments?: any[];
 }
 
-// Type for events
-interface Event {
-  id: string;
-  title: string;
-  imageUrl: string;
-  date: string;
-  location: string;
-  description?: string;
-  participants?: number;
-  isOrganizer?: boolean;
-  result?: string; // For race results
-}
-
 // Type for driver statistics (adapted for API data)
 interface DriverStats {
   races: number;
@@ -94,11 +81,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const auth = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
   const [favorites, setFavorites] = useState<FavoritePost[]>([]);
-  const [eventFilter, setEventFilter] = useState<
-    "all" | "organized" | "participated"
-  >("all");
   const [stats, setStats] = useState({
     posts: 0,
     followers: 0,
@@ -117,8 +100,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
-  const [favoritesPage, setFavoritesPage] = useState(1);
-  const [hasMoreFavorites, setHasMoreFavorites] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
@@ -128,178 +109,215 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   // Get user from auth context
   const { user } = auth || {};
 
-  const loadDriverStats = useCallback(async () => {
-    if (!user?.id) return;
-
-    try {
-      setIsLoadingDriverStats(true);
-      
-      const response = await PerformanceService.getUserStats(user.id);
-      
-      if (response.success && response.data) {
-        const apiStats = response.data;
-        
-        // Mapper les données de l'API vers notre interface DriverStats
-        setDriverStats({
-          races: apiStats.totalRaces || 0,
-          wins: apiStats.wins || 0,
-          podiums: apiStats.podiumFinishes || 0,
-          bestPosition: apiStats.bestPosition || 0,
-          averagePosition: apiStats.averagePosition || 0,
-        });
-      }
-    } catch (error) {
-      console.error('Error loading driver stats:', error);
-    } finally {
-      setIsLoadingDriverStats(false);
-    }
-  }, [user?.id]);
-
+  // Load all data when component mounts or user changes
   useEffect(() => {
     if (!auth?.user?.id) return;
-    loadUserPosts();
-    loadFavorites(1, true);
-    loadLikedPosts();
-    loadDriverStats();
-  }, [userId, auth?.user?.id]);
+    
+    const loadAllData = async () => {
+      try {
+        // Load user posts
+        const loadUserPostsAsync = async () => {
+          setIsLoadingPosts(true);
+          try {
+            const userPosts = await postService.getUserPosts(Number(auth?.user?.id));
+            
+            if (!Array.isArray(userPosts)) {
+              console.error("Expected array of posts but got:", userPosts);
+              return;
+            }
 
-  const loadUserPosts = async () => {
-    try {
-      setIsLoadingPosts(true);
-      const userPosts = await postService.getUserPosts(Number(auth?.user?.id));
+            const formattedPosts = userPosts.map((post: any) => ({
+              id: post.id.toString(),
+              imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
+              likes: post.interactions?.filter((i: any) => i.like).length || 0,
+              comments: post.interactions?.filter((i: any) => i.comment).length || 0,
+              caption: post.title ? `${post.title}\n${post.body}` : post.body,
+              location: "",
+              timeAgo: new Date(post.createdAt).toLocaleDateString(),
+              multipleImages: false,
+              isVideo: detectMediaType(
+                post.cloudinaryUrl,
+                post.cloudinaryPublicId,
+                post.imageMetadata
+              ) === "video",
+              cloudinaryPublicId: post.cloudinaryPublicId,
+              imageMetadata: post.imageMetadata,
+            }));
 
-      if (!Array.isArray(userPosts)) {
-        console.error("Expected array of posts but got:", userPosts);
-        return;
+            setPosts(formattedPosts);
+            setStats((prev) => ({ ...prev, posts: formattedPosts.length }));
+          } catch (error) {
+            console.error("Error loading user posts:", error);
+          } finally {
+            setIsLoadingPosts(false);
+          }
+        };
+
+        // Load favorites
+        const loadFavoritesAsync = async () => {
+          setIsLoadingFavorites(true);
+          try {
+            const response = await favoritesService.getUserFavorites(Number(auth?.user?.id), 1);
+            
+            if (!response.favorites || !Array.isArray(response.favorites)) {
+              console.error("Expected array of favorites but got:", response);
+              return;
+            }
+
+            const formattedFavorites = response.favorites.map((post: any) => ({
+              id: post.id,
+              title: post.title,
+              body: post.body,
+              cloudinaryUrl: post.cloudinaryUrl,
+              cloudinaryPublicId: post.cloudinaryPublicId,
+              imageMetadata: post.imageMetadata,
+              user: post.user,
+              createdAt: post.createdAt,
+              favorites: post.favorites,
+              interactions: post.interactions,
+              comments: post.comments,
+            }));
+
+            setFavorites(formattedFavorites);
+            setStats((prev) => ({ ...prev, saved: response.pagination.total }));
+          } catch (error) {
+            console.error("Error loading favorites:", error);
+          } finally {
+            setIsLoadingFavorites(false);
+          }
+        };
+
+        // Load liked posts
+        const loadLikedPostsAsync = async () => {
+          setIsLoadingLikedPosts(true);
+          try {
+            const response = await postService.getLikedPosts(Number(auth?.user?.id));
+            
+            if (!Array.isArray(response)) {
+              console.error("Expected array of posts but got:", response);
+              return;
+            }
+
+            const formattedLikedPosts = response.map((post: any) => ({
+              id: post.id.toString(),
+              imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
+              likes: post.interactions?.filter((i: any) => i.like).length || 0,
+              comments: post.interactions?.filter((i: any) => i.comment).length || 0,
+              caption: post.title ? `${post.title}\n${post.body}` : post.body,
+              location: "",
+              timeAgo: new Date(post.createdAt).toLocaleDateString(),
+              multipleImages: false,
+              isVideo: detectMediaType(
+                post.cloudinaryUrl,
+                post.cloudinaryPublicId,
+                post.imageMetadata
+              ) === "video",
+              cloudinaryPublicId: post.cloudinaryPublicId,
+              imageMetadata: post.imageMetadata,
+            }));
+
+            setLikedPosts(formattedLikedPosts);
+          } catch (error) {
+            console.error("Error loading liked posts:", error);
+          } finally {
+            setIsLoadingLikedPosts(false);
+          }
+        };
+
+        // Load driver stats
+        const loadDriverStatsAsync = async () => {
+          if (!user?.id) return;
+          
+          setIsLoadingDriverStats(true);
+          try {
+            const response = await PerformanceService.getUserStats(user.id);
+            
+            if (response.success && response.data) {
+              const apiStats = response.data;
+              
+              setDriverStats({
+                races: apiStats.totalRaces || 0,
+                wins: apiStats.wins || 0,
+                podiums: apiStats.podiumFinishes || 0,
+                bestPosition: apiStats.bestPosition || 0,
+                averagePosition: apiStats.averagePosition || 0,
+              });
+            }
+          } catch (error) {
+            console.error('Error loading driver stats:', error);
+          } finally {
+            setIsLoadingDriverStats(false);
+          }
+        };
+
+        // Execute all data loading in parallel
+        await Promise.all([
+          loadUserPostsAsync(),
+          loadFavoritesAsync(),
+          loadLikedPostsAsync(),
+          loadDriverStatsAsync(),
+        ]);
+      } catch (error) {
+        console.error("Error loading profile data:", error);
       }
+    };
 
-      // Convertir les posts de l'API en format attendu par l'interface
-      const formattedPosts = userPosts.map((post: any) => ({
-        id: post.id.toString(),
-        imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
-        likes: post.interactions?.filter((i: any) => i.like).length || 0,
-        comments: post.interactions?.filter((i: any) => i.comment).length || 0,
-        caption: post.title ? `${post.title}\n${post.body}` : post.body,
-        location: "",
-        timeAgo: new Date(post.createdAt).toLocaleDateString(),
-        multipleImages: false,
-        isVideo:
-          detectMediaType(
-            post.cloudinaryUrl,
-            post.cloudinaryPublicId,
-            post.imageMetadata
-          ) === "video",
-        cloudinaryPublicId: post.cloudinaryPublicId,
-        imageMetadata: post.imageMetadata,
-      }));
-
-      setPosts(formattedPosts);
-      setStats((prev) => ({ ...prev, posts: formattedPosts.length }));
-    } catch (error) {
-      console.error("Error loading user posts:", error);
-    } finally {
-      setIsLoadingPosts(false);
-    }
-  };
-
-  const loadFavorites = async (page: number = 1, reset: boolean = false) => {
-    if (!auth?.user?.id || isLoadingFavorites) return;
-
-    try {
-      setIsLoadingFavorites(true);
-      const response = await favoritesService.getUserFavorites(
-        Number(auth?.user?.id),
-        page
-      );
-
-      if (!response.favorites || !Array.isArray(response.favorites)) {
-        console.error("Expected array of favorites but got:", response);
-        return;
-      }
-
-      // Convertir les posts de l'API en format FavoritePost
-      const formattedFavorites = response.favorites.map((post: any) => ({
-        id: post.id,
-        title: post.title,
-        body: post.body,
-        cloudinaryUrl: post.cloudinaryUrl,
-        cloudinaryPublicId: post.cloudinaryPublicId,
-        imageMetadata: post.imageMetadata,
-        user: post.user,
-        createdAt: post.createdAt,
-        favorites: post.favorites,
-        interactions: post.interactions,
-        comments: post.comments,
-      }));
-
-      if (reset) {
-        setFavorites(formattedFavorites);
-      } else {
-        setFavorites((prev) => [...prev, ...formattedFavorites]);
-      }
-
-      // Mettre à jour le nombre de favoris dans les stats
-      if (reset) {
-        setStats((prev) => ({ ...prev, saved: response.pagination.total }));
-      }
-
-      setHasMoreFavorites(page < response.pagination.totalPages);
-      setFavoritesPage(page);
-    } catch (error) {
-      console.error("Error loading favorites:", error);
-    } finally {
-      setIsLoadingFavorites(false);
-    }
-  };
-
-  const handleRemoveFromFavorites = async (postId: number) => {
-    if (!auth?.user?.id || !postId) return;
-
-    try {
-      await favoritesService.toggleFavorite(postId, Number(auth?.user?.id));
-
-      // Retirer le favori de la liste locale
-      setFavorites((prev) => prev.filter((fav) => fav.id !== postId));
-
-      // Mettre à jour les stats
-      setStats((prev) => ({
-        ...prev,
-        saved: Math.max(0, (prev.saved || 0) - 1),
-      }));
-    } catch (error) {
-      console.error("❌ Error removing from favorites:", error);
-    }
-  };
+    loadAllData();
+  }, [auth?.user?.id, user?.id]); // Only depend on user IDs
 
   const onRefreshProfile = async () => {
     setRefreshing(true);
 
-    // Recharger les données selon l'onglet actif
-    if (activeTab === "favorites" && auth?.user?.id) {
-      await loadFavorites(1, true);
-    }
-    
-    // Recharger les statistiques de performance
-    if (user?.id) {
-      await loadDriverStats();
+    try {
+      // Recharger les données selon l'onglet actif
+      if (activeTab === "favorites" && auth?.user?.id) {
+        setIsLoadingFavorites(true);
+        const response = await favoritesService.getUserFavorites(Number(auth?.user?.id), 1);
+        
+        if (response.favorites && Array.isArray(response.favorites)) {
+          const formattedFavorites = response.favorites.map((post: any) => ({
+            id: post.id,
+            title: post.title,
+            body: post.body,
+            cloudinaryUrl: post.cloudinaryUrl,
+            cloudinaryPublicId: post.cloudinaryPublicId,
+            imageMetadata: post.imageMetadata,
+            user: post.user,
+            createdAt: post.createdAt,
+            favorites: post.favorites,
+            interactions: post.interactions,
+            comments: post.comments,
+          }));
+          
+          setFavorites(formattedFavorites);
+          setStats((prev) => ({ ...prev, saved: response.pagination.total }));
+        }
+        setIsLoadingFavorites(false);
+      }
+      
+      // Recharger les statistiques de performance
+      if (user?.id) {
+        setIsLoadingDriverStats(true);
+        const response = await PerformanceService.getUserStats(user.id);
+        
+        if (response.success && response.data) {
+          const apiStats = response.data;
+          
+          setDriverStats({
+            races: apiStats.totalRaces || 0,
+            wins: apiStats.wins || 0,
+            podiums: apiStats.podiumFinishes || 0,
+            bestPosition: apiStats.bestPosition || 0,
+            averagePosition: apiStats.averagePosition || 0,
+          });
+        }
+        setIsLoadingDriverStats(false);
+      }
+    } catch (error) {
+      console.error("Error refreshing profile data:", error);
     }
 
     setRefreshing(false);
-  };
-
-  const loadMoreFavorites = () => {
-    if (hasMoreFavorites && !isLoadingFavorites) {
-      loadFavorites(favoritesPage + 1, false);
-    }
-  };
-
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + "M";
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + "K";
-    }
-    return num.toString();
   };
 
   const handlePostPress = (post: Post) => {
@@ -342,13 +360,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     // if we were navigating to other profiles from the current profile
   };
 
-  const handleEventPress = (eventId: string) => {
-    router.push({
-      pathname: "/(app)/eventDetail",
-      params: { eventId },
-    });
-  };
-
   const handleSettingsPress = () => {
     setMenuVisible(false);
     router.push("/settings");
@@ -377,109 +388,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const handlePerformancesPress = () => {
     router.push("/performances");
   };
-
-  const loadLikedPosts = async () => {
-    try {
-      setIsLoadingLikedPosts(true);
-      const response = await postService.getLikedPosts(Number(auth?.user?.id));
-
-      if (!Array.isArray(response)) {
-        console.error("Expected array of posts but got:", response);
-        return;
-      }
-
-      // Convertir les posts de l'API en format attendu
-      const formattedLikedPosts = response.map((post: any) => ({
-        id: post.id.toString(),
-        imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
-        likes: post.interactions?.filter((i: any) => i.like).length || 0,
-        comments: post.interactions?.filter((i: any) => i.comment).length || 0,
-        caption: post.title ? `${post.title}\n${post.body}` : post.body,
-        location: "",
-        timeAgo: new Date(post.createdAt).toLocaleDateString(),
-        multipleImages: false,
-        isVideo:
-          detectMediaType(
-            post.cloudinaryUrl,
-            post.cloudinaryPublicId,
-            post.imageMetadata
-          ) === "video",
-        cloudinaryPublicId: post.cloudinaryPublicId,
-        imageMetadata: post.imageMetadata,
-      }));
-
-      setLikedPosts(formattedLikedPosts);
-    } catch (error) {
-      console.error("Error loading liked posts:", error);
-    } finally {
-      setIsLoadingLikedPosts(false);
-    }
-  };
-
-  const renderEventItem = ({ item }: { item: Event }) => (
-    <TouchableOpacity
-      style={styles.eventCard}
-      activeOpacity={0.8}
-      onPress={() => handleEventPress(item.id)}
-    >
-      <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />
-      <View style={styles.eventOverlay}>
-        {item.isOrganizer && (
-          <View style={styles.organizerBadge}>
-            <FontAwesome name="star" size={12} color="#FFFFFF" />
-            <Text style={styles.organizerText}>Organizer</Text>
-          </View>
-        )}
-        {item.result && (
-          <View style={styles.resultBadge}>
-            <Text style={styles.resultText}>{item.result}</Text>
-          </View>
-        )}
-      </View>
-      {item.result === "Victory" && (
-        <View style={styles.achievementBadge}>
-          <FontAwesome name="trophy" size={12} color="#FFFFFF" />
-          <Text style={styles.achievementText}>1st place</Text>
-        </View>
-      )}
-      <View style={styles.eventInfo}>
-        <Text style={styles.eventTitle}>{item.title}</Text>
-        <View style={styles.eventMeta}>
-          <View style={styles.eventMetaItem}>
-            <FontAwesome
-              name="calendar"
-              size={14}
-              color="#6E6E6E"
-              style={styles.eventMetaIcon}
-            />
-            <Text style={styles.eventMetaText}>{item.date}</Text>
-          </View>
-          <View style={styles.eventMetaItem}>
-            <FontAwesome
-              name="map-marker"
-              size={14}
-              color="#6E6E6E"
-              style={styles.eventMetaIcon}
-            />
-            <Text style={styles.eventMetaText}>{item.location}</Text>
-          </View>
-          {item.participants && (
-            <View style={styles.eventMetaItem}>
-              <FontAwesome
-                name="users"
-                size={14}
-                color="#6E6E6E"
-                style={styles.eventMetaIcon}
-              />
-              <Text style={styles.eventMetaText}>
-                {item.participants} participants
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
 
   const renderPostsGrid = () => {
     if (isLoadingPosts) {
@@ -621,103 +529,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     }
 
     return <View style={styles.postsContainer}>{postRows}</View>;
-  };
-
-  const renderEventsList = () => {
-    if (events.length === 0) {
-      return renderEmptyComponent();
-    }
-
-    // Filter events based on active filter
-    const filteredEvents = events.filter((event) => {
-      if (eventFilter === "all") return true;
-      if (eventFilter === "organized") return !!event.isOrganizer;
-      if (eventFilter === "participated") return !event.isOrganizer; // Assuming that all non-organized events are participated
-      return true;
-    });
-
-    // If no events match the filter, display an appropriate message
-    if (filteredEvents.length === 0) {
-      return (
-        <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
-          <FontAwesome name="calendar-times-o" size={60} color="#CCCCCC" />
-          <Text style={styles.emptyTitle}>
-            {eventFilter === "organized"
-              ? "No events organized"
-              : "No participation"}
-          </Text>
-          <Text style={styles.emptySubtitle}>
-            {eventFilter === "organized"
-              ? "Events you organize will appear here."
-              : "Events you participate in will appear here."}
-          </Text>
-          <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Create Event</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.eventsContainer}>
-        {/* Event filters */}
-        <View style={styles.eventFiltersContainer}>
-          <TouchableOpacity
-            style={[
-              styles.eventFilterButton,
-              eventFilter === "all" && styles.activeEventFilter,
-            ]}
-            onPress={() => setEventFilter("all")}
-          >
-            <Text
-              style={[
-                styles.eventFilterText,
-                eventFilter === "all" && styles.activeEventFilterText,
-              ]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.eventFilterButton,
-              eventFilter === "organized" && styles.activeEventFilter,
-            ]}
-            onPress={() => setEventFilter("organized")}
-          >
-            <Text
-              style={[
-                styles.eventFilterText,
-                eventFilter === "organized" && styles.activeEventFilterText,
-              ]}
-            >
-              Organized
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.eventFilterButton,
-              eventFilter === "participated" && styles.activeEventFilter,
-            ]}
-            onPress={() => setEventFilter("participated")}
-          >
-            <Text
-              style={[
-                styles.eventFilterText,
-                eventFilter === "participated" && styles.activeEventFilterText,
-              ]}
-            >
-              Participated
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* List of filtered events */}
-        {filteredEvents.map((item) => (
-          <View key={item.id}>{renderEventItem({ item })}</View>
-        ))}
-      </View>
-    );
   };
 
   const renderFavoritesGrid = () => {
@@ -1023,103 +834,83 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             </View>
 
             {/* Driver statistics - SECTION MISE EN VALEUR */}
-            <TouchableOpacity style={styles.statsCard} onPress={handlePerformancesPress}>
-              <View style={{
-                position: 'absolute',
-                top: 5,
-                right: 10,
-                backgroundColor: '#FF6B1A',
-                borderRadius: 12,
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-                zIndex: 1
-              }}>
-                <Text style={{
-                  color: '#FFFFFF',
-                  fontSize: 10,
-                  fontWeight: 'bold'
-                }}>
-                  📊 TRACK NOW
-                </Text>
-              </View>
-              
-              {isLoadingDriverStats ? (
-                <View style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  paddingVertical: 20
-                }}>
-                  <ActivityIndicator size="small" color="#E10600" />
-                  <Text style={{
-                    fontSize: 12,
-                    color: '#6E6E6E',
-                    marginTop: 8
-                  }}>
-                    Loading performance data...
-                  </Text>
+            <TouchableOpacity style={styles.performanceCard} onPress={handlePerformancesPress}>
+              {/* Gradient Background Effect */}
+              <View style={styles.performanceGradient}>
+                {/* Header avec badge premium */}
+                <View style={styles.performanceHeader}>
+                  <View style={styles.performanceBadge}>
+                    <Text style={styles.performanceBadgeText}>⚡ PERFORMANCE</Text>
+                  </View>
+                  <View style={styles.performanceTitle}>
+                    <Text style={styles.performanceTitleText}>Track Your Racing Journey</Text>
+                    <Text style={styles.performanceSubtitle}>Unlock detailed analytics & insights</Text>
+                  </View>
                 </View>
-              ) : (
-                <>
-                  <View style={styles.statColumn}>
-                    <FontAwesome
-                      name="flag-checkered"
-                      size={20}
-                      style={[styles.statIcon, { color: '#E10600' }]}
-                    />
-                    <Text style={styles.driverStatLabel}>Races</Text>
-                    <Text style={[styles.driverStatValue, { color: '#E10600', fontWeight: 'bold' }]}>
-                      {driverStats.races}
+
+                {/* Stats Section avec design moderne */}
+                {isLoadingDriverStats ? (
+                  <View style={styles.performanceLoading}>
+                    <ActivityIndicator size="large" color="#E10600" />
+                    <Text style={styles.performanceLoadingText}>
+                      Loading performance data...
                     </Text>
                   </View>
-                  <View style={styles.divider} />
-                  <View style={styles.statColumn}>
-                    <FontAwesome 
-                      name="trophy" 
-                      size={20} 
-                      style={[styles.statIcon, { color: '#FFD700' }]} 
-                    />
-                    <Text style={styles.driverStatLabel}>Wins</Text>
-                    <Text style={[styles.driverStatValue, { color: '#FFD700', fontWeight: 'bold' }]}>
-                      {driverStats.wins}
-                    </Text>
+                ) : (
+                  <View style={styles.performanceStats}>
+                    <View style={styles.performanceStatItem}>
+                      <View style={[styles.performanceStatIcon, { backgroundColor: 'rgba(225, 6, 0, 0.1)' }]}>
+                        <FontAwesome name="flag-checkered" size={28} color="#E10600" />
+                      </View>
+                      <View style={styles.performanceStatContent}>
+                        <Text style={styles.performanceStatValue}>{driverStats.races}</Text>
+                        <Text style={styles.performanceStatLabel}>Races</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.performanceStatDivider} />
+
+                    <View style={styles.performanceStatItem}>
+                      <View style={[styles.performanceStatIcon, { backgroundColor: 'rgba(255, 215, 0, 0.15)' }]}>
+                        <FontAwesome name="trophy" size={28} color="#FFD700" />
+                      </View>
+                      <View style={styles.performanceStatContent}>
+                        <Text style={[styles.performanceStatValue, { color: '#FFD700' }]}>{driverStats.wins}</Text>
+                        <Text style={styles.performanceStatLabel}>Victories</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.performanceStatDivider} />
+
+                    <View style={styles.performanceStatItem}>
+                      <View style={[styles.performanceStatIcon, { backgroundColor: 'rgba(192, 192, 192, 0.15)' }]}>
+                        <FontAwesome name="medal" size={28} color="#C0C0C0" />
+                      </View>
+                      <View style={styles.performanceStatContent}>
+                        <Text style={[styles.performanceStatValue, { color: '#C0C0C0' }]}>{driverStats.podiums}</Text>
+                        <Text style={styles.performanceStatLabel}>Podiums</Text>
+                      </View>
+                    </View>
                   </View>
-                  <View style={styles.divider} />
-                  <View style={styles.statColumn}>
-                    <FontAwesome
-                      name="certificate"
-                      size={20}
-                      style={[styles.statIcon, { color: '#C0C0C0' }]}
-                    />
-                    <Text style={styles.driverStatLabel}>Podiums</Text>
-                    <Text style={[styles.driverStatValue, { color: '#C0C0C0', fontWeight: 'bold' }]}>
-                      {driverStats.podiums}
-                    </Text>
+                )}
+
+                {/* Call to Action */}
+                <View style={styles.performanceCTA}>
+                  <View style={styles.performanceCTAContent}>
+                    <Text style={styles.performanceCTAText}>View Detailed Analytics</Text>
+                    <Text style={styles.performanceCTASubtext}>Race history • Lap times • Progress tracking</Text>
                   </View>
-                </>
-              )}
-              
-              {/* Indication que c'est cliquable */}
-              <View style={{
-                position: 'absolute',
-                bottom: 5,
-                right: 10,
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontSize: 12,
-                  color: '#E10600',
-                  fontWeight: '600',
-                  marginRight: 5
-                }}>
-                  View Details
-                </Text>
-                <FontAwesome 
-                  name="chevron-right" 
-                  size={12} 
-                  color="#E10600" 
-                />
+                  <View style={styles.performanceCTAIcon}>
+                    <FontAwesome name="chevron-right" size={16} color="#FFFFFF" />
+                  </View>
+                </View>
+
+                {/* Decorative Elements */}
+                <View style={styles.performanceDecorative}>
+                  <View style={styles.performanceCircle1} />
+                  <View style={styles.performanceCircle2} />
+                  <View style={styles.performanceCircle3} />
+                </View>
               </View>
             </TouchableOpacity>
           </View>

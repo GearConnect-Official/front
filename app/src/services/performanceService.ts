@@ -176,17 +176,6 @@ class PerformanceService {
         `/user/${userId}/stats`
       );
 
-      // Enhance stats with calculated values
-      if (response.data.data) {
-        const stats = response.data.data;
-        const enhanced = {
-          ...stats,
-          podiumFinishes: this.calculatePodiumFinishes(stats),
-          wins: this.calculateWins(stats),
-        };
-        response.data.data = enhanced;
-      }
-
       return response.data;
     } catch (error: any) {
       console.error('Error fetching user stats:', error);
@@ -216,30 +205,6 @@ class PerformanceService {
         error: error.response?.data?.error || 'Performance not found'
       };
     }
-  }
-
-  /**
-   * Helper: Calculate podium finishes from stats
-   */
-  private static calculatePodiumFinishes(stats: UserPerformanceStats): number {
-    // This would need to be implemented based on actual performance data
-    // For now, we'll estimate based on best position
-    if (stats.bestPosition <= 3 && stats.totalRaces > 0) {
-      return Math.floor(stats.totalRaces * 0.2); // Estimate 20% podium rate
-    }
-    return 0;
-  }
-
-  /**
-   * Helper: Calculate wins from stats
-   */
-  private static calculateWins(stats: UserPerformanceStats): number {
-    // This would need to be implemented based on actual performance data
-    // For now, we'll estimate based on best position
-    if (stats.bestPosition === 1 && stats.totalRaces > 0) {
-      return Math.floor(stats.totalRaces * 0.1); // Estimate 10% win rate
-    }
-    return 0;
   }
 
   /**

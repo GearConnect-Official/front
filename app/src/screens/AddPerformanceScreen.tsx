@@ -11,6 +11,7 @@ import {
   Modal,
   ActivityIndicator,
   Animated,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -37,7 +38,8 @@ import {
 
 const AddPerformanceScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
 
   // Form state
   const [formData, setFormData] = useState<PerformanceFormData>({
@@ -79,7 +81,7 @@ const AddPerformanceScreen: React.FC = () => {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   /**
    * Validate form data
@@ -254,6 +256,13 @@ const AddPerformanceScreen: React.FC = () => {
   };
 
   /**
+   * Get weather data
+   */
+  const getWeatherData = (weather: string) => {
+    return weather || WEATHER_CONDITIONS[0];
+  };
+
+  /**
    * Render input field with label and error
    */
   const renderInputField = (
@@ -272,7 +281,11 @@ const AddPerformanceScreen: React.FC = () => {
           style={[
             performanceStyles.textInput,
             error && performanceStyles.textInputError,
-            multiline && { height: 80, textAlignVertical: 'top' },
+            multiline && { 
+              height: 100, 
+              textAlignVertical: 'top',
+              paddingTop: 12,
+            },
           ]}
           placeholder={placeholder}
           placeholderTextColor={THEME_COLORS.TEXT_MUTED}
@@ -280,8 +293,22 @@ const AddPerformanceScreen: React.FC = () => {
           onChangeText={onChangeText}
           keyboardType={keyboardType}
           multiline={multiline}
+          numberOfLines={multiline ? 4 : 1}
+          maxLength={multiline ? 500 : undefined}
+          submitBehavior={multiline ? 'newline' : 'submit'}
+          returnKeyType={multiline ? 'default' : 'done'}
         />
         {error && <Text style={performanceStyles.errorText}>{error}</Text>}
+        {multiline && (
+          <Text style={{
+            fontSize: 12,
+            color: THEME_COLORS.TEXT_MUTED,
+            textAlign: 'right',
+            marginTop: 4,
+          }}>
+            {value.length}/500
+          </Text>
+        )}
       </View>
     );
   };
@@ -401,13 +428,22 @@ const AddPerformanceScreen: React.FC = () => {
 
   const categoryData = getCategoryData(formData.category);
   const conditionData = getConditionData(formData.trackCondition);
+  const weatherData = getWeatherData(formData.weather);
 
   return (
     <SafeAreaView style={performanceStyles.container}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
       <ScrollView 
         style={performanceStyles.scrollContainer} 
         contentContainerStyle={performanceStyles.contentContainer}
         showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          automaticallyAdjustKeyboardInsets={true}
       >
         {/* Header */}
         <View style={performanceStyles.header}>
@@ -535,6 +571,14 @@ const AddPerformanceScreen: React.FC = () => {
             conditionData.color
           )}
 
+            {/* Weather Selector */}
+            {renderSelector(
+              'Weather (Optional)',
+              weatherData || 'Select weather',
+              weatherData ? '' : '🌤️',
+              () => setShowWeatherModal(true)
+            )}
+
           {/* Notes */}
           {renderInputField(
             'Race Notes (Optional)',
@@ -572,6 +616,44 @@ const AddPerformanceScreen: React.FC = () => {
 
       {/* Modals */}
       {renderCategoryModal()}
+
+        {/* Weather Modal */}
+        {showWeatherModal && (
+          <Modal transparent animationType="slide">
+            <View style={performanceStyles.modalOverlay}>
+              <View style={performanceStyles.modalContent}>
+                <View style={performanceStyles.modalHeader}>
+                  <Text style={performanceStyles.modalTitle}>Select Weather</Text>
+                  <TouchableOpacity onPress={() => setShowWeatherModal(false)}>
+                    <FontAwesome name="times" size={24} color={THEME_COLORS.TEXT_SECONDARY} />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={performanceStyles.modalList}>
+                  {WEATHER_CONDITIONS.map((weather, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        performanceStyles.modalItem,
+                        formData.weather === weather && performanceStyles.modalItemSelected
+                      ]}
+                      onPress={() => {
+                        updateField('weather', weather);
+                        setShowWeatherModal(false);
+                      }}
+                    >
+                      <Text style={[
+                        performanceStyles.modalItemText,
+                        formData.weather === weather && performanceStyles.modalItemTextSelected
+                      ]}>
+                        {weather}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
+        )}
 
       {/* Track Condition Modal */}
       {showConditionModal && (
@@ -622,6 +704,7 @@ const AddPerformanceScreen: React.FC = () => {
           maximumDate={new Date()}
         />
       )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

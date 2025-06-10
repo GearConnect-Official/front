@@ -17,6 +17,7 @@ interface ProfileMenuProps {
   onEditProfilePress: () => void;
   onPreferencesPress: () => void;
   onLogoutPress: () => void;
+  onPerformancesPress?: () => void;
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({
@@ -38,6 +39,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
   onEditProfilePress,
   onPreferencesPress,
   onLogoutPress,
+  onPerformancesPress,
 }) => {
   return (
     <Modal

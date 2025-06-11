@@ -34,12 +34,13 @@ export default {
       apiProtocol: process.env.API_PROTOCOL,
       apiHost: process.env.API_HOST,
       apiPort: parseInt(process.env.API_PORT, 10),
+      clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY,
       cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
       cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
       cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
       cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET,
       eas: {
-        projectId: "your-project-id"
+        projectId: "76d9f701-5132-4e95-955c-76578f90d7a6"
       }
     },
     scheme: "gearconnect",

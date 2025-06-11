@@ -13,7 +13,7 @@ export * from './CreateEvent';
 
 // Legacy components (to be reorganized)
 export { default as Post } from './Post';
-export { default as CreateEvent } from './CreateEvent';
+export { default as CreateEventForm } from './CreateEventForm';
 
 // Hooks
 export { useCloudinary } from '../hooks/useCloudinary';

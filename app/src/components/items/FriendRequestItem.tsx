@@ -6,7 +6,7 @@ import {
   Image,
   Animated,
 } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import styles from "../../styles/screens/friendRequestItemStyles";
 
 interface FriendRequestItemProps {
@@ -87,3 +87,4 @@ const FriendRequestItem: React.FC<FriendRequestItemProps> = ({
 };
 
 export default FriendRequestItem;
+

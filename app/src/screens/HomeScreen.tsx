@@ -33,6 +33,7 @@ import favoritesService from '../services/favoritesService';
 import { useAuth } from '../context/AuthContext';
 import useVisibilityTracker from '../hooks/useVisibilityTracker';
 import { detectMediaType } from '../utils/mediaUtils';
+import { ApiError, ErrorType } from '../services/axiosConfig';
 
 // Types
 interface Story {
@@ -153,6 +154,7 @@ const HomeScreen: React.FC = () => {
   const [posts, setPosts] = useState<UIPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -180,6 +182,7 @@ const HomeScreen: React.FC = () => {
   const loadPosts = useCallback(async (page = 1, limit = 10) => {
     try {
       setLoadingError(null);
+      setIsNetworkError(false);
       const currentUserId = user?.id ? parseInt(user.id) : null;
       
       // Utiliser la nouvelle méthode getPosts avec userId pour récupérer l'état des favoris
@@ -201,11 +204,17 @@ const HomeScreen: React.FC = () => {
         setPosts(uiPosts);
         setHasMorePosts(uiPosts.length === limit);
       } else {
-        setLoadingError('Format de réponse API inattendu');
+        setLoadingError('Unexpected API response format');
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des posts:', error);
-      setLoadingError('Impossible de charger les posts. Veuillez réessayer plus tard.');
+      // Check if it's a network error using the ApiError interface
+      const apiError = error as ApiError;
+      if (apiError.type === ErrorType.NETWORK) {
+        setIsNetworkError(true);
+        setLoadingError('Connection issue detected');
+      } else {
+        setLoadingError('Unable to load posts. Please try again later.');
+      }
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -323,7 +332,7 @@ const HomeScreen: React.FC = () => {
       }, 500);
       
     } catch (error) {
-      console.error('Erreur lors du toggle du like:', error);
+      // console.error('Erreur lors du toggle du like:', error);
       
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
@@ -367,7 +376,7 @@ const HomeScreen: React.FC = () => {
       }, 500);
       
     } catch (error) {
-      console.error('Erreur lors du toggle des favoris:', error);
+      // console.error('Erreur lors du toggle des favoris:', error);
       
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
@@ -431,7 +440,7 @@ const HomeScreen: React.FC = () => {
           )
         );
       } catch (error) {
-        console.error('Erreur lors de la mise à jour du compteur de commentaires:', error);
+        // console.error('Erreur lors de la mise à jour du compteur de commentaires:', error);
         // En cas d'erreur, on recharge simplement tous les posts après un délai
         setTimeout(() => {
           loadPosts();
@@ -607,7 +616,7 @@ const HomeScreen: React.FC = () => {
       }
       
     } catch (error) {
-      console.error('❌ Error sharing post:', error);
+      // console.error('❌ Error sharing post:', error);
       Alert.alert('Erreur', 'Impossible de partager ce post');
     }
   };
@@ -674,7 +683,7 @@ const HomeScreen: React.FC = () => {
       }, 500);
       
     } catch (error) {
-      console.error('Erreur lors de l\'ajout du commentaire:', error);
+      // console.error('Erreur lors de l\'ajout du commentaire:', error);
       
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
@@ -711,11 +720,53 @@ const HomeScreen: React.FC = () => {
     }));
   };
 
+  const renderNetworkErrorState = () => (
+    <View style={styles.networkErrorContainer}>
+      <FontAwesome name="wifi" size={60} color="#E10600" />
+      <Text style={styles.networkErrorTitle}>Connection Issue</Text>
+      <Text style={styles.networkErrorDescription}>
+        Your WiFi connection might not be working properly. Please check your internet connection and try again.
+      </Text>
+      <TouchableOpacity style={styles.reloadButton} onPress={() => loadPosts()}>
+        <Text style={styles.reloadButtonText}>Try Again</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FF5864" />
       </View>
+    );
+  }
+
+  if (isNetworkError) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.appTitle}>GearConnect</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              onPress={handleNavigateToProfile}
+            >
+              <Image 
+                source={{ uri: CURRENT_USER_AVATAR }} 
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Network Error State */}
+        {renderNetworkErrorState()}
+      </SafeAreaView>
     );
   }
 
@@ -725,7 +776,7 @@ const HomeScreen: React.FC = () => {
         <FontAwesome name="warning" size={50} color="#FF5864" />
         <Text style={styles.errorText}>{loadingError}</Text>
         <TouchableOpacity style={styles.reloadButton} onPress={() => loadPosts()}>
-          <Text style={styles.reloadButtonText}>Réessayer</Text>
+          <Text style={styles.reloadButtonText}>Try Again</Text>
         </TouchableOpacity>
       </View>
     );

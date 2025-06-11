@@ -34,7 +34,7 @@ const BottomNav = (props: any) => {
             onPress={() => handleNavigation(tab.path)}
           >
             <FontAwesome
-              name={getIconName(tab.name)}
+              name={getIconName(tab.name) as any}
               size={24}
               color={isActive ? "#000" : "#6A707C"}
             />

@@ -55,6 +55,14 @@ if (Test-Path "dist\assets") {
 }
 Write-Host "Copie des images d'assets locales..." -ForegroundColor Yellow
 Copy-Item -Recurse -Force "app\assets\images" "android\app\src\main\assets\"
+
+Write-Host "Copie des images principales vers Android drawable..." -ForegroundColor Yellow
+Copy-Item "app/assets/images/logo-rounded.png" "android/app/src/main/res/drawable-mdpi/logo_rounded.png" -Force
+Copy-Item "app/assets/images/icon.png" "android/app/src/main/res/drawable-mdpi/icon.png" -Force
+Copy-Item "app/assets/images/Formula1.png" "android/app/src/main/res/drawable-mdpi/formula1.png" -Force
+Copy-Item "app/assets/images/Google-logo.png" "android/app/src/main/res/drawable-mdpi/google_logo.png" -Force
+Copy-Item "app/assets/images/Apple-logo.png" "android/app/src/main/res/drawable-mdpi/apple_logo.png" -Force
+
 Write-Host "Assets copies avec succes" -ForegroundColor Green
 
 Write-Host "Build de l'APK en cours..." -ForegroundColor Yellow

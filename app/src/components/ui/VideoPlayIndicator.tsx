@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
 
 interface VideoPlayIndicatorProps {
   isPlaying: boolean;
@@ -17,7 +17,7 @@ const VideoPlayIndicator: React.FC<VideoPlayIndicatorProps> = ({
   style,
   showInProduction = false,
 }) => {
-  // Ne pas afficher en production sauf si explicitement demandé
+  // Ne pas afficher en production sauf si explicitement demandÃ©
   if (!__DEV__ && !showInProduction) {
     return null;
   }

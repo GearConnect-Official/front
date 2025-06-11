@@ -1,20 +1,29 @@
+import { Platform } from 'react-native';
+
 // Centralized image assets for better bundling and management
-// All images are imported here to ensure they're included in the bundle
+// Uses Android drawable resources for better compatibility
+
+const getImageSource = (androidResource: string, fallbackRequire: any) => {
+  if (Platform.OS === 'android') {
+    return { uri: androidResource };
+  }
+  return fallbackRequire;
+};
 
 export const AppImages = {
-  // Main logo
-  logoRounded: require('../../assets/images/logo-rounded.png'),
-  icon: require('../../assets/images/icon.png'),
-  splashIcon: require('../../assets/images/splash-icon.png'),
+  // Main logo - use Android drawable resources
+  logoRounded: getImageSource('logo_rounded', require('../../assets/images/logo-rounded.png')),
+  icon: getImageSource('icon', require('../../assets/images/icon.png')),
+  splashIcon: getImageSource('splashscreen_logo', require('../../assets/images/splash-icon.png')),
   adaptiveIcon: require('../../assets/images/adaptive-icon.png'),
   
   // Social logos
-  googleLogo: require('../../assets/images/Google-logo.png'),
-  appleLogo: require('../../assets/images/Apple-logo.png'),
+  googleLogo: getImageSource('google_logo', require('../../assets/images/Google-logo.png')),
+  appleLogo: getImageSource('apple_logo', require('../../assets/images/Apple-logo.png')),
   facebook: require('../../assets/images/facebook.png'),
   
   // Other assets
-  formula1: require('../../assets/images/Formula1.png'),
+  formula1: getImageSource('formula1', require('../../assets/images/Formula1.png')),
   error: require('../../assets/images/error.png'),
   favicon: require('../../assets/images/favicon.png'),
   

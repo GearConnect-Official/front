@@ -17,6 +17,7 @@ import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import authStyles from "../styles/auth/authStyles";
+import { AppImages } from "../assets/images";
 
 const AuthScreen: React.FC = () => {
   const router = useRouter();
@@ -109,7 +110,7 @@ const AuthScreen: React.FC = () => {
         >
           <View style={authStyles.contentContainer}>
             <Image
-              source={require("../../assets/images/logo-rounded.png")}
+              source={AppImages.logoRounded}
               style={authStyles.logo}
             />
 

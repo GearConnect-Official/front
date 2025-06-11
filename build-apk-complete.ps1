@@ -52,8 +52,10 @@ if ($bundleFile) {
 Write-Host "Copie des assets vers Android..." -ForegroundColor Yellow
 if (Test-Path "dist\assets") {
     Copy-Item "dist\assets\*" "android\app\src\main\assets\" -Recurse -Force
-    Write-Host "Assets copies avec succes" -ForegroundColor Green
 }
+Write-Host "Copie des images d'assets locales..." -ForegroundColor Yellow
+Copy-Item -Recurse -Force "app\assets\images" "android\app\src\main\assets\"
+Write-Host "Assets copies avec succes" -ForegroundColor Green
 
 Write-Host "Build de l'APK en cours..." -ForegroundColor Yellow
 Set-Location android

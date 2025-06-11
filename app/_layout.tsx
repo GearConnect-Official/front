@@ -9,7 +9,6 @@ import FeedbackMessage from './src/components/ui/FeedbackMessage';
 import useFeedback from './src/hooks/useFeedback';
 import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';
-import OfflineScreen from './src/screens/OfflineScreen';
 import { View } from 'react-native';
 
 // Feedback Manager Component
@@ -31,40 +30,12 @@ const FeedbackManager: React.FC<{ children: React.ReactNode }> = ({ children }) 
   );
 };
 
-// Connectivity Manager Component
+// Connectivity Manager Component - Now only handles initialization, individual screens handle their own network errors
 const ConnectivityManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isOnline, isInitializing, checkConnection } = useNetworkStatus();
-  const [hasShownOfflineScreen, setHasShownOfflineScreen] = React.useState(false);
-  
-  // Only display the offline screen if we have finished initialization
-  // and we cannot access the server
-  const showOfflineScreen = !isInitializing && !isOnline;
-  
-  // Track if we have already displayed the offline screen
-  React.useEffect(() => {
-    if (showOfflineScreen) {
-      setHasShownOfflineScreen(true);
-    }
-  }, [showOfflineScreen]);
-  
-  // Retry connection
-  const handleRetry = async () => {
-    const isNowOnline = await checkConnection();
-    
-    // If we are now online after retrying, reset the state
-    if (isNowOnline) {
-      setHasShownOfflineScreen(false);
-    }
-  };
+  const { isInitializing } = useNetworkStatus();
   
   if (isInitializing) {
     return <LoadingScreen />;
-  }
-  
-  // Only display the offline screen if we have already tried to connect
-  // and we are still offline
-  if (hasShownOfflineScreen && showOfflineScreen) {
-    return <OfflineScreen retry={handleRetry} />;
   }
   
   return <>{children}</>;

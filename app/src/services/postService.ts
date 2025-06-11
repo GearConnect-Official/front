@@ -92,7 +92,7 @@ const postService = {
       const response = await axios.get(endpoint, { params });
       return response.data;
     } catch (error) {
-      console.error("Error fetching posts:", error);
+      // console.error("Error fetching posts:", error);
       console.log("⚠️ To implement this route on the backend: GET /api/posts");
       throw error;
     }
@@ -110,7 +110,7 @@ const postService = {
       const response = await axios.get(endpoint, { params });
       return response.data;
     } catch (error) {
-      console.error("Error fetching posts with pagination:", error);
+      // console.error("Error fetching posts with pagination:", error);
       console.log("⚠️ To implement this route on the backend: GET /api/posts");
       throw error;
     }
@@ -129,7 +129,7 @@ const postService = {
       const response = await axios.get(endpoint, { params });
       return response.data;
     } catch (error) {
-      console.error("Error fetching followed posts:", error);
+      // console.error("Error fetching followed posts:", error);
       console.log(
         "⚠️ To implement this route on the backend: GET /api/posts/followed/:userId"
       );
@@ -146,7 +146,7 @@ const postService = {
       const response = await axios.get(endpoint, { params });
       return response.data;
     } catch (error) {
-      console.error("Error fetching post:", error);
+      // console.error("Error fetching post:", error);
       console.log(
         `⚠️ To implement this route on the backend: GET /api/posts/${id}`
       );
@@ -341,7 +341,7 @@ const postService = {
       const response = await axios.get(endpoint);
       return response.data;
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      // console.error("Error fetching comments:", error);
       throw error;
     }
   },
@@ -403,7 +403,7 @@ const postService = {
       const response = await axios.get(endpoint);
       return response.data;
     } catch (error) {
-      console.error("Error fetching post interactions:", error);
+      // console.error("Error fetching post interactions:", error);
       console.log(
         `⚠️ To implement this route on the backend: GET /api/interactions/post/${postId}`
       );
@@ -559,7 +559,7 @@ const postService = {
         ? response.data
         : response.data.posts || [];
     } catch (error) {
-      console.error("Error fetching user posts:", error);
+      // console.error("Error fetching user posts:", error);
       console.log(
         `⚠️ To implement this route on the backend: GET /api/posts/user/${userId}`
       );
@@ -591,7 +591,7 @@ const postService = {
       const response = await axios.get(endpoint);
       return response.data;
     } catch (error) {
-      console.error("Error fetching posts by tag:", error);
+      // console.error("Error fetching posts by tag:", error);
       console.log(
         `⚠️ To implement this route on the backend: GET /api/posts/tags/${tagName}`
       );
@@ -610,7 +610,7 @@ const postService = {
         ? response.data
         : response.data.posts || [];
     } catch (error) {
-      console.error("Error fetching liked posts:", error);
+      // console.error("Error fetching liked posts:", error);
       console.log(
         `⚠️ To implement this route on the backend: GET /api/posts/liked/${userId}`
       );
@@ -629,7 +629,7 @@ const postService = {
         ? response.data
         : response.data.posts || [];
     } catch (error) {
-      console.error("Error fetching favorite posts:", error);
+      // console.error("Error fetching favorite posts:", error);
       console.log(
         `⚠️ To implement this route on the backend: GET /api/posts/favorites/${userId}`
       );

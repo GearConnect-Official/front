@@ -1,7 +1,7 @@
-import * as React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import styles from "../../styles/screens/createEventStyles";
+import * as React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import styles from '../../styles/screens/createEventStyles';
 
 interface NavigationButtonsProps {
   currentStep: number;
@@ -25,23 +25,21 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   return (
     <View style={styles.buttonsContainer}>
       {currentStep > 1 && (
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={onPrev}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={onPrev}>
           <FontAwesome name="arrow-left" size={16} color="#666" />
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
       )}
-      
+
       {isLastStep ? (
-        <TouchableOpacity 
-          style={[styles.nextButton, { backgroundColor: '#28a745' }]} 
+        <TouchableOpacity
+          style={[styles.nextButton, { backgroundColor: '#28a745' }]}
           onPress={onSubmit}
           disabled={loading}
-        >          {loading ? (
+        >
+          {loading ? (
             <Text style={styles.nextButtonText}>
-              {isEditing ? "Saving..." : "Publishing..."}
+              {isEditing ? 'Saving...' : 'Publishing...'}
             </Text>
           ) : (
             <>
@@ -53,10 +51,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           )}
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity 
-          style={styles.nextButton} 
-          onPress={onNext}
-        >
+        <TouchableOpacity style={styles.nextButton} onPress={onNext}>
           <Text style={styles.nextButtonText}>Continue</Text>
           <FontAwesome name="arrow-right" size={16} color="#fff" />
         </TouchableOpacity>
@@ -65,4 +60,4 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   );
 };
 
-export default NavigationButtons; 
+export default NavigationButtons;

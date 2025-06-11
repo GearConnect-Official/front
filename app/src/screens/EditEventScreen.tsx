@@ -5,56 +5,51 @@ import ModifyEvent from "../components/ModifyEvent";
 import styles from "../styles/screens/createEventStyles";
 import { styles as editStyles } from "../styles/screens/editEventStyles";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import eventService from "../services/eventService";
-import { API_URL_EVENTS } from "../config";
+import eventService, { Event } from "../services/eventService";
 
-const EditEventScreen: React.FC = () => {
-  const router = useRouter();
-  const params = useLocalSearchParams();
-  const eventId = params.eventId as string;
-  
+// Custom hook to fetch and manage event data
+const useEventData = (eventId: string) => {
   const [loading, setLoading] = React.useState(true);
-  const [eventData, setEventData] = React.useState<any>(null);
+  const [eventData, setEventData] = React.useState<Event | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [deletingEvent, setDeletingEvent] = React.useState(false);
 
   React.useEffect(() => {
-    const fetchEvent = async () => {      try {
-        if (!eventId) {
-          setError("No event ID provided");
-          setLoading(false);
-          return;
-        }        
-        // Fetch event data
-          try {
-          const event = await eventService.getEventById(eventId);
-          if (!event) {
-            setError("Event not found");
-          } else {
-            const processedEventData = {
-              ...event,
-              name: event.name || "",
-              location: event.location || "",
-              creators: (typeof event.creators === 'string' ? event.creators : 
-                         typeof event.creatorId === 'object' ? event.creatorId.id : 
-                         event.creatorId) || "",
-              date: event.date ? new Date(event.date) : new Date(),
-              sponsors: event.sponsors || "",
-              website: event.website || "",
-              rankings: event.rankings || "",
-              logo: event.logo || "",
-              images: event.images || [],
-              description: event.description || "",
-            };
-            
-            setEventData(processedEventData);
-          }
-        } catch (error) {          console.error("API request failed:", error);
-          throw error;
+    const fetchEvent = async () => {
+      if (!eventId) {
+        setError("No event ID provided");
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const event = await eventService.getEventById(eventId);
+        if (!event) {
+          setError("Event not found");
+        } else {
+          // Process and normalize event data
+          const processedEventData = {
+            ...event,
+            name: event.name || "",
+            location: event.location || "",
+            creators: (typeof event.creators === 'string' ? event.creators : 
+                      typeof event.creatorId === 'object' ? event.creatorId.id : 
+                      event.creatorId) || "",
+            date: event.date ? new Date(event.date) : new Date(),
+            sponsors: event.sponsors || "",
+            website: event.website || "",
+            rankings: event.rankings || "",
+            logo: event.logo || "",
+            images: event.images || [],
+            description: event.description || "",
+            logoPublicId: event.logoPublicId || "",
+            imagePublicIds: event.imagePublicIds || []
+          };
+          
+          setEventData(processedEventData);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to fetch event:", err);
-        setError("Failed to load event data. Please try again.");
+        setError(err?.message || "Failed to load event data. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -63,6 +58,17 @@ const EditEventScreen: React.FC = () => {
     fetchEvent();
   }, [eventId]);
 
+  return { loading, eventData, error };
+};
+
+const EditEventScreen: React.FC = () => {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const eventId = params.eventId as string;
+  
+  const { loading, eventData, error } = useEventData(eventId);
+  const [deletingEvent, setDeletingEvent] = React.useState(false);
+
   const handleCancel = () => {
     router.back();
   };
@@ -70,6 +76,7 @@ const EditEventScreen: React.FC = () => {
   const handleSuccess = () => {
     router.back();
   };
+
   const handleDeletePress = () => {
     Alert.alert(
       "Delete Event",
@@ -87,6 +94,7 @@ const EditEventScreen: React.FC = () => {
       ]
     );
   };
+
   const deleteEvent = async () => {
     try {
       setDeletingEvent(true);
@@ -96,17 +104,20 @@ const EditEventScreen: React.FC = () => {
         "Success",
         "Event deleted successfully",
         [{ text: "OK", onPress: () => router.replace("/(app)/events") }]
-      );    } catch (error) {
+      );
+    } catch (error: any) {
       console.error("Failed to delete event:", error);
       
       Alert.alert(
         "Error",
-        "Failed to delete event. Please try again."
+        error?.message || "Failed to delete event. Please try again."
       );
     } finally {
       setDeletingEvent(false);
     }
   };
+
+  // Render loading state
   if (loading || deletingEvent) {
     return (
       <View style={editStyles.centeredContainer}>
@@ -118,6 +129,7 @@ const EditEventScreen: React.FC = () => {
     );
   }
 
+  // Render error state
   if (error || !eventData) {
     return (
       <View style={editStyles.centeredContainer}>
@@ -131,6 +143,8 @@ const EditEventScreen: React.FC = () => {
       </View>
     );
   }
+
+  // Render main content
   return (
     <View style={styles.container}>
       <TopBar 

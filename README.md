@@ -83,6 +83,86 @@ L'application utilise React Navigation 7 pour la gestion des routes :
 - Navigation par onglets (`TabNavigator`) pour le menu inférieur
 - Gestion des états d'authentification avec des piles de navigation conditionnelles
 
+## Configuration Clerk & Authentification
+
+### Architecture d'Authentification
+
+L'application utilise une **architecture hybride** avec Clerk et un backend Express :
+
+#### **Frontend (React Native/Expo)**
+- Utilise `@clerk/clerk-expo` pour l'authentification
+- Gère les sessions utilisateur avec Clerk
+- Communique avec le backend pour les données métier
+
+#### **Backend (Express + Prisma + MySQL)**
+- **Ne stocke PAS les mots de passe** (délégation complète à Clerk)
+- Stocke les profils utilisateur avec `externalId` (lien vers Clerk)
+- Utilise `@clerk/clerk-sdk-node` pour vérifier les tokens
+- Gère les données métier (posts, événements, performances, etc.)
+
+#### **Clerk (Service d'Authentification)**
+- Gère tous les mots de passe et l'authentification
+- Fournit les fonctionnalités forgot password
+- Envoie les emails de vérification et reset
+- Génère et valide les tokens JWT
+
+### Configuration Forgot Password
+
+La fonctionnalité "mot de passe oublié" utilise **uniquement Clerk** - aucun endpoint backend n'est nécessaire.
+
+#### 1. Configuration Dashboard Clerk
+
+1. Connectez-vous à votre [Dashboard Clerk](https://dashboard.clerk.com/)
+2. Sélectionnez votre application
+3. Allez dans **User & Authentication** > **Email, Phone, Username**
+4. Dans la section **Email address**, activez :
+   - ✅ **Require email address**
+   - ✅ **Allow password reset**
+
+#### 2. Fonctionnalités Implémentées
+
+- ✅ **Reset par Email** : Utilise directement les APIs Clerk
+- ✅ **Interface simple** : Processus en 2 étapes (email → code + nouveau mot de passe)
+- ✅ **Validation côté client** : Format email, longueur mot de passe
+- ✅ **Gestion d'erreurs** : Messages contextuels de Clerk
+- ✅ **Sécurité** : Support 2FA, expiration automatique des codes
+- ✅ **UX optimisée** : États de chargement, navigation fluide
+
+#### 3. Pourquoi pas d'endpoint backend ?
+
+```typescript
+// ❌ PAS BESOIN de ça dans le backend
+// app.post('/auth/forgot-password', ...)
+// app.post('/auth/reset-password', ...)
+
+// ✅ À la place, le frontend utilise directement Clerk
+await signIn.create({
+  strategy: 'reset_password_email_code',
+  identifier: email,
+});
+```
+
+**Avantages de cette approche :**
+- **Sécurité renforcée** : Les mots de passe ne transitent jamais par notre backend
+- **Maintenance réduite** : Clerk gère la complexité (emails, validation, expiration)
+- **Conformité** : Clerk gère GDPR, sécurité, etc.
+- **Performance** : Moins de charge sur notre backend
+
+#### 4. Test de la fonctionnalité
+
+1. Naviguez vers l'écran de connexion
+2. Cliquez sur "Forgot Password?"
+3. Entrez votre adresse email
+4. Vérifiez votre boîte mail pour le code de vérification
+5. Saisissez le code reçu + votre nouveau mot de passe
+6. Connexion automatique après reset réussi
+
+#### 5. Dépannage
+
+- **Email non reçu** : Vérifiez les spams, configuration email dans Clerk
+- **Code invalide** : Les codes expirent après quelques minutes, demandez un nouveau code
+- **Email non trouvé** : Vérifiez que l'email est bien enregistré dans votre application
+
 ## Notes importantes
 
 - Ne jamais commiter le fichier `.env` (il est déjà dans .gitignore)
@@ -98,6 +178,8 @@ L'application utilise React Navigation 7 pour la gestion des routes :
 - React Navigation 7
 - Axios pour les requêtes API
 - Jest pour les tests
+- Clerk pour l'authentification
+- Express + Prisma + MySQL pour le backend
 
 ## Contribution
 

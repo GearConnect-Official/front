@@ -16,7 +16,7 @@ import {
   FlatListProps,
   Dimensions,
 } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
@@ -811,3 +811,4 @@ const HomeScreen: React.FC = () => {
 };
 
 export default HomeScreen;
+

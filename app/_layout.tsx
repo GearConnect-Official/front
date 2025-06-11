@@ -11,6 +11,7 @@ import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';
 import OfflineScreen from './src/screens/OfflineScreen';
 import { View } from 'react-native';
+import Constants from 'expo-constants';
 
 // Feedback Manager Component
 const FeedbackManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -70,8 +71,14 @@ const ConnectivityManager: React.FC<{ children: React.ReactNode }> = ({ children
   return <>{children}</>;
 };
 
-const CLERK_PUBLISHABLE_KEY =
-  "pk_test_b2JsaWdpbmctcHl0aG9uLTgzLmNsZXJrLmFjY291bnRzLmRldiQ";
+const CLERK_PUBLISHABLE_KEY = Constants.expoConfig?.extra?.clerkPublishableKey;
+
+console.log('🔑 [RootLayout] Clerk Key:', CLERK_PUBLISHABLE_KEY ? 'Found' : 'Missing');
+
+if (!CLERK_PUBLISHABLE_KEY) {
+  console.error('❌ [RootLayout] Missing Clerk publishable key!');
+  throw new Error('Missing Clerk publishable key. Please check your environment configuration.');
+}
 
 export default function RootLayout() {
   return (

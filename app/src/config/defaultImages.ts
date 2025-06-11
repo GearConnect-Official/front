@@ -1,6 +1,8 @@
+import { AppImages } from "../assets/images";
+
 export const defaultImages = {
-  profile: require("../../assets/images/Formula1.png"),
+  profile: AppImages.formula1,
   post: "https://via.placeholder.com/300",
-  event: require("../../assets/images/logo-rounded.png"),
-  avatar: require("../../assets/images/Formula1.png"),
+  event: AppImages.logoRounded,
+  avatar: AppImages.formula1,
 };

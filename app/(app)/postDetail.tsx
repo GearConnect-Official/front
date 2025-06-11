@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
@@ -24,7 +24,8 @@ import styles from '../src/styles/screens/postDetailStyles';
 
 const PostDetailScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const authContext = useAuth();
+  const user = authContext?.user;
   const { postId } = useLocalSearchParams<{ postId: string }>();
   
   const [post, setPost] = useState<Post | null>(null);
@@ -288,7 +289,7 @@ const PostDetailScreen: React.FC = () => {
           onComment={handleComment}
           onShare={handleShare}
           onProfilePress={handleProfilePress}
-          currentUsername={user?.username}
+          currentUsername={user?.username || undefined}
           isVisible={true}
           isCurrentlyVisible={true}
         />

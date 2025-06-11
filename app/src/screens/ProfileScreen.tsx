@@ -10,7 +10,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import styles from "../styles/Profile/profileStyles";
 import { useAuth } from "../context/AuthContext";
@@ -1015,3 +1015,4 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
 };
 
 export default ProfileScreen;
+

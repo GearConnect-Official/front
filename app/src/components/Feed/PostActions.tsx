@@ -1,6 +1,6 @@
 import React from "react";
 import { View, TouchableOpacity } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import styles from "../../styles/feed/postActionsStyles";
 
 interface PostActionsProps {
@@ -66,3 +66,4 @@ const PostActions: React.FC<PostActionsProps> = ({
 };
 
 export default PostActions;
+

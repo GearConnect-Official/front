@@ -1,7 +1,7 @@
 import * as React from "react";
 import { View, ScrollView } from "react-native";
 import TopBar from "../components/CreateEvent/TopBar";
-import CreateEvent from "../components/CreateEvent";
+import CreateEventForm from "../components/CreateEventForm";
 import styles from "../styles/screens/createEventStyles";
 import { useRouter } from "expo-router";
 
@@ -20,7 +20,7 @@ const CreateEventScreen: React.FC = () => {
     <View style={styles.container}>
       <TopBar title="Create Event" onBackPress={handleCancel} />
       <ScrollView style={styles.contentContainer}>
-        <CreateEvent onCancel={handleCancel} onSuccess={handleSuccess} />
+        <CreateEventForm onCancel={handleCancel} onSuccess={handleSuccess} />
         <View style={styles.spacer} />
       </ScrollView>
     </View>

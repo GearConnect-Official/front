@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import FeedbackMessage, { FeedbackType } from './FeedbackMessage';
 import { errorBoundaryStyles } from '../../styles/components/errorBoundaryStyles';
+import { AppImages } from '../../assets/images';
 
 interface Props {
   children: ReactNode;
@@ -64,7 +65,7 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <View style={errorBoundaryStyles.container}>
           <Image
-            source={require('../../../assets/images/icon.png')}
+            source={AppImages.icon}
             style={errorBoundaryStyles.errorImage}
             resizeMode="contain"
           />

@@ -6,6 +6,8 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import StepIndicator from "./CreateEvent/StepIndicator";
 import BasicInfo from "./CreateEvent/BasicInfo";
@@ -32,6 +34,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
   
   const [formData, setFormData] = React.useState<Event>({
     name: initialData.name || "",
+    creatorId: user?.id ? Number(user.id) : 0,
     creators: initialData.creators || "",
     location: initialData.location || "",
     date: initialData.date ? new Date(initialData.date) : new Date(),
@@ -47,6 +50,11 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
   const [error, setError] = React.useState<string | null>(null);
   const [currentStep, setCurrentStep] = React.useState(1);
   const totalSteps = 3;
+
+  // Force la fermeture du clavier quand l'étape change
+  React.useEffect(() => {
+    Keyboard.dismiss();
+  }, [currentStep]);
 
   const handleInputChange = (field: keyof Event, value: any) => {
     setFormData((prev) => {
@@ -86,7 +94,8 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       const eventData: Event = {
         name: formData.name.trim(),
         location: formData.location.trim(),
-        // Utiliser l'ID utilisateur comme creatorId
+        // Utiliser l'ID utilisateur comme creatorId et creators
+        creatorId: Number(user.id),
         creators: String(user.id),
         rankings: formData.rankings.trim(),
         website: formData.website.trim(),
@@ -136,6 +145,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
   };
 
   const nextStep = () => {
+    Keyboard.dismiss(); // Force la fermeture du clavier avant de changer d'étape
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
@@ -196,28 +206,45 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
 
   const isLastStep = currentStep === totalSteps;
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1 }}
     >
-      <View style={styles.container}>
-        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
-        <ScrollView style={styles.scrollView}>
-          {renderStepContent()}
-        </ScrollView>
+      <TouchableWithoutFeedback onPress={dismissKeyboard}>
+        <View style={styles.container}>
+          <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={true}
+            scrollEventThrottle={16}
+            bounces={false}
+            overScrollMode="never"
+            keyboardDismissMode={Platform.OS === "android" ? "on-drag" : "none"}
+            onScrollBeginDrag={Platform.OS === "android" ? dismissKeyboard : undefined}
+          >
+            {renderStepContent()}
+          </ScrollView>
         
-        <NavigationButtons
-          currentStep={currentStep}
-          isLastStep={isLastStep}
-          loading={loading}
-          onPrev={prevStep}
-          onNext={nextStep}
-          onSubmit={handleSubmit}
-        />
-        
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
+          <NavigationButtons
+            currentStep={currentStep}
+            isLastStep={isLastStep}
+            loading={loading}
+            onPrev={prevStep}
+            onNext={nextStep}
+            onSubmit={handleSubmit}
+          />
+          
+          {error && <Text style={styles.errorText}>{error}</Text>}
+        </View>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };

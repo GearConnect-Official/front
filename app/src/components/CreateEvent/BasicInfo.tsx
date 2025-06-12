@@ -43,6 +43,9 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
           placeholder="Enter event name"
           value={name}
           onChangeText={(text) => onInputChange("name", text)}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => {}}
         />
       </View>
 
@@ -53,6 +56,9 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
           placeholder="Enter organizer name"
           value={creators}
           onChangeText={(text) => onInputChange("creators", text)}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => {}}
         />
       </View>
 
@@ -63,6 +69,8 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
           placeholder="Enter event location"
           value={location}
           onChangeText={(text) => onInputChange("location", text)}
+          returnKeyType="done"
+          blurOnSubmit={true}
         />
       </View>
 

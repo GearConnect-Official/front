@@ -11,8 +11,11 @@ const THEME_COLORS = {
 };
 
 interface HeaderProps {
+  title?: string;
+  stepInfo?: { current: number; total: number };
   isCropping: boolean;
   isLastStep?: boolean;
+  canGoNext?: boolean;
   onBack: () => void;
   onConfirm: () => void;
   onNext: () => void;
@@ -21,8 +24,11 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
+  title = 'New Post',
+  stepInfo,
   isCropping,
   isLastStep = false,
+  canGoNext = false,
   onBack,
   onConfirm,
   onNext,
@@ -33,6 +39,11 @@ const Header: React.FC<HeaderProps> = ({
     if (onNext && !isLoading) {
       onNext();
     }
+  };
+
+  const getNextButtonText = () => {
+    if (isLastStep) return 'Publish';
+    return 'Next';
   };
 
   return (
@@ -64,11 +75,20 @@ const Header: React.FC<HeaderProps> = ({
           >
             <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.secondary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>New Post</Text>
-          {isLastStep ? (
+          
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>{title}</Text>
+            {stepInfo && (
+              <Text style={styles.stepIndicator}>
+                Step {stepInfo.current} of {stepInfo.total}
+              </Text>
+            )}
+          </View>
+          
+          {(isLastStep || canGoNext) ? (
             <TouchableOpacity 
               style={[
-                styles.nextButtonShare,
+                isLastStep ? styles.nextButtonShare : styles.nextButton,
                 isLoading && styles.buttonDisabled
               ]}
               onPress={handleNext}
@@ -77,7 +97,9 @@ const Header: React.FC<HeaderProps> = ({
               {isLoading ? (
                 <ActivityIndicator size="small" color={THEME_COLORS.background} style={styles.buttonLoader} />
               ) : (
-                <Text style={styles.nextButtonShareText}>Share</Text>
+                <Text style={isLastStep ? styles.nextButtonShareText : styles.nextButtonText}>
+                  {getNextButtonText()}
+                </Text>
               )}
             </TouchableOpacity>
           ) : (

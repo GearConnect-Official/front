@@ -35,6 +35,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: HEADER_HEIGHT,
   },
+  selectStepContainer: {
+    flex: 1,
+  },
 
   // Header styles
   header: {
@@ -50,6 +53,11 @@ const styles = StyleSheet.create({
     flex: 1,
     ...theme.common.row,
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   backButton: {
     marginRight: 15,
     padding: 8,
@@ -60,6 +68,12 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.textPrimary,
     fontSize: 18,
     fontWeight: '700',
+  },
+  stepIndicator: {
+    color: THEME_COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
   },
   placeholderRight: {
     width: 40,
@@ -112,10 +126,11 @@ const styles = StyleSheet.create({
   // Media Section styles
   mediaSectionContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: THEME_COLORS.cardLight,
     padding: 24,
+    paddingTop: 20,
   },
   mediaSectionTitle: {
     fontSize: 32,

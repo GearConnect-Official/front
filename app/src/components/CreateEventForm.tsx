@@ -19,7 +19,7 @@ import { useAnalytics } from "../hooks/useAnalytics";
 
 interface CreateEventProps {
   onCancel: () => void;
-  onSuccess: () => void;
+  onSuccess: (event: Event) => void;
   initialData?: Partial<Event>;
 }
 
@@ -100,62 +100,24 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
         images: formData.images || [],
       };
       
-      // Afficher toutes les données envoyées pour débogage
-      console.log("Données avant envoi:", JSON.stringify(eventData, null, 2));
-      
       const createdEvent = await eventService.createEvent(eventData);
-      console.log("Réponse du serveur:", createdEvent);
-
-      // Track event creation analytics
-      trackEventCreation({
-        eventId: createdEvent.id?.toString() || Date.now().toString(),
-        eventType: 'custom', // Peut être adapté selon le type d'événement
-        creatorId: user.id.toString(),
-        hasLocation: !!formData.location.trim(),
-        hasImages: (formData.images?.length || 0) > 0 || !!formData.logo,
-        categoryTags: [], // Peut être adapté si vous avez des catégories
-        expectedParticipants: undefined, // À adapter si vous collectez cette info
-      });
-
-      // Track app usage for feature completion
-      trackAppUsage('feature_use', {
-        featureName: 'create_event_completed',
-        userType: 'authenticated',
-      });
-
-      console.log('🔍 [CreateEventForm] Event creation tracked:', {
-        eventId: createdEvent.id,
-        creatorId: user.id,
-        hasLocation: !!formData.location.trim(),
-        hasImages: (formData.images?.length || 0) > 0 || !!formData.logo,
-      });
-  
-      Alert.alert(
-        "Success", 
-        "Your event has been created successfully! It's now visible to the entire community.", 
-        [{ text: "Great!", onPress: onSuccess }]
-      );
-    } catch (err: any) {
-      console.error("Error creating event:", err);
       
-      // Log more details about the error for debugging
-      if (err?.response) {
-        console.error("Response data:", err.response.data);
-        console.error("Response status:", err.response.status);
-        console.error("Response headers:", err.response.headers);
+      // Track the event creation
+      if (trackEventCreation) {
+        trackEventCreation({
+          eventId: createdEvent.id?.toString() || Date.now().toString(),
+          eventType: 'custom',
+          creatorId: user.id.toString(),
+          hasLocation: !!formData.location.trim(),
+          hasImages: (formData.images?.length || 0) > 0 || !!formData.logo,
+          categoryTags: [],
+        });
       }
-      
-      // Afficher un message d'erreur plus précis
-      if (err?.response?.data?.error) {
-        setError(`Error: ${err.response.data.error}`);
-      } else if (err?.response?.data?.message) {
-        setError(`Error: ${err.response.data.message}`);
-      } else if (err?.message) {
-        setError(`Error: ${err.message}`);
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
-      Alert.alert("Error", "Unable to create the event. Please check your data and try again.");
+
+      onSuccess && onSuccess(createdEvent);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error || error?.message || "Failed to create event";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

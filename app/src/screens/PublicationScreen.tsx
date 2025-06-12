@@ -10,25 +10,37 @@ import { CloudinaryUploadResponse } from '../services/cloudinary.service';
 import Header from '../components/Publication/Header';
 import MediaSection from '../components/Publication/MediaSection';
 import ImageViewer from '../components/Publication/ImageViewer';
-import PublicationForm from '../components/Publication/PublicationForm';
+import TitleStep from '../components/Publication/TitleStep';
+import DescriptionStep from '../components/Publication/DescriptionStep';
+import TagsStep from '../components/Publication/TagsStep';
+import ReviewStep from '../components/Publication/ReviewStep';
 
 /**
- * Écran de publication de post
+ * Écran de publication de post avec processus étape par étape
  * 
- * TODO: Fonctionnalités à implémenter dans les prochaines itérations:
- * 1. Gestion des images: intégration complète avec Cloudinary pour le stockage et l'optimisation
- * 
- * Implémentation actuelle:
- * - Création de posts avec titre et description
- * - Upload automatique vers Cloudinary avec optimisation
- * - Gestion des tags: implémentation côté client qui crée les tags et tente de les associer aux posts
- * - URLs optimisées pour les images avec transformations automatiques
+ * Étapes:
+ * 1. select - Sélection du média
+ * 2. crop - Recadrage de l'image (skip pour vidéos)
+ * 3. title - Saisie du titre (obligatoire)
+ * 4. description - Saisie de la description (obligatoire)
+ * 5. tags - Ajout de tags (optionnel mais encouragé)
+ * 6. review - Révision finale et publication
  */
+
+interface FormErrors {
+  title?: string;
+  description?: string;
+  image?: string;
+  general?: string;
+}
+
+type PublicationStep = 'select' | 'crop' | 'title' | 'description' | 'tags' | 'review';
 
 const PublicationScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
-  const [step, setStep] = useState<'select' | 'crop' | 'form'>('select');
+  const authContext = useAuth();
+  const user = authContext?.user;
+  const [step, setStep] = useState<PublicationStep>('select');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImagePublicId, setSelectedImagePublicId] = useState<string | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
@@ -37,6 +49,7 @@ const PublicationScreen: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [resourceType, setResourceType] = useState<string>('image');
+  const [errors, setErrors] = useState<FormErrors>({});
   const [feedback, setFeedback] = useState({
     visible: false,
     message: '',
@@ -49,12 +62,80 @@ const PublicationScreen: React.FC = () => {
   // Mettre à jour les informations utilisateur lorsqu'ils sont disponibles
   useEffect(() => {
     if (user) {
-      setUsername(user.username);
+      setUsername(user.username || 'User');
       if (user.photoURL) {
         setUserAvatar(user.photoURL);
       }
     }
   }, [user]);
+
+  const validateCurrentStep = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    switch (step) {
+      case 'select':
+        if (!selectedImage) {
+          newErrors.image = "Please select an image or video";
+        }
+        break;
+      
+      case 'crop':
+        const imageToCheck = croppedImage || selectedImage;
+        if (!imageToCheck) {
+          newErrors.image = "Please crop your image or go back to select another one";
+        }
+        break;
+      
+      case 'title':
+        if (!title.trim()) {
+          newErrors.title = "Title is required to continue";
+        } else if (title.trim().length < 3) {
+          newErrors.title = "Title must be at least 3 characters long";
+        } else if (title.trim().length > 100) {
+          newErrors.title = "Title cannot exceed 100 characters";
+        }
+        break;
+      
+      case 'description':
+        if (!description.trim()) {
+          newErrors.description = "Description is required to continue";
+        } else if (description.trim().length < 10) {
+          newErrors.description = "Description must be at least 10 characters long";
+        } else if (description.trim().length > 2200) {
+          newErrors.description = "Description cannot exceed 2200 characters";
+        }
+        break;
+      
+      case 'tags':
+        // Tags are optional, always valid
+        break;
+      
+      case 'review':
+        // Final validation before submission
+        if (!user) {
+          newErrors.general = "You must be logged in to create a post";
+        }
+        if (!title.trim()) {
+          newErrors.title = "Title is required";
+        }
+        if (!description.trim()) {
+          newErrors.description = "Description is required";
+        }
+        if (!selectedImage && !croppedImage) {
+          newErrors.image = "Media is required";
+        }
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const clearError = (field: keyof FormErrors) => {
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: undefined });
+    }
+  };
 
   const handleGoBack = () => {
     if (step !== 'select') {
@@ -72,6 +153,7 @@ const PublicationScreen: React.FC = () => {
               setTitle('');
               setDescription('');
               setTags([]);
+              setErrors({});
               setStep('select');
               router.back();
             }
@@ -86,34 +168,53 @@ const PublicationScreen: React.FC = () => {
   const hideFeedback = () => {
     setFeedback(prev => ({ ...prev, visible: false }));
   };
-  
-  const handleShare = async () => {
-    const imageToShare = croppedImage || selectedImage;
+
+  const getStepTitle = (): string => {
+    switch (step) {
+      case 'select': return 'Select Media';
+      case 'crop': return 'Crop Image';
+      case 'title': return 'Add Title';
+      case 'description': return 'Add Description';
+      case 'tags': return 'Add Tags';
+      case 'review': return 'Review & Publish';
+      default: return 'Create Post';
+    }
+  };
+
+  const getStepNumber = (): { current: number; total: number } => {
+    const stepOrder: PublicationStep[] = ['select', 'crop', 'title', 'description', 'tags', 'review'];
+    let currentIndex = stepOrder.indexOf(step);
+    let totalSteps = stepOrder.length;
     
-    if (!imageToShare || !title.trim()) {
-      Alert.alert('Error', 'Please add an image and title');
-      return;
+    // Si c'est une vidéo, on skip l'étape crop
+    if (resourceType === 'video') {
+      totalSteps = stepOrder.length - 1;
+      if (currentIndex > 1) { // Si on est après crop
+        currentIndex = currentIndex - 1;
+      }
     }
     
-    if (!user) {
-      setFeedback({
-        visible: true,
-        message: 'You must be logged in to create a post',
-        type: FeedbackType.ERROR
-      });
+    return { current: currentIndex + 1, total: totalSteps };
+  };
+  
+  const handlePublish = async () => {
+    if (!validateCurrentStep()) {
       return;
     }
 
+    const imageToShare = croppedImage || selectedImage;
+
     try {
       setIsLoading(true);
+      setErrors({});
       
       // Objet post avec informations Cloudinary
       const newPost = {
-        title: title,
-        body: description,
-        userId: parseInt(user.id),
+        title: title.trim(),
+        body: description.trim(),
+        userId: parseInt(user!.id.toString()),
         // Inclure les informations Cloudinary directement
-        cloudinaryUrl: imageToShare,
+        cloudinaryUrl: imageToShare || undefined,
         cloudinaryPublicId: selectedImagePublicId || undefined,
         // Métadonnées pour l'optimisation (en JSON string)
         imageMetadata: JSON.stringify({
@@ -127,9 +228,6 @@ const PublicationScreen: React.FC = () => {
         })
       };
       
-      console.log('Sending post data with Cloudinary info:', newPost);
-      console.log('With tags:', tags);
-      
       // Appeler l'API pour créer le post avec les tags
       await postService.createPostWithTags(newPost, tags);
       
@@ -140,12 +238,13 @@ const PublicationScreen: React.FC = () => {
       setTitle('');
       setDescription('');
       setTags([]);
+      setErrors({});
       setStep('select');
       
       // Afficher un message de succès
       setFeedback({
         visible: true,
-        message: 'Post created successfully with optimized images!',
+        message: 'Post created successfully!',
         type: FeedbackType.SUCCESS
       });
       
@@ -154,11 +253,21 @@ const PublicationScreen: React.FC = () => {
         router.replace('/(app)/(tabs)');
       }, 1500);
       
-    } catch (error) {
-      console.error('Error creating post:', error);
+    } catch (error: any) {
+      let errorMessage = 'Failed to create post. Please try again.';
+      
+      // Gestion spécifique des erreurs
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      setErrors({ general: errorMessage });
+      
       setFeedback({
         visible: true,
-        message: 'Failed to create post. Please try again.',
+        message: errorMessage,
         type: FeedbackType.ERROR
       });
     } finally {
@@ -167,26 +276,20 @@ const PublicationScreen: React.FC = () => {
   };
 
   const handleImageSelected = (cloudinaryResponse: CloudinaryUploadResponse) => {
-    console.log('📸 Media selected from Cloudinary:', {
-      resource_type: cloudinaryResponse.resource_type,
-      format: cloudinaryResponse.format,
-      secure_url: cloudinaryResponse.secure_url,
-      public_id: cloudinaryResponse.public_id
-    });
-    
     setSelectedImage(cloudinaryResponse.secure_url);
     setCroppedImage(cloudinaryResponse.secure_url);
     setSelectedImagePublicId(cloudinaryResponse.public_id);
     
+    // Clear image error when image is selected
+    clearError('image');
+    
     // Stocker le type de ressource pour les métadonnées
     const resourceType = cloudinaryResponse.resource_type || 'image';
     setResourceType(resourceType);
-    console.log('📸 Resource type set to:', resourceType);
     
     // Les vidéos sautent directement au formulaire, pas de crop
     if (resourceType === 'video') {
-      console.log('📹 Video detected, skipping crop step');
-      setStep('form');
+      setStep('title');
     } else {
       setStep('crop');
     }
@@ -197,19 +300,52 @@ const PublicationScreen: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (step === 'crop') {
-      if (!croppedImage && !selectedImage) {
-        Alert.alert('Error', 'Please select an image first');
-        return;
-      }
-      setStep('form');
+    if (!validateCurrentStep()) {
+      return;
+    }
+
+    clearError('general');
+
+    switch (step) {
+      case 'crop':
+        setStep('title');
+        break;
+      case 'title':
+        setStep('description');
+        break;
+      case 'description':
+        setStep('tags');
+        break;
+      case 'tags':
+        setStep('review');
+        break;
+      case 'review':
+        handlePublish();
+        break;
+      default:
+        break;
     }
   };
 
   const handleBack = () => {
+    setErrors({});
+    
     switch (step) {
-      case 'form':
-        setStep('crop');
+      case 'review':
+        setStep('tags');
+        break;
+      case 'tags':
+        setStep('description');
+        break;
+      case 'description':
+        setStep('title');
+        break;
+      case 'title':
+        if (resourceType === 'video') {
+          setStep('select');
+        } else {
+          setStep('crop');
+        }
         break;
       case 'crop':
         setStep('select');
@@ -219,11 +355,18 @@ const PublicationScreen: React.FC = () => {
     }
   };
 
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+    clearError('title');
+  };
+
+  const handleDescriptionChange = (newDescription: string) => {
+    setDescription(newDescription);
+    clearError('description');
+  };
+
   const handleTagsChange = (newTags: string[]) => {
-    console.log('handleTagsChange called with:', newTags);
-    console.log('Current tags before update:', tags);
     setTags(newTags);
-    console.log('Tags updated in PublicationScreen');
   };
 
   const renderContent = () => {
@@ -242,22 +385,49 @@ const PublicationScreen: React.FC = () => {
           />
         ) : null;
       
-      case 'form':
+      case 'title':
+        return (
+          <TitleStep
+            title={title}
+            onTitleChange={handleTitleChange}
+            error={errors.title}
+            isLoading={isLoading}
+          />
+        );
+      
+      case 'description':
+        return (
+          <DescriptionStep
+            description={description}
+            onDescriptionChange={handleDescriptionChange}
+            error={errors.description}
+            isLoading={isLoading}
+          />
+        );
+      
+      case 'tags':
+        return (
+          <TagsStep
+            tags={tags}
+            onTagsChange={handleTagsChange}
+            isLoading={isLoading}
+          />
+        );
+      
+      case 'review':
         const imageToShow = croppedImage || selectedImage;
         return imageToShow ? (
-          <PublicationForm
+          <ReviewStep
             imageUri={imageToShow}
             title={title}
             description={description}
             tags={tags}
-            setTitle={setTitle}
-            setDescription={setDescription}
-            setTags={handleTagsChange}
             username={username}
             userAvatar={userAvatar}
-            isLoading={isLoading}
             mediaType={resourceType as 'image' | 'video'}
             publicId={selectedImagePublicId || undefined}
+            error={errors.general}
+            isLoading={isLoading}
           />
         ) : null;
       
@@ -266,19 +436,26 @@ const PublicationScreen: React.FC = () => {
     }
   };
 
+  const stepInfo = getStepNumber();
+  const isLastStep = step === 'review';
+  const canGoNext = step !== 'select' && step !== 'crop' && step !== 'review';
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Header 
+        title={getStepTitle()}
+        stepInfo={stepInfo}
         isCropping={step === 'crop'}
-        isLastStep={step === 'form'}
+        isLastStep={isLastStep}
+        canGoNext={canGoNext}
         onBack={handleBack}
         onConfirm={handleNext}
-        onNext={step === 'form' ? handleShare : handleNext}
+        onNext={handleNext}
         onGoBack={handleGoBack}
         isLoading={isLoading}
       />
-      <View style={styles.contentContainer}>
+      <View style={step === 'select' ? styles.selectStepContainer : styles.contentContainer}>
         {renderContent()}
       </View>
       <FeedbackMessage

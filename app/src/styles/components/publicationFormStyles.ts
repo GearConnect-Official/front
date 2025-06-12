@@ -42,6 +42,28 @@ export const publicationFormStyles = StyleSheet.create({
     marginTop: theme.spacing.xxs + 2,
   },
 
+  // Error styles
+  inputError: {
+    borderColor: theme.colors.status.error,
+    borderWidth: 1,
+  },
+  errorContainer: {
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+  },
+  errorText: {
+    color: theme.colors.status.error,
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  fieldError: {
+    color: theme.colors.status.error,
+    fontSize: 14,
+    marginTop: theme.spacing.xxs + 1,
+    marginLeft: theme.spacing.xxs + 1,
+  },
+
   // Suggestions
   suggestionsContainer: {
     marginTop: theme.spacing.md,

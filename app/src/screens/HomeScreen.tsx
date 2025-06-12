@@ -35,6 +35,7 @@ import useVisibilityTracker from '../hooks/useVisibilityTracker';
 import { detectMediaType } from '../utils/mediaUtils';
 import { ApiError, ErrorType } from '../services/axiosConfig';
 import { useScreenTracking, useAnalytics, usePostTracking } from '../hooks/useAnalytics';
+import * as Share from 'expo-sharing';
 
 // Types
 interface Story {
@@ -43,6 +44,18 @@ interface Story {
   avatar: string;
   viewed: boolean;
   content?: string;
+}
+
+interface PostTagRelation {
+  tag: {
+    id: number;
+    name: string;
+  };
+}
+
+interface Interaction {
+  userId: number;
+  like: boolean;
 }
 
 interface UIPost {
@@ -68,81 +81,32 @@ const CURRENT_USERNAME = "john_doe";
 const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 
 // Fonction helper pour convertir les posts de l'API au format d'UI
-const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
-  console.log('🔄 Converting API post to UI post:', {
-    id: apiPost.id,
-    cloudinaryUrl: apiPost.cloudinaryUrl,
-    cloudinaryPublicId: apiPost.cloudinaryPublicId,
-    imageMetadata: apiPost.imageMetadata,
-    isFavorited: (apiPost as any).isFavorited,
-    favoritesCount: (apiPost as any).favoritesCount
-  });
-
-  const liked = apiPost.interactions?.some(
-    (interaction) => interaction.userId === currentUserId && interaction.like
-  ) || false;
-  
-  const likes = apiPost.interactions?.filter(interaction => interaction.like).length || 0;
-  
-  const comments = apiPost.interactions?.filter(interaction => interaction.comment)
-    .map(interaction => ({
-      id: `${interaction.userId}`,
-      username: `user_${interaction.userId}`,
-      avatar: `https://randomuser.me/api/portraits/men/${interaction.userId % 50}.jpg`,
-      text: interaction.comment || '',
-      timeAgo: '1h',
-      likes: 0,
-    })) || [];
-
-  const images: string[] = [
-    (typeof apiPost.image === 'string' ? apiPost.image : null) || 
-    apiPost.cloudinaryUrl || 
-    'https://via.placeholder.com/300'
-  ].filter(Boolean) as string[];
-  const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : undefined;
-  
-  // Améliorer la détection du type de média
+const convertApiPostToUiPost = (apiPost: any, currentUser?: any): UIPost => {
   const detectedType = detectMediaType(apiPost.cloudinaryUrl, apiPost.cloudinaryPublicId, apiPost.imageMetadata);
   const mediaTypes: ('image' | 'video')[] = [detectedType];
-  
-  console.log('📋 Final conversion result:', {
-    postId: apiPost.id,
-    detectedType,
-    mediaTypes,
-    hasPublicId: !!imagePublicIds,
-    imageUrl: images[0]
-  });
-  
-  const timeAgo = formatPostDate(apiPost.createdAt || new Date());
-  
-  // Séparer le titre et la description de manière intelligente
-  const fullContent = `${apiPost.title || ''} ${apiPost.body || ''}`.trim();
-  const title = apiPost.title || fullContent.substring(0, 60) || 'Untitled Post';
-  const description = apiPost.body || fullContent || '';
-  
-  // Mapper les tags avec la structure correcte
-  const tags: PostTag[] = apiPost.tags?.map(tagRelation => ({
-    id: tagRelation.tag.id?.toString(),
-    name: tagRelation.tag.name
-  })) || [];
 
-  return {
-    id: apiPost.id?.toString() || '',
-    username: apiPost.user?.username || `user_${apiPost.userId}`,
-    avatar: apiPost.user?.imageUrl || `https://randomuser.me/api/portraits/men/${apiPost.userId % 50}.jpg`,
-    images,
-    imagePublicIds,
+  const uiPost: UIPost = {
+    id: apiPost.id.toString(),
+    username: apiPost.user?.username || apiPost.user?.name || 'Unknown User',
+    avatar: apiPost.user?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(apiPost.user?.username || 'User')}&background=E10600&color=fff`,
+    images: apiPost.cloudinaryUrl ? [apiPost.cloudinaryUrl] : [],
+    imagePublicIds: apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : [],
     mediaTypes,
-    title,
-    description,
-    tags,
-    likes,
-    liked,
-    saved: (apiPost as any).isFavorited || false,
-    comments,
-    timeAgo: timeAgo,
+    title: apiPost.title || '',
+    description: apiPost.body || '',
+    tags: apiPost.tags?.map((tagRelation: PostTagRelation) => ({
+      id: tagRelation.tag.id.toString(),
+      name: tagRelation.tag.name
+    })) || [],
+    likes: apiPost.interactions?.filter((interaction: Interaction) => interaction.like).length || 0,
+    liked: apiPost.interactions?.some((interaction: Interaction) => interaction.userId === Number(currentUser?.id) && interaction.like) || false,
+    saved: apiPost.isFavorited || false,
+    comments: [],
+    timeAgo: formatPostDate(apiPost.createdAt),
     isFromToday: isPostFromToday(apiPost.createdAt || new Date()),
   };
+
+  return uiPost;
 };
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as React.ComponentType<FlatListProps<UIPost>>;
@@ -207,7 +171,7 @@ const HomeScreen: React.FC = () => {
         });
         
         // Transformer les posts API en posts UI en utilisant l'ID utilisateur réel
-        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId || 1));
+        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, user));
         
         setPosts(uiPosts);
         setHasMorePosts(uiPosts.length === limit);
@@ -491,17 +455,12 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  const handleProfilePress = (username: string) => {
-    if (username === CURRENT_USERNAME) {
-      handleNavigateToProfile();
+  const handleProfileNavigation = (username: string) => {
+    if (user?.username === username) {
+      router.push('/(app)/profile');
     } else {
-      // Pourrait naviguer vers le profil d'un autre utilisateur
-      console.log("Navigate to profile:", username);
+      router.push(`/(app)/profile/${username}`);
     }
-  };
-
-  const handleNavigateToProfile = () => {
-    router.push("/profile");
   };
 
   const renderSeparator = () => {
@@ -535,33 +494,26 @@ const HomeScreen: React.FC = () => {
   );
 
   // Fonction de rendu des posts avec gestion des séparateurs de date
-  const renderPost = ({ item, index }: { item: UIPost; index: number }) => {
+  const renderPost = ({ item: post }: { item: UIPost }) => {
     // Vérifier si nous devons afficher un séparateur avant ce post
-    const previousPost = index > 0 ? posts[index - 1] : null;
-    const needsSeparator = previousPost && previousPost.isFromToday && !item.isFromToday;
+    const previousPost = posts[posts.indexOf(post) - 1];
+    const needsSeparator = previousPost && previousPost.isFromToday && !post.isFromToday;
 
     // Calculer la visibilité du post
-    const postIsVisible = isPostVisible(item.id);
-    const postIsCurrentlyVisible = isPostCurrentlyVisible(item.id);
-
-    console.log('📱 Rendering post:', {
-      postId: item.id,
-      index,
-      postIsVisible,
-      postIsCurrentlyVisible,
-      hasVideo: item.mediaTypes?.some(type => type === 'video'),
-    });
+    const postIsVisible = isPostVisible(post.id);
+    const postIsCurrentlyVisible = isPostCurrentlyVisible(post.id);
 
     return (
       <>
         {needsSeparator && renderSeparator()}
         <PostItem
-          post={item}
-          onLike={handleLike}
-          onSave={handleSave}
-          onComment={handleViewComments}
-          onShare={handleSharePost}
-          onProfilePress={handleProfilePress}
+          key={post.id}
+          post={post}
+          onLike={() => handleLike(post.id)}
+          onSave={() => handleSave(post.id)}
+          onComment={() => handleViewComments(post.id)}
+          onShare={() => handleShare(post.id)}
+          onProfilePress={() => handleProfileNavigation(post.username)}
           currentUsername={CURRENT_USERNAME}
           isVisible={postIsVisible}
           isCurrentlyVisible={postIsCurrentlyVisible}
@@ -614,85 +566,27 @@ const HomeScreen: React.FC = () => {
     }
   );
 
-  const handleSharePost = async (postId: string) => {
-    const post = posts.find(p => p.id === postId);
-    if (!post) return;
-    
-    // Track post engagement - share action
-    trackPostEngagement({
-      postId,
-      action: 'share',
-      postType: post.mediaTypes?.[0] === 'video' ? 'video' : 'image',
-      authorId: post.username,
-    });
-    
+  const handleShare = async (postId: string) => {
     try {
-      console.log('📤 Sharing post:', postId);
+      const shareMessage = `Check out this post on GearConnect!`;
+      const shareUrl = `https://gearconnect.app/post/${postId}`;
       
-      // TODO: PRODUCTION - Quand l'app sera déployée en production, modifier cette fonction pour :
-      // 1. Partager un lien direct vers le post dans l'app (ex: https://gearconnect.app/post/123)
-      // 2. Inclure une preview du post avec titre/description/image miniature
-      // 3. Ne plus partager directement l'URL Cloudinary mais plutôt rediriger vers le post complet
-      // 4. Permettre aux utilisateurs externes de voir le post même sans avoir l'app installée
-      // 5. Ajouter des métadonnées Open Graph pour un meilleur affichage sur les réseaux sociaux
-      
-      // Vérifier si le partage est disponible sur l'appareil
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (!isAvailable) {
-        Alert.alert('Erreur', 'Le partage n\'est pas disponible sur cet appareil');
-        return;
-      }
-
-      // Créer le contenu à partager
-      const shareContent = `${post.title}\n\n${post.description}\n\nVu sur GearConnect`;
-      
-      // Si le post a une image, on peut essayer de la partager aussi
-      if (post.images.length > 0) {
-        try {
-          // Partager avec l'image (si possible)
-          await Sharing.shareAsync(post.images[0], {
-            mimeType: 'image/jpeg',
-            dialogTitle: 'Partager ce post',
-            UTI: 'public.jpeg'
-          });
-        } catch (imageError) {
-          console.log('⚠️ Image sharing failed, falling back to text:', imageError);
-          // Fallback vers le partage de texte
-          await shareTextContent(shareContent);
-        }
-      } else {
-        // Partager seulement le texte
-        await shareTextContent(shareContent);
-      }
-      
-    } catch (error) {
-      // console.error('❌ Error sharing post:', error);
-      Alert.alert('Erreur', 'Impossible de partager ce post');
-    }
-  };
-
-  const shareTextContent = async (content: string) => {
-    // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
-    try {
-      // Créer un fichier temporaire avec le contenu
-      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
-      await FileSystem.writeAsStringAsync(tempFile, content);
-      
-      await Sharing.shareAsync(tempFile, {
-        mimeType: 'text/plain',
-        dialogTitle: 'Partager ce post',
+      const result = await Share.share({
+        message: shareMessage,
+        url: shareUrl,
       });
-      
-      // Nettoyer le fichier temporaire
-      await FileSystem.deleteAsync(tempFile, { idempotent: true });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Shared via activity type
+        } else {
+          // Shared successfully
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Share was dismissed
+      }
     } catch (error) {
-      console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
-        { text: 'OK', onPress: () => {
-          // Fallback: copier dans le presse-papiers
-          Clipboard.setStringAsync(content);
-        }}
-      ]);
+      Alert.alert('Error', 'Unable to share this post');
     }
   };
 
@@ -804,11 +698,11 @@ const HomeScreen: React.FC = () => {
           <View style={styles.headerRight}>
             <TouchableOpacity
               style={styles.headerIconBtn}
-              onPress={handleNavigateToProfile}
+              onPress={() => handleProfileNavigation(user?.username || '')}
             >
               <Image 
-                source={{ uri: CURRENT_USER_AVATAR }} 
-                style={styles.profileImage}
+                source={{ uri: user?.imageUrl || CURRENT_USER_AVATAR }} 
+                style={styles.headerAvatar}
               />
             </TouchableOpacity>
           </View>
@@ -844,11 +738,11 @@ const HomeScreen: React.FC = () => {
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={styles.headerIconBtn}
-            onPress={handleNavigateToProfile}
+            onPress={() => handleProfileNavigation(user?.username || '')}
           >
             <Image 
-              source={{ uri: CURRENT_USER_AVATAR }} 
-              style={styles.profileImage}
+              source={{ uri: user?.imageUrl || CURRENT_USER_AVATAR }} 
+              style={styles.headerAvatar}
             />
           </TouchableOpacity>
         </View>

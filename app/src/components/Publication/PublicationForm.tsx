@@ -19,6 +19,13 @@ import CloudinaryMedia from '../media/CloudinaryMedia';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+interface FormErrors {
+  title?: string;
+  description?: string;
+  image?: string;
+  general?: string;
+}
+
 interface PublicationFormProps {
   imageUri: string;
   username: string;
@@ -32,6 +39,7 @@ interface PublicationFormProps {
   isLoading?: boolean;
   mediaType?: 'image' | 'video';
   publicId?: string;
+  errors?: FormErrors;
 }
 
 const PublicationForm: React.FC<PublicationFormProps> = ({
@@ -46,66 +54,30 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   setTags,
   isLoading = false,
   mediaType,
-  publicId
+  publicId,
+  errors = {}
 }) => {
   const [tagInput, setTagInput] = useState('');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
-  // Debug logs
-  console.log('PublicationForm rendered with:', {
-    tags: tags,
-    tagsLength: tags.length,
-    setTagsType: typeof setTags,
-    isLoading: isLoading,
-    tagInput: tagInput,
-    tagInputTrimmed: tagInput.trim(),
-    buttonDisabled: isLoading || !tagInput.trim()
-  });
-
   const handleAddTag = () => {
-    console.log('=== handleAddTag DEBUT ===');
-    console.log('tagInput raw:', JSON.stringify(tagInput));
-    console.log('tagInput length:', tagInput.length);
-    console.log('tagInput trimmed:', JSON.stringify(tagInput.trim()));
-    console.log('tagInput trimmed length:', tagInput.trim().length);
-    console.log('current tags:', JSON.stringify(tags));
-    console.log('tag already exists?', tags.includes(tagInput.trim()));
-    
     const trimmedInput = tagInput.trim();
     if (trimmedInput && !tags.includes(trimmedInput)) {
-      console.log('✅ CONDITIONS REMPLIES - Adding tag:', trimmedInput);
       const newTags = [...tags, trimmedInput];
-      console.log('New tags array:', JSON.stringify(newTags));
       setTags(newTags);
       setTagInput('');
-      console.log('✅ setTags called and tagInput cleared');
-    } else {
-      console.log('❌ CONDITIONS NON REMPLIES:', {
-        hasContent: !!trimmedInput,
-        contentLength: trimmedInput.length,
-        notAlreadyIncluded: !tags.includes(trimmedInput),
-        currentTags: tags,
-        inputValue: trimmedInput
-      });
     }
-    console.log('=== handleAddTag FIN ===');
   };
 
   const handleRemoveTag = (index: number) => {
-    console.log('handleRemoveTag called with index:', index);
     const newTags = [...tags];
     newTags.splice(index, 1);
-    console.log('New tags after removal:', newTags);
     setTags(newTags);
   };
   
   const handleAddSuggestedTag = (tag: string) => {
-    console.log('handleAddSuggestedTag called with:', tag);
     if (!tags.includes(tag)) {
-      console.log('Adding suggested tag:', tag);
       setTags([...tags, tag]);
-    } else {
-      console.log('Suggested tag already exists:', tag);
     }
   };
   
@@ -217,10 +189,6 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               resizeMode="cover"
             />
           )}
-          {/* Debug info */}
-          <Text style={publicationFormStyles.debugInfo}>
-            {mediaType || 'unknown'} {publicId ? `(${publicId})` : '(no publicId)'}
-          </Text>
         </View>
         
         <View style={styles.formContent}>
@@ -241,11 +209,28 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
             </TouchableOpacity>
           </View>
 
+          {/* Image error message */}
+          {errors.image && (
+            <View style={publicationFormStyles.errorContainer}>
+              <Text style={publicationFormStyles.errorText}>{errors.image}</Text>
+            </View>
+          )}
+
+          {/* General error message */}
+          {errors.general && (
+            <View style={publicationFormStyles.errorContainer}>
+              <Text style={publicationFormStyles.errorText}>{errors.general}</Text>
+            </View>
+          )}
+
           <View style={styles.inputContainer}>
             <View style={publicationFormStyles.inputSection}>
-              <Text style={publicationFormStyles.inputLabel}>Title</Text>
+              <Text style={publicationFormStyles.inputLabel}>Title *</Text>
               <TextInput
-                style={styles.titleInput}
+                style={[
+                  styles.titleInput,
+                  errors.title && publicationFormStyles.inputError
+                ]}
                 placeholder="Enter your title"
                 placeholderTextColor={theme.colors.text.secondary}
                 value={title}
@@ -253,6 +238,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 editable={!isLoading}
                 maxLength={100}
               />
+              {errors.title && (
+                <Text style={publicationFormStyles.fieldError}>{errors.title}</Text>
+              )}
             </View>
 
             <View style={publicationFormStyles.inputSection}>
@@ -266,7 +254,10 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 </Text>
               </View>
               <TextInput
-                style={styles.descriptionInput}
+                style={[
+                  styles.descriptionInput,
+                  errors.description && publicationFormStyles.inputError
+                ]}
                 placeholder="Write your description"
                 placeholderTextColor={theme.colors.text.secondary}
                 value={description}
@@ -274,6 +265,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 multiline
                 editable={!isLoading}
               />
+              {errors.description && (
+                <Text style={publicationFormStyles.fieldError}>{errors.description}</Text>
+              )}
               <Text style={publicationFormStyles.helperText}>
                 Share details about your photo, the circuit, the event...
               </Text>
@@ -304,16 +298,8 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   placeholder="Add tags"
                   placeholderTextColor={theme.colors.text.secondary}
                   value={tagInput}
-                  onChangeText={(text) => {
-                    console.log('🔄 Tag input changed to:', JSON.stringify(text));
-                    console.log('🔄 Text length:', text.length);
-                    setTagInput(text);
-                    console.log('🔄 setTagInput called with:', JSON.stringify(text));
-                  }}
-                  onSubmitEditing={() => {
-                    console.log('Tag input submitted');
-                    handleAddTag();
-                  }}
+                  onChangeText={setTagInput}
+                  onSubmitEditing={handleAddTag}
                   returnKeyType="done"
                   blurOnSubmit={true}
                   autoCapitalize="none"
@@ -327,10 +313,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   styles.addTagButton,
                   (!tagInput.trim() || isLoading) && publicationFormStyles.disabledButton
                 ]} 
-                onPress={() => {
-                  console.log('Add tag button pressed');
-                  handleAddTag();
-                }}
+                onPress={handleAddTag}
                 disabled={isLoading || !tagInput.trim()}
               >
                 <Text style={styles.addTagButtonText}>Add</Text>

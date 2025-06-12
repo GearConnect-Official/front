@@ -71,7 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               if (userDetails) {
                 setUser(userDetails);
                 setIsAuthenticated(true);
-                console.log("Utilisateur restauré au démarrage:", userDetails);
               } else {
                 // Si l'utilisateur n'est pas trouvé dans notre système mais existe dans Clerk
                 console.warn(
@@ -169,13 +168,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         };
       }
 
-      console.log(
-        `Attempting registration with: {"email": "${email}", "password": "***", "username": "${username}"}`
-      );
-
       // Register with backend only
       const backendResponse = await authSignUp(username, email, password);
-      console.log("Registration response:", backendResponse);
 
       if (!backendResponse.success) {
         return {
@@ -194,16 +188,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         };
         setUser(userObj);
         setIsAuthenticated(true);
-        console.log("Utilisateur défini après inscription:", userObj);
       }
 
-      // L'utilisateur est déjà créé par le backend, on peut directement retourner un succès
       return { success: true };
-    } catch (error: any) {
-      console.error("Registration Error:", error);
+    } catch (error) {
       return {
         success: false,
-        error: error.message || "Registration failed",
+        error: "Network error or server unavailable",
       };
     } finally {
       setIsLoading(false);

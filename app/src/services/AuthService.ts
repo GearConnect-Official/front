@@ -11,6 +11,7 @@ export interface AuthResponse {
   user?: {
     id: string | number;
     username?: string;
+    name?: string;
     email: string;
     photoURL?: string;
   };
@@ -37,12 +38,14 @@ const api = axios.create({
 export const signUp = async (
   username: string,
   email: string,
-  password: string
+  password: string,
+  name: string
 ): Promise<AuthResponse> => {
   try {
     console.log("Tentative d'inscription avec:", {
       username,
       email,
+      name,
       password: "***",
     });
 
@@ -50,6 +53,7 @@ export const signUp = async (
       username,
       email,
       password,
+      name,
     });
 
     console.log("Réponse d'inscription:", response.data);

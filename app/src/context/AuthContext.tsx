@@ -16,6 +16,7 @@ import axios from "axios";
 interface User {
   id: string | number;
   username: string | null;
+  name: string | null;
   email?: string;
   photoURL?: string;
 }
@@ -31,7 +32,8 @@ interface AuthContextType {
   register: (
     username: string,
     email: string,
-    password: string
+    password: string,
+    name: string
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   getCurrentUser: () => Promise<User | null>;
@@ -85,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 setUser({
                   id: clerkUser.id,
                   username: clerkUser.username || "",
+                  name: clerkUser.firstName || "",
                   email: clerkUser.primaryEmailAddress?.emailAddress || "",
                   photoURL: clerkUser.imageUrl || "",
                 });
@@ -132,7 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const register = async (
     username: string,
     email: string,
-    password: string
+    password: string,
+    name: string
   ) => {
     try {
       setIsLoading(true);
@@ -142,6 +146,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return {
           success: false,
           error: "Username must be at least 3 characters long",
+        };
+      }
+
+      if (!name) {
+        return {
+          success: false,
+          error: "Name is required",
         };
       }
 
@@ -174,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       // Register with backend only
-      const backendResponse = await authSignUp(username, email, password);
+      const backendResponse = await authSignUp(username, email, password, name);
       console.log("Registration response:", backendResponse);
 
       if (!backendResponse.success) {
@@ -189,6 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const userObj = {
           id: String(backendResponse.user.id),
           username: backendResponse.user.username || "",
+          name: backendResponse.user.name || "",
           email: backendResponse.user.email,
           photoURL: backendResponse.user.photoURL || "",
         };
@@ -237,6 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const userObj = {
           id: String(backendResponse.user.id),
           username: backendResponse.user.username || "",
+          name: backendResponse.user.name || "",
           email: backendResponse.user.email,
           photoURL: backendResponse.user.photoURL || "",
         };
@@ -357,6 +370,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             return {
               id: clerkUser.id,
               username: clerkUser.username || "",
+              name: clerkUser.firstName || "",
               email: clerkUser.primaryEmailAddress?.emailAddress || "",
               photoURL: clerkUser.imageUrl || "",
             };
@@ -370,6 +384,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return {
             id: userData.id || clerkUser.id,
             username: userData.username || clerkUser.username || "",
+            name: userData.name || clerkUser.firstName || "",
             email:
               userData.email ||
               clerkUser.primaryEmailAddress?.emailAddress ||
@@ -388,6 +403,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return {
             id: clerkUser.id,
             username: clerkUser.username || "",
+            name: clerkUser.firstName || "",
             email: clerkUser.primaryEmailAddress?.emailAddress || "",
             photoURL: clerkUser.imageUrl || "",
           };
@@ -412,6 +428,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const userData: User = {
         id: clerkUser.id,
         username: clerkUser.username,
+        name: clerkUser.firstName || "",
         email: clerkUser.primaryEmailAddress?.emailAddress || undefined,
         photoURL: clerkUser.imageUrl || undefined,
       };

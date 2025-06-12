@@ -22,6 +22,7 @@ import { CloudinaryMedia } from "../components/media";
 import { detectMediaType } from "../utils/mediaUtils";
 import { defaultImages } from "../config/defaultImages";
 import PerformanceService from '../services/performanceService';
+import { useScreenTracking, useAnalytics } from '../hooks/useAnalytics';
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -79,6 +80,14 @@ interface ProfileScreenProps {
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const router = useRouter();
   const auth = useAuth();
+  const { trackProfileView, trackAppUsage } = useAnalytics();
+
+  // Automatic screen tracking
+  useScreenTracking('ProfileScreen', { 
+    userId: userId || auth?.user?.id,
+    profileType: userId ? 'other' : 'own'
+  });
+
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
   const [favorites, setFavorites] = useState<FavoritePost[]>([]);
@@ -108,6 +117,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
 
   // Get user from auth context
   const { user } = auth || {};
+
+  // Track profile view on mount
+  useEffect(() => {
+    if (auth?.user?.id) {
+      const profileId = userId?.toString() || auth.user.id.toString();
+      const profileType = userId && userId !== auth.user.id ? 'other' : 'own';
+      const viewerType = auth.user ? 'authenticated' : 'guest';
+
+      trackProfileView({
+        profileId,
+        profileType,
+        viewerType,
+      });
+
+      console.log('🔍 [ProfileScreen] Profile view tracked:', {
+        profileId,
+        profileType,
+        viewerType,
+      });
+    }
+  }, [userId, auth?.user?.id, trackProfileView]);
 
   // Load all data when component mounts or user changes
   useEffect(() => {

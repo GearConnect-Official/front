@@ -4,9 +4,16 @@ import TopBar from "../components/CreateEvent/TopBar";
 import CreateEventForm from "../components/CreateEventForm";
 import styles from "../styles/screens/createEventStyles";
 import { useRouter } from "expo-router";
+import { useScreenTracking } from "../hooks/useAnalytics";
 
 const CreateEventScreen: React.FC = () => {
   const router = useRouter();
+
+  // Automatic screen tracking
+  useScreenTracking('CreateEventScreen', { 
+    feature: 'event_creation',
+    step: 'initial_view'
+  });
 
   const handleCancel = () => {
     router.back();

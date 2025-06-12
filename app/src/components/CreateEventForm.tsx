@@ -15,6 +15,7 @@ import eventService, { Event } from "../services/eventService";
 import { useAuth } from "../context/AuthContext";
 import MediaInfo from "./CreateEvent/MediaInfo";
 import AdditionalInfo from "./CreateEvent/AdditionalInfo";
+import { useAnalytics } from "../hooks/useAnalytics";
 
 interface CreateEventProps {
   onCancel: () => void;
@@ -29,6 +30,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
 }) => {
   const authContext = useAuth();
   const user = authContext?.user;
+  const { trackEventCreation, trackAppUsage } = useAnalytics();
   
   const [formData, setFormData] = React.useState<Event>({
     name: initialData.name || "",
@@ -103,6 +105,30 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       
       const createdEvent = await eventService.createEvent(eventData);
       console.log("Réponse du serveur:", createdEvent);
+
+      // Track event creation analytics
+      trackEventCreation({
+        eventId: createdEvent.id?.toString() || Date.now().toString(),
+        eventType: 'custom', // Peut être adapté selon le type d'événement
+        creatorId: user.id.toString(),
+        hasLocation: !!formData.location.trim(),
+        hasImages: (formData.images?.length || 0) > 0 || !!formData.logo,
+        categoryTags: [], // Peut être adapté si vous avez des catégories
+        expectedParticipants: undefined, // À adapter si vous collectez cette info
+      });
+
+      // Track app usage for feature completion
+      trackAppUsage('feature_use', {
+        featureName: 'create_event_completed',
+        userType: 'authenticated',
+      });
+
+      console.log('🔍 [CreateEventForm] Event creation tracked:', {
+        eventId: createdEvent.id,
+        creatorId: user.id,
+        hasLocation: !!formData.location.trim(),
+        hasImages: (formData.images?.length || 0) > 0 || !!formData.logo,
+      });
   
       Alert.alert(
         "Success", 

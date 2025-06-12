@@ -19,11 +19,22 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS } from '../config';
+import { useScreenTracking, useAnalytics } from '../hooks/useAnalytics';
+import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.8;
 
 const EventsScreen: React.FC = () => {
+  const { user } = useAuth();
+  const { trackEventInteraction, trackAppUsage } = useAnalytics();
+
+  // Automatic screen tracking
+  useScreenTracking('EventsScreen', { 
+    userType: user ? 'authenticated' : 'guest',
+    userId: user?.id 
+  });
+
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<{ [key: string]: Event[] }>({
@@ -112,8 +123,81 @@ const EventsScreen: React.FC = () => {
     }, [])
   );
 
+  const handleEventPress = (event: Event) => {
+    // Track event interaction - view action
+    if (user?.id && event.id) {
+      trackEventInteraction({
+        eventId: event.id.toString(),
+        action: 'view',
+        userId: user.id.toString(),
+        source: 'list',
+      });
+    }
+
+    router.push({
+      pathname: '/(app)/eventDetail',
+      params: { eventId: event.id }
+    });
+  };
+
+  const handleCreateEvent = () => {
+    // Track app usage for create event navigation
+    trackAppUsage('feature_use', {
+      featureName: 'navigate_to_create_event',
+      userType: user ? 'authenticated' : 'guest',
+    });
+
+    router.push('/(app)/createEvent');
+  };
+
+  const handleTabChange = (tabKey: string) => {
+    setActiveTab(tabKey);
+    
+    // Track tab usage
+    trackAppUsage('feature_use', {
+      featureName: `events_tab_${tabKey}`,
+      userType: user ? 'authenticated' : 'guest',
+    });
+  };
+
+  const handleEventJoin = (event: Event) => {
+    // Track event interaction - join action
+    if (user?.id && event.id) {
+      trackEventInteraction({
+        eventId: event.id.toString(),
+        action: 'join',
+        userId: user.id.toString(),
+        source: 'featured',
+      });
+    }
+    
+    // TODO: Implement actual join logic
+    console.log('Joining event:', event.name);
+  };
+
+  const handleEventShare = (event: Event) => {
+    // Track event interaction - share action
+    if (user?.id && event.id) {
+      trackEventInteraction({
+        eventId: event.id.toString(),
+        action: 'share',
+        userId: user.id.toString(),
+        source: 'featured',
+      });
+    }
+    
+    // TODO: Implement actual share logic
+    console.log('Sharing event:', event.name);
+  };
+
   const handleSearch = () => {
     if (searchQuery.length >= 3) {
+      // Track search usage
+      trackAppUsage('feature_use', {
+        featureName: 'event_search',
+        userType: user ? 'authenticated' : 'guest',
+      });
+
       const lowerCaseQuery = searchQuery.toLowerCase();
       const filtered = {
         all: events.all.filter((event: Event) =>
@@ -137,17 +221,6 @@ const EventsScreen: React.FC = () => {
     await fetchEvents();
     setRefreshing(false);
   }, []);
-
-  const handleEventPress = (event: Event) => {
-    router.push({
-      pathname: '/(app)/eventDetail',
-      params: { eventId: event.id }
-    });
-  };
-
-  const handleCreateEvent = () => {
-    router.push('/(app)/createEvent');
-  };
 
   const renderFeaturedItem = ({ item, index }: { item: Event; index: number }) => {
     const date = new Date(item.date);
@@ -201,10 +274,16 @@ const EventsScreen: React.FC = () => {
                 <FontAwesome name="map-marker" size={14} color="#fff" /> {item.location}
               </Text>
               <View style={styles.featuredActions}>
-                <TouchableOpacity style={styles.featuredButton}>
+                <TouchableOpacity 
+                  style={styles.featuredButton}
+                  onPress={() => handleEventJoin(item)}
+                >
                   <Text style={styles.featuredButtonText}>Join</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.featuredIconButton}>
+                <TouchableOpacity 
+                  style={styles.featuredIconButton}
+                  onPress={() => handleEventShare(item)}
+                >
                   <FontAwesome name="share" size={16} color="#fff" />
                 </TouchableOpacity>
               </View>
@@ -314,7 +393,7 @@ const EventsScreen: React.FC = () => {
           {tabs.map((tab: TabItem) => (
             <TouchableOpacity
               key={tab.key}
-              onPress={() => setActiveTab(tab.key)}
+              onPress={() => handleTabChange(tab.key)}
               style={[
                 styles.tab,
                 activeTab === tab.key ? styles.activeTab : {},

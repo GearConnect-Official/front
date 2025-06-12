@@ -34,6 +34,7 @@ import { useAuth } from '../context/AuthContext';
 import useVisibilityTracker from '../hooks/useVisibilityTracker';
 import { detectMediaType } from '../utils/mediaUtils';
 import { ApiError, ErrorType } from '../services/axiosConfig';
+import { useScreenTracking, useAnalytics, usePostTracking } from '../hooks/useAnalytics';
 
 // Types
 interface Story {
@@ -149,6 +150,7 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as React.Com
 const HomeScreen: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
+  const { trackPostEngagement, trackAppUsage } = useAnalytics();
   const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
   const [posts, setPosts] = useState<UIPost[]>([]);
@@ -176,6 +178,12 @@ const HomeScreen: React.FC = () => {
   } = useVisibilityTracker({
     minimumViewTime: 300, // 300ms pour être considéré comme visible
     itemVisiblePercentThreshold: 60, // 60% de l'item doit être visible
+  });
+
+  // Automatic screen tracking
+  useScreenTracking('HomeScreen', { 
+    userType: user ? 'authenticated' : 'guest',
+    userId: user?.id 
   });
 
   // Fonction pour charger les posts depuis l'API
@@ -307,6 +315,17 @@ const HomeScreen: React.FC = () => {
     }
 
     const currentUserId = parseInt(user.id);
+    const post = posts.find(p => p.id === postId);
+    
+    // Track post engagement - like action
+    if (post) {
+      trackPostEngagement({
+        postId,
+        action: 'like',
+        postType: post.mediaTypes?.[0] === 'video' ? 'video' : 'image',
+        authorId: post.username,
+      });
+    }
     
     // Optimistically update UI
     setPosts((prevPosts) =>
@@ -357,6 +376,17 @@ const HomeScreen: React.FC = () => {
     }
 
     const currentUserId = parseInt(user.id);
+    const post = posts.find(p => p.id === postId);
+    
+    // Track post engagement - save action
+    if (post) {
+      trackPostEngagement({
+        postId,
+        action: 'save',
+        postType: post.mediaTypes?.[0] === 'video' ? 'video' : 'image',
+        authorId: post.username,
+      });
+    }
     
     // Optimistically update UI
     setPosts((prevPosts) =>
@@ -407,6 +437,18 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleViewComments = (postId: string) => {
+    const post = posts.find(p => p.id === postId);
+    
+    // Track post engagement - comment action
+    if (post) {
+      trackPostEngagement({
+        postId,
+        action: 'comment',
+        postType: post.mediaTypes?.[0] === 'video' ? 'video' : 'image',
+        authorId: post.username,
+      });
+    }
+
     setCurrentPostId(postId);
     setIsCommentsModalVisible(true);
   };
@@ -575,6 +617,14 @@ const HomeScreen: React.FC = () => {
   const handleSharePost = async (postId: string) => {
     const post = posts.find(p => p.id === postId);
     if (!post) return;
+    
+    // Track post engagement - share action
+    trackPostEngagement({
+      postId,
+      action: 'share',
+      postType: post.mediaTypes?.[0] === 'video' ? 'video' : 'image',
+      authorId: post.username,
+    });
     
     try {
       console.log('📤 Sharing post:', postId);

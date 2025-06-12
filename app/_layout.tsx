@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { ThemeProvider } from './src/context/ThemeContext';
@@ -11,6 +11,31 @@ import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';
 import { View } from 'react-native';
 import Constants from 'expo-constants';
+import analyticsService from './src/services/AnalyticsService';
+
+// Analytics Manager Component
+const AnalyticsManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useEffect(() => {
+    // Initialize Microsoft Clarity when app starts
+    const initializeAnalytics = async () => {
+      try {
+        await analyticsService.initializeAnalytics();
+        console.log('✅ [App] Analytics initialized successfully');
+      } catch (error) {
+        console.error('❌ [App] Failed to initialize analytics:', error);
+      }
+    };
+
+    initializeAnalytics();
+
+    // Track app session end on cleanup
+    return () => {
+      analyticsService.trackAppUsage('session_end');
+    };
+  }, []);
+
+  return <>{children}</>;
+};
 
 // Feedback Manager Component
 const FeedbackManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -54,23 +79,25 @@ if (!CLERK_PUBLISHABLE_KEY) {
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-        <ThemeProvider>
-          <AxiosConfigProvider>
-            <AuthProvider>
-              <FeedbackManager>
-                <ConnectivityManager>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="(auth)" />
-                    <Stack.Screen name="(app)" />
-                  </Stack>
-                </ConnectivityManager>
-              </FeedbackManager>
-            </AuthProvider>
-          </AxiosConfigProvider>
-        </ThemeProvider>
-      </ClerkProvider>
+      <AnalyticsManager>
+        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+          <ThemeProvider>
+            <AxiosConfigProvider>
+              <AuthProvider>
+                <FeedbackManager>
+                  <ConnectivityManager>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="index" />
+                      <Stack.Screen name="(auth)" />
+                      <Stack.Screen name="(app)" />
+                    </Stack>
+                  </ConnectivityManager>
+                </FeedbackManager>
+              </AuthProvider>
+            </AxiosConfigProvider>
+          </ThemeProvider>
+        </ClerkProvider>
+      </AnalyticsManager>
     </ErrorBoundary>
   );
 } 

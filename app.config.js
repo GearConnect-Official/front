@@ -39,15 +39,14 @@ export default {
       cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
       cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
       cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET,
-      eas: {
-        projectId: "76d9f701-5132-4e95-955c-76578f90d7a6"
-      }
+      clarityProjectId: process.env.CLARITY_PROJECT_ID
     },
     scheme: "gearconnect",
     plugins: [
       "expo-router",
       "expo-font",
       "expo-web-browser"
-    ]
+    ],
+    runtimeVersion: "1.0.0"
   }
 }; 

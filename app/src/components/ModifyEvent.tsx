@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native";
-import BasicInfo from "./CreateEvent/BasicInfo";
-import NavigationButtons from "./CreateEvent/NavigationButtons";
-import styles from "../styles/screens/createEventStyles";
-import eventService, { Event } from "../services/eventService";
-import { useAuth } from "../context/AuthContext";
-import MediaInfo from "./CreateEvent/MediaInfo";
-import AdditionalInfo from "./CreateEvent/AdditionalInfo";
+} from 'react-native';
+import BasicInfo from './CreateEvent/BasicInfo';
+import NavigationButtons from './CreateEvent/NavigationButtons';
+import styles from '../styles/screens/createEventStyles';
+import eventService, { Event } from '../services/eventService';
+import { useAuth } from '../context/AuthContext';
+import MediaInfo from './CreateEvent/MediaInfo';
+import AdditionalInfo from './CreateEvent/AdditionalInfo';
 
 interface ModifyEventProps {
   onCancel: () => void;
@@ -29,12 +29,12 @@ const useEventForm = (initialData: Event) => {
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError("Event name is required");
+      setError('Event name is required');
       return false;
     }
 
     if (!formData.location.trim()) {
-      setError("Event location is required");
+      setError('Event location is required');
       return false;
     }
 
@@ -59,7 +59,7 @@ const useEventForm = (initialData: Event) => {
     setError,
     validateForm,
     handleInputChange,
-    handleAddImage
+    handleAddImage,
   };
 };
 
@@ -67,56 +67,61 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
   onCancel,
   onSuccess,
   eventData,
-  eventId
+  eventId,
 }) => {
   const auth = useAuth();
   const user = auth?.user;
-  
-  // Initialize form with event data
-  const initialFormData: Event = {
-    name: eventData?.name || "",
-    creators: eventData?.creators || "",
-    location: eventData?.location || "",
-    date: eventData?.date ? new Date(eventData.date) : new Date(),
-    sponsors: eventData?.sponsors || "",
-    website: eventData?.website || "",
-    rankings: eventData?.rankings || "",
-    logo: eventData?.logo || "",
-    images: eventData?.images || [],
-    description: eventData?.description || "",
-    logoPublicId: eventData?.logoPublicId || "",
-    imagePublicIds: eventData?.imagePublicIds || []
-  };
-  
-  const { formData, error, setError, validateForm, handleInputChange, handleAddImage } = useEventForm(initialFormData);
   const [loading, setLoading] = React.useState(false);
   const [currentStep, setCurrentStep] = React.useState(1);
   const totalSteps = 3;
+  // Initialize form with event data
+  const initialFormData: Event = {
+    name: eventData?.name || '',
+    creators: eventData?.creators || '',
+    location: eventData?.location || '',
+    date: eventData?.date ? new Date(eventData.date) : new Date(),
+    sponsors: eventData?.sponsors || '',
+    website: eventData?.website || '',
+    rankings: eventData?.rankings || '',
+    logo: eventData?.logo || '',
+    images: eventData?.images || [],
+    description: eventData?.description || '',
+    logoPublicId: eventData?.logoPublicId || '',
+    imagePublicIds: eventData?.imagePublicIds || [],
+  };
 
+  const {
+    formData,
+    error,
+    setError,
+    validateForm,
+    handleInputChange,
+    handleAddImage,
+  } = useEventForm(initialFormData);
   const handleSubmit = async () => {
     setLoading(true);
-    
+
     if (!validateForm()) {
       setLoading(false);
       return;
     }
-    
+
     if (!user) {
-      setError("You must be logged in to update this event");
+      setError('You must be logged in to update this event');
       setLoading(false);
       return;
     }
 
     if (!eventId) {
-      setError("Event ID is missing");
+      setError('Event ID is missing');
       setLoading(false);
       return;
     }
-  
+
     try {
       // Format date properly
       const formattedDate = new Date(formData.date);
-      
+
       // Create a clean object with properties that need to be updated
       const updatedData: Partial<Event> = {
         name: formData.name.trim(),
@@ -125,27 +130,31 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
         website: formData.website.trim(),
         sponsors: formData.sponsors.trim(),
         date: formattedDate,
-        description: formData.description ? formData.description.trim() : "",
-        logo: formData.logo || "",
+        description: formData.description ? formData.description.trim() : '',
+        logo: formData.logo || '',
         images: formData.images || [],
       };
-      
+
+      // Update the event details
       await eventService.updateEvent(eventId, updatedData);
-      Alert.alert(
-        "Success", 
-        "Event has been updated successfully!", 
-        [{ text: "OK", onPress: onSuccess }]
-      );
+
+      Alert.alert('Success', 'Event has been updated successfully!', [
+        { text: 'OK', onPress: onSuccess },
+      ]);
     } catch (err: any) {
-      console.error("Error updating event:", err);
-      
-      const errorMessage = err?.response?.data?.error || 
-                          err?.response?.data?.message || 
-                          err?.message || 
-                          "An unexpected error occurred. Please try again.";
-      
+      console.error('Error updating event:', err);
+
+      const errorMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'An unexpected error occurred. Please try again.';
+
       setError(`Error: ${errorMessage}`);
-      Alert.alert("Error", "Unable to update the event. Please check your data and try again.");
+      Alert.alert(
+        'Error',
+        'Unable to update the event. Please check your data and try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -161,9 +170,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
-  };
-
-  const renderStepContent = () => {
+  };  const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
@@ -178,11 +185,11 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
       case 2:
         return (
           <MediaInfo
-            logo={formData.logo || ""}
+            logo={formData.logo || ''}
             logoPublicId={eventData?.logoPublicId}
             images={formData.images || []}
             imagePublicIds={eventData?.imagePublicIds}
-            description={formData.description || ""}
+            description={formData.description || ''}
             onInputChange={handleInputChange}
             onAddImage={(uri: string, publicId: string) => handleAddImage(uri)}
             onLogoChange={(url: string) => handleInputChange('logo', url)}
@@ -191,7 +198,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
       case 3:
         return (
           <AdditionalInfo
-            logo={formData.logo || ""}
+            logo={formData.logo || ''}
             name={formData.name}
             location={formData.location}
             date={formData.date}
@@ -203,17 +210,24 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
       default:
         return null;
     }
-  };
-
+  };// Use ScrollView for all steps, with optimizations for step 4 to prevent nested scrolling issues
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
     >
-      <View style={styles.container}>
-        <ScrollView style={styles.scrollView}>
+      <View style={[styles.container, { flex: 1 }]}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+        >
           {renderStepContent()}
-        </ScrollView>
+          <View style={{ height: 80 }} /> 
+          {/* Extra padding increased to ensure scrolling reaches the end and doesn't get hidden behind buttons */}
+        </ScrollView> 
+        {/* Buttons container directly applies style from buttonsContainer which has absolute positioning */}
         <NavigationButtons
           currentStep={currentStep}
           isLastStep={currentStep === totalSteps}
@@ -222,8 +236,17 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
           onNext={nextStep}
           onSubmit={handleSubmit}
           isEditing={true}
-        />        
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        />
+        {error && (
+          <Text
+            style={[
+              styles.errorText,
+              { bottom: 60, position: 'absolute', left: 0, right: 0 },
+            ]}
+          >
+            {error}
+          </Text>
+        )}
       </View>
     </KeyboardAvoidingView>
   );

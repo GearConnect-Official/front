@@ -10,16 +10,17 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { EventInterface } from '../services/EventInterface';
-import styles from '../styles/screens/eventDetailStyles';
+import { styles } from '../styles/screens/eventDetailStyles';
 import {
   API_URL_EVENTS,
   API_URL_EVENTTAGS,
   API_URL_EVENTREVIEWS,
-  API_URL_RELATEDPRODUCTS,
   API_URL_TAGS,
   API_URL_USERS,
 } from '../config';
 import { useAuth } from '../context/AuthContext';
+import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
+import relatedProductService from '../services/relatedProductService';
 
 interface MeteoInfo {
   condition: string;
@@ -262,16 +263,22 @@ const EventDetailScreen: React.FC = () => {
       }
       // Fetch related products
       try {
-        const fetchRelatedProducts = await fetch(
-          API_URL_RELATEDPRODUCTS + '/event/' + eventId
-        );
-        if (fetchRelatedProducts.ok) {
-          const relatedProducts = await fetchRelatedProducts.json();
-          fetchedEvent.relatedProducts = relatedProducts;
+        // Replace direct fetch with service call for consistent error handling
+        const relatedProducts =
+          await relatedProductService.getProductsByEventId(eventId);
+        fetchedEvent.relatedProducts = relatedProducts;
+      } catch (error: any) {
+        console.error('Error fetching related products:', error);
+
+        // Add more specific error handling
+        if (error?.type === 'API') {
+          console.warn(`API error (${error.status}): ${error.message}`);
         }
-      } catch (productError) {
-        console.error('Error fetching related products:', productError);
+
+        // Default empty array so UI doesn't break
+        fetchedEvent.relatedProducts = [];
       }
+
       setEvent(fetchedEvent);
       setError(null);
     } catch (error) {
@@ -281,13 +288,21 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
+  // Load event data when the eventId changes or when returning from manageProducts page
   useEffect(() => {
     if (!eventId) {
       setError('Invalid event ID.');
       return;
     }
+
+    // Run the fetchData function when needed
     fetchData();
-  }, [eventId]);
+
+    // If we returned from managing products with a successful update, show a message
+    if (params.updated === 'true') {
+      console.log('Products updated successfully!');
+    }
+  }, [eventId, params.updated]);
 
   if (error) {
     return (
@@ -392,22 +407,11 @@ const EventDetailScreen: React.FC = () => {
               : meteoInfo || 'Weather info unavailable'}
           </Text>
         </View>
-
-        <Text style={styles.sectionTitle}>Related Products</Text>
-        <FlatList
-          horizontal
-          data={event.relatedProducts}
-          keyExtractor={(item) => `product-${item.id}`}
-          renderItem={({ item }) => (
-            <View style={styles.productCard}>
-              <Image
-                source={require('../../assets/images/Google-logo.png')}
-                style={styles.productImage}
-              />
-              <Text style={styles.productTitle}>{item.name}</Text>
-              <Text style={styles.productPrice}>Price: {item.price}€</Text>
-            </View>
-          )}
+        <RelatedProductsSection
+          eventId={eventId}
+          products={event.relatedProducts || []}
+          isCreator={isCreator}
+          onRefresh={fetchData}
         />
 
         <Text style={styles.sectionTitle}>Reviews</Text>

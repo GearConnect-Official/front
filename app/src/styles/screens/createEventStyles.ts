@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
-import theme from "../config/theme";
+import { StyleSheet } from 'react-native';
+import theme from '../config/theme';
 
 const styles = StyleSheet.create({
   container: {
@@ -56,11 +56,14 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xxs,
   },
   input: {
-    ...theme.borders.apply({}, { 
-      width: 1, 
-      color: theme.colors.grey[300], 
-      radius: 'md' 
-    }),
+    ...theme.borders.apply(
+      {},
+      {
+        width: 1,
+        color: theme.colors.grey[300],
+        radius: 'md',
+      }
+    ),
     paddingHorizontal: theme.spacing.xs + 4,
     paddingVertical: theme.spacing.xs,
     fontSize: theme.typography.body1.fontSize,
@@ -89,7 +92,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borders.radius.md,
     borderWidth: 1,
     borderColor: theme.colors.grey[100],
-    borderStyle: "dashed",
+    borderStyle: 'dashed',
     padding: theme.spacing.md,
     ...theme.common.centerContent,
     height: 150,
@@ -101,8 +104,8 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.caption.fontWeight,
   },
   uploadedImage: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     borderRadius: theme.borders.radius.md,
   },
   // Section styles
@@ -237,7 +240,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -285,10 +288,16 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
     backgroundColor: '#fff',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
   backButtonText: {
     color: '#666',
@@ -317,7 +326,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: theme.spacing.xs + 4,
     borderRadius: theme.borders.radius.md,
-    alignItems: "center",
+    alignItems: 'center',
   },
   cancelButton: {
     backgroundColor: theme.colors.grey[200],
@@ -329,11 +338,11 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: theme.colors.grey[800],
-    fontWeight: "500",
+    fontWeight: '500',
   },
   submitButtonText: {
     color: theme.colors.common.white,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   disabledButton: {
     backgroundColor: theme.colors.grey[400],
@@ -378,10 +387,38 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
+    alignItems: 'center',    borderWidth: 1,
     borderColor: '#e0e0e0',
     borderStyle: 'dashed',
+  },
+  // Loading styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 8,
+  },
+  // Info note styles
+  infoNote: {
+    backgroundColor: '#e1f5fe',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: '#29b6f6',
+  },
+  infoNoteText: {
+    fontSize: 14,
+    color: '#01579b',
+    lineHeight: 20,
+  },
+  infoNoteBold: {
+    fontWeight: 'bold',
   },
 });
 

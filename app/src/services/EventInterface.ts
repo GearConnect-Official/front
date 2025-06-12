@@ -34,7 +34,8 @@ export interface EventInterface {
     price: string;
   }[];
   reviews: {
-    id: string;
+    eventId: number;
+    userId: number;
     note: number;
     description: string;
     avatar: string;

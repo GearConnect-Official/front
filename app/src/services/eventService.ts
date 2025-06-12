@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { API_URL_EVENTS } from '../config';
+import { API_URL_EVENTTAGS, API_URL_EVENTREVIEWS, API_URL_RELATEDPRODUCTS } from '../config';
 
 export interface Event {
   id?: string;
   name: string;
+  creatorId: number;
   creators: string;
   location: string;
   date: Date;
@@ -86,6 +88,69 @@ const eventService = {
       return response.data;
     } catch (error) {
       // console.error('Error updating event:', error);
+      throw error;
+    }
+  },
+  getEventTagsByEventId: async (eventId: string) => {
+    try {
+      const response = await axios.get(`${API_URL_EVENTTAGS}/event/${eventId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching event tags:', error);
+      throw error;
+    }
+  },
+  createEventReview: async (reviewData: any) => {
+    try {
+      const response = await axios.post(`${API_URL_EVENTREVIEWS}`, reviewData);
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      throw error;
+    }
+  },
+  getEventReviews: async (eventId: number) => {
+    try {
+      const response = await axios.get(`${API_URL_EVENTREVIEWS}/event/${eventId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching event reviews:', error);
+      throw error;
+    }
+  },
+  getEventReviewById: async (eventId: number, userId: number) => {
+    try {
+      const response = await axios.get(`${API_URL_EVENTREVIEWS}/${eventId}/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching event review:', error);
+      throw error;
+    }
+  },
+  updateEventReview: async (eventId: number, userId: number, reviewData: any) => {
+    try {
+      const response = await axios.put(`${API_URL_EVENTREVIEWS}/${eventId}/${userId}`, reviewData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating event review:', error);
+      throw error;
+    }
+  },
+  deleteEventReview: async (eventId: number, userId: number) => {
+    try {
+      const response = await axios.delete(`${API_URL_EVENTREVIEWS}/${eventId}/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting event review:', error);
+      throw error;
+    }
+  },
+  getRelatedProductsByEventId: async (eventId: string) => {
+    try {
+      const response = await axios.get(`${API_URL_RELATEDPRODUCTS}/event/${eventId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching related products:', error);
       throw error;
     }
   }

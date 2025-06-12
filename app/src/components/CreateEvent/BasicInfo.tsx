@@ -2,7 +2,7 @@ import * as React from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import styles from "../../styles/createEventStyles";
+import styles from "../../styles/screens/createEventStyles";
 import { Event } from "../../services/eventService";
 
 interface BasicInfoProps {
@@ -33,7 +33,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Basic Information</Text>
       <Text style={styles.stepDescription}>
-        Let's start with the essential details of your event
+        Let&apos;s start with the essential details of your event
       </Text>
 
       <View style={styles.inputGroup}>

@@ -1,7 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { useAuth } from '../src/context/AuthContext';
-import React from 'react';
 
 export default function AppLayout() {
   const { isAuthenticated } = useAuth();

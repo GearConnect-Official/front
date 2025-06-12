@@ -1,42 +1,54 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useSignIn, useSignUp, useUser, useClerk } from '@clerk/clerk-expo';
-import { signUp as authSignUp, signIn as authSignIn, getUserInfo } from '../services/AuthService';
-import { API_URL_AUTH} from '../config';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { useSignIn, useSignUp, useUser, useClerk } from "@clerk/clerk-expo";
+import {
+  signUp as authSignUp,
+  signIn as authSignIn,
+  getUserInfo,
+} from "../services/AuthService";
+import { API_URL_AUTH } from "../config";
+import { useRouter } from "expo-router";
+import { Platform } from "react-native";
+import { useAuth as useClerkAuth } from "@clerk/clerk-expo";
+import type { UserResource } from "@clerk/types";
+import axios from "axios";
 
 // Define types for our context
 interface User {
-  id: string;
-  username: string;
-  email: string;
-  photoURL: string;
+  id: string | number;
+  username: string | null;
+  email?: string;
+  photoURL?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   getCurrentUser: () => Promise<User | null>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 // Create the context
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  isLoading: true,
-  isAuthenticated: false,
-  login: async () => ({ success: false }),
-  register: async () => ({ success: false }),
-  logout: async () => {},
-  getCurrentUser: async () => null,
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
 // Export the hook for using the context
 export const useAuth = () => useContext(AuthContext);
 
 // The provider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -45,6 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { signOut } = useClerk();
   const clerk = useClerk();
   const { user: clerkUser, isLoaded: clerkIsLoaded } = useUser();
+  const router = useRouter();
 
   // Check user session on mount
   useEffect(() => {
@@ -61,37 +74,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.log("Utilisateur restauré au démarrage:", userDetails);
               } else {
                 // Si l'utilisateur n'est pas trouvé dans notre système mais existe dans Clerk
-                console.warn("L'utilisateur existe dans Clerk mais pas dans notre système");
-                
+                console.warn(
+                  "L'utilisateur existe dans Clerk mais pas dans notre système"
+                );
+
                 // On peut décider de garder l'authentification avec les données Clerk
                 // ou de déconnecter l'utilisateur
-                
+
                 // Option 1: Garder l'authentification avec les données minimales de Clerk
                 setUser({
                   id: clerkUser.id,
-                  username: clerkUser.username || '',
-                  email: clerkUser.primaryEmailAddress?.emailAddress || '',
-                  photoURL: clerkUser.imageUrl || '',
+                  username: clerkUser.username || "",
+                  email: clerkUser.primaryEmailAddress?.emailAddress || "",
+                  photoURL: clerkUser.imageUrl || "",
                 });
                 setIsAuthenticated(true);
-                
+
                 // Option 2: Déconnecter l'utilisateur si le backend ne le reconnaît pas
                 // Cette option est commentée par défaut
                 // setIsAuthenticated(false);
                 // await logout();
               }
             } catch (error: any) {
-              console.error('Error getting user on initialization:', error);
+              console.error("Error getting user on initialization:", error);
               // Si l'erreur est liée à un utilisateur non trouvé dans Clerk, déconnecter
-              if (error.response && error.response.data && 
-                  error.response.data.error === "Utilisateur non trouvé dans Clerk") {
-                console.warn("L'utilisateur n'existe plus dans Clerk, déconnexion...");
+              if (error.message?.includes("user not found in Clerk")) {
+                console.warn("User no longer exists in Clerk, logging out...");
                 await logout();
-              } else {
-                // Autres erreurs, on peut choisir de garder l'authentification avec Clerk 
-                // comme fallback ou de déconnecter selon la politique de sécurité
-                setIsAuthenticated(false);
+                return;
               }
+
+              // Other errors, we can choose to keep Clerk authentication
+              console.warn(
+                "Error syncing with backend but user exists in Clerk:",
+                error
+              );
+              setIsAuthenticated(true);
+              setUser(clerkUser);
             }
           } else {
             // No Clerk user, ensure authenticated is false
@@ -99,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error("Auth initialization error:", error);
         setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
@@ -110,76 +129,81 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [clerkUser, clerkIsLoaded]);
 
   // Register a new user
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (
+    username: string,
+    email: string,
+    password: string
+  ) => {
     try {
       setIsLoading(true);
-      
+
       // Front-end validation
       if (!username || username.length < 3) {
         return {
           success: false,
-          error: "Le nom d'utilisateur doit contenir au moins 3 caractères"
+          error: "Username must be at least 3 characters long",
         };
       }
-      
+
       if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
         return {
           success: false,
-          error: "Veuillez fournir une adresse email valide"
+          error: "Please provide a valid email address",
         };
       }
-      
+
       if (!password || password.length < 8) {
         return {
           success: false,
-          error: "Le mot de passe doit contenir au moins 8 caractères"
+          error: "Password must be at least 8 characters long",
         };
       }
-      
+
       // Check for strong password (at least one uppercase, one lowercase, one number)
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
       if (!passwordRegex.test(password)) {
         return {
           success: false,
-          error: "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre"
+          error:
+            "Password must contain at least one uppercase letter, one lowercase letter, and one number",
         };
       }
-      
-      console.log(`Tentative d'inscription avec: {"email": "${email}", "password": "***", "username": "${username}"}`);
-      
+
+      console.log(
+        `Attempting registration with: {"email": "${email}", "password": "***", "username": "${username}"}`
+      );
+
       // Register with backend only
-      // Notre backend crée déjà l'utilisateur dans Clerk et dans notre base de données
       const backendResponse = await authSignUp(username, email, password);
-      console.log("Réponse d'inscription:", backendResponse);
-      
+      console.log("Registration response:", backendResponse);
+
       if (!backendResponse.success) {
         return {
           success: false,
-          error: backendResponse.error || "Erreur lors de l'inscription"
+          error: backendResponse.error || "Error during registration",
         };
       }
-      
+
       // Définir l'utilisateur et isAuthenticated
       if (backendResponse.user) {
         const userObj = {
           id: String(backendResponse.user.id),
-          username: backendResponse.user.username || '',
+          username: backendResponse.user.username || "",
           email: backendResponse.user.email,
-          photoURL: backendResponse.user.photoURL || ''
+          photoURL: backendResponse.user.photoURL || "",
         };
         setUser(userObj);
         setIsAuthenticated(true);
         console.log("Utilisateur défini après inscription:", userObj);
       }
-      
+
       // L'utilisateur est déjà créé par le backend, on peut directement retourner un succès
       return { success: true };
-      
     } catch (error: any) {
-      console.error('Registration Error:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Registration failed' 
+      console.error("Registration Error:", error);
+      return {
+        success: false,
+        error: error.message || "Registration failed",
       };
     } finally {
       setIsLoading(false);
@@ -190,99 +214,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      
-      console.log(`Tentative de connexion avec: {"email": "${email}", "password": "***"}`);
-      
+
+      console.log(
+        `Tentative de connexion avec: {"email": "${email}", "password": "***"}`
+      );
+
       // Login with backend
       const backendResponse = await authSignIn(email, password);
       console.log("Réponse de connexion:", backendResponse);
-      
+
       if (!backendResponse.success) {
         // Si l'erreur indique que l'utilisateur n'existe pas dans Clerk,
         // inutile de continuer avec l'authentification Clerk
         return {
           success: false,
-          error: backendResponse.error || "Erreur lors de la connexion"
+          error: backendResponse.error || "Erreur lors de la connexion",
         };
       }
-      
+
       // On définit l'utilisateur avec les données de la réponse s'il y en a
       if (backendResponse.user) {
         const userObj = {
           id: String(backendResponse.user.id),
-          username: backendResponse.user.username || '',
+          username: backendResponse.user.username || "",
           email: backendResponse.user.email,
-          photoURL: backendResponse.user.photoURL || ''
+          photoURL: backendResponse.user.photoURL || "",
         };
         setUser(userObj);
         setIsAuthenticated(true);
         console.log("Utilisateur défini après connexion:", userObj);
       }
-      
+
       // Login with Clerk - uniquement si la réponse backend est un succès
       if (!signIn) {
-        throw new Error('Clerk signIn is undefined');
+        throw new Error("Clerk signIn is undefined");
       }
-      
-      let clerkSignIn;
+
       try {
-        clerkSignIn = await signIn.create({
+        await signIn.create({
           identifier: email,
           password,
         });
+
+        return {
+          success: true,
+          user: backendResponse.user,
+        };
       } catch (clerkError: any) {
-        console.error('Clerk Login Error:', clerkError);
-        
-        // Si l'erreur vient de Clerk mais que le backend a validé l'utilisateur,
-        // on peut retourner un succès quand même car l'utilisateur est authentifié côté backend
-        if (backendResponse.success && backendResponse.user) {
-          console.warn("Erreur Clerk mais utilisateur authentifié côté backend");
-          return { success: true };
-        }
-        
-        return { 
-          success: false, 
-          error: clerkError.message || 'Erreur de connexion avec Clerk' 
+        // If the error indicates that the user doesn't exist in Clerk,
+        // but backend validated them, we can still return success
+        console.warn("Clerk error but user authenticated on backend side");
+        return {
+          success: true,
+          user: backendResponse.user,
         };
       }
-      
-      if (clerkSignIn.status === 'complete') {
-        try {
-          // Get user details if we don't already have them from the backend
-          if (!user) {
-            const userDetails = await getCurrentUser();
-            if (userDetails) {
-              setUser(userDetails);
-            } else {
-              // Si l'utilisateur est connecté dans Clerk mais pas récupérable dans notre système
-              console.warn("Utilisateur connecté dans Clerk mais non récupérable dans notre système");
-              // Utiliser les données Clerk comme fallback
-              if (clerkUser) {
-                const clerkUserData = {
-                  id: clerkUser.id,
-                  username: clerkUser.username || '',
-                  email: clerkUser.primaryEmailAddress?.emailAddress || '',
-                  photoURL: clerkUser.imageUrl || '',
-                };
-                setUser(clerkUserData);
-              }
-            }
-          }
-          return { success: true };
-        } catch (getUserError) {
-          console.error('Error getting user after login:', getUserError);
-          // Continue with success even if getting user details fails
-          // The user is authenticated at this point
-          return { success: true };
-        }
-      } else {
-        throw new Error('Login with Clerk failed');
-      }
     } catch (error: any) {
-      console.error('Login Error:', error);
+      console.error("Login Error:", error);
       return {
         success: false,
-        error: error.message || 'Erreur de connexion'
+        error: error.message || "Erreur de connexion",
       };
     } finally {
       setIsLoading(false);
@@ -290,153 +281,147 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Logout the user
-  const logout = async (): Promise<void> => {
+  const logout = async () => {
+    console.log("Starting logout process");
     try {
-      setIsLoading(true);
-      console.log("Début du processus de déconnexion");
+      // Try to sign out from Clerk first
+      try {
+        await signOut();
+        console.log("Clerk sign out successful");
+      } catch (clerkError) {
+        console.error("Error during Clerk sign out:", clerkError);
 
-      // D'abord réinitialiser l'état local de l'application
-      // pour éviter tout problème si Clerk échoue
+        // On web, we can try to force logout using the clerk object
+        if (Platform.OS === "web") {
+          try {
+            console.log("Attempting alternative logout");
+            // @ts-ignore - clerk is available on web
+            await window.Clerk?.client?.signOut();
+          } catch (manualError) {
+            console.error(
+              "Unable to complete manual session termination:",
+              manualError
+            );
+          }
+        }
+      }
+
+      // Reset local state to ensure logout
       setUser(null);
       setIsAuthenticated(false);
-      console.log("État utilisateur réinitialisé localement");
 
-      // Sign out from Clerk
-      if (signOut) {
-        try {
-          await signOut();
-          console.log("Déconnexion de Clerk réussie");
-        } catch (clerkError) {
-          // Même si Clerk échoue, nous avons déjà réinitialisé l'état local
-          console.error("Erreur lors de la déconnexion de Clerk:", clerkError);
-          console.log("La session locale a été détruite de toute façon");
-        }
-      } else {
-        console.warn("La fonction signOut de Clerk n'est pas disponible");
-        
-        // Sur le web, on peut essayer de forcer la déconnexion en utilisant l'objet clerk
-        try {
-          if (clerk && clerk.session) {
-            // Pour la version web de Clerk, utiliser une autre méthode 
-            // car la méthode destroy n'existe pas directement sur la session
-            if (typeof window !== 'undefined') {
-              // Dans les versions plus récentes, signOut est la méthode recommandée
-              // Cette approche alternative n'est utilisée que si signOut n'est pas disponible
-              console.log("Tentative alternative de déconnexion");
-              await clerk.signOut();
-            }
-            console.log("Session Clerk terminée manuellement");
-          }
-        } catch (sessionError) {
-          console.error("Impossible de terminer la session manuellement:", sessionError);
-        }
-      }
-      
-      // Forcer l'actualisation du context Clerk
-      if (typeof window !== 'undefined') {
-        // Ce code ne s'exécutera que dans un environnement navigateur
-        console.log("Tentative de rafraîchissement du contexte Clerk");
-        try {
-          // @ts-ignore - cette propriété existe mais peut ne pas être typée
-          if (clerk && clerk.__unstable_update) {
-            // @ts-ignore
-            await clerk.__unstable_update();
-            console.log("Contexte Clerk rafraîchi");
-          }
-        } catch (updateError) {
-          console.error("Erreur lors du rafraîchissement du contexte Clerk:", updateError);
-        }
-      }
-      
-      console.log("Processus de déconnexion terminé");
-      
-      // En environnement web, on peut éventuellement rediriger vers la page de connexion
-      // si on détecte que nous sommes dans un environnement web
-      if (typeof window !== 'undefined' && typeof window.location !== 'undefined') {
-        // Ce code ne s'exécutera que dans un environnement navigateur
-        // Vous pouvez décommenter la ligne suivante si vous voulez une redirection automatique
-        // window.location.href = '/login';
-      }
-      
+      // Redirect to welcome page
+      router.replace("/");
     } catch (error) {
-      console.error('Logout error:', error);
-      // Même en cas d'erreur, on réinitialise l'état local pour assurer la déconnexion
+      console.error("Error during logout:", error);
+      // Force reset state and redirect anyway
       setUser(null);
       setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
+      router.replace("/");
     }
+    console.log("Logout process completed");
   };
 
   // Get current user details from backend
   const getCurrentUser = async (): Promise<User | null> => {
     try {
       if (!clerkUser) return null;
-      
+
       // Get the user's token from the active session
       let token;
       try {
         token = await clerk.session?.getToken();
       } catch (tokenError) {
-        console.error('Error getting token:', tokenError);
+        console.error("Error getting token:", tokenError);
         return null;
       }
-      
+
       if (!token) {
-        console.warn('No token available');
+        console.warn("No token available");
         return null;
       }
-      
+
       try {
         // Get user details from backend
         const response = await getUserInfo(token);
-        
+
         // Vérifier si la réponse indique un succès
         if (response.success === false) {
-          console.warn('Erreur récupération utilisateur:', response.error);
-          
+          console.warn("Erreur récupération utilisateur:", response.error);
+
           // Afficher notification ou message à l'utilisateur si nécessaire
           // Cette partie peut être personnalisée selon les besoins de l'application
-          
+
           // Utiliser les données Clerk comme fallback
           if (clerkUser) {
             return {
               id: clerkUser.id,
-              username: clerkUser.username || '',
-              email: clerkUser.primaryEmailAddress?.emailAddress || '',
-              photoURL: clerkUser.imageUrl || '',
+              username: clerkUser.username || "",
+              email: clerkUser.primaryEmailAddress?.emailAddress || "",
+              photoURL: clerkUser.imageUrl || "",
             };
           }
           return null;
         }
-        
+
         // Si c'est un succès ou si response.user existe
         if (response.user || response) {
           const userData = response.user || response;
           return {
             id: userData.id || clerkUser.id,
-            username: userData.username || clerkUser.username || '',
-            email: userData.email || clerkUser.primaryEmailAddress?.emailAddress || '',
-            photoURL: userData.imageUrl || userData.photoURL || clerkUser.imageUrl || '',
+            username: userData.username || clerkUser.username || "",
+            email:
+              userData.email ||
+              clerkUser.primaryEmailAddress?.emailAddress ||
+              "",
+            photoURL:
+              userData.imageUrl ||
+              userData.photoURL ||
+              clerkUser.imageUrl ||
+              "",
           };
         }
       } catch (apiError) {
-        console.error('API Error getting user:', apiError);
+        console.error("API Error getting user:", apiError);
         // Fall back to Clerk user data
         if (clerkUser) {
           return {
             id: clerkUser.id,
-            username: clerkUser.username || '',
-            email: clerkUser.primaryEmailAddress?.emailAddress || '',
-            photoURL: clerkUser.imageUrl || '',
+            username: clerkUser.username || "",
+            email: clerkUser.primaryEmailAddress?.emailAddress || "",
+            photoURL: clerkUser.imageUrl || "",
           };
         }
       }
-      
+
       return null;
     } catch (error) {
-      console.error('Get Current User Error:', error);
+      console.error("Get Current User Error:", error);
       return null;
+    }
+  };
+
+  const handleClerkUser = async (clerkUser: UserResource | null) => {
+    try {
+      if (!clerkUser) {
+        setIsAuthenticated(false);
+        setUser(null);
+        return;
+      }
+
+      const userData: User = {
+        id: clerkUser.id,
+        username: clerkUser.username,
+        email: clerkUser.primaryEmailAddress?.emailAddress || undefined,
+        photoURL: clerkUser.imageUrl || undefined,
+      };
+
+      setUser(userData);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error("Error handling clerk user:", error);
+      setIsAuthenticated(false);
+      setUser(null);
     }
   };
 
@@ -450,6 +435,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         getCurrentUser,
+        signIn,
+        signOut,
       }}
     >
       {children}
@@ -457,4 +444,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export default AuthContext; 
+export default AuthContext;

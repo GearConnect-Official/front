@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import styles from "../styles/postStyles";
+import { FontAwesome } from "@expo/vector-icons";
+import styles from "../styles/components/postStyles";
 
 interface PostProps {
   user: {
@@ -70,3 +70,4 @@ const Post: React.FC<PostProps> = ({ user, content }) => {
 };
 
 export default Post;
+

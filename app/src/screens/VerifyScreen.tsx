@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
-import styles from '../styles/verifyStyles';
+import styles from '../styles/auth/verifyStyles';
 
 const VerifyScreen: React.FC = () => {
   const { user } = useAuth();

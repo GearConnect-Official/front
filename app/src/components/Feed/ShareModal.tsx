@@ -8,8 +8,10 @@ import {
   StyleSheet,
   FlatList,
   Image,
+  Alert,
 } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
+import postService from '../../services/postService';
 
 interface ShareOption {
   id: string;
@@ -29,43 +31,55 @@ const ShareModal: React.FC<ShareModalProps> = ({
   onClose,
   postId,
 }) => {
+  
+  const handleShareToApp = async () => {
+    try {
+      await postService.sharePost(parseInt(postId), 1); // Utiliser l'ID de l'utilisateur connecté
+      Alert.alert('Succès', 'Post partagé avec succès!');
+      onClose();
+    } catch (error) {
+      console.error('Erreur lors du partage:', error);
+      Alert.alert('Erreur', 'Impossible de partager le post pour le moment.');
+    }
+  };
+
   // Sharing options
   const shareOptions: ShareOption[] = [
     { 
       id: '1', 
+      name: 'Share to Feed', 
+      icon: 'share', 
+      action: handleShareToApp
+    },
+    { 
+      id: '2', 
       name: 'Messages', 
       icon: 'comment', 
       action: () => console.log(`Sharing post ${postId} via Messages`)
     },
     { 
-      id: '2', 
+      id: '3', 
       name: 'WhatsApp', 
       icon: 'whatsapp', 
       action: () => console.log(`Sharing post ${postId} via WhatsApp`)
     },
     { 
-      id: '3', 
+      id: '4', 
       name: 'Facebook', 
       icon: 'facebook', 
       action: () => console.log(`Sharing post ${postId} via Facebook`)
     },
     { 
-      id: '4', 
+      id: '5', 
       name: 'Email', 
       icon: 'envelope', 
       action: () => console.log(`Sharing post ${postId} via Email`)
     },
     { 
-      id: '5', 
+      id: '6', 
       name: 'Copy link', 
       icon: 'link', 
       action: () => console.log(`Copying link for post ${postId}`)
-    },
-    { 
-      id: '6', 
-      name: 'Share on...', 
-      icon: 'share-alt', 
-      action: () => console.log(`Opening general share for post ${postId}`)
     },
   ];
 
@@ -85,7 +99,9 @@ const ShareModal: React.FC<ShareModalProps> = ({
 
   const handleShareOption = (option: ShareOption) => {
     option.action();
-    onClose();
+    if (option.id !== '1') { // Ne fermer que si ce n'est pas le partage vers le feed (qui gère sa propre fermeture)
+      onClose();
+    }
   };
 
   // Render a recent contact
@@ -106,7 +122,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
       onPress={() => handleShareOption(item)}
     >
       <View style={styles.shareIconContainer}>
-        <FontAwesome name={item.icon} size={24} color="#262626" />
+        <FontAwesome name={item.icon as any} size={24} color="#262626" />
       </View>
       <Text style={styles.shareOptionText}>{item.name}</Text>
     </TouchableOpacity>

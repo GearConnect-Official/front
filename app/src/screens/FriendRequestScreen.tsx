@@ -10,10 +10,9 @@ import {
   RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import FriendRequestItem from "../components/FriendRequestItem";
-import AddFriendModal from "../components/AddFriendModal";
-import styles from "../styles/friendRequestStyles";
+import { FontAwesome } from "@expo/vector-icons";
+import AddFriendModal from "../components/modals/AddFriendModal";
+import styles from "../styles/screens/friendRequestStyles";
 
 // Racing color palette inspired by automotive and racing world
 const THEME_COLORS = {
@@ -173,7 +172,7 @@ const FriendRequestScreen: React.FC = () => {
               <View style={styles.emptyContainer}>
                 <FontAwesome name="user-circle" size={60} color="#CCCCCC" />
                 <Text style={styles.emptyTitle}>No Suggestions</Text>
-                <Text style={styles.emptySubtitle}>We'll suggest connections based on your interests</Text>
+                <Text style={styles.emptySubtitle}>We&apos;ll suggest connections based on your interests</Text>
               </View>
             </View>
           )}
@@ -198,3 +197,4 @@ const FriendRequestScreen: React.FC = () => {
 };
 
 export default FriendRequestScreen;
+

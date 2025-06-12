@@ -12,7 +12,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { RouteProp } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { EventInterface } from '../services/EventInterface';
-import styles from '../styles/eventDetailStyles';
+import { styles } from '../styles/screens/eventDetailStyles';
 import {
   API_URL_EVENTS,
   API_URL_EVENTTAGS,

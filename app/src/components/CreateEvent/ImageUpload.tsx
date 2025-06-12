@@ -1,54 +1,61 @@
-import * as React from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { FontAwesome } from "@expo/vector-icons";
-import styles from "../../styles/createEventStyles";
+import React, { useState } from 'react';
+import { View, Text, Alert } from 'react-native';
+import { CloudinaryImageUpload } from '../media/CloudinaryImageUpload';
+import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
+import styles from '../../styles/screens/createEventStyles';
 
 interface ImageUploadProps {
   title: string;
   buttonText: string;
-  onImageSelected?: (uri: string) => void;
+  onImageSelected?: (cloudinaryUrl: string, publicId: string) => void;
+  folder?: string;
+  tags?: string[];
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
   title,
   buttonText,
   onImageSelected,
+  folder = 'events',
+  tags = ['event'],
 }) => {
-  const [image, setImage] = React.useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<CloudinaryUploadResponse | null>(null);
 
-  const pickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: "images",
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+  const handleUploadComplete = (response: CloudinaryUploadResponse) => {
+    setUploadedImage(response);
+    onImageSelected?.(response.secure_url, response.public_id);
+  };
 
-      if (!result.canceled) {
-        const uri = result.assets[0].uri;
-        setImage(uri);
-        onImageSelected?.(uri);
-      }
-    } catch (error) {
-      console.error("Error picking image:", error);
-    }
+  const handleUploadError = (error: string) => {
+    Alert.alert('Erreur d\'upload', error);
   };
 
   return (
     <View style={styles.imageUploadContainer}>
       <Text style={styles.imageUploadTitle}>{title}</Text>
-      <TouchableOpacity style={styles.imageUploadButton} onPress={pickImage}>
-        {image ? (
-          <Image source={{ uri: image }} style={styles.uploadedImage} />
-        ) : (
-          <>
-            <FontAwesome name="cloud-upload" size={24} color="#1E232C" />
-            <Text style={styles.imageUploadButtonText}>{buttonText}</Text>
-          </>
-        )}
-      </TouchableOpacity>
+      
+      <CloudinaryImageUpload
+        onUploadComplete={handleUploadComplete}
+        onUploadError={handleUploadError}
+        folder={folder}
+        tags={tags}
+        allowMultiple={false}
+        buttonText={buttonText}
+        showPreview={true}
+        style={styles.imageUploadButton}
+      />
+      
+      {uploadedImage && (
+        <View style={styles.uploadInfoContainer}>
+          <Text style={styles.uploadInfoText}>
+            Image uploadée avec succès
+          </Text>
+          <Text style={styles.uploadInfoDetails}>
+            Format: {uploadedImage.format.toUpperCase()} • 
+            Taille: {(uploadedImage.bytes / 1024 / 1024).toFixed(1)} MB
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

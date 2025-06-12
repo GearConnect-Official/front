@@ -18,6 +18,21 @@ const apiConfig: ApiConfig = {
 };
 
 /**
+ * Configuration Cloudinary
+ */
+export const cloudinaryConfig = {
+  cloudName: Constants.expoConfig?.extra?.cloudinaryCloudName,
+  apiKey: Constants.expoConfig?.extra?.cloudinaryApiKey,
+  apiSecret: Constants.expoConfig?.extra?.cloudinaryApiSecret,
+  uploadPreset: Constants.expoConfig?.extra?.cloudinaryUploadPreset,
+};
+
+// Validation de la configuration Cloudinary
+if (!cloudinaryConfig.cloudName) {
+  console.warn('CLOUDINARY_CLOUD_NAME is not defined - image upload will not work');
+}
+
+/**
  * Génère les URLs pour tous les endpoints de l'API
  */
 const generateApiEndpoints = (): ApiEndpoints => {
@@ -44,9 +59,16 @@ export const {
   [ApiRoutes.RELATEDPRODUCTS]: API_URL_RELATEDPRODUCTS,
   [ApiRoutes.SPONSOR]: API_URL_SPONSOR,
   [ApiRoutes.INTERACTIONS]: API_URL_INTERACTIONS,
+  [ApiRoutes.COMMENTS]: API_URL_COMMENTS,
   [ApiRoutes.TAGS]: API_URL_TAGS,
   [ApiRoutes.USERS]: API_URL_USERS,
   [ApiRoutes.HEALTH]: API_URL_HEALTH,
+  [ApiRoutes.PERFORMANCES]: API_URL_PERFORMANCES,
 } = API_ENDPOINTS;
+
+/**
+ * URL de base pour l'API (utilisée par certains services)
+ */
+export const API_BASE_URL = apiConfig.baseUrl;
 
 export default apiConfig;

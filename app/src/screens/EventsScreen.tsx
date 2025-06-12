@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,17 @@ import {
   ScrollView,
   SafeAreaView,
   ActivityIndicator,
-  Alert,
   RefreshControl,
   Image,
-  FlatList,
   Animated,
   Dimensions,
-} from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import styles from '../styles/eventsStyles';
-import EventItem from '../components/EventItem';
-import { useRouter, useFocusEffect } from 'expo-router';
-import eventService, { Event } from '../services/eventService';
-import { LinearGradient } from 'expo-linear-gradient';
+} from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import styles from "../styles/screens/eventsStyles";
+import EventItem from "../components/items/EventItem";
+import { useRouter, useFocusEffect } from "expo-router";
+import { Event } from "../services/eventService";
+import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS, API_URL_USERS } from '../config';
 
 const { width } = Dimensions.get('window');
@@ -42,6 +40,7 @@ const EventsScreen: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [featured, setFeatured] = useState<Event[]>([]);
   const scrollX = React.useRef(new Animated.Value(0)).current;
@@ -62,6 +61,7 @@ const EventsScreen: React.FC = () => {
   const fetchEvents = async () => {
     setLoading(true);
     setError(null);
+    setIsNetworkError(false);
     try {
       const response = await fetch(API_URL_EVENTS);
       if (!response.ok) {
@@ -120,8 +120,14 @@ const EventsScreen: React.FC = () => {
         passed: passedEvents,
       });
     } catch (err) {
-      setError('Error loading events');
-      console.error('Error fetching events:', err);
+      // Check if it's a network error (fetch API throws TypeError for network issues)
+      if (err instanceof TypeError && (err.message.includes('Network request failed') || err.message.includes('Failed to fetch'))) {
+        setIsNetworkError(true);
+        setError("Your WiFi connection might not be working properly. Please check your internet connection and try again.");
+      } else {
+        setError("Unable to load events. Please try again later.");
+      }
+      // console.error("Error fetching events:", err);
     } finally {
       setLoading(false);
     }
@@ -377,9 +383,20 @@ const EventsScreen: React.FC = () => {
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+            {isNetworkError ? (
+              <>
+                <FontAwesome name="wifi" size={50} color="#E10600" />
+                <Text style={styles.errorTitle}>Connection Issue</Text>
+                <Text style={styles.errorText}>{error}</Text>
+              </>
+            ) : (
+              <>
+                <FontAwesome name="exclamation-triangle" size={50} color="#E10600" />
+                <Text style={styles.errorText}>{error}</Text>
+              </>
+            )}
             <TouchableOpacity style={styles.retryButton} onPress={fetchEvents}>
-              <Text style={styles.retryButtonText}>Retry</Text>
+              <Text style={styles.retryButtonText}>Try Again</Text>
             </TouchableOpacity>
           </View>
         ) : filteredEvents[activeTab]?.length === 0 ? (

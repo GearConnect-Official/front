@@ -24,7 +24,6 @@ const eventService = {
       const response = await axios.get(API_URL_EVENTS);
       return response.data;
     } catch (error) {
-      console.error('Error fetching events:', error);
       throw error;
     }
   },
@@ -35,13 +34,14 @@ const eventService = {
       const response = await axios.get(`${API_URL_EVENTS}/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching event:', error);
       throw error;
     }
   },
 
   // Create a new event
   createEvent: async (eventData: Event) => {
+    console.log('Données envoyées au backend:', eventData);
+    
     try {
       // Extraire le nom du fichier d'une URL d'image locale
       const extractFilename = (uri: string): string => {
@@ -68,21 +68,11 @@ const eventService = {
       
       console.log('Processed data avant envoi:', JSON.stringify(processedData, null, 2));
       
-      try {
-        const response = await axios.post(API_URL_EVENTS, processedData);
-        console.log('Réponse succès:', response.status);
-        return response.data;
-      } catch (axiosError: any) {
-        console.error('Erreur axios détaillée:', axiosError.message);
-        if (axiosError.response) {
-          console.error('Status:', axiosError.response.status);
-          console.error('Data:', JSON.stringify(axiosError.response.data, null, 2));
-          console.error('Headers:', axiosError.response.headers);
-        }
-        throw axiosError;
-      }
-    } catch (error) {
-      console.error('Error creating event:', error);
+      const response = await axios.post(API_URL_EVENTS, processedData);
+      console.log('Réponse succès:', response.status);
+      return response.data;
+    } catch (error: any) {
+      // console.error('Error creating event:', error);
       throw error;
     }
   },
@@ -97,7 +87,7 @@ const eventService = {
       const response = await axios.patch(`${API_URL_EVENTS}/${id}`, formattedEvent);
       return response.data;
     } catch (error) {
-      console.error('Error updating event:', error);
+      // console.error('Error updating event:', error);
       throw error;
     }
   },

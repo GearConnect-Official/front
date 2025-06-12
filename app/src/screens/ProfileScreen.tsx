@@ -5,23 +5,26 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  FlatList,
-  Dimensions,
   SafeAreaView,
   Modal,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import styles from "../styles/profileStyles";
+import styles from "../styles/Profile/profileStyles";
 import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
+import favoritesService from "../services/favoritesService";
+import postService from "../services/postService";
+import ProfileMenu from "../components/Profile/ProfileMenu";
+import { CloudinaryMedia } from "../components/media";
+import { detectMediaType } from "../utils/mediaUtils";
+import { defaultImages } from "../config/defaultImages";
+import PerformanceService from '../services/performanceService';
 
 // Screen width to calculate grid image dimensions
-const { width } = Dimensions.get("window");
 const NUM_COLUMNS = 3;
-const TILE_WIDTH = width / NUM_COLUMNS;
-const TILE_HEIGHT = TILE_WIDTH;
-const TILE_SPACING = 1;
 
 // Type for posts
 interface Post {
@@ -33,27 +36,39 @@ interface Post {
   location?: string;
   timeAgo?: string;
   multipleImages?: boolean;
+  isVideo: boolean;
+  cloudinaryPublicId?: string;
+  imageMetadata?: string;
 }
 
-// Type for events
-interface Event {
-  id: string;
+// Type for favorites
+interface FavoritePost {
+  id: number;
   title: string;
-  imageUrl: string;
-  date: string;
-  location: string;
-  description?: string;
-  participants?: number;
-  isOrganizer?: boolean;
-  result?: string; // For race results
+  body: string;
+  cloudinaryUrl?: string;
+  cloudinaryPublicId?: string;
+  imageMetadata?: string;
+  user: {
+    id: number;
+    name: string;
+    username: string;
+    email: string;
+  };
+  createdAt: string;
+  favorites?: { userId: number; postId: number }[];
+  interactions?: any[];
+  comments?: any[];
 }
 
-// Type for driver statistics
+// Type for driver statistics (adapted for API data)
 interface DriverStats {
   races: number;
   wins: number;
   podiums: number;
   championshipPosition?: number;
+  bestPosition?: number;
+  averagePosition?: number;
 }
 
 // Définir l'interface des props
@@ -63,230 +78,246 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const router = useRouter();
-  const { user } = useAuth();
+  const auth = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [eventFilter, setEventFilter] = useState<
-    "all" | "organized" | "participated"
-  >("all");
+  const [favorites, setFavorites] = useState<FavoritePost[]>([]);
   const [stats, setStats] = useState({
-    posts: 24,
-    followers: 1248,
-    following: 420,
+    posts: 0,
+    followers: 0,
+    following: 0,
+    saved: 0,
   });
   const [driverStats, setDriverStats] = useState<DriverStats>({
-    races: 12,
-    wins: 3,
-    podiums: 7,
-    championshipPosition: 2,
+    races: 0,
+    wins: 0,
+    podiums: 0,
+    championshipPosition: 0,
+    bestPosition: 0,
+    averagePosition: 0,
   });
+  const [isLoadingDriverStats, setIsLoadingDriverStats] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<Post[]>([]);
+  const [isLoadingLikedPosts, setIsLoadingLikedPosts] = useState(false);
 
+  // Get user from auth context
+  const { user } = auth || {};
+
+  // Load all data when component mounts or user changes
   useEffect(() => {
-    // Simuler le chargement des données
-    // Si userId est défini, charger les données de cet utilisateur spécifique
-    // Sinon, charger les données de l'utilisateur connecté
-    loadMockData();
+    if (!auth?.user?.id) return;
     
-    // Dans une vraie application, vous pourriez faire quelque chose comme:
-    // if (userId) {
-    //   loadUserData(userId);
-    // } else {
-    //   loadCurrentUserData();
-    // }
-  }, [userId]); // Recharger les données quand userId change
+    const loadAllData = async () => {
+      try {
+        // Load user posts
+        const loadUserPostsAsync = async () => {
+          setIsLoadingPosts(true);
+          try {
+            const userPosts = await postService.getUserPosts(Number(auth?.user?.id));
+            
+            if (!Array.isArray(userPosts)) {
+              console.error("Expected array of posts but got:", userPosts);
+              return;
+            }
 
-  const loadMockData = () => {
-    // Simulated posts for the grid
-    const mockPosts: Post[] = [
-      {
-        id: "1",
-        imageUrl:
-          "https://images.pexels.com/photos/12801367/pexels-photo-12801367.jpeg",
-        likes: 128,
-        comments: 14,
-        location: "Monza Circuit",
-        multipleImages: true,
-        caption:
-          "Amazing day at Monza Circuit. Preparing for the upcoming season! 🏎️ #F3 #Racing #Monza",
-        timeAgo: "2 days",
-      },
-      {
-        id: "2",
-        imageUrl:
-          "https://images.pexels.com/photos/12316494/pexels-photo-12316494.jpeg",
-        likes: 253,
-        comments: 32,
-        location: "Paul Ricard Circuit",
-        caption:
-          "Testing at Paul Ricard. Perfect conditions and good team performance. Ready for competition! 💪",
-        timeAgo: "1 week",
-      },
-      {
-        id: "3",
-        imageUrl:
-          "https://images.pexels.com/photos/12120915/pexels-photo-12120915.jpeg",
-        likes: 86,
-        comments: 9,
-        location: "Cormeilles Karting",
-        multipleImages: true,
-        caption:
-          "Back to basics with a karting session. Nothing better to perfect your technique!",
-        timeAgo: "2 weeks",
-      },
-      {
-        id: "4",
-        imageUrl:
-          "https://images.pexels.com/photos/1719647/pexels-photo-1719647.jpeg",
-        likes: 176,
-        comments: 21,
-        caption:
-          "New custom helmet for the season! What do you think? #Racing #Equipment",
-        timeAgo: "3 weeks",
-      },
-      {
-        id: "5",
-        imageUrl:
-          "https://images.pexels.com/photos/9660/business-car-vehicle-black-and-white.jpg",
-        likes: 142,
-        comments: 17,
-        location: "Spa-Francorchamps Circuit",
-        caption:
-          "Race weekend at Spa. A legendary track with changing weather conditions!",
-        timeAgo: "1 month",
-      },
-      {
-        id: "6",
-        imageUrl:
-          "https://images.pexels.com/photos/2804393/pexels-photo-2804393.jpeg",
-        likes: 95,
-        comments: 7,
-        caption:
-          "While waiting for the next race, focus on physical training 🏃‍♂️",
-        timeAgo: "1 month",
-      },
-      {
-        id: "7",
-        imageUrl:
-          "https://images.pexels.com/photos/109699/pexels-photo-109699.jpeg",
-        likes: 204,
-        comments: 27,
-        multipleImages: true,
-        caption:
-          "Visiting the team factory. Amazing to see the work of engineers and mechanics!",
-        timeAgo: "2 months",
-      },
-      {
-        id: "8",
-        imageUrl:
-          "https://images.pexels.com/photos/12801381/pexels-photo-12801381.jpeg",
-        likes: 118,
-        comments: 12,
-        caption:
-          "Analyzing data from the last race. Always looking to improve! 📊",
-        timeAgo: "2 months",
-      },
-      {
-        id: "9",
-        imageUrl:
-          "https://images.pexels.com/photos/15825503/pexels-photo-15825503/free-photo-of-voiture-de-course-de-formule-1-et-drapeaux-a-damier.jpeg",
-        likes: 163,
-        comments: 19,
-        location: "Circuit de Barcelona-Catalunya",
-        caption:
-          "First tests in Barcelona. The new car looks promising! 🏎️ #Testing #F3 #Barcelona",
-        timeAgo: "3 months",
-      },
-    ];
+            const formattedPosts = userPosts.map((post: any) => ({
+              id: post.id.toString(),
+              imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
+              likes: post.interactions?.filter((i: any) => i.like).length || 0,
+              comments: post.interactions?.filter((i: any) => i.comment).length || 0,
+              caption: post.title ? `${post.title}\n${post.body}` : post.body,
+              location: "",
+              timeAgo: new Date(post.createdAt).toLocaleDateString(),
+              multipleImages: false,
+              isVideo: detectMediaType(
+                post.cloudinaryUrl,
+                post.cloudinaryPublicId,
+                post.imageMetadata
+              ) === "video",
+              cloudinaryPublicId: post.cloudinaryPublicId,
+              imageMetadata: post.imageMetadata,
+            }));
 
-    // Simulated events
-    const mockEvents: Event[] = [
-      {
-        id: "1",
-        title: "F3 Championship - Round 1",
-        imageUrl:
-          "https://images.pexels.com/photos/12138012/pexels-photo-12138012.jpeg",
-        date: "March 15-17, 2023",
-        location: "Monza Circuit, Italy",
-        description:
-          "First round of the 2023 F3 championship. Qualifying P3, race 1 result: P2, race 2: P1.",
-        result: "Victory",
-        participants: 22,
-      },
-      {
-        id: "2",
-        title: "Exhibition Race - 4h of Le Mans",
-        imageUrl:
-          "https://images.pexels.com/photos/12062013/pexels-photo-12062013.jpeg",
-        date: "April 5-6, 2023",
-        location: "Circuit des 24h du Mans, France",
-        description: "Exhibition race before the 24h of Le Mans.",
-        result: "P4",
-        participants: 30,
-      },
-      {
-        id: "3",
-        title: "F3 Championship - Round 2",
-        imageUrl:
-          "https://images.pexels.com/photos/2399249/pexels-photo-2399249.jpeg",
-        date: "April 29 - May 1, 2023",
-        location: "Paul Ricard Circuit, France",
-        description:
-          "Second round of the 2023 F3 championship. Qualifying P1, race 1: P1, race 2: DNF (technical issue).",
-        result: "Victory / DNF",
-        participants: 22,
-      },
-      {
-        id: "4",
-        title: "Karting Day - Young Drivers Promotion",
-        imageUrl:
-          "https://images.pexels.com/photos/8985459/pexels-photo-8985459.jpeg",
-        date: "May 15, 2023",
-        location: "Cormeilles Karting, France",
-        description:
-          "Introduction day organized for young drivers. Experience sharing and coaching.",
-        isOrganizer: true,
-        participants: 15,
-      },
-      {
-        id: "5",
-        title: "F3 Championship - Round 3",
-        imageUrl:
-          "https://images.pexels.com/photos/265881/pexels-photo-265881.jpeg",
-        date: "May 20-22, 2023",
-        location: "Circuit de Barcelona-Catalunya, Spain",
-        description:
-          "Third round of the 2023 F3 championship. Qualifying P5, race 1: P4, race 2: P3.",
-        result: "P3",
-        participants: 22,
-      },
-      {
-        id: "6",
-        title: "Advanced Driving Course",
-        imageUrl:
-          "https://images.pexels.com/photos/14777754/pexels-photo-14777754.jpeg",
-        date: "June 10, 2023",
-        location: "Magny-Cours Circuit, France",
-        description:
-          "Driving course for experienced drivers. Advanced techniques and telemetry analysis.",
-        isOrganizer: true,
-        participants: 8,
-      },
-    ];
+            setPosts(formattedPosts);
+            setStats((prev) => ({ ...prev, posts: formattedPosts.length }));
+          } catch (error) {
+            console.error("Error loading user posts:", error);
+          } finally {
+            setIsLoadingPosts(false);
+          }
+        };
 
-    setPosts(mockPosts);
-    setEvents(mockEvents);
-  };
+        // Load favorites
+        const loadFavoritesAsync = async () => {
+          setIsLoadingFavorites(true);
+          try {
+            const response = await favoritesService.getUserFavorites(Number(auth?.user?.id), 1);
+            
+            if (!response.favorites || !Array.isArray(response.favorites)) {
+              console.error("Expected array of favorites but got:", response);
+              return;
+            }
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + "M";
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + "K";
+            const formattedFavorites = response.favorites.map((post: any) => ({
+              id: post.id,
+              title: post.title,
+              body: post.body,
+              cloudinaryUrl: post.cloudinaryUrl,
+              cloudinaryPublicId: post.cloudinaryPublicId,
+              imageMetadata: post.imageMetadata,
+              user: post.user,
+              createdAt: post.createdAt,
+              favorites: post.favorites,
+              interactions: post.interactions,
+              comments: post.comments,
+            }));
+
+            setFavorites(formattedFavorites);
+            setStats((prev) => ({ ...prev, saved: response.pagination.total }));
+          } catch (error) {
+            console.error("Error loading favorites:", error);
+          } finally {
+            setIsLoadingFavorites(false);
+          }
+        };
+
+        // Load liked posts
+        const loadLikedPostsAsync = async () => {
+          setIsLoadingLikedPosts(true);
+          try {
+            const response = await postService.getLikedPosts(Number(auth?.user?.id));
+            
+            if (!Array.isArray(response)) {
+              console.error("Expected array of posts but got:", response);
+              return;
+            }
+
+            const formattedLikedPosts = response.map((post: any) => ({
+              id: post.id.toString(),
+              imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
+              likes: post.interactions?.filter((i: any) => i.like).length || 0,
+              comments: post.interactions?.filter((i: any) => i.comment).length || 0,
+              caption: post.title ? `${post.title}\n${post.body}` : post.body,
+              location: "",
+              timeAgo: new Date(post.createdAt).toLocaleDateString(),
+              multipleImages: false,
+              isVideo: detectMediaType(
+                post.cloudinaryUrl,
+                post.cloudinaryPublicId,
+                post.imageMetadata
+              ) === "video",
+              cloudinaryPublicId: post.cloudinaryPublicId,
+              imageMetadata: post.imageMetadata,
+            }));
+
+            setLikedPosts(formattedLikedPosts);
+          } catch (error) {
+            console.error("Error loading liked posts:", error);
+          } finally {
+            setIsLoadingLikedPosts(false);
+          }
+        };
+
+        // Load driver stats
+        const loadDriverStatsAsync = async () => {
+          if (!user?.id) return;
+          
+          setIsLoadingDriverStats(true);
+          try {
+            const response = await PerformanceService.getUserStats(user.id);
+            
+            if (response.success && response.data) {
+              const apiStats = response.data;
+              
+              setDriverStats({
+                races: apiStats.totalRaces || 0,
+                wins: apiStats.wins || 0,
+                podiums: apiStats.podiumFinishes || 0,
+                bestPosition: apiStats.bestPosition || 0,
+                averagePosition: apiStats.averagePosition || 0,
+              });
+            }
+          } catch (error) {
+            console.error('Error loading driver stats:', error);
+          } finally {
+            setIsLoadingDriverStats(false);
+          }
+        };
+
+        // Execute all data loading in parallel
+        await Promise.all([
+          loadUserPostsAsync(),
+          loadFavoritesAsync(),
+          loadLikedPostsAsync(),
+          loadDriverStatsAsync(),
+        ]);
+      } catch (error) {
+        console.error("Error loading profile data:", error);
+      }
+    };
+
+    loadAllData();
+  }, [auth?.user?.id, user?.id]); // Only depend on user IDs
+
+  const onRefreshProfile = async () => {
+    setRefreshing(true);
+
+    try {
+      // Recharger les données selon l'onglet actif
+      if (activeTab === "favorites" && auth?.user?.id) {
+        setIsLoadingFavorites(true);
+        const response = await favoritesService.getUserFavorites(Number(auth?.user?.id), 1);
+        
+        if (response.favorites && Array.isArray(response.favorites)) {
+          const formattedFavorites = response.favorites.map((post: any) => ({
+            id: post.id,
+            title: post.title,
+            body: post.body,
+            cloudinaryUrl: post.cloudinaryUrl,
+            cloudinaryPublicId: post.cloudinaryPublicId,
+            imageMetadata: post.imageMetadata,
+            user: post.user,
+            createdAt: post.createdAt,
+            favorites: post.favorites,
+            interactions: post.interactions,
+            comments: post.comments,
+          }));
+          
+          setFavorites(formattedFavorites);
+          setStats((prev) => ({ ...prev, saved: response.pagination.total }));
+        }
+        setIsLoadingFavorites(false);
+      }
+      
+      // Recharger les statistiques de performance
+      if (user?.id) {
+        setIsLoadingDriverStats(true);
+        const response = await PerformanceService.getUserStats(user.id);
+        
+        if (response.success && response.data) {
+          const apiStats = response.data;
+          
+          setDriverStats({
+            races: apiStats.totalRaces || 0,
+            wins: apiStats.wins || 0,
+            podiums: apiStats.podiumFinishes || 0,
+            bestPosition: apiStats.bestPosition || 0,
+            averagePosition: apiStats.averagePosition || 0,
+          });
+        }
+        setIsLoadingDriverStats(false);
+      }
+    } catch (error) {
+      console.error("Error refreshing profile data:", error);
     }
-    return num.toString();
+
+    setRefreshing(false);
   };
 
   const handlePostPress = (post: Post) => {
@@ -329,94 +360,46 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     // if we were navigating to other profiles from the current profile
   };
 
-  const handleEventPress = (eventId: string) => {
-    router.push({
-      pathname: '/(app)/eventDetail',
-      params: { eventId }
-    });
+  const handleSettingsPress = () => {
+    setMenuVisible(false);
+    router.push("/settings");
   };
 
-  const renderPostItem = ({ item }: { item: Post }) => (
-    <TouchableOpacity
-      style={styles.postTile}
-      activeOpacity={0.8}
-      onPress={() => handlePostPress(item)}
-    >
-      <Image source={{ uri: item.imageUrl }} style={styles.postTileImage} />
-      {item.multipleImages && (
-        <View style={styles.multipleImagesIcon}>
-          <FontAwesome name="clone" size={14} color="#FFFFFF" />
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+  const handleEditProfilePress = () => {
+    setMenuVisible(false);
+    router.push("/editProfile");
+  };
 
-  const renderEventItem = ({ item }: { item: Event }) => (
-    <TouchableOpacity
-      style={styles.eventCard}
-      activeOpacity={0.8}
-      onPress={() => handleEventPress(item.id)}
-    >
-      <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />
-      <View style={styles.eventOverlay}>
-        {item.isOrganizer && (
-          <View style={styles.organizerBadge}>
-            <FontAwesome name="star" size={12} color="#FFFFFF" />
-            <Text style={styles.organizerText}>Organizer</Text>
-          </View>
-        )}
-        {item.result && (
-          <View style={styles.resultBadge}>
-            <Text style={styles.resultText}>{item.result}</Text>
-          </View>
-        )}
-      </View>
-      {item.result === "Victory" && (
-        <View style={styles.achievementBadge}>
-          <FontAwesome name="trophy" size={12} color="#FFFFFF" />
-          <Text style={styles.achievementText}>1st place</Text>
-        </View>
-      )}
-      <View style={styles.eventInfo}>
-        <Text style={styles.eventTitle}>{item.title}</Text>
-        <View style={styles.eventMeta}>
-          <View style={styles.eventMetaItem}>
-            <FontAwesome
-              name="calendar"
-              size={14}
-              color="#6E6E6E"
-              style={styles.eventMetaIcon}
-            />
-            <Text style={styles.eventMetaText}>{item.date}</Text>
-          </View>
-          <View style={styles.eventMetaItem}>
-            <FontAwesome
-              name="map-marker"
-              size={14}
-              color="#6E6E6E"
-              style={styles.eventMetaIcon}
-            />
-            <Text style={styles.eventMetaText}>{item.location}</Text>
-          </View>
-          {item.participants && (
-            <View style={styles.eventMetaItem}>
-              <FontAwesome
-                name="users"
-                size={14}
-                color="#6E6E6E"
-                style={styles.eventMetaIcon}
-              />
-              <Text style={styles.eventMetaText}>
-                {item.participants} participants
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const handlePreferencesPress = () => {
+    setMenuVisible(false);
+    router.push("/preferences");
+  };
+
+  const handleLogoutPress = async () => {
+    setMenuVisible(false);
+    try {
+      await auth?.logout();
+      // No need to manually redirect as it's handled in the logout function
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const handlePerformancesPress = () => {
+    router.push("/performances");
+  };
 
   const renderPostsGrid = () => {
+    if (isLoadingPosts) {
+      return (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#E10600" />
+        </View>
+      );
+    }
+
     if (posts.length === 0) {
       return renderEmptyComponent();
     }
@@ -429,17 +412,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
       const rowItems = posts.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
       const row = (
         <View key={`row-${i}`} style={{ flexDirection: "row" }}>
-          {rowItems.map((item, index) => (
+          {rowItems.map((item) => (
             <TouchableOpacity
               key={item.id}
               style={styles.postTile}
               activeOpacity={0.8}
               onPress={() => handlePostPress(item)}
             >
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={styles.postTileImage}
-              />
+              {item.isVideo ? (
+                <CloudinaryMedia
+                  publicId={item.cloudinaryPublicId || ""}
+                  mediaType="video"
+                  width={300}
+                  height={300}
+                  crop="fill"
+                  quality="auto"
+                  format="mp4"
+                  style={styles.postTileImage}
+                  fallbackUrl={item.imageUrl}
+                  shouldPlay={false}
+                  isMuted={true}
+                  useNativeControls={false}
+                  isLooping={false}
+                />
+              ) : (
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.postTileImage}
+                />
+              )}
               {item.multipleImages && (
                 <View style={styles.multipleImagesIcon}>
                   <FontAwesome name="clone" size={14} color="#FFFFFF" />
@@ -464,101 +465,244 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     return <View style={styles.postsContainer}>{postRows}</View>;
   };
 
-  const renderEventsList = () => {
-    if (events.length === 0) {
-      return renderEmptyComponent();
-    }
-
-    // Filter events based on active filter
-    const filteredEvents = events.filter((event) => {
-      if (eventFilter === "all") return true;
-      if (eventFilter === "organized") return !!event.isOrganizer;
-      if (eventFilter === "participated") return !event.isOrganizer; // Assuming that all non-organized events are participated
-      return true;
-    });
-
-    // If no events match the filter, display an appropriate message
-    if (filteredEvents.length === 0) {
+  const renderReelsGrid = () => {
+    if (isLoadingPosts) {
       return (
-        <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
-          <FontAwesome name="calendar-times-o" size={60} color="#CCCCCC" />
-          <Text style={styles.emptyTitle}>
-            {eventFilter === "organized"
-              ? "No events organized"
-              : "No participation"}
-          </Text>
-          <Text style={styles.emptySubtitle}>
-            {eventFilter === "organized"
-              ? "Events you organize will appear here."
-              : "Events you participate in will appear here."}
-          </Text>
-          <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Create Event</Text>
-          </TouchableOpacity>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#E10600" />
         </View>
       );
     }
 
-    return (
-      <View style={styles.eventsContainer}>
-        {/* Event filters */}
-        <View style={styles.eventFiltersContainer}>
-          <TouchableOpacity
-            style={[
-              styles.eventFilterButton,
-              eventFilter === "all" && styles.activeEventFilter,
-            ]}
-            onPress={() => setEventFilter("all")}
-          >
-            <Text
-              style={[
-                styles.eventFilterText,
-                eventFilter === "all" && styles.activeEventFilterText,
-              ]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.eventFilterButton,
-              eventFilter === "organized" && styles.activeEventFilter,
-            ]}
-            onPress={() => setEventFilter("organized")}
-          >
-            <Text
-              style={[
-                styles.eventFilterText,
-                eventFilter === "organized" && styles.activeEventFilterText,
-              ]}
-            >
-              Organized
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.eventFilterButton,
-              eventFilter === "participated" && styles.activeEventFilter,
-            ]}
-            onPress={() => setEventFilter("participated")}
-          >
-            <Text
-              style={[
-                styles.eventFilterText,
-                eventFilter === "participated" && styles.activeEventFilterText,
-              ]}
-            >
-              Participated
-            </Text>
-          </TouchableOpacity>
-        </View>
+    const videoPosts = posts.filter((post) => post.isVideo);
 
-        {/* List of filtered events */}
-        {filteredEvents.map((item) => (
-          <View key={item.id}>{renderEventItem({ item })}</View>
-        ))}
-      </View>
-    );
+    if (videoPosts.length === 0) {
+      return renderEmptyComponent();
+    }
+
+    // Calculate the number of rows needed to display all video posts
+    const rows = Math.ceil(videoPosts.length / NUM_COLUMNS);
+    const postRows = [];
+
+    for (let i = 0; i < rows; i++) {
+      const rowItems = videoPosts.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
+      const row = (
+        <View key={`row-${i}`} style={{ flexDirection: "row" }}>
+          {rowItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.postTile}
+              activeOpacity={0.8}
+              onPress={() => handlePostPress(item)}
+            >
+              <CloudinaryMedia
+                publicId={item.cloudinaryPublicId || ""}
+                mediaType="video"
+                width={300}
+                height={300}
+                crop="fill"
+                quality="auto"
+                format="mp4"
+                style={styles.postTileImage}
+                fallbackUrl={item.imageUrl}
+                shouldPlay={false}
+                isMuted={true}
+                useNativeControls={false}
+                isLooping={false}
+              />
+            </TouchableOpacity>
+          ))}
+          {/* Fill the row with empty spaces if needed */}
+          {Array(NUM_COLUMNS - rowItems.length)
+            .fill(0)
+            .map((_, index) => (
+              <View
+                key={`empty-${i}-${index}`}
+                style={[styles.postTile, { backgroundColor: "transparent" }]}
+              />
+            ))}
+        </View>
+      );
+      postRows.push(row);
+    }
+
+    return <View style={styles.postsContainer}>{postRows}</View>;
+  };
+
+  const renderFavoritesGrid = () => {
+    if (isLoadingFavorites) {
+      return (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#E10600" />
+        </View>
+      );
+    }
+
+    if (favorites.length === 0) {
+      return (
+        <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
+          <FontAwesome name="bookmark-o" size={60} color="#CCCCCC" />
+          <Text style={styles.emptyTitle}>No Saved Posts</Text>
+          <Text style={styles.emptySubtitle}>
+            Posts you save will appear here.
+          </Text>
+        </View>
+      );
+    }
+
+    const rows = Math.ceil(favorites.length / NUM_COLUMNS);
+    const postRows = [];
+
+    for (let i = 0; i < rows; i++) {
+      const rowItems = favorites.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
+      const row = (
+        <View key={`row-${i}`} style={{ flexDirection: "row" }}>
+          {rowItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.postTile}
+              activeOpacity={0.8}
+              onPress={() => {
+                router.push({
+                  pathname: "/(app)/postDetail",
+                  params: { postId: item.id.toString() },
+                });
+              }}
+            >
+              {detectMediaType(
+                item.cloudinaryUrl,
+                item.cloudinaryPublicId,
+                item.imageMetadata
+              ) === "video" ? (
+                <CloudinaryMedia
+                  publicId={item.cloudinaryPublicId || ""}
+                  mediaType="video"
+                  width={300}
+                  height={300}
+                  crop="fill"
+                  quality="auto"
+                  format="mp4"
+                  style={styles.postTileImage}
+                  fallbackUrl={item.cloudinaryUrl}
+                  shouldPlay={false}
+                  isMuted={true}
+                  useNativeControls={false}
+                  isLooping={false}
+                />
+              ) : (
+                <Image
+                  source={{
+                    uri:
+                      item.cloudinaryUrl ||
+                      "https://via.placeholder.com/300x300?text=No+Image",
+                  }}
+                  style={styles.postTileImage}
+                />
+              )}
+            </TouchableOpacity>
+          ))}
+          {Array(NUM_COLUMNS - rowItems.length)
+            .fill(0)
+            .map((_, index) => (
+              <View
+                key={`empty-${i}-${index}`}
+                style={[styles.postTile, { backgroundColor: "transparent" }]}
+              />
+            ))}
+        </View>
+      );
+      postRows.push(row);
+    }
+
+    return <View style={styles.postsContainer}>{postRows}</View>;
+  };
+
+  const renderLikedPostsGrid = () => {
+    if (isLoadingLikedPosts) {
+      return (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#E10600" />
+        </View>
+      );
+    }
+
+    if (likedPosts.length === 0) {
+      return (
+        <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
+          <FontAwesome name="heart-o" size={60} color="#CCCCCC" />
+          <Text style={styles.emptyTitle}>No Liked Posts</Text>
+          <Text style={styles.emptySubtitle}>
+            Posts you like will appear here.
+          </Text>
+        </View>
+      );
+    }
+
+    // Calculate the number of rows needed to display all posts
+    const rows = Math.ceil(likedPosts.length / NUM_COLUMNS);
+    const postRows = [];
+
+    for (let i = 0; i < rows; i++) {
+      const rowItems = likedPosts.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
+      const row = (
+        <View key={`row-${i}`} style={{ flexDirection: "row" }}>
+          {rowItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.postTile}
+              activeOpacity={0.8}
+              onPress={() => handlePostPress(item)}
+            >
+              {item.isVideo ? (
+                <CloudinaryMedia
+                  publicId={item.cloudinaryPublicId || ""}
+                  mediaType="video"
+                  width={300}
+                  height={300}
+                  crop="fill"
+                  quality="auto"
+                  format="mp4"
+                  style={styles.postTileImage}
+                  fallbackUrl={item.imageUrl}
+                  shouldPlay={false}
+                  isMuted={true}
+                  useNativeControls={false}
+                  isLooping={false}
+                />
+              ) : (
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.postTileImage}
+                />
+              )}
+              {item.multipleImages && (
+                <View style={styles.multipleImagesIcon}>
+                  <FontAwesome name="clone" size={14} color="#FFFFFF" />
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+          {/* Fill the row with empty spaces if needed */}
+          {Array(NUM_COLUMNS - rowItems.length)
+            .fill(0)
+            .map((_, index) => (
+              <View
+                key={`empty-${i}-${index}`}
+                style={[styles.postTile, { backgroundColor: "transparent" }]}
+              />
+            ))}
+        </View>
+      );
+      postRows.push(row);
+    }
+
+    return <View style={styles.postsContainer}>{postRows}</View>;
   };
 
   const renderEmptyComponent = () => (
@@ -575,17 +719,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             <Text style={styles.shareButtonText}>Share a Photo</Text>
           </TouchableOpacity>
         </>
-      ) : activeTab === "events" ? (
+      ) : activeTab === "liked" ? (
         <>
-          <FontAwesome name="calendar-plus-o" size={60} color="#CCCCCC" />
-          <Text style={styles.emptyTitle}>No Events</Text>
+          <FontAwesome name="heart-o" size={60} color="#CCCCCC" />
+          <Text style={styles.emptyTitle}>No Liked Posts</Text>
           <Text style={styles.emptySubtitle}>
-            Your races, championships and training sessions will appear
-            here.
+            Your liked posts will appear here.
           </Text>
-          <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Create Event</Text>
-          </TouchableOpacity>
         </>
       ) : activeTab === "reels" ? (
         <>
@@ -610,11 +750,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     </View>
   );
 
+  if (!auth) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#E10600" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefreshProfile}
+            colors={["#E10600"]}
+            tintColor="#E10600"
+          />
+        }
       >
         {/* Header with name and back button */}
         <View style={styles.header}>
@@ -625,7 +781,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             <FontAwesome name="arrow-left" size={20} color="#1E1E1E" />
           </TouchableOpacity>
           <Text style={styles.username}>Profile</Text>
-          <TouchableOpacity style={styles.menuButton}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => setMenuVisible(true)}
+          >
             <FontAwesome name="ellipsis-v" size={20} color="#1E1E1E" />
           </TouchableOpacity>
         </View>
@@ -633,33 +792,28 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         {/* Profile section with avatar and statistics */}
         <View style={styles.profileContainer}>
           <View style={styles.profileSection}>
-            <View style={styles.profileInfo}>
+            <View style={styles.profileHeader}>
               <Image
-                source={{
-                  uri: "https://images.pexels.com/photos/3482523/pexels-photo-3482523.jpeg",
-                }}
-                style={styles.profileAvatar}
+                source={
+                  user?.photoURL
+                    ? { uri: user.photoURL }
+                    : defaultImages.profile
+                }
+                style={styles.profileImage}
               />
-
-              <View style={styles.profileDetails}>
-                <Text style={styles.displayName}>Esteban Dardillac</Text>
+              <View style={styles.profileInfo}>
+                <Text style={styles.username}>{user?.username || "User"}</Text>
                 <View style={styles.statsContainer}>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
-                      {formatNumber(stats.posts)}
-                    </Text>
+                    <Text style={styles.statNumber}>{stats.posts}</Text>
                     <Text style={styles.statLabel}>Posts</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
-                      {formatNumber(stats.followers)}
-                    </Text>
+                    <Text style={styles.statNumber}>{stats.followers}</Text>
                     <Text style={styles.statLabel}>Followers</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
-                      {formatNumber(stats.following)}
-                    </Text>
+                    <Text style={styles.statNumber}>{stats.following}</Text>
                     <Text style={styles.statLabel}>Following</Text>
                   </View>
                 </View>
@@ -679,100 +833,86 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Driver statistics */}
-            <View style={styles.statsCard}>
-              <View style={styles.statColumn}>
-                <FontAwesome
-                  name="flag-checkered"
-                  size={20}
-                  style={styles.statIcon}
-                />
-                <Text style={styles.driverStatLabel}>Races</Text>
-                <Text style={styles.driverStatValue}>{driverStats.races}</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.statColumn}>
-                <FontAwesome name="trophy" size={20} style={styles.statIcon} />
-                <Text style={styles.driverStatLabel}>Wins</Text>
-                <Text style={styles.driverStatValue}>{driverStats.wins}</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.statColumn}>
-                <FontAwesome
-                  name="certificate"
-                  size={20}
-                  style={styles.statIcon}
-                />
-                <Text style={styles.driverStatLabel}>Podiums</Text>
-                <Text style={styles.driverStatValue}>
-                  {driverStats.podiums}
-                </Text>
-              </View>
-            </View>
-
-            {/* Featured stories */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.highlightsContainer}
-              contentContainerStyle={styles.highlightsContent}
-            >
-              <TouchableOpacity key="highlight-1" style={styles.highlightItem}>
-                <View style={styles.highlightImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.pexels.com/photos/12012678/pexels-photo-12012678.jpeg",
-                    }}
-                    style={styles.highlightImage}
-                  />
-                </View>
-                <Text style={styles.highlightText}>F3 2023</Text>
-              </TouchableOpacity>
-              <TouchableOpacity key="highlight-2" style={styles.highlightItem}>
-                <View style={styles.highlightImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.pexels.com/photos/461705/pexels-photo-461705.jpeg",
-                    }}
-                    style={styles.highlightImage}
-                  />
-                </View>
-                <Text style={styles.highlightText}>Victories</Text>
-              </TouchableOpacity>
-              <TouchableOpacity key="highlight-3" style={styles.highlightItem}>
-                <View style={styles.highlightImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.pexels.com/photos/12120941/pexels-photo-12120941.jpeg",
-                    }}
-                    style={styles.highlightImage}
-                  />
-                </View>
-                <Text style={styles.highlightText}>Karting</Text>
-              </TouchableOpacity>
-              <TouchableOpacity key="highlight-4" style={styles.highlightItem}>
-                <View style={styles.highlightImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.pexels.com/photos/17236741/pexels-photo-17236741/free-photo-of-sport-auto-rapide-puissant.jpeg",
-                    }}
-                    style={styles.highlightImage}
-                  />
-                </View>
-                <Text style={styles.highlightText}>Team</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                key="highlight-new"
-                style={styles.highlightItem}
-              >
-                <View style={styles.highlightImageContainer}>
-                  <View style={styles.newHighlightPlus}>
-                    <FontAwesome name="plus" size={24} color="#1E1E1E" />
+            {/* Driver statistics - SECTION MISE EN VALEUR */}
+            <TouchableOpacity style={styles.performanceCard} onPress={handlePerformancesPress}>
+              {/* Gradient Background Effect */}
+              <View style={styles.performanceGradient}>
+                {/* Header avec badge premium */}
+                <View style={styles.performanceHeader}>
+                  <View style={styles.performanceBadge}>
+                    <Text style={styles.performanceBadgeText}>⚡ PERFORMANCE</Text>
+                  </View>
+                  <View style={styles.performanceTitle}>
+                    <Text style={styles.performanceTitleText}>Track Your Racing Journey</Text>
+                    <Text style={styles.performanceSubtitle}>Unlock detailed analytics & insights</Text>
                   </View>
                 </View>
-                <Text style={styles.highlightText}>New</Text>
-              </TouchableOpacity>
-            </ScrollView>
+
+                {/* Stats Section avec design moderne */}
+                {isLoadingDriverStats ? (
+                  <View style={styles.performanceLoading}>
+                    <ActivityIndicator size="large" color="#E10600" />
+                    <Text style={styles.performanceLoadingText}>
+                      Loading performance data...
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.performanceStats}>
+                    <View style={styles.performanceStatItem}>
+                      <View style={[styles.performanceStatIcon, { backgroundColor: 'rgba(225, 6, 0, 0.1)' }]}>
+                        <FontAwesome name="flag-checkered" size={28} color="#E10600" />
+                      </View>
+                      <View style={styles.performanceStatContent}>
+                        <Text style={styles.performanceStatValue}>{driverStats.races}</Text>
+                        <Text style={styles.performanceStatLabel}>Races</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.performanceStatDivider} />
+
+                    <View style={styles.performanceStatItem}>
+                      <View style={[styles.performanceStatIcon, { backgroundColor: 'rgba(255, 215, 0, 0.15)' }]}>
+                        <FontAwesome name="trophy" size={28} color="#FFD700" />
+                      </View>
+                      <View style={styles.performanceStatContent}>
+                        <Text style={[styles.performanceStatValue, { color: '#FFD700' }]}>{driverStats.wins}</Text>
+                        <Text style={styles.performanceStatLabel}>Victories</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.performanceStatDivider} />
+
+                    <View style={styles.performanceStatItem}>
+                      <View style={[styles.performanceStatIcon, { backgroundColor: 'rgba(192, 192, 192, 0.15)' }]}>
+                        <FontAwesome name="medal" size={28} color="#C0C0C0" />
+                      </View>
+                      <View style={styles.performanceStatContent}>
+                        <Text style={[styles.performanceStatValue, { color: '#C0C0C0' }]}>{driverStats.podiums}</Text>
+                        <Text style={styles.performanceStatLabel}>Podiums</Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
+
+                {/* Call to Action */}
+                <View style={styles.performanceCTA}>
+                  <View style={styles.performanceCTAContent}>
+                    <Text style={styles.performanceCTAText}>View Detailed Analytics</Text>
+                    <Text style={styles.performanceCTASubtext}>Race history • Lap times • Progress tracking</Text>
+                  </View>
+                  <View style={styles.performanceCTAIcon}>
+                    <FontAwesome name="chevron-right" size={16} color="#FFFFFF" />
+                  </View>
+                </View>
+
+                {/* Decorative Elements */}
+                <View style={styles.performanceDecorative}>
+                  <View style={styles.performanceCircle1} />
+                  <View style={styles.performanceCircle2} />
+                  <View style={styles.performanceCircle3} />
+                </View>
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Tabs */}
@@ -788,50 +928,64 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
               />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tab, activeTab === "events" && styles.activeTab]}
-              onPress={() => setActiveTab("events")}
-            >
-              <FontAwesome
-                name="calendar"
-                size={22}
-                color={activeTab === "events" ? "#E10600" : "#6E6E6E"}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
               style={[styles.tab, activeTab === "reels" && styles.activeTab]}
               onPress={() => setActiveTab("reels")}
             >
               <FontAwesome
-                name="film"
+                name="play-circle-o"
                 size={22}
                 color={activeTab === "reels" ? "#E10600" : "#6E6E6E"}
               />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tab, activeTab === "saved" && styles.activeTab]}
-              onPress={() => setActiveTab("saved")}
+              style={[styles.tab, activeTab === "liked" && styles.activeTab]}
+              onPress={() => setActiveTab("liked")}
+            >
+              <FontAwesome
+                name="heart-o"
+                size={22}
+                color={activeTab === "liked" ? "#E10600" : "#6E6E6E"}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === "favorites" && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab("favorites")}
             >
               <FontAwesome
                 name="bookmark-o"
                 size={22}
-                color={activeTab === "saved" ? "#E10600" : "#6E6E6E"}
+                color={activeTab === "favorites" ? "#E10600" : "#6E6E6E"}
               />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Tab content */}
         <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
           {activeTab === "posts"
             ? renderPostsGrid()
-            : activeTab === "events"
-            ? renderEventsList()
+            : activeTab === "liked"
+            ? renderLikedPostsGrid()
+            : activeTab === "favorites"
+            ? renderFavoritesGrid()
+            : activeTab === "reels"
+            ? renderReelsGrid()
             : renderEmptyComponent()}
         </View>
-
       </ScrollView>
 
-      {/* Modal to display a post in detail */}
+      <ProfileMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSettingsPress={handleSettingsPress}
+        onEditProfilePress={handleEditProfilePress}
+        onPreferencesPress={handlePreferencesPress}
+        onLogoutPress={handleLogoutPress}
+        onPerformancesPress={handlePerformancesPress}
+      />
+
       <Modal
         visible={postModalVisible}
         animationType="slide"
@@ -861,3 +1015,4 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
 };
 
 export default ProfileScreen;
+

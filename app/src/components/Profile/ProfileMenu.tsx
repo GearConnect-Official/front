@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Modal } from "react-native";
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import { FontAwesome5 } from "@expo/vector-icons";
 import styles from "../../styles/Profile/menuProfileStyles";
 
 interface MenuItemProps {
@@ -17,6 +17,7 @@ interface ProfileMenuProps {
   onEditProfilePress: () => void;
   onPreferencesPress: () => void;
   onLogoutPress: () => void;
+  onPerformancesPress?: () => void;
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({
@@ -38,6 +39,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
   onEditProfilePress,
   onPreferencesPress,
   onLogoutPress,
+  onPerformancesPress,
 }) => {
   return (
     <Modal

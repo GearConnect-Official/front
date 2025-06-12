@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import favoritesService from "../services/favoritesService";
@@ -335,3 +335,4 @@ const FavoritesScreen: React.FC = () => {
 };
 
 export default FavoritesScreen;
+

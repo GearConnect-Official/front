@@ -125,12 +125,15 @@ export const configureAxios = async () => {
 
       // Log l'erreur pour le débogage seulement si ce n'est pas un health check
       if (!isHealthCheck) {
-        console.error('API Error:', {
-          type: apiError.type,
-          status: apiError.status,
-          message: apiError.message,
-          url: error.config?.url
-        });
+        // Only log errors that are not network errors to avoid console spam when WiFi is down
+        if (apiError.type !== ErrorType.NETWORK) {
+          console.error('API Error:', {
+            type: apiError.type,
+            status: apiError.status,
+            message: apiError.message,
+            url: error.config?.url
+          });
+        }
       }
 
       // Rejeter avec l'erreur formatée

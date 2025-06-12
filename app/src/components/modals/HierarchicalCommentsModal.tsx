@@ -13,7 +13,7 @@ import {
   Keyboard,
   ScrollView,
 } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import commentService, {
   HierarchicalComment,
@@ -459,3 +459,4 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
 };
 
 export default HierarchicalCommentsModal;
+

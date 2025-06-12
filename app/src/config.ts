@@ -63,6 +63,12 @@ export const {
   [ApiRoutes.TAGS]: API_URL_TAGS,
   [ApiRoutes.USERS]: API_URL_USERS,
   [ApiRoutes.HEALTH]: API_URL_HEALTH,
+  [ApiRoutes.PERFORMANCES]: API_URL_PERFORMANCES,
 } = API_ENDPOINTS;
+
+/**
+ * URL de base pour l'API (utilisée par certains services)
+ */
+export const API_BASE_URL = apiConfig.baseUrl;
 
 export default apiConfig;

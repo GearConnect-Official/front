@@ -25,7 +25,6 @@ const eventService = {
       const response = await axios.get(API_URL_EVENTS);
       return response.data;
     } catch (error) {
-      console.error('Error fetching events:', error);
       throw error;
     }
   },
@@ -36,13 +35,14 @@ const eventService = {
       const response = await axios.get(`${API_URL_EVENTS}/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching event:', error);
       throw error;
     }
   },
 
   // Create a new event
   createEvent: async (eventData: Event) => {
+    console.log('Données envoyées au backend:', eventData);
+    
     try {
       // Extraire le nom du fichier d'une URL d'image locale
       const extractFilename = (uri: string): string => {
@@ -102,7 +102,7 @@ const eventService = {
         throw axiosError;
       }
     } catch (error) {
-      console.error('Error updating event:', error);
+      // console.error('Error updating event:', error);
       throw error;
     }
   },

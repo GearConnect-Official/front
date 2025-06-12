@@ -328,6 +328,22 @@ const postService = {
     }
   },
 
+  // Toggle like on a post (optimized for UI updates)
+  toggleLike: async (postId: number, userId: number) => {
+    const endpoint = `${API_URL_INTERACTIONS}/toggle-like`;
+    
+    try {
+      const response = await axios.post(endpoint, {
+        postId,
+        userId,
+      });
+      return response.data;
+    } catch (error: any) {
+      const apiError = error as ApiError;
+      throw new Error(apiError.response?.data?.error || "Failed to toggle like");
+    }
+  },
+
   // Create post with tags (compound operation)
   createPostWithTags: async (postData: Post, tagNames: string[]) => {
     try {

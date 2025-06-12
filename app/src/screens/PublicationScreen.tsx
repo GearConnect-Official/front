@@ -20,11 +20,10 @@ import ReviewStep from '../components/Publication/ReviewStep';
  * 
  * Étapes:
  * 1. select - Sélection du média
- * 2. crop - Recadrage de l'image (skip pour vidéos)
- * 3. title - Saisie du titre (obligatoire)
- * 4. description - Saisie de la description (obligatoire)
- * 5. tags - Ajout de tags (optionnel mais encouragé)
- * 6. review - Révision finale et publication
+ * 2. title - Saisie du titre (obligatoire)
+ * 3. description - Saisie de la description (obligatoire)
+ * 4. tags - Ajout de tags (optionnel mais encouragé)
+ * 5. review - Révision finale et publication
  */
 
 interface FormErrors {
@@ -34,7 +33,7 @@ interface FormErrors {
   general?: string;
 }
 
-type PublicationStep = 'select' | 'crop' | 'title' | 'description' | 'tags' | 'review';
+type PublicationStep = 'select' | 'title' | 'description' | 'tags' | 'review';
 
 const PublicationScreen: React.FC = () => {
   const router = useRouter();
@@ -43,7 +42,6 @@ const PublicationScreen: React.FC = () => {
   const [step, setStep] = useState<PublicationStep>('select');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImagePublicId, setSelectedImagePublicId] = useState<string | null>(null);
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -73,62 +71,46 @@ const PublicationScreen: React.FC = () => {
     const newErrors: FormErrors = {};
 
     switch (step) {
-      case 'select':
-        if (!selectedImage) {
-          newErrors.image = "Please select an image or video";
-        }
-        break;
-      
-      case 'crop':
-        const imageToCheck = croppedImage || selectedImage;
-        if (!imageToCheck) {
-          newErrors.image = "Please crop your image or go back to select another one";
-        }
-        break;
-      
       case 'title':
         if (!title.trim()) {
-          newErrors.title = "Title is required to continue";
+          newErrors.title = "Title is required";
         } else if (title.trim().length < 3) {
-          newErrors.title = "Title must be at least 3 characters long";
+          newErrors.title = "Title must be at least 3 characters";
         } else if (title.trim().length > 100) {
-          newErrors.title = "Title cannot exceed 100 characters";
+          newErrors.title = "Title must be less than 100 characters";
         }
         break;
-      
+
       case 'description':
         if (!description.trim()) {
-          newErrors.description = "Description is required to continue";
+          newErrors.description = "Description is required";
         } else if (description.trim().length < 10) {
-          newErrors.description = "Description must be at least 10 characters long";
-        } else if (description.trim().length > 2200) {
-          newErrors.description = "Description cannot exceed 2200 characters";
+          newErrors.description = "Description must be at least 10 characters";
+        } else if (description.trim().length > 500) {
+          newErrors.description = "Description must be less than 500 characters";
         }
         break;
-      
-      case 'tags':
-        // Tags are optional, always valid
-        break;
-      
+
       case 'review':
-        // Final validation before submission
-        if (!user) {
-          newErrors.general = "You must be logged in to create a post";
-        }
+        // Validation finale
         if (!title.trim()) {
           newErrors.title = "Title is required";
         }
         if (!description.trim()) {
           newErrors.description = "Description is required";
         }
-        if (!selectedImage && !croppedImage) {
-          newErrors.image = "Media is required";
+        if (!selectedImage) {
+          newErrors.image = "An image is required";
         }
         break;
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return false;
+    }
+
+    return true;
   };
 
   const clearError = (field: keyof FormErrors) => {
@@ -149,7 +131,6 @@ const PublicationScreen: React.FC = () => {
             style: 'destructive',
             onPress: () => {
               setSelectedImage(null);
-              setCroppedImage(null);
               setTitle('');
               setDescription('');
               setTags([]);
@@ -172,7 +153,6 @@ const PublicationScreen: React.FC = () => {
   const getStepTitle = (): string => {
     switch (step) {
       case 'select': return 'Select Media';
-      case 'crop': return 'Crop Image';
       case 'title': return 'Add Title';
       case 'description': return 'Add Description';
       case 'tags': return 'Add Tags';
@@ -182,17 +162,9 @@ const PublicationScreen: React.FC = () => {
   };
 
   const getStepNumber = (): { current: number; total: number } => {
-    const stepOrder: PublicationStep[] = ['select', 'crop', 'title', 'description', 'tags', 'review'];
+    const stepOrder: PublicationStep[] = ['select', 'title', 'description', 'tags', 'review'];
     let currentIndex = stepOrder.indexOf(step);
     let totalSteps = stepOrder.length;
-    
-    // Si c'est une vidéo, on skip l'étape crop
-    if (resourceType === 'video') {
-      totalSteps = stepOrder.length - 1;
-      if (currentIndex > 1) { // Si on est après crop
-        currentIndex = currentIndex - 1;
-      }
-    }
     
     return { current: currentIndex + 1, total: totalSteps };
   };
@@ -201,8 +173,6 @@ const PublicationScreen: React.FC = () => {
     if (!validateCurrentStep()) {
       return;
     }
-
-    const imageToShare = croppedImage || selectedImage;
 
     try {
       setIsLoading(true);
@@ -214,12 +184,12 @@ const PublicationScreen: React.FC = () => {
         body: description.trim(),
         userId: parseInt(user!.id.toString()),
         // Inclure les informations Cloudinary directement
-        cloudinaryUrl: imageToShare || undefined,
+        cloudinaryUrl: selectedImage || undefined,
         cloudinaryPublicId: selectedImagePublicId || undefined,
         // Métadonnées pour l'optimisation (en JSON string)
         imageMetadata: JSON.stringify({
           originalUrl: selectedImage,
-          optimizedUrl: imageToShare,
+          optimizedUrl: selectedImage,
           publicId: selectedImagePublicId,
           uploadedAt: new Date().toISOString(),
           resource_type: resourceType,
@@ -234,7 +204,6 @@ const PublicationScreen: React.FC = () => {
       // Réinitialiser le formulaire
       setSelectedImage(null);
       setSelectedImagePublicId(null);
-      setCroppedImage(null);
       setTitle('');
       setDescription('');
       setTags([]);
@@ -277,7 +246,6 @@ const PublicationScreen: React.FC = () => {
 
   const handleImageSelected = (cloudinaryResponse: CloudinaryUploadResponse) => {
     setSelectedImage(cloudinaryResponse.secure_url);
-    setCroppedImage(cloudinaryResponse.secure_url);
     setSelectedImagePublicId(cloudinaryResponse.public_id);
     
     // Clear image error when image is selected
@@ -287,16 +255,12 @@ const PublicationScreen: React.FC = () => {
     const resourceType = cloudinaryResponse.resource_type || 'image';
     setResourceType(resourceType);
     
-    // Les vidéos sautent directement au formulaire, pas de crop
-    if (resourceType === 'video') {
-      setStep('title');
-    } else {
-      setStep('crop');
-    }
+    // Passer directement au titre après la sélection
+    setStep('title');
   };
 
   const handleImageChange = (newUri: string) => {
-    setCroppedImage(newUri);
+    setSelectedImage(newUri);
   };
 
   const handleNext = () => {
@@ -307,9 +271,6 @@ const PublicationScreen: React.FC = () => {
     clearError('general');
 
     switch (step) {
-      case 'crop':
-        setStep('title');
-        break;
       case 'title':
         setStep('description');
         break;
@@ -327,31 +288,24 @@ const PublicationScreen: React.FC = () => {
     }
   };
 
-  const handleBack = () => {
-    setErrors({});
-    
+  const handlePrev = () => {
+    clearError('general');
+
     switch (step) {
-      case 'review':
-        setStep('tags');
-        break;
-      case 'tags':
-        setStep('description');
+      case 'title':
+        setStep('select');
         break;
       case 'description':
         setStep('title');
         break;
-      case 'title':
-        if (resourceType === 'video') {
-          setStep('select');
-        } else {
-          setStep('crop');
-        }
+      case 'tags':
+        setStep('description');
         break;
-      case 'crop':
-        setStep('select');
+      case 'review':
+        setStep('tags');
         break;
       default:
-        handleGoBack();
+        break;
     }
   };
 
@@ -369,22 +323,15 @@ const PublicationScreen: React.FC = () => {
     setTags(newTags);
   };
 
-  const renderContent = () => {
+  const renderCurrentStep = () => {
     switch (step) {
       case 'select':
-        return <MediaSection onImageSelected={handleImageSelected} />;
-      
-      case 'crop':
-        return selectedImage ? (
-          <ImageViewer
-            imageUri={selectedImage}
-            onImageChange={handleImageChange}
-            onNext={handleNext}
-            onGoBack={handleBack}
-            isLastStep={false}
+        return (
+          <MediaSection 
+            onImageSelected={handleImageSelected}
           />
-        ) : null;
-      
+        );
+
       case 'title':
         return (
           <TitleStep
@@ -394,7 +341,7 @@ const PublicationScreen: React.FC = () => {
             isLoading={isLoading}
           />
         );
-      
+
       case 'description':
         return (
           <DescriptionStep
@@ -404,7 +351,7 @@ const PublicationScreen: React.FC = () => {
             isLoading={isLoading}
           />
         );
-      
+
       case 'tags':
         return (
           <TagsStep
@@ -413,56 +360,53 @@ const PublicationScreen: React.FC = () => {
             isLoading={isLoading}
           />
         );
-      
+
       case 'review':
-        const imageToShow = croppedImage || selectedImage;
-        return imageToShow ? (
+        return (
           <ReviewStep
-            imageUri={imageToShow}
             title={title}
             description={description}
             tags={tags}
+            imageUri={selectedImage || ''}
             username={username}
             userAvatar={userAvatar}
             mediaType={resourceType as 'image' | 'video'}
-            publicId={selectedImagePublicId || undefined}
-            error={errors.general}
             isLoading={isLoading}
+            error={errors.general}
           />
-        ) : null;
-      
+        );
+
       default:
         return null;
     }
   };
 
-  const stepInfo = getStepNumber();
-  const isLastStep = step === 'review';
-  const canGoNext = step !== 'select' && step !== 'crop' && step !== 'review';
+  // Calculer si on peut aller au suivant
+  const canGoNext = step !== 'select' && step !== 'review';
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <Header 
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
+      <Header
         title={getStepTitle()}
-        stepInfo={stepInfo}
-        isCropping={step === 'crop'}
-        isLastStep={isLastStep}
+        stepInfo={getStepNumber()}
+        isCropping={false}
+        isLastStep={step === 'review'}
         canGoNext={canGoNext}
-        onBack={handleBack}
+        onBack={handlePrev}
         onConfirm={handleNext}
         onNext={handleNext}
         onGoBack={handleGoBack}
         isLoading={isLoading}
       />
-      <View style={step === 'select' ? styles.selectStepContainer : styles.contentContainer}>
-        {renderContent()}
-      </View>
+
+      {renderCurrentStep()}
+
       <FeedbackMessage
         visible={feedback.visible}
         message={feedback.message}
         type={feedback.type}
-        duration={3000}
         onDismiss={hideFeedback}
       />
     </SafeAreaView>

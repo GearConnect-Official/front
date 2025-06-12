@@ -117,11 +117,6 @@ const styles = StyleSheet.create({
   buttonLoader: {
     marginHorizontal: 10,
   },
-  cropConfirmText: {
-    color: THEME_COLORS.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
 
   // Media Section styles
   mediaSectionContainer: {
@@ -250,49 +245,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.3,
-  },
-
-  // Image Cropper styles
-  cropperContainer: {
-    flex: 1,
-    backgroundColor: THEME_COLORS.background,
-  },
-  cropperHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: THEME_COLORS.cardLight,
-  },
-  cropperImage: {
-    width: width,
-    height: width,
-    backgroundColor: THEME_COLORS.cardLight,
-  },
-  cropperTools: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    padding: 16,
-    backgroundColor: THEME_COLORS.cardLight,
-  },
-  cropperTool: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: THEME_COLORS.card,
-    borderRadius: 8,
-    shadowColor: THEME_COLORS.secondary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cropperToolText: {
-    color: THEME_COLORS.textPrimary,
-    fontSize: 12,
-    marginTop: 4,
   },
 
   // Publication Form styles
@@ -456,6 +408,66 @@ const styles = StyleSheet.create({
   addTagButtonText: {
     color: THEME_COLORS.background,
     fontWeight: '600',
+  },
+
+  // ImageViewer styles
+  viewerContainer: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.background,
+  },
+  imageViewerContainer: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_WIDTH,
+    backgroundColor: THEME_COLORS.card,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageViewerControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: THEME_COLORS.background,
+  },
+  controlButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: THEME_COLORS.cardLight,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.border,
+  },
+  controlText: {
+    color: THEME_COLORS.primary,
+    marginLeft: 8,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  nextButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: THEME_COLORS.cardLight,
+    borderWidth: 2,
+    borderColor: THEME_COLORS.primary,
+  },
+  nextButtonText: {
+    color: THEME_COLORS.primary,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  continueButton: {
+    backgroundColor: THEME_COLORS.primary,
+    borderColor: THEME_COLORS.primary,
+  },
+  continueButtonText: {
+    color: THEME_COLORS.background,
   },
 });
 

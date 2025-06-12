@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
-import * as Sharing from 'expo-sharing';
+import { Share } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import styles from "../styles/screens/homeStyles";
@@ -35,7 +35,6 @@ import useVisibilityTracker from '../hooks/useVisibilityTracker';
 import { detectMediaType } from '../utils/mediaUtils';
 import { ApiError, ErrorType } from '../services/axiosConfig';
 import { useScreenTracking, useAnalytics, usePostTracking } from '../hooks/useAnalytics';
-import * as Share from 'expo-sharing';
 
 // Types
 interface Story {
@@ -281,15 +280,19 @@ const HomeScreen: React.FC = () => {
     const currentUserId = parseInt(user.id);
     const post = posts.find(p => p.id === postId);
     
+    if (!post) return;
+
+    // Store original state before optimistic update
+    const originalLiked = post.liked;
+    const originalLikes = post.likes;
+    
     // Track post engagement - like action
-    if (post) {
-      trackPostEngagement({
-        postId,
-        action: 'like',
-        postType: post.mediaTypes?.[0] === 'video' ? 'video' : 'image',
-        authorId: post.username,
-      });
-    }
+    trackPostEngagement({
+      postId,
+      action: 'like',
+      postType: post.mediaTypes?.[0] === 'video' ? 'video' : 'image',
+      authorId: post.username,
+    });
     
     // Optimistically update UI
     setPosts((prevPosts) =>
@@ -317,14 +320,14 @@ const HomeScreen: React.FC = () => {
     } catch (error) {
       // console.error('Erreur lors du toggle du like:', error);
       
-      // En cas d'erreur, annuler l'optimistic update
+      // En cas d'erreur, restaurer l'état original
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId
             ? {
                 ...post,
-                liked: !post.liked,
-                likes: post.liked ? post.likes + 1 : post.likes - 1,
+                liked: originalLiked,
+                likes: originalLikes,
               }
             : post
         )
@@ -572,20 +575,19 @@ const HomeScreen: React.FC = () => {
       const shareUrl = `https://gearconnect.app/post/${postId}`;
       
       const result = await Share.share({
-        message: shareMessage,
+        message: `${shareMessage}\n${shareUrl}`,
         url: shareUrl,
       });
 
       if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // Shared via activity type
-        } else {
-          // Shared successfully
-        }
+        // Successfully shared
+        console.log('Post shared successfully');
       } else if (result.action === Share.dismissedAction) {
         // Share was dismissed
+        console.log('Share dismissed');
       }
     } catch (error) {
+      console.error('Error sharing post:', error);
       Alert.alert('Error', 'Unable to share this post');
     }
   };

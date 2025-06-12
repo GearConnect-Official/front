@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import * as Sharing from 'expo-sharing';
+import { Share } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import { useAuth } from '../src/context/AuthContext';
@@ -96,7 +96,11 @@ const PostDetailScreen: React.FC = () => {
   }, [commentsVisible, postId]);
 
   const handleLike = async (postId: string) => {
-    if (!user?.id) return;
+    if (!user?.id || !post) return;
+    
+    // Store original state before optimistic update
+    const originalLiked = post.liked;
+    const originalLikes = post.likes;
     
     try {
       // Optimistic update
@@ -106,21 +110,26 @@ const PostDetailScreen: React.FC = () => {
         likes: prev.liked ? prev.likes - 1 : prev.likes + 1
       } : prev);
       
-      // API call would go here
+      // API call
+      await postService.default.toggleLike(parseInt(postId), parseInt(user.id));
       console.log('🔄 Like post:', postId);
     } catch (error) {
       console.error('❌ Error liking post:', error);
-      // Revert optimistic update
+      // Revert to original state
       setPost(prev => prev ? {
         ...prev,
-        liked: !prev.liked,
-        likes: prev.liked ? prev.likes + 1 : prev.likes - 1
+        liked: originalLiked,
+        likes: originalLikes
       } : prev);
+      Alert.alert('Erreur', 'Impossible d\'ajouter un like pour le moment.');
     }
   };
 
   const handleSave = async (postId: string) => {
-    if (!user?.id) return;
+    if (!user?.id || !post) return;
+    
+    // Store original state before optimistic update
+    const originalSaved = post.saved;
     
     try {
       // Optimistic update
@@ -132,11 +141,12 @@ const PostDetailScreen: React.FC = () => {
       await favoritesService.toggleFavorite(Number(postId), Number(user.id));
     } catch (error) {
       console.error('❌ Error saving post:', error);
-      // Revert optimistic update
+      // Revert to original state
       setPost(prev => prev ? {
         ...prev,
-        saved: !prev.saved
+        saved: originalSaved
       } : prev);
+      Alert.alert('Erreur', 'Impossible de sauvegarder ce post pour le moment.');
     }
   };
 
@@ -151,69 +161,23 @@ const PostDetailScreen: React.FC = () => {
     try {
       console.log('📤 Sharing post:', post.id);
       
-      // TODO: PRODUCTION - Quand l'app sera déployée en production, modifier cette fonction pour :
-      // 1. Partager un lien direct vers le post dans l'app (ex: https://gearconnect.app/post/123)
-      // 2. Inclure une preview du post avec titre/description/image miniature
-      // 3. Ne plus partager directement l'URL Cloudinary mais plutôt rediriger vers le post complet
-      // 4. Permettre aux utilisateurs externes de voir le post même sans avoir l'app installée
+      const shareMessage = `${post.title}\n\n${post.description}\n\nVu sur GearConnect`;
+      const shareUrl = `https://gearconnect.app/post/${post.id}`;
       
-      // Vérifier si le partage est disponible sur l'appareil
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (!isAvailable) {
-        Alert.alert('Erreur', 'Le partage n&apos;est pas disponible sur cet appareil');
-        return;
-      }
+      const result = await Share.share({
+        message: `${shareMessage}\n${shareUrl}`,
+        url: shareUrl,
+      });
 
-      // Créer le contenu à partager
-      const shareContent = `${post.title}\n\n${post.description}\n\nVu sur GearConnect`;
-      
-      // Si le post a une image, on peut essayer de la partager aussi
-      if (post.images.length > 0) {
-        try {
-          // Partager avec l'image (si possible)
-          await Sharing.shareAsync(post.images[0], {
-            mimeType: 'image/jpeg',
-            dialogTitle: 'Partager ce post',
-            UTI: 'public.jpeg'
-          });
-        } catch (imageError) {
-          console.log('⚠️ Image sharing failed, falling back to text:', imageError);
-          // Fallback vers le partage de texte
-          await shareTextContent(shareContent);
-        }
-      } else {
-        // Partager seulement le texte
-        await shareTextContent(shareContent);
+      if (result.action === Share.sharedAction) {
+        console.log('Post shared successfully');
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
       }
       
     } catch (error) {
       console.error('❌ Error sharing post:', error);
       Alert.alert('Erreur', 'Impossible de partager ce post');
-    }
-  };
-
-  const shareTextContent = async (content: string) => {
-    // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
-    try {
-      // Créer un fichier temporaire avec le contenu
-      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
-      await FileSystem.writeAsStringAsync(tempFile, content);
-      
-      await Sharing.shareAsync(tempFile, {
-        mimeType: 'text/plain',
-        dialogTitle: 'Partager ce post',
-      });
-      
-      // Nettoyer le fichier temporaire
-      await FileSystem.deleteAsync(tempFile, { idempotent: true });
-    } catch (error) {
-      console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
-        { text: 'OK', onPress: () => {
-          // Fallback: copier dans le presse-papiers
-          Clipboard.setStringAsync(content);
-        }}
-      ]);
     }
   };
 

@@ -16,12 +16,6 @@ const styles = StyleSheet.create({
   animatedImage: {
     transform: []
   },
-  cropFrameSquare: {
-    aspectRatio: 1
-  },
-  cropFramePortrait: {
-    aspectRatio: 4/5
-  },
   transformContainer: {
     // This property will be dynamically extended with pan transformations
   }

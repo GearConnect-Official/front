@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { HierarchicalComment as CommentType } from '../../services/commentService';
 import { formatPostDate } from '../../utils/dateUtils';
 import { hierarchicalCommentStyles as styles } from '../../styles/components/hierarchicalCommentStyles';
@@ -76,7 +76,7 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
   const handleDelete = () => {
     Alert.alert(
       'Supprimer le commentaire',
-      'Êtes-vous sûr de vouloir supprimer ce commentaire ?',
+      'ÃŠtes-vous sÃ»r de vouloir supprimer ce commentaire ?',
       [
         { text: 'Annuler', style: 'cancel' },
         {
@@ -94,13 +94,13 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
 
   const toggleReplies = () => {
     if (!showReplies && repliesCount > 0 && (!comment.replies || comment.replies.length === 0)) {
-      // Charger les réponses si elles ne sont pas encore chargées
+      // Charger les rÃ©ponses si elles ne sont pas encore chargÃ©es
       onLoadMoreReplies?.(comment.id);
     }
     setShowReplies(!showReplies);
   };
 
-  const marginLeft = Math.min(level, maxLevel) * 16; // Indentation limitée
+  const marginLeft = Math.min(level, maxLevel) * 16; // Indentation limitÃ©e
 
   return (
     <View style={[styles.container, { marginLeft }]}>
@@ -136,7 +136,7 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
                 color={level >= maxLevel ? "#ccc" : "#666"} 
               />
               <Text style={[styles.actionText, level >= maxLevel && styles.disabledText]}>
-                Répondre
+                RÃ©pondre
               </Text>
             </TouchableOpacity>
 
@@ -181,7 +181,7 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
             <TouchableOpacity style={styles.showRepliesButton} onPress={toggleReplies}>
               <View style={styles.repliesIndicator} />
               <Text style={styles.showRepliesText}>
-                {showReplies ? 'Masquer' : 'Afficher'} {repliesCount} réponse{repliesCount > 1 ? 's' : ''}
+                {showReplies ? 'Masquer' : 'Afficher'} {repliesCount} rÃ©ponse{repliesCount > 1 ? 's' : ''}
               </Text>
               <FontAwesome 
                 name={showReplies ? "chevron-up" : "chevron-down"} 

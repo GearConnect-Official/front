@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import styles from "../../styles/feed/postFooterStyles";
 
 export interface PostTag {
@@ -117,3 +117,4 @@ const PostFooter: React.FC<PostFooterProps> = ({
 };
 
 export default PostFooter;
+

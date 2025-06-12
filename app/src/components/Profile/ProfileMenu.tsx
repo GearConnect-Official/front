@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Modal } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome5 } from "@expo/vector-icons";
 import styles from "../../styles/Profile/menuProfileStyles";
 
 interface MenuItemProps {
@@ -17,6 +17,7 @@ interface ProfileMenuProps {
   onEditProfilePress: () => void;
   onPreferencesPress: () => void;
   onLogoutPress: () => void;
+  onPerformancesPress?: () => void;
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({
@@ -26,7 +27,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   color = "#1E1E1E",
 }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-    <FontAwesome name={icon} size={20} color={color} style={styles.menuIcon} />
+    <FontAwesome5 name={icon} size={20} color={color} style={styles.menuIcon} />
     <Text style={[styles.menuText, { color }]}>{label}</Text>
   </TouchableOpacity>
 );
@@ -38,6 +39,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
   onEditProfilePress,
   onPreferencesPress,
   onLogoutPress,
+  onPerformancesPress,
 }) => {
   return (
     <Modal
@@ -52,24 +54,26 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
         onPress={onClose}
       >
         <View style={styles.menuContainer}>
-          <MenuItem icon="cog" label="Paramètres" onPress={onSettingsPress} />
-          <MenuItem
-            icon="edit"
-            label="Modifier mon profil"
-            onPress={onEditProfilePress}
-          />
-          <MenuItem
-            icon="sliders"
-            label="Préférences"
-            onPress={onPreferencesPress}
-          />
-          <View style={styles.separator} />
-          <MenuItem
-            icon="sign-out"
-            label="Déconnexion"
-            onPress={onLogoutPress}
-            color="#E10600"
-          />
+          <View>
+            <MenuItem icon="cog" label="Settings" onPress={onSettingsPress} />
+            <MenuItem
+              icon="user-edit"
+              label="Edit Profile"
+              onPress={onEditProfilePress}
+            />
+            <MenuItem
+              icon="sliders-h"
+              label="Preferences"
+              onPress={onPreferencesPress}
+            />
+            <View style={styles.separator} />
+            <MenuItem
+              icon="sign-out-alt"
+              label="Logout"
+              onPress={onLogoutPress}
+              color="#E10600"
+            />
+          </View>
         </View>
       </TouchableOpacity>
     </Modal>

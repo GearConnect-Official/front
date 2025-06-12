@@ -50,6 +50,13 @@ const styles = StyleSheet.create({
     width: "100%",
     color: theme.colors.text.secondary,
   },
+  errorText: {
+    color: '#FF4444',
+    ...theme.typography.caption,
+    marginTop: theme.spacing.sm,
+    textAlign: "center",
+    fontSize: 14,
+  },
   sendCodeButton: {
     backgroundColor: theme.colors.primary.main,
     borderRadius: theme.borders.radius.md,
@@ -60,11 +67,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  disabledButton: {
+    backgroundColor: theme.colors.border.light,
+    opacity: 0.6,
+  },
   sendCodeText: {
     ...theme.typography.button,
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: "600",
+  },
+  secondFactorContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    paddingVertical: theme.spacing.xxxl,
+  },
+  tryAgainButton: {
+    marginTop: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    width: "100%",
+    alignItems: "center",
+  },
+  tryAgainText: {
+    ...theme.typography.body2,
+    color: theme.colors.secondary.main,
+    textDecorationLine: "underline",
   },
   rememberPasswordContainer: {
     flexDirection: "row",

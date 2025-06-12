@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,12 +12,15 @@ import {
   Alert,
   Keyboard,
   ScrollView,
-} from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useAuth } from '../../context/AuthContext';
-import commentService, { HierarchicalComment, CommentsResponse } from '../../services/commentService';
-import HierarchicalCommentComponent from '../Feed/HierarchicalComment';
-import { hierarchicalCommentsStyles } from '../../styles/modals/hierarchicalCommentsStyles';
+} from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
+import commentService, {
+  HierarchicalComment,
+  CommentsResponse,
+} from "../../services/commentService";
+import HierarchicalCommentComponent from "../Feed/HierarchicalComment";
+import { hierarchicalCommentsStyles } from "../../styles/modals/hierarchicalCommentsStyles";
 
 // Modal pour affichage des commentaires hiérarchiques
 interface HierarchicalCommentsModalProps {
@@ -33,7 +36,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
 }) => {
   const { user } = useAuth();
   const [comments, setComments] = useState<HierarchicalComment[]>([]);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,26 +47,32 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   } | null>(null);
   const textInputRef = useRef<TextInput>(null);
 
-  const loadComments = useCallback(async (page = 1) => {
-    try {
-      setIsLoading(true);
-      const response: CommentsResponse = await commentService.getCommentsByPost(postId, page);
-      
-      if (page === 1) {
-        setComments(response.comments);
-      } else {
-        setComments(prev => [...prev, ...response.comments]);
-      }
+  const loadComments = useCallback(
+    async (page = 1) => {
+      try {
+        setIsLoading(true);
+        const response: CommentsResponse =
+          await commentService.getCommentsByPost(postId, page);
 
-      setHasMoreComments(response.pagination.currentPage < response.pagination.totalPages);
-      setCurrentPage(page);
-    } catch (error) {
-      console.error('Error loading comments:', error);
-      Alert.alert('Erreur', 'Impossible de charger les commentaires');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [postId]);
+        if (page === 1) {
+          setComments(response.comments);
+        } else {
+          setComments((prev) => [...prev, ...response.comments]);
+        }
+
+        setHasMoreComments(
+          response.pagination.currentPage < response.pagination.totalPages
+        );
+        setCurrentPage(page);
+      } catch (error) {
+        console.error("Error loading comments:", error);
+        Alert.alert("Error", "Unable to load comments");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [postId]
+  );
 
   useEffect(() => {
     if (isVisible && postId) {
@@ -82,7 +91,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      
+
       const commentData = {
         postId,
         userId: parseInt(user.id),
@@ -90,34 +99,42 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
         parentId: replyToComment?.commentId,
       };
 
-      const newCommentResponse = await commentService.createComment(commentData);
-      
+      const newCommentResponse = await commentService.createComment(
+        commentData
+      );
+
       if (replyToComment) {
         // Si c'est une réponse, mettre à jour le commentaire parent
-        setComments(prev => updateCommentWithReply(prev, replyToComment.commentId, newCommentResponse));
+        setComments((prev) =>
+          updateCommentWithReply(
+            prev,
+            replyToComment.commentId,
+            newCommentResponse
+          )
+        );
         setReplyToComment(null);
       } else {
         // Si c'est un nouveau commentaire de niveau racine, l'ajouter en haut
-        setComments(prev => [newCommentResponse, ...prev]);
+        setComments((prev) => [newCommentResponse, ...prev]);
       }
-      
-      setNewComment('');
+
+      setNewComment("");
       // Fermer le clavier après envoi
       Keyboard.dismiss();
     } catch (error) {
-      console.error('Error adding comment:', error);
-      Alert.alert('Erreur', 'Impossible d\'ajouter le commentaire');
+      console.error("Error adding comment:", error);
+      Alert.alert("Error", "Unable to add comment");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const updateCommentWithReply = (
-    comments: HierarchicalComment[], 
-    parentId: number, 
+    comments: HierarchicalComment[],
+    parentId: number,
     newReply: HierarchicalComment
   ): HierarchicalComment[] => {
-    return comments.map(comment => {
+    return comments.map((comment) => {
       if (comment.id === parentId) {
         return {
           ...comment,
@@ -152,27 +169,29 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
 
     try {
       await commentService.toggleCommentLike(commentId, parseInt(user.id));
-      
+
       // Mettre à jour l'état local
-      setComments(prev => updateCommentLike(prev, commentId, parseInt(user.id)));
+      setComments((prev) =>
+        updateCommentLike(prev, commentId, parseInt(user.id))
+      );
     } catch (error) {
-      console.error('Error toggling comment like:', error);
-      Alert.alert('Erreur', 'Impossible de liker le commentaire');
+      console.error("Error toggling comment like:", error);
+      Alert.alert("Error", "Unable to like comment");
     }
   };
 
   const updateCommentLike = (
-    comments: HierarchicalComment[], 
-    commentId: number, 
+    comments: HierarchicalComment[],
+    commentId: number,
     userId: number
   ): HierarchicalComment[] => {
-    return comments.map(comment => {
+    return comments.map((comment) => {
       if (comment.id === commentId) {
-        const hasLiked = comment.likes.some(like => like.userId === userId);
+        const hasLiked = comment.likes.some((like) => like.userId === userId);
         const newLikes = hasLiked
-          ? comment.likes.filter(like => like.userId !== userId)
+          ? comment.likes.filter((like) => like.userId !== userId)
           : [...comment.likes, { commentId, userId, createdAt: new Date() }];
-        
+
         return {
           ...comment,
           likes: newLikes,
@@ -197,15 +216,17 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
 
     try {
       const updatedComment = await commentService.updateComment(
-        commentId, 
-        content, 
+        commentId,
+        content,
         parseInt(user.id)
       );
-      
-      setComments(prev => updateCommentContent(prev, commentId, updatedComment));
+
+      setComments((prev) =>
+        updateCommentContent(prev, commentId, updatedComment)
+      );
     } catch (error) {
-      console.error('Error editing comment:', error);
-      Alert.alert('Erreur', 'Impossible de modifier le commentaire');
+      console.error("Error updating comment:", error);
+      Alert.alert("Error", "Unable to update comment");
     }
   };
 
@@ -214,26 +235,30 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
 
     try {
       await commentService.deleteComment(commentId, parseInt(user.id));
-      setComments(prev => removeComment(prev, commentId));
+      setComments((prev) => removeComment(prev, commentId));
     } catch (error) {
-      console.error('Error deleting comment:', error);
-      Alert.alert('Erreur', 'Impossible de supprimer le commentaire');
+      console.error("Error deleting comment:", error);
+      Alert.alert("Error", "Unable to delete comment");
     }
   };
 
   const updateCommentContent = (
-    comments: HierarchicalComment[], 
-    commentId: number, 
+    comments: HierarchicalComment[],
+    commentId: number,
     updatedComment: HierarchicalComment
   ): HierarchicalComment[] => {
-    return comments.map(comment => {
+    return comments.map((comment) => {
       if (comment.id === commentId) {
         return updatedComment;
       }
       if (comment.replies && comment.replies.length > 0) {
         return {
           ...comment,
-          replies: updateCommentContent(comment.replies, commentId, updatedComment),
+          replies: updateCommentContent(
+            comment.replies,
+            commentId,
+            updatedComment
+          ),
         };
       }
       return comment;
@@ -241,12 +266,12 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   };
 
   const removeComment = (
-    comments: HierarchicalComment[], 
+    comments: HierarchicalComment[],
     commentId: number
   ): HierarchicalComment[] => {
     return comments
-      .filter(comment => comment.id !== commentId)
-      .map(comment => {
+      .filter((comment) => comment.id !== commentId)
+      .map((comment) => {
         if (comment.replies && comment.replies.length > 0) {
           return {
             ...comment,
@@ -260,19 +285,21 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   const handleLoadMoreReplies = async (commentId: number) => {
     try {
       const response = await commentService.getCommentReplies(commentId);
-      setComments(prev => updateCommentReplies(prev, commentId, response.replies));
+      setComments((prev) =>
+        updateCommentReplies(prev, commentId, response.replies)
+      );
     } catch (error) {
-      console.error('Error loading replies:', error);
-      Alert.alert('Erreur', 'Impossible de charger les réponses');
+      console.error("Error loading replies:", error);
+      Alert.alert("Error", "Unable to load replies");
     }
   };
 
   const updateCommentReplies = (
-    comments: HierarchicalComment[], 
-    commentId: number, 
+    comments: HierarchicalComment[],
+    commentId: number,
     replies: HierarchicalComment[]
   ): HierarchicalComment[] => {
-    return comments.map(comment => {
+    return comments.map((comment) => {
       if (comment.id === commentId) {
         return {
           ...comment,
@@ -291,14 +318,14 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
 
   const cancelReply = () => {
     setReplyToComment(null);
-    setNewComment('');
+    setNewComment("");
     Keyboard.dismiss();
   };
 
   const renderComment = ({ item }: { item: HierarchicalComment }) => (
     <HierarchicalCommentComponent
       comment={item}
-      currentUserId={parseInt(user?.id || '0')}
+      currentUserId={parseInt(user?.id || "0")}
       onReply={handleReply}
       onLike={handleLike}
       onEdit={handleEdit}
@@ -317,15 +344,20 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
       <SafeAreaView style={hierarchicalCommentsStyles.container}>
         <KeyboardAvoidingView
           style={hierarchicalCommentsStyles.container}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
           {/* Header */}
           <View style={hierarchicalCommentsStyles.header}>
-            <TouchableOpacity onPress={onClose} style={hierarchicalCommentsStyles.closeButton}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={hierarchicalCommentsStyles.closeButton}
+            >
               <FontAwesome name="arrow-left" size={20} color="#14171a" />
             </TouchableOpacity>
-            <Text style={hierarchicalCommentsStyles.headerTitle}>Commentaires</Text>
+            <Text style={hierarchicalCommentsStyles.headerTitle}>
+              Commentaires
+            </Text>
             <View style={hierarchicalCommentsStyles.headerSpacer} />
           </View>
 
@@ -333,7 +365,9 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
           <View style={hierarchicalCommentsStyles.contentContainer}>
             <ScrollView
               style={hierarchicalCommentsStyles.commentsList}
-              contentContainerStyle={hierarchicalCommentsStyles.commentsContentContainer}
+              contentContainerStyle={
+                hierarchicalCommentsStyles.commentsContentContainer
+              }
               showsVerticalScrollIndicator={false}
               onScrollEndDrag={handleLoadMore}
               scrollEventThrottle={400}
@@ -343,18 +377,20 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
               {comments.length === 0 && !isLoading && (
                 <View style={hierarchicalCommentsStyles.emptyContainer}>
                   <FontAwesome name="comments-o" size={50} color="#ccc" />
-                  <Text style={hierarchicalCommentsStyles.emptyText}>Aucun commentaire</Text>
-                  <Text style={hierarchicalCommentsStyles.emptySubText}>Soyez le premier à commenter!</Text>
+                  <Text style={hierarchicalCommentsStyles.emptyText}>
+                    Aucun commentaire
+                  </Text>
+                  <Text style={hierarchicalCommentsStyles.emptySubText}>
+                    Soyez le premier à commenter!
+                  </Text>
                 </View>
               )}
 
               {/* Comments list */}
               {comments.map((item) => (
-                <View key={item.id}>
-                  {renderComment({ item })}
-                </View>
+                <View key={item.id}>{renderComment({ item })}</View>
               ))}
-              
+
               {isLoading && (
                 <View style={hierarchicalCommentsStyles.loadingContainer}>
                   <ActivityIndicator size="small" color="#1da1f2" />
@@ -371,7 +407,10 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
                 <Text style={hierarchicalCommentsStyles.replyText}>
                   En réponse à @{replyToComment.username}
                 </Text>
-                <TouchableOpacity onPress={cancelReply} style={hierarchicalCommentsStyles.cancelReplyButton}>
+                <TouchableOpacity
+                  onPress={cancelReply}
+                  style={hierarchicalCommentsStyles.cancelReplyButton}
+                >
                   <FontAwesome name="times" size={16} color="#666" />
                 </TouchableOpacity>
               </View>
@@ -382,7 +421,11 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
               <TextInput
                 ref={textInputRef}
                 style={hierarchicalCommentsStyles.textInput}
-                placeholder={replyToComment ? "Écrivez votre réponse..." : "Ajoutez un commentaire..."}
+                placeholder={
+                  replyToComment
+                    ? "Écrivez votre réponse..."
+                    : "Ajoutez un commentaire..."
+                }
                 value={newComment}
                 onChangeText={setNewComment}
                 multiline
@@ -395,7 +438,8 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
               <TouchableOpacity
                 style={[
                   hierarchicalCommentsStyles.sendButton,
-                  (!newComment.trim() || isSubmitting) && hierarchicalCommentsStyles.sendButtonDisabled,
+                  (!newComment.trim() || isSubmitting) &&
+                    hierarchicalCommentsStyles.sendButtonDisabled,
                 ]}
                 onPress={handleAddComment}
                 disabled={!newComment.trim() || isSubmitting}
@@ -414,4 +458,5 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   );
 };
 
-export default HierarchicalCommentsModal; 
+export default HierarchicalCommentsModal;
+

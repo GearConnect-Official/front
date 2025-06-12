@@ -10,7 +10,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
 import postService from '../../services/postService';
 
 interface ShareOption {
@@ -122,7 +122,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
       onPress={() => handleShareOption(item)}
     >
       <View style={styles.shareIconContainer}>
-        <FontAwesome name={item.icon} size={24} color="#262626" />
+        <FontAwesome name={item.icon as any} size={24} color="#262626" />
       </View>
       <Text style={styles.shareOptionText}>{item.name}</Text>
     </TouchableOpacity>

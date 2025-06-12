@@ -13,7 +13,7 @@ import {
   StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/auth/registerStyles";
 import componentStyles from "../styles/auth/registerComponentStyles";
 import { useAuth } from "../context/AuthContext"; // Import useAuth hook
@@ -267,3 +267,4 @@ const RegisterScreen: React.FC = () => {
 };
 
 export default RegisterScreen;
+

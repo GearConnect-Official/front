@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,19 +13,166 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
+import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import styles from "../styles/auth/forgotPasswordStyles";
 
+/**
+ * ForgotPasswordScreen Component
+ * 
+ * This component handles password reset functionality using Clerk's built-in
+ * password reset system. It follows the same architecture as the backend:
+ * - All password management is delegated to Clerk
+ * - No backend API calls needed for password reset
+ * - Backend stores users without passwords (Clerk handles authentication)
+ * 
+ * Flow:
+ * 1. User enters email
+ * 2. Clerk sends reset code via email
+ * 3. User enters code + new password
+ * 4. Clerk validates and resets password
+ * 5. User is automatically signed in
+ */
 const ForgotPasswordScreen: React.FC = () => {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
+  const { signIn, setActive, isLoaded } = useSignIn();
+  
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [successfulCreation, setSuccessfulCreation] = useState(false);
+  const [secondFactor, setSecondFactor] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendCode = () => {
+  // Redirect if user is already signed in
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push("/(app)/(tabs)/home");
+    }
+  }, [isSignedIn, router]);
+
+  if (!isLoaded) {
+    return null;
+  }
+
+  // Send the password reset code to the user's email
+  // Uses Clerk's reset_password_email_code strategy
+  const handleSendCode = async (e?: any) => {
+    if (e?.preventDefault) e.preventDefault();
+    
     if (!email) {
-      Alert.alert("Error", "Please enter your email address");
+      setError("Please enter your email address");
       return;
     }
-    // TODO: Implement send code functionality
-    Alert.alert("Success", "Reset code has been sent to your email");
+
+    // Basic email validation
+    if (!email.includes("@") || !email.includes(".")) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!signIn) {
+      setError("Sign in service is not available");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Initiate password reset with Clerk
+      // This will send an email with a verification code
+      await signIn.create({
+        strategy: 'reset_password_email_code',
+        identifier: email,
+      });
+
+      setSuccessfulCreation(true);
+      setError("");
+      Alert.alert("Success", "Password reset code has been sent to your email");
+    } catch (err: any) {
+      console.error('Error sending reset code:', err);
+      const errorMessage = err.errors?.[0]?.longMessage || err.message || "Failed to send reset code";
+      setError(errorMessage);
+      Alert.alert("Error", errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Reset the user's password using the verification code
+  // This completes the password reset flow with Clerk
+  const handleResetPassword = async (e?: any) => {
+    if (e?.preventDefault) e.preventDefault();
+    
+    if (!code) {
+      setError("Please enter the verification code");
+      return;
+    }
+
+    if (!password) {
+      setError("Please enter your new password");
+      return;
+    }
+
+    // Password validation to match backend/Clerk requirements
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
+    if (!signIn) {
+      setError("Sign in service is not available");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Complete the password reset with Clerk
+      const result = await signIn.attemptFirstFactor({
+        strategy: 'reset_password_email_code',
+        code,
+        password,
+      });
+
+      if (result.status === 'needs_second_factor') {
+        setSecondFactor(true);
+        setError("");
+        Alert.alert("2FA Required", "Two-factor authentication is required to complete the password reset");
+      } else if (result.status === 'complete') {
+        // Set the active session to the newly created session (user is now signed in)
+        await setActive({ session: result.createdSessionId });
+        setError("");
+        Alert.alert("Success", "Your password has been reset successfully!");
+        router.push("/(app)/(tabs)/home");
+      } else {
+        console.log('Unexpected result status:', result);
+        setError("Password reset failed. Please try again.");
+      }
+    } catch (err: any) {
+      console.error('Error resetting password:', err);
+      const errorMessage = err.errors?.[0]?.longMessage || err.message || "Failed to reset password";
+      setError(errorMessage);
+      Alert.alert("Error", errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    router.push("/(auth)/login");
+  };
+
+  const handleTryAgain = () => {
+    setSuccessfulCreation(false);
+    setEmail("");
+    setCode("");
+    setPassword("");
+    setError("");
+    setSecondFactor(false);
   };
 
   return (
@@ -34,7 +181,7 @@ const ForgotPasswordScreen: React.FC = () => {
       
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => router.push("/(auth)/login")}
+        onPress={handleBackToLogin}
         activeOpacity={0.7}
       >
         <FontAwesome name="arrow-left" size={24} color="#1E232C" />
@@ -48,29 +195,101 @@ const ForgotPasswordScreen: React.FC = () => {
           contentContainerStyle={{ flexGrow: 1 }}
           style={styles.container}
         >
-          <Text style={styles.title}>Forgot Password?</Text>
+          {!successfulCreation ? (
+            // Step 1: Enter email to receive reset code
+            <>
+              <Text style={styles.title}>Forgot Password?</Text>
+              <Text style={styles.subtitle}>
+                Don&apos;t worry! It happens. Please enter the email address associated with your account.
+              </Text>
 
-          <Text style={styles.subtitle}>
-            Don&apos;t worry! It happens. Please enter the email address associated with your account.
-          </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor="#8391A1"
+                editable={!isLoading}
+              />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholderTextColor="#8391A1"
-          />
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <TouchableOpacity style={styles.sendCodeButton} onPress={handleSendCode}>
-            <Text style={styles.sendCodeText}>Send Code</Text>
-          </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.sendCodeButton, isLoading && styles.disabledButton]} 
+                onPress={handleSendCode}
+                disabled={isLoading}
+              >
+                <Text style={styles.sendCodeText}>
+                  {isLoading ? "Sending..." : "Send Code"}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            // Step 2: Enter verification code and new password
+            <>
+              {secondFactor ? (
+                <View style={styles.secondFactorContainer}>
+                  <Text style={styles.title}>2FA Required</Text>
+                  <Text style={styles.subtitle}>
+                    Two-factor authentication is required to complete the password reset. 
+                    This interface doesn&apos;t handle 2FA yet.
+                  </Text>
+                  <TouchableOpacity style={styles.sendCodeButton} onPress={handleTryAgain}>
+                    <Text style={styles.sendCodeText}>Try Again</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.title}>Reset Password</Text>
+                  <Text style={styles.subtitle}>
+                    Enter the verification code sent to {email} and your new password.
+                  </Text>
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter verification code"
+                    value={code}
+                    onChangeText={setCode}
+                    keyboardType="number-pad"
+                    placeholderTextColor="#8391A1"
+                    editable={!isLoading}
+                  />
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter new password"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    placeholderTextColor="#8391A1"
+                    editable={!isLoading}
+                  />
+
+                  {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+                  <TouchableOpacity 
+                    style={[styles.sendCodeButton, isLoading && styles.disabledButton]} 
+                    onPress={handleResetPassword}
+                    disabled={isLoading}
+                  >
+                    <Text style={styles.sendCodeText}>
+                      {isLoading ? "Resetting..." : "Reset Password"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.tryAgainButton} onPress={handleTryAgain}>
+                    <Text style={styles.tryAgainText}>Try with different email</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </>
+          )}
 
           <View style={styles.rememberPasswordContainer}>
             <Text style={styles.rememberPasswordText}>Remember Password? </Text>
-            <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
+            <TouchableOpacity onPress={handleBackToLogin}>
               <Text style={styles.loginText}>Login</Text>
             </TouchableOpacity>
           </View>

@@ -13,7 +13,7 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 
 interface Story {
   id: string;

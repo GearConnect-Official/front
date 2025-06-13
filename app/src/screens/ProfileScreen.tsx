@@ -10,6 +10,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import styles from "../styles/Profile/profileStyles";
@@ -21,7 +22,8 @@ import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from "../components/media";
 import { detectMediaType } from "../utils/mediaUtils";
 import { defaultImages } from "../config/defaultImages";
-import PerformanceService from '../services/performanceService';
+import PerformanceService from "../services/performanceService";
+import userService from "../services/userService";
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -76,8 +78,11 @@ interface ProfileScreenProps {
   userId?: number;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({
+  userId: propUserId,
+}) => {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const auth = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
@@ -105,9 +110,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Post[]>([]);
   const [isLoadingLikedPosts, setIsLoadingLikedPosts] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+  const [isLoadingUserData, setIsLoadingUserData] = useState(false);
 
-  // Get user from auth context
+  // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
+  const effectiveUserId =
+    propUserId || (user?.id ? Number(user.id) : undefined);
+
+  // Function to fetch user data
+  const fetchUserData = async () => {
+    if (!effectiveUserId) return;
 
   // Load all data when component mounts or user changes
   useEffect(() => {
@@ -268,12 +281,163 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const onRefreshProfile = async () => {
     setRefreshing(true);
 
+    setIsLoadingUserData(true);
+    try {
+      const response = await userService.getProfile(effectiveUserId);
+      if (response.success && response.data) {
+        setUserData(response.data);
+      } else {
+        console.error("Failed to fetch user data:", response.error);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setIsLoadingUserData(false);
+    }
+  };
+
+  // Load all data when component mounts or user changes
+  useEffect(() => {
+    if (!effectiveUserId) return;
+
+    const loadAllData = async () => {
+      try {
+        // Load user data
+        await fetchUserData();
+
+        // Load user posts
+        const loadUserPostsAsync = async () => {
+          setIsLoadingPosts(true);
+          try {
+            const userPosts = await postService.getUserPosts(
+              Number(effectiveUserId)
+            );
+
+            if (!Array.isArray(userPosts)) {
+              console.error("Expected array of posts but got:", userPosts);
+              return;
+            }
+
+            const formattedPosts = userPosts.map((post: any) => ({
+              id: post.id.toString(),
+              imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
+              likes: post.interactions?.filter((i: any) => i.like).length || 0,
+              comments:
+                post.interactions?.filter((i: any) => i.comment).length || 0,
+              caption: post.title ? `${post.title}\n${post.body}` : post.body,
+              location: "",
+              timeAgo: new Date(post.createdAt).toLocaleDateString(),
+              multipleImages: false,
+              isVideo:
+                detectMediaType(
+                  post.cloudinaryUrl,
+                  post.cloudinaryPublicId,
+                  post.imageMetadata
+                ) === "video",
+              cloudinaryPublicId: post.cloudinaryPublicId,
+              imageMetadata: post.imageMetadata,
+            }));
+
+            setPosts(formattedPosts);
+            setStats((prev) => ({ ...prev, posts: formattedPosts.length }));
+          } catch (error) {
+            console.error("Error loading user posts:", error);
+          } finally {
+            setIsLoadingPosts(false);
+          }
+        };
+
+        // Load favorites
+        const loadFavoritesAsync = async () => {
+          setIsLoadingFavorites(true);
+          try {
+            const response = await favoritesService.getUserFavorites(
+              Number(effectiveUserId),
+              1
+            );
+
+            if (!response.favorites || !Array.isArray(response.favorites)) {
+              console.error("Expected array of favorites but got:", response);
+              return;
+            }
+
+            const formattedFavorites = response.favorites.map((post: any) => ({
+              id: post.id,
+              title: post.title,
+              body: post.body,
+              cloudinaryUrl: post.cloudinaryUrl,
+              cloudinaryPublicId: post.cloudinaryPublicId,
+              imageMetadata: post.imageMetadata,
+              user: post.user,
+              createdAt: post.createdAt,
+              favorites: post.favorites,
+              interactions: post.interactions,
+              comments: post.comments,
+            }));
+
+            setFavorites(formattedFavorites);
+            setStats((prev) => ({ ...prev, saved: response.pagination.total }));
+          } catch (error) {
+            console.error("Error loading favorites:", error);
+          } finally {
+            setIsLoadingFavorites(false);
+          }
+        };
+
+        // Load driver stats
+        const loadDriverStatsAsync = async () => {
+          if (!effectiveUserId) return;
+
+          setIsLoadingDriverStats(true);
+          try {
+            const response = await PerformanceService.getUserStats(
+              Number(effectiveUserId)
+            );
+
+            if (response.success && response.data) {
+              const apiStats = response.data;
+
+              setDriverStats({
+                races: apiStats.totalRaces || 0,
+                wins: apiStats.wins || 0,
+                podiums: apiStats.podiumFinishes || 0,
+                bestPosition: apiStats.bestPosition || 0,
+                averagePosition: apiStats.averagePosition || 0,
+              });
+            }
+          } catch (error) {
+            console.error("Error loading driver stats:", error);
+          } finally {
+            setIsLoadingDriverStats(false);
+          }
+        };
+
+        // Execute all data loading in parallel
+        await Promise.all([
+          loadUserPostsAsync(),
+          loadFavoritesAsync(),
+          loadDriverStatsAsync(),
+        ]);
+      } catch (error) {
+        console.error("Error loading profile data:", error);
+      }
+    };
+
+    loadAllData();
+  }, [effectiveUserId, params.refresh]);
+
+  const onRefreshProfile = async () => {
+    setRefreshing(true);
+
     try {
       // Recharger les données selon l'onglet actif
       if (activeTab === "favorites" && auth?.user?.id) {
         setIsLoadingFavorites(true);
-        const response = await favoritesService.getUserFavorites(Number(auth?.user?.id), 1);
-        
+        const response = await favoritesService.getUserFavorites(
+          Number(auth?.user?.id),
+          1
+        );
+
         if (response.favorites && Array.isArray(response.favorites)) {
           const formattedFavorites = response.favorites.map((post: any) => ({
             id: post.id,
@@ -288,21 +452,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             interactions: post.interactions,
             comments: post.comments,
           }));
-          
+
           setFavorites(formattedFavorites);
           setStats((prev) => ({ ...prev, saved: response.pagination.total }));
         }
         setIsLoadingFavorites(false);
       }
-      
+
       // Recharger les statistiques de performance
       if (user?.id) {
         setIsLoadingDriverStats(true);
         const response = await PerformanceService.getUserStats(user.id);
-        
+
         if (response.success && response.data) {
           const apiStats = response.data;
-          
+
           setDriverStats({
             races: apiStats.totalRaces || 0,
             wins: apiStats.wins || 0,
@@ -367,7 +531,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
 
   const handleEditProfilePress = () => {
     setMenuVisible(false);
-    router.push("/editProfile");
+    router.push({
+      pathname: "/editProfile",
+      params: { userId: effectiveUserId || 1 },
+    });
   };
 
   const handlePreferencesPress = () => {
@@ -795,14 +962,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             <View style={styles.profileHeader}>
               <Image
                 source={
-                  user?.photoURL
-                    ? { uri: user.photoURL }
+                  userData?.profilePicture
+                    ? { uri: userData.profilePicture }
                     : defaultImages.profile
                 }
                 style={styles.profileImage}
               />
               <View style={styles.profileInfo}>
-                <Text style={styles.username}>{user?.username || "User"}</Text>
+                <Text style={styles.username}>
+                  {userData?.username || user?.username || "User"}
+                </Text>
                 <View style={styles.statsContainer}>
                   <View style={styles.statItem}>
                     <Text style={styles.statNumber}>{stats.posts}</Text>
@@ -820,16 +989,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
               </View>
             </View>
 
-            {/* Bio and information */}
+            {/* Bio */}
             <View style={styles.bioSection}>
               <Text style={styles.bioText}>
-                🏎️ F3 Driver | Karting Fr Championship 🏆
+                {userData?.description || user?.description || "Description"}
               </Text>
-              <Text style={styles.bioText}>Ambassador @racing_gear</Text>
-              <TouchableOpacity style={styles.websiteLink}>
-                <Text style={styles.websiteText}>
-                  circuits-passion.com/esteban
-                </Text>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.followButton]}
+                onPress={() => console.log("Follow pressed")}
+              >
+                <Text style={styles.followButtonText}>Suivre</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.messageButton]}
+                onPress={() => console.log("Message pressed")}
+              >
+                <Text style={styles.messageButtonText}>Message</Text>
               </TouchableOpacity>
             </View>
 
@@ -984,6 +1163,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         onPreferencesPress={handlePreferencesPress}
         onLogoutPress={handleLogoutPress}
         onPerformancesPress={handlePerformancesPress}
+        userId={effectiveUserId || 1}
       />
 
       <Modal

@@ -88,6 +88,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
     description: eventData?.description || '',
     logoPublicId: eventData?.logoPublicId || '',
     imagePublicIds: eventData?.imagePublicIds || [],
+    creatorId: eventData?.creatorId,
   };
 
   const {
@@ -210,24 +211,28 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
       default:
         return null;
     }
-  };// Use ScrollView for all steps, with optimizations for step 4 to prevent nested scrolling issues
+  };  
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      enabled
     >
       <View style={[styles.container, { flex: 1 }]}>
         <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={true}
-        >
-          {renderStepContent()}
-          <View style={{ height: 80 }} /> 
-          {/* Extra padding increased to ensure scrolling reaches the end and doesn't get hidden behind buttons */}
+          nestedScrollEnabled={true}
+          removeClippedSubviews={false}
+          scrollEnabled={true}
+          bounces={true}
+        >          
+        {renderStepContent()}
         </ScrollView> 
-        {/* Buttons container directly applies style from buttonsContainer which has absolute positioning */}
+        
         <NavigationButtons
           currentStep={currentStep}
           isLastStep={currentStep === totalSteps}
@@ -237,13 +242,9 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
           onSubmit={handleSubmit}
           isEditing={true}
         />
+        
         {error && (
-          <Text
-            style={[
-              styles.errorText,
-              { bottom: 60, position: 'absolute', left: 0, right: 0 },
-            ]}
-          >
+          <Text style={styles.errorText}>
             {error}
           </Text>
         )}

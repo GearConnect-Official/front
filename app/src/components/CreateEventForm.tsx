@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,15 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import StepIndicator from "./CreateEvent/StepIndicator";
-import BasicInfo from "./CreateEvent/BasicInfo";
-import NavigationButtons from "./CreateEvent/NavigationButtons";
-import styles from "../styles/screens/createEventStyles";
-import eventService, { Event } from "../services/eventService";
-import { useAuth } from "../context/AuthContext";
-import MediaInfo from "./CreateEvent/MediaInfo";
-import AdditionalInfo from "./CreateEvent/AdditionalInfo";
+} from 'react-native';
+import StepIndicator from './CreateEvent/StepIndicator';
+import BasicInfo from './CreateEvent/BasicInfo';
+import NavigationButtons from './CreateEvent/NavigationButtons';
+import styles from '../styles/screens/createEventStyles';
+import eventService, { Event } from '../services/eventService';
+import { useAuth } from '../context/AuthContext';
+import MediaInfo from './CreateEvent/MediaInfo';
+import AdditionalInfo from './CreateEvent/AdditionalInfo';
 
 interface CreateEventProps {
   onCancel: () => void;
@@ -29,18 +29,18 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
 }) => {
   const authContext = useAuth();
   const user = authContext?.user;
-  
+
   const [formData, setFormData] = React.useState<Event>({
-    name: initialData.name || "",
-    creators: initialData.creators || "",
-    location: initialData.location || "",
+    name: initialData.name || '',
+    creators: initialData.creators || '',
+    location: initialData.location || '',
     date: initialData.date ? new Date(initialData.date) : new Date(),
-    sponsors: initialData.sponsors || "",
-    website: initialData.website || "",
-    rankings: initialData.rankings || "",
-    logo: initialData.logo || "",
+    sponsors: initialData.sponsors || '',
+    website: initialData.website || '',
+    rankings: initialData.rankings || '',
+    logo: initialData.logo || '',
     images: initialData.images || [],
-    description: initialData.description || "",
+    description: initialData.description || '',
   });
 
   const [loading, setLoading] = React.useState(false);
@@ -53,35 +53,35 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       const updatedForm = { ...prev, [field]: value };
       return updatedForm;
     });
-  };  
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
-  
+
     // Vérification si tous les champs obligatoires sont remplis
     if (!formData.name.trim()) {
-      setError("Event name is required");
+      setError('Event name is required');
       setLoading(false);
       return;
     }
 
     if (!formData.location.trim()) {
-      setError("Event location is required");
+      setError('Event location is required');
       setLoading(false);
       return;
     }
-    
+
     if (!user || !user.id) {
-      setError("You must be logged in to create an event");
+      setError('You must be logged in to create an event');
       setLoading(false);
       return;
     }
-  
+
     try {
       // Format date properly
       const formattedDate = new Date(formData.date);
-      
+
       // Create a clean object with all required properties
       const eventData: Event = {
         name: formData.name.trim(),
@@ -92,33 +92,33 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
         website: formData.website.trim(),
         sponsors: formData.sponsors.trim(),
         date: formattedDate,
-        description: formData.description ? formData.description.trim() : "",
+        description: formData.description ? formData.description.trim() : '',
         // Les images sont traitées par eventService
-        logo: formData.logo || "",
+        logo: formData.logo || '',
         images: formData.images || [],
       };
-      
+
       // Afficher toutes les données envoyées pour débogage
-      console.log("Données avant envoi:", JSON.stringify(eventData, null, 2));
-      
+      console.log('Données avant envoi:', JSON.stringify(eventData, null, 2));
+
       const createdEvent = await eventService.createEvent(eventData);
-      console.log("Réponse du serveur:", createdEvent);
-  
+      console.log('Réponse du serveur:', createdEvent);
+
       Alert.alert(
-        "Success", 
-        "Your event has been created successfully! It's now visible to the entire community.", 
-        [{ text: "Great!", onPress: onSuccess }]
+        'Success',
+        "Your event has been created successfully! It's now visible to the entire community.",
+        [{ text: 'Great!', onPress: onSuccess }]
       );
     } catch (err: any) {
-      console.error("Error creating event:", err);
-      
+      console.error('Error creating event:', err);
+
       // Log more details about the error for debugging
       if (err?.response) {
-        console.error("Response data:", err.response.data);
-        console.error("Response status:", err.response.status);
-        console.error("Response headers:", err.response.headers);
+        console.error('Response data:', err.response.data);
+        console.error('Response status:', err.response.status);
+        console.error('Response headers:', err.response.headers);
       }
-      
+
       // Afficher un message d'erreur plus précis
       if (err?.response?.data?.error) {
         setError(`Error: ${err.response.data.error}`);
@@ -127,9 +127,12 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       } else if (err?.message) {
         setError(`Error: ${err.message}`);
       } else {
-        setError("An unexpected error occurred. Please try again.");
+        setError('An unexpected error occurred. Please try again.');
       }
-      Alert.alert("Error", "Unable to create the event. Please check your data and try again.");
+      Alert.alert(
+        'Error',
+        'Unable to create the event. Please check your data and try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -169,9 +172,9 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       case 2:
         return (
           <MediaInfo
-            logo={formData.logo || ""}
+            logo={formData.logo || ''}
             images={formData.images || []}
-            description={formData.description || ""}
+            description={formData.description || ''}
             onInputChange={handleInputChange}
             onAddImage={handleAddImage}
             onLogoChange={(logo: string) => handleInputChange('logo', logo)}
@@ -180,7 +183,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       case 3:
         return (
           <AdditionalInfo
-            logo={formData.logo || ""}
+            logo={formData.logo || ''}
             name={formData.name}
             location={formData.location}
             date={formData.date}
@@ -195,18 +198,28 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
   };
 
   const isLastStep = currentStep === totalSteps;
-
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      enabled
     >
       <View style={styles.container}>
         <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
-        <ScrollView style={styles.scrollView}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+          nestedScrollEnabled={true}
+          removeClippedSubviews={false}
+          scrollEnabled={true}
+          bounces={true}
+        >
           {renderStepContent()}
         </ScrollView>
-        
+
         <NavigationButtons
           currentStep={currentStep}
           isLastStep={isLastStep}
@@ -215,7 +228,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
           onNext={nextStep}
           onSubmit={handleSubmit}
         />
-        
+
         {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     </KeyboardAvoidingView>

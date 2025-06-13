@@ -5,12 +5,10 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  FlatList,
 } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { RouteProp } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
+import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { EventInterface } from '../services/EventInterface';
 import { styles } from '../styles/screens/eventDetailStyles';
 import {
@@ -23,6 +21,9 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
+import relatedProductService from '../services/relatedProductService';
+import EventDetailReview from '../components/EventDetailReview';
 
 type RootStackParamList = {
   EventDetail: { eventId: string };
@@ -30,8 +31,6 @@ type RootStackParamList = {
 };
 
 type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
-import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
-import relatedProductService from '../services/relatedProductService';
 
 interface MeteoInfo {
   condition: string;
@@ -96,14 +95,6 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
-    const handleEditEvent = () => {
-    if (event) {
-      router.push({
-        pathname: '/(app)/editEvent',
-        params: { eventId: event.id },
-      });
-    }
-  };
 
   const checkIfReviewCreator = async (fetchedEvent: EventInterface) => {
     try {
@@ -440,7 +431,7 @@ const EventDetailScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.reviewButton}
                 onPress={() => router.push({
-                  pathname: '/(app)/modifyEvent',
+                  pathname: '/(app)/editEvent',
                   params: { eventId }
                 })}
               >
@@ -459,7 +450,6 @@ const EventDetailScreen: React.FC = () => {
           </View>
         </View>
 
-                <ScrollView style={styles.scrollView}>
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.eventInfo}>
@@ -483,7 +473,7 @@ const EventDetailScreen: React.FC = () => {
               <Text style={styles.aboutTitle}>About</Text>
               <View style={styles.tagContainer}>
                 {event?.tags && event.tags.length > 0 ? (
-                  event.tags.map((tag, index) => (
+                  event.tags.map((tag: any, index: number) => (
                     <Text
                       key={`tag-${index}-${
                         typeof tag === 'object' ? tag.id : tag

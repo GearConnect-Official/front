@@ -1,10 +1,17 @@
 import { StyleSheet } from 'react-native';
 import theme from '../config/theme';
 
-const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({  container: {
     ...theme.common.container,
     backgroundColor: theme.colors.background.paper,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.lg * 2,
+    flexGrow: 1,
   },
   contentContainer: {
     padding: theme.spacing.md,
@@ -351,11 +358,7 @@ const styles = StyleSheet.create({
     color: "red",
     textAlign: "center",
     margin: 10,
-  },
-  // ScrollView
-  scrollView: {
-    flex: 1,
-  },
+  },  // Info note styles
   // Nouveaux styles pour l'intégration Cloudinary
   uploadInfoContainer: {
     marginTop: 12,

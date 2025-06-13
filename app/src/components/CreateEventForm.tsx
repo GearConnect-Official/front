@@ -215,26 +215,39 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-      enabled
     >
-      <View style={styles.container}>
-        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
-        <ScrollView style={styles.scrollView}>{renderStepContent()}</ScrollView>
+      <TouchableWithoutFeedback onPress={dismissKeyboard}>
+        <View style={styles.container}>
+          <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={true}
+            scrollEventThrottle={16}
+            bounces={false}
+            overScrollMode="never"
+            keyboardDismissMode={Platform.OS === "android" ? "on-drag" : "none"}
+            onScrollBeginDrag={Platform.OS === "android" ? dismissKeyboard : undefined}
+          >
+            {renderStepContent()}
+          </ScrollView>
 
-        <NavigationButtons
-          currentStep={currentStep}
-          isLastStep={isLastStep}
-          loading={loading}
-          onPrev={prevStep}
-          onNext={nextStep}
-          onSubmit={handleSubmit}
-        />
+          <NavigationButtons
+            currentStep={currentStep}
+            isLastStep={isLastStep}
+            loading={loading}
+            onPrev={prevStep}
+            onNext={nextStep}
+            onSubmit={handleSubmit}
+          />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
+          {error && <Text style={styles.errorText}>{error}</Text>}
+        </View>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };

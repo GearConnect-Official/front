@@ -37,6 +37,9 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           placeholder="www.example.com"
           value={website}
           onChangeText={(text) => onInputChange('website', text)}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          keyboardType="url"
         />
       </View>
       <View style={styles.inputGroup}>
@@ -46,6 +49,8 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           placeholder="Sponsor names separated by commas"
           value={sponsors}
           onChangeText={(text) => onInputChange('sponsors', text)}
+          returnKeyType="done"
+          blurOnSubmit={true}
         />
       </View>
       <View style={styles.previewSection}>

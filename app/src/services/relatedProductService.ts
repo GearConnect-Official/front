@@ -4,9 +4,9 @@ import { API_URL_RELATEDPRODUCTS } from '../config';
 export interface RelatedProduct {
   id?: string;
   name: string;
-  price: number; // Changed from string to number
+  price: number;
   link: string;
-  eventId: number; // Changed from string to number
+  eventId: number;
   createdAt?: string;
 }
 
@@ -25,7 +25,6 @@ const relatedProductService = {
   // Create a product
   createProduct: async (productData: RelatedProduct) => {
     try {
-      // Ensure eventId is included
       if (!productData.eventId) {
         throw new Error('Event ID is required to create a related product');
       }
@@ -33,33 +32,11 @@ const relatedProductService = {
       const response = await axios.post(API_URL_RELATEDPRODUCTS, productData);
       return response.data;
     } catch (error) {
-      // Enhanced error handling
       if (isAxiosError(error)) {
-        let errorMessage = error.response?.data?.message || 'API Error occurred';
-        
-        // Handle specific Prisma relation error
-        if (error.response?.data?.code === 'P2014' && 
-            error.response?.data?.meta?.relation_name === 'EventToRelatedProduct') {
-          errorMessage = `Invalid event ID: ${productData.eventId}. The event does not exist.`;
-        }
-        
-        const apiError = {
-          message: errorMessage,
-          status: error.response?.status,
-          type: 'API',
-          url: error.config?.url,
-          originalError: error
-        };
-        console.error('Error creating product:', apiError);
-        throw apiError;
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to create product';
+        throw new Error(errorMessage);
       } else {
-        const genericError = {
-          message: error instanceof Error ? error.message : 'Unknown error occurred',
-          type: 'UNKNOWN',
-          originalError: error
-        };
-        console.error('Error creating product:', genericError);
-        throw genericError;
+        throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
       }
     }
   },

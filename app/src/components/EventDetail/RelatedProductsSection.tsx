@@ -68,47 +68,42 @@ const RelatedProductsSection: React.FC<RelatedProductsSectionProps> = ({
       return;
     }
 
+    // Validate price is a valid number
+    const priceNumber = parseFloat(price.trim());
+    if (isNaN(priceNumber) || priceNumber <= 0) {
+      Alert.alert('Error', 'Please enter a valid price greater than 0');
+      return;
+    }
+
+    // Validate eventId is a valid number
+    const eventIdNumber = Number(eventId);
+    if (isNaN(eventIdNumber)) {
+      Alert.alert('Error', 'Invalid event ID');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Create new product with proper number conversions
+      // Create new product
       const newProduct: RelatedProduct = {
         name: name.trim(),
-        price: parseFloat(price.trim()),
+        price: priceNumber,
         link: link.trim() || 'No link provided',
-        eventId: Number(eventId),
+        eventId: eventIdNumber,
       };
 
-      // Save to server
-      console.log('Creating product:', newProduct);
-      // can't make it work
-      // await relatedProductService.createProduct(newProduct);
+      await relatedProductService.createProduct(newProduct);
 
       // Close modal and refresh data
       setModalVisible(false);
       onRefresh();
 
       // Show success message
-      Alert.alert('Success', 'Product added successfully');
+      Alert.alert('Success', 'Product added successfully!');
     } catch (error: any) {
-      // Enhanced error handling
-      const errorMessage = error?.message || 'Unknown error occurred';
-
-      // Handle specific error cases
-      if (errorMessage.includes('Invalid event ID')) {
-        Alert.alert('Error', 'This event may have been deleted or is invalid');
-      } else if (error?.type === 'API' && error.status === 500) {
-        Alert.alert(
-          'Server Error',
-          'Server is experiencing issues. Please try again later.'
-        );
-      } else if (error?.type === 'API') {
-        Alert.alert('API Error', errorMessage);
-      } else {
-        Alert.alert('Error', 'Failed to add product. Please try again.');
-      }
-
-      console.error('Error adding product:', error);
+      const errorMessage = error?.message || 'Failed to create product';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }

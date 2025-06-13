@@ -5,9 +5,7 @@ const styles = StyleSheet.create({  container: {
     ...theme.common.container,
     backgroundColor: theme.colors.background.paper,
   },
-  scrollView: {
-    flex: 1,
-  },
+
   scrollViewContent: {
     padding: theme.spacing.md,
     paddingBottom: theme.spacing.lg * 2,

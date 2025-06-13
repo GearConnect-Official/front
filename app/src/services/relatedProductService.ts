@@ -1,0 +1,191 @@
+import axios, { isAxiosError } from 'axios';
+import { API_URL_RELATEDPRODUCTS } from '../config';
+
+export interface RelatedProduct {
+  id?: string;
+  name: string;
+  price: number; // Changed from string to number
+  link: string;
+  eventId: number; // Changed from string to number
+  createdAt?: string;
+}
+
+const relatedProductService = {
+  // Get all products for an event
+  getProductsByEventId: async (eventId: string) => {
+    try {
+      const response = await axios.get(`${API_URL_RELATEDPRODUCTS}/event/${eventId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching products for event ${eventId}:`, error);
+      throw error;
+    }
+  },
+
+  // Create a product
+  createProduct: async (productData: RelatedProduct) => {
+    try {
+      // Ensure eventId is included
+      if (!productData.eventId) {
+        throw new Error('Event ID is required to create a related product');
+      }
+      
+      const response = await axios.post(API_URL_RELATEDPRODUCTS, productData);
+      return response.data;
+    } catch (error) {
+      // Enhanced error handling
+      if (isAxiosError(error)) {
+        let errorMessage = error.response?.data?.message || 'API Error occurred';
+        
+        // Handle specific Prisma relation error
+        if (error.response?.data?.code === 'P2014' && 
+            error.response?.data?.meta?.relation_name === 'EventToRelatedProduct') {
+          errorMessage = `Invalid event ID: ${productData.eventId}. The event does not exist.`;
+        }
+        
+        const apiError = {
+          message: errorMessage,
+          status: error.response?.status,
+          type: 'API',
+          url: error.config?.url,
+          originalError: error
+        };
+        console.error('Error creating product:', apiError);
+        throw apiError;
+      } else {
+        const genericError = {
+          message: error instanceof Error ? error.message : 'Unknown error occurred',
+          type: 'UNKNOWN',
+          originalError: error
+        };
+        console.error('Error creating product:', genericError);
+        throw genericError;
+      }
+    }
+  },
+
+  // Create multiple products
+  createMultipleProducts: async (products: RelatedProduct[]) => {
+    try {
+      if (!products || products.length === 0) {
+        return [];
+      }
+
+      // Ensure all products have eventId
+      const hasInvalidProducts = products.some(product => !product.eventId);
+      if (hasInvalidProducts) {
+        throw new Error('All products must have an event ID');
+      }
+
+      // Process products one by one to better handle errors
+      const results = [];
+      const errors = [];
+
+      for (const product of products) {
+        try {
+          const response = await axios.post(API_URL_RELATEDPRODUCTS, product);
+          results.push(response.data);
+        } catch (error) {
+          // Similar error handling as in createProduct
+          if (isAxiosError(error)) {
+            let errorMessage = error.response?.data?.message || 'API Error occurred';
+            
+            // Handle specific Prisma relation error
+            if (error.response?.data?.code === 'P2014' && 
+                error.response?.data?.meta?.relation_name === 'EventToRelatedProduct') {
+              errorMessage = `Invalid event ID: ${product.eventId}. The event does not exist.`;
+            }
+            
+            const apiError = {
+              message: errorMessage,
+              status: error.response?.status,
+              type: 'API',
+              url: error.config?.url,
+              product: product,
+              prismaError: error.response?.data?.code === 'P2014',
+              originalError: error
+            };
+            errors.push(apiError);
+          } else {
+            const genericError = {
+              message: error instanceof Error ? error.message : 'Unknown error occurred',
+              type: 'UNKNOWN',
+              product: product,
+              originalError: error
+            };
+            errors.push(genericError);
+          }
+        }
+      }
+
+      if (errors.length > 0) {
+        console.error('Error creating multiple products:', errors);
+        throw {
+          message: `Failed to create ${errors.length} out of ${products.length} products`,
+          failedProducts: errors,
+          successfulProducts: results,
+          type: 'BATCH_OPERATION_ERROR'
+        };
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error creating multiple products:', error);
+      throw error;
+    }
+  },
+
+  // Update a product
+  updateProduct: async (id: string, productData: Partial<RelatedProduct>) => {
+    try {
+      const response = await axios.patch(`${API_URL_RELATEDPRODUCTS}/${id}`, productData);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating product ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Delete a product
+  deleteProduct: async (id: string) => {
+    try {
+      const response = await axios.delete(`${API_URL_RELATEDPRODUCTS}/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting product ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Delete multiple products
+  deleteMultipleProducts: async (productIds: string[]) => {
+    try {
+      if (!productIds || productIds.length === 0) {
+        return [];
+      }
+
+      const promises = productIds.map(id => 
+        axios.delete(`${API_URL_RELATEDPRODUCTS}/${id}`)
+      );
+
+      const responses = await Promise.all(promises);
+      return responses.map(response => response.data);
+    } catch (error) {
+      console.error('Error deleting multiple products:', error);
+      throw error;
+    }
+  },
+
+  // Delete all products for an event
+  deleteProductsByEventId: async (eventId: string) => {
+    try {
+      const response = await axios.delete(`${API_URL_RELATEDPRODUCTS}/event/${eventId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting products for event ${eventId}:`, error);
+      throw error;
+    }
+  }
+};
+
+export default relatedProductService;

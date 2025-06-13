@@ -5,29 +5,25 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  FlatList,
 } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { RouteProp } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
+import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { EventInterface } from '../services/EventInterface';
 import { styles } from '../styles/screens/eventDetailStyles';
 import {
   API_URL_EVENTS,
   API_URL_EVENTTAGS,
   API_URL_EVENTREVIEWS,
-  API_URL_RELATEDPRODUCTS,
   API_URL_TAGS,
   API_URL_USERS,
 } from '../config';
 import { useAuth } from '../context/AuthContext';
-import eventService from '../services/eventService';
-import tagService from '../services/tagService';
-import userService from '../services/userService';
-import EventDetailReview from '../components/EventDetailReview';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
+import relatedProductService from '../services/relatedProductService';
+import EventDetailReview from '../components/EventDetailReview';
 
 type RootStackParamList = {
   EventDetail: { eventId: string };
@@ -98,6 +94,7 @@ const EventDetailScreen: React.FC = () => {
       setIsCreator(false);
     }
   };
+
 
   const checkIfReviewCreator = async (fetchedEvent: EventInterface) => {
     try {
@@ -327,21 +324,16 @@ const EventDetailScreen: React.FC = () => {
     eventData: EventInterface
   ): Promise<void> => {
     try {
-      const fetchRelatedProducts = await fetch(
-        API_URL_RELATEDPRODUCTS + '/event/' + eventData.id
-      );
-      if (!fetchRelatedProducts.ok) {
-        console.warn(
-          `Could not fetch related products: ${fetchRelatedProducts.status}`
-        );
-        eventData.relatedProducts = [];
-        return;
-      }
-
-      const relatedProducts = await fetchRelatedProducts.json();
-      eventData.relatedProducts = Array.isArray(relatedProducts)
-        ? relatedProducts
-        : [];
+        const relatedProducts =
+          await relatedProductService.getProductsByEventId(eventId);
+        eventData.relatedProducts = relatedProducts;
+        if (!Array.isArray(eventData.relatedProducts)) {
+          console.warn('Related products response is not an array');
+          eventData.relatedProducts = [];
+        }
+        if (eventData.relatedProducts.length === 0) {
+          console.warn('No related products found for this event');
+        }
     } catch (error) {
       console.error('Error processing related products:', error);
       eventData.relatedProducts = [];
@@ -366,8 +358,15 @@ const EventDetailScreen: React.FC = () => {
       setError('Invalid event ID.');
       return;
     }
+
+    // Run the fetchData function when needed
     fetchData();
-  }, [eventId]);
+
+    // If we returned from managing products with a successful update, show a message
+    if (params.updated === 'true') {
+      console.log('Products updated successfully!');
+    }
+  }, [eventId, params.updated]);
 
   if (error) {
     return (
@@ -432,7 +431,7 @@ const EventDetailScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.reviewButton}
                 onPress={() => router.push({
-                  pathname: '/(app)/modifyEvent',
+                  pathname: '/(app)/editEvent',
                   params: { eventId }
                 })}
               >
@@ -450,6 +449,7 @@ const EventDetailScreen: React.FC = () => {
             )}
           </View>
         </View>
+
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.eventInfo}>
@@ -473,7 +473,7 @@ const EventDetailScreen: React.FC = () => {
               <Text style={styles.aboutTitle}>About</Text>
               <View style={styles.tagContainer}>
                 {event?.tags && event.tags.length > 0 ? (
-                  event.tags.map((tag, index) => (
+                  event.tags.map((tag: any, index: number) => (
                     <Text
                       key={`tag-${index}-${
                         typeof tag === 'object' ? tag.id : tag
@@ -527,37 +527,12 @@ const EventDetailScreen: React.FC = () => {
             />
             <Text style={styles.detailText}>{getWeatherInfo()}</Text>
           </View>
-          <Text style={styles.sectionTitle}>Related Products</Text>
-          {event.relatedProducts && event.relatedProducts.length > 0 ? (
-            <FlatList
-              horizontal
-              data={event.relatedProducts}
-              keyExtractor={(item) => `product-${item.id}`}
-              renderItem={({ item }) => (
-                <View style={styles.productCard}>
-                  <Image
-                    source={require('../../assets/images/Google-logo.png')}
-                    style={styles.productImage}
-                  />
-                  <Text style={styles.productTitle}>
-                    {item.name || 'Unnamed Product'}
-                  </Text>
-                  <Text style={styles.productPrice}>
-                    Price:{' '}
-                    {item.price !== undefined && item.price !== null
-                      ? `${item.price}€`
-                      : 'Not available'}
-                  </Text>
-                </View>
-              )}
-            />
-          ) : (
-            <View style={styles.noProductsContainer}>
-              <Text style={styles.noProductsText}>
-                No related products available
-              </Text>
-            </View>
-          )}
+           <RelatedProductsSection
+          eventId={eventId}
+          products={event.relatedProducts || []}
+          isCreator={isCreator}
+          onRefresh={fetchData}
+        />
           <EventDetailReview
             eventId={eventId}
             reviews={event.reviews || []}

@@ -236,7 +236,7 @@ const EventsScreen: React.FC = () => {
               <Text style={styles.featuredDate}>{formattedDate}</Text>
               <Text style={styles.featuredTitle}>{item.name}</Text>
               <Text style={styles.featuredLocation}>
-                <FontAwesome name="map-marker" size={14} color="#fff" />{' '}
+                <FontAwesome name="map-marker" size={14} color="#fff" />
                 {item.location}
               </Text>
               <View style={styles.featuredActions}>

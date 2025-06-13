@@ -1,7 +1,7 @@
-import * as React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import styles from "../../styles/screens/createEventStyles";
+import * as React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import styles from '../../styles/screens/createEventStyles';
 
 interface NavigationButtonsProps {
   currentStep: number;
@@ -10,6 +10,7 @@ interface NavigationButtonsProps {
   onPrev: () => void;
   onNext: () => void;
   onSubmit: () => void;
+  isEditing?: boolean; // Optional flag to indicate we're editing an existing event
 }
 
 const NavigationButtons: React.FC<NavigationButtonsProps> = ({
@@ -19,39 +20,38 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   onPrev,
   onNext,
   onSubmit,
+  isEditing = false,
 }) => {
   return (
     <View style={styles.buttonsContainer}>
       {currentStep > 1 && (
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={onPrev}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={onPrev}>
           <FontAwesome name="arrow-left" size={16} color="#666" />
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
       )}
-      
+
       {isLastStep ? (
-        <TouchableOpacity 
-          style={[styles.nextButton, { backgroundColor: '#28a745' }]} 
+        <TouchableOpacity
+          style={[styles.nextButton, { backgroundColor: '#28a745' }]}
           onPress={onSubmit}
           disabled={loading}
         >
           {loading ? (
-            <Text style={styles.nextButtonText}>Publishing...</Text>
+            <Text style={styles.nextButtonText}>
+              {isEditing ? 'Saving...' : 'Publishing...'}
+            </Text>
           ) : (
             <>
-              <Text style={styles.nextButtonText}>Publish Event</Text>
+              <Text style={styles.nextButtonText}>
+                {isEditing ? "Save Changes" : "Publish Event"}
+              </Text>
               <FontAwesome name="check" size={16} color="#fff" />
             </>
           )}
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity 
-          style={styles.nextButton} 
-          onPress={onNext}
-        >
+        <TouchableOpacity style={styles.nextButton} onPress={onNext}>
           <Text style={styles.nextButtonText}>Continue</Text>
           <FontAwesome name="arrow-right" size={16} color="#fff" />
         </TouchableOpacity>
@@ -60,4 +60,4 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   );
 };
 
-export default NavigationButtons; 
+export default NavigationButtons;

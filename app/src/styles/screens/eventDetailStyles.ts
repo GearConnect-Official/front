@@ -322,6 +322,56 @@ export const styles = StyleSheet.create({
     color: theme.colors.grey[500],
     marginTop: 10,
   },
+  // Styles for editable fields
+  fieldContainer: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  fieldEditButton: {
+    padding: 5,
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
+  },
+  editFieldContainer: {
+    width: '100%',
+  },
+  editInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 8,
+    borderRadius: 5,
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  editActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50',
+    padding: 8,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+  },
+  cancelButton: {
+    backgroundColor: '#F44336',
+    padding: 8,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+  },
 });
 
 export default styles;

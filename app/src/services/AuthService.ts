@@ -14,6 +14,7 @@ export interface AuthResponse {
     name?: string;
     email: string;
     photoURL?: string;
+    description?: string;
   };
 }
 

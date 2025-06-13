@@ -19,6 +19,7 @@ interface User {
   name: string | null;
   email?: string;
   photoURL?: string;
+  description?: string;
 }
 
 interface AuthContextType {
@@ -39,6 +40,7 @@ interface AuthContextType {
   getCurrentUser: () => Promise<User | null>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 // Create the context
@@ -428,7 +430,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const userData: User = {
         id: clerkUser.id,
         username: clerkUser.username,
-        name: clerkUser.firstName || "",
+        name: clerkUser.firstName || null,
         email: clerkUser.primaryEmailAddress?.emailAddress || undefined,
         photoURL: clerkUser.imageUrl || undefined,
       };
@@ -440,6 +442,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsAuthenticated(false);
       setUser(null);
     }
+  };
+
+  // Add updateUser function
+  const updateUser = (userData: Partial<User>) => {
+    if (!user) return;
+    setUser({ ...user, ...userData });
   };
 
   return (
@@ -454,6 +462,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         getCurrentUser,
         signIn,
         signOut,
+        updateUser,
       }}
     >
       {children}

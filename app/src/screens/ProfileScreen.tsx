@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import styles from "../styles/Profile/profileStyles";
 import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
@@ -22,6 +22,7 @@ import { CloudinaryMedia } from "../components/media";
 import { detectMediaType } from "../utils/mediaUtils";
 import { defaultImages } from "../config/defaultImages";
 import PerformanceService from "../services/performanceService";
+import userService from "../services/userService";
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -76,8 +77,11 @@ interface ProfileScreenProps {
   userId?: number;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({
+  userId: propUserId,
+}) => {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const auth = useAuth();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [posts, setPosts] = useState<Post[]>([]);
@@ -105,22 +109,48 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Post[]>([]);
   const [isLoadingLikedPosts, setIsLoadingLikedPosts] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+  const [isLoadingUserData, setIsLoadingUserData] = useState(false);
 
-  // Get user from auth context
+  // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
+  const effectiveUserId =
+    propUserId || (user?.id ? Number(user.id) : undefined);
+
+  // Function to fetch user data
+  const fetchUserData = async () => {
+    if (!effectiveUserId) return;
+
+    setIsLoadingUserData(true);
+    try {
+      const response = await userService.getProfile(effectiveUserId);
+      if (response.success && response.data) {
+        setUserData(response.data);
+      } else {
+        console.error("Failed to fetch user data:", response.error);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setIsLoadingUserData(false);
+    }
+  };
 
   // Load all data when component mounts or user changes
   useEffect(() => {
-    if (!auth?.user?.id) return;
+    if (!effectiveUserId) return;
 
     const loadAllData = async () => {
       try {
+        // Load user data
+        await fetchUserData();
+
         // Load user posts
         const loadUserPostsAsync = async () => {
           setIsLoadingPosts(true);
           try {
             const userPosts = await postService.getUserPosts(
-              Number(auth?.user?.id)
+              Number(effectiveUserId)
             );
 
             if (!Array.isArray(userPosts)) {
@@ -162,7 +192,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
           setIsLoadingFavorites(true);
           try {
             const response = await favoritesService.getUserFavorites(
-              Number(auth?.user?.id),
+              Number(effectiveUserId),
               1
             );
 
@@ -194,54 +224,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
           }
         };
 
-        // Load liked posts
-        const loadLikedPostsAsync = async () => {
-          setIsLoadingLikedPosts(true);
-          try {
-            const response = await postService.getLikedPosts(
-              Number(auth?.user?.id)
-            );
-
-            if (!Array.isArray(response)) {
-              console.error("Expected array of posts but got:", response);
-              return;
-            }
-
-            const formattedLikedPosts = response.map((post: any) => ({
-              id: post.id.toString(),
-              imageUrl: post.cloudinaryUrl || "https://via.placeholder.com/300",
-              likes: post.interactions?.filter((i: any) => i.like).length || 0,
-              comments:
-                post.interactions?.filter((i: any) => i.comment).length || 0,
-              caption: post.title ? `${post.title}\n${post.body}` : post.body,
-              location: "",
-              timeAgo: new Date(post.createdAt).toLocaleDateString(),
-              multipleImages: false,
-              isVideo:
-                detectMediaType(
-                  post.cloudinaryUrl,
-                  post.cloudinaryPublicId,
-                  post.imageMetadata
-                ) === "video",
-              cloudinaryPublicId: post.cloudinaryPublicId,
-              imageMetadata: post.imageMetadata,
-            }));
-
-            setLikedPosts(formattedLikedPosts);
-          } catch (error) {
-            console.error("Error loading liked posts:", error);
-          } finally {
-            setIsLoadingLikedPosts(false);
-          }
-        };
-
         // Load driver stats
         const loadDriverStatsAsync = async () => {
-          if (!user?.id) return;
+          if (!effectiveUserId) return;
 
           setIsLoadingDriverStats(true);
           try {
-            const response = await PerformanceService.getUserStats(user.id);
+            const response = await PerformanceService.getUserStats(
+              Number(effectiveUserId)
+            );
 
             if (response.success && response.data) {
               const apiStats = response.data;
@@ -265,7 +256,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         await Promise.all([
           loadUserPostsAsync(),
           loadFavoritesAsync(),
-          loadLikedPostsAsync(),
           loadDriverStatsAsync(),
         ]);
       } catch (error) {
@@ -274,7 +264,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     };
 
     loadAllData();
-  }, [auth?.user?.id, user?.id]); // Only depend on user IDs
+  }, [effectiveUserId, params.refresh]);
 
   const onRefreshProfile = async () => {
     setRefreshing(true);
@@ -383,7 +373,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
     setMenuVisible(false);
     router.push({
       pathname: "/editProfile",
-      params: { userId: userId || 1 },
+      params: { userId: effectiveUserId || 1 },
     });
   };
 
@@ -812,14 +802,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
             <View style={styles.profileHeader}>
               <Image
                 source={
-                  user?.photoURL
-                    ? { uri: user.photoURL }
+                  userData?.profilePicture
+                    ? { uri: userData.profilePicture }
                     : defaultImages.profile
                 }
                 style={styles.profileImage}
               />
               <View style={styles.profileInfo}>
-                <Text style={styles.username}>{user?.username || "User"}</Text>
+                <Text style={styles.username}>
+                  {userData?.username || user?.username || "User"}
+                </Text>
                 <View style={styles.statsContainer}>
                   <View style={styles.statItem}>
                     <Text style={styles.statNumber}>{stats.posts}</Text>
@@ -837,16 +829,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
               </View>
             </View>
 
-            {/* Bio and information */}
+            {/* Bio */}
             <View style={styles.bioSection}>
               <Text style={styles.bioText}>
-                🏎️ F3 Driver | Karting Fr Championship 🏆
+                {userData?.description || user?.description || "Description"}
               </Text>
-              <Text style={styles.bioText}>Ambassador @racing_gear</Text>
-              <TouchableOpacity style={styles.websiteLink}>
-                <Text style={styles.websiteText}>
-                  circuits-passion.com/esteban
-                </Text>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.followButton]}
+                onPress={() => console.log("Follow pressed")}
+              >
+                <Text style={styles.followButtonText}>Suivre</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.messageButton]}
+                onPress={() => console.log("Message pressed")}
+              >
+                <Text style={styles.messageButtonText}>Message</Text>
               </TouchableOpacity>
             </View>
 
@@ -1055,7 +1057,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userId }) => {
         onPreferencesPress={handlePreferencesPress}
         onLogoutPress={handleLogoutPress}
         onPerformancesPress={handlePerformancesPress}
-        userId={userId || 1}
+        userId={effectiveUserId || 1}
       />
 
       <Modal

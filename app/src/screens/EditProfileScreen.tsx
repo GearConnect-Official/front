@@ -17,11 +17,11 @@ import userService from "../services/userService";
 import styles from "../styles/Profile/editProfileStyles";
 import * as ImagePicker from "expo-image-picker";
 import { FontAwesome } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 
 const EditProfileScreen: React.FC = () => {
   const router = useRouter();
-  const params = useLocalSearchParams<{ userId: string }>();
-  const userId = params.userId ? Number(params.userId) : 1;
+  const { user, updateUser } = useAuth() || {};
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,14 +32,22 @@ const EditProfileScreen: React.FC = () => {
   });
 
   useEffect(() => {
+    if (!user?.id) {
+      Alert.alert("Error", "You must be logged in to edit your profile", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+      return;
+    }
     loadUserProfile();
-  }, [userId]);
+  }, [user?.id]);
 
   const loadUserProfile = async () => {
+    if (!user?.id) return;
+
     setIsLoading(true);
     setError(null);
     try {
-      const response = await userService.getProfile(userId);
+      const response = await userService.getProfile(Number(user.id));
       if (response.success && response.data) {
         setFormData({
           username: response.data.username || "",
@@ -57,60 +65,65 @@ const EditProfileScreen: React.FC = () => {
     }
   };
 
-  // const handleImagePick = async () => {
-  //   try {
-  //     // Demander la permission d'accéder à la galerie
-  //     const { status } =
-  //       await ImagePicker.requestMediaLibraryPermissionsAsync();
-  //     if (status !== "granted") {
-  //       Alert.alert(
-  //         "Permission Required",
-  //         "Please allow access to your photo library to change your profile picture."
-  //       );
-  //       return;
-  //     }
+  const handleImagePick = async () => {
+    try {
+      // Demander la permission d'accéder à la galerie
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Please allow access to your photo library to change your profile picture."
+        );
+        return;
+      }
 
-  //     const result = await ImagePicker.launchImageLibraryAsync({
-  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //       allowsEditing: true,
-  //       aspect: [1, 1],
-  //       quality: 0.8,
-  //     });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
 
-  //     if (!result.canceled && result.assets[0].uri) {
-  //       setIsLoading(true);
-  //       setError(null);
-  //       const response = await userService.uploadProfilePicture(
-  //         userId,
-  //         result.assets[0].uri
-  //       );
+      if (!result.canceled && result.assets[0].uri) {
+        setIsLoading(true);
+        setError(null);
+        const response = await userService.uploadProfilePicture(
+          Number(user?.id),
+          result.assets[0].uri
+        );
 
-  //       if (response.success && response.data) {
-  //         setFormData((prev) => ({
-  //           ...prev,
-  //           profilePicture: response.data.profilePicture,
-  //         }));
-  //         Alert.alert("Success", "Profile picture updated successfully");
-  //       } else {
-  //         setError(response.error || "Failed to upload profile picture");
-  //         Alert.alert(
-  //           "Error",
-  //           response.error || "Failed to upload profile picture"
-  //         );
-  //       }
-  //       setIsLoading(false);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error picking image:", error);
-  //     setError("An unexpected error occurred while picking the image");
-  //     Alert.alert("Error", "Failed to pick image");
-  //   }
-  // };
+        if (response.success && response.data) {
+          setFormData((prev) => ({
+            ...prev,
+            profilePicture: response.data.profilePicture,
+          }));
+          Alert.alert("Success", "Profile picture updated successfully");
+        } else {
+          setError(response.error || "Failed to upload profile picture");
+          Alert.alert(
+            "Error",
+            response.error || "Failed to upload profile picture"
+          );
+        }
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      setError("An unexpected error occurred while picking the image");
+      Alert.alert("Error", "Failed to pick image");
+    }
+  };
 
   const validateForm = async () => {
+    if (!user?.id) {
+      setError("You must be logged in to edit your profile");
+      return false;
+    }
+
     try {
       // Vérifier si au moins un champ a été modifié
-      const response = await userService.getProfile(userId);
+      const response = await userService.getProfile(Number(user.id));
       const currentData =
         response.success && response.data ? response.data : null;
 
@@ -135,6 +148,11 @@ const EditProfileScreen: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if (!user?.id) {
+      setError("You must be logged in to edit your profile");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -143,7 +161,7 @@ const EditProfileScreen: React.FC = () => {
     }
 
     try {
-      const updateResponse = await userService.updateProfile(userId, {
+      const updateResponse = await userService.updateProfile(Number(user.id), {
         username: formData.username.trim() || undefined,
         name: formData.name.trim() || undefined,
         description: formData.description.trim() || undefined,
@@ -152,10 +170,30 @@ const EditProfileScreen: React.FC = () => {
       setIsLoading(false);
 
       if (updateResponse.success) {
+        // Mettre à jour l'utilisateur dans le contexte d'authentification
+        if (updateUser) {
+          updateUser({
+            username: formData.username.trim() || null,
+            name: formData.name.trim() || null,
+          });
+        }
+
+        // Forcer un rafraîchissement des données du profil
+        await loadUserProfile();
+
         Alert.alert(
           "Success",
           updateResponse.message || "Profile updated successfully",
-          [{ text: "OK", onPress: () => router.back() }]
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                // Retourner à l'écran précédent avec un paramètre pour forcer le rafraîchissement
+                router.back();
+                router.setParams({ refresh: Date.now().toString() });
+              },
+            },
+          ]
         );
       } else {
         setError(updateResponse.error || "Failed to update profile");

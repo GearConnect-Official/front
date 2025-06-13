@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL_USERS, API_URL } from "../config";
+import { API_URL_USERS } from "../config";
 
 // Types
 export interface UserProfile {
@@ -107,7 +107,7 @@ const userService = {
       console.log("Uploading profile picture...");
 
       const response = await axios.post(
-        `${API_URL}/users/${userId}/profile-picture`,
+        `${API_URL_USERS}/${userId}/profile-picture`,
         formData,
         {
           headers: {

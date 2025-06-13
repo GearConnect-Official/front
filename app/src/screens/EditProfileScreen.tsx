@@ -129,10 +129,9 @@ const EditProfileScreen: React.FC = () => {
 
       if (currentData) {
         const hasChanges =
-          (formData.username.trim() || "") !== (currentData.username || "") ||
-          (formData.name.trim() || "") !== (currentData.name || "") ||
-          (formData.description.trim() || "") !==
-            (currentData.description || "");
+          formData.username !== (currentData.username || "") ||
+          formData.name !== (currentData.name || "") ||
+          formData.description !== (currentData.description || "");
 
         if (!hasChanges) {
           setIsLoading(false);
@@ -162,9 +161,9 @@ const EditProfileScreen: React.FC = () => {
 
     try {
       const updateResponse = await userService.updateProfile(Number(user.id), {
-        username: formData.username.trim() || undefined,
-        name: formData.name.trim() || undefined,
-        description: formData.description.trim() || undefined,
+        username: formData.username || undefined,
+        name: formData.name || undefined,
+        description: formData.description || undefined,
       });
 
       setIsLoading(false);
@@ -173,8 +172,8 @@ const EditProfileScreen: React.FC = () => {
         // Mettre à jour l'utilisateur dans le contexte d'authentification
         if (updateUser) {
           updateUser({
-            username: formData.username.trim() || null,
-            name: formData.name.trim() || null,
+            username: formData.username || null,
+            name: formData.name || null,
           });
         }
 

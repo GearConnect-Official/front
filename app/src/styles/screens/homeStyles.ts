@@ -5,21 +5,19 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
 const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
-const styles = StyleSheet.create({
-  safeArea: {
+const styles = StyleSheet.create({  safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingTop: STATUSBAR_HEIGHT,
-  },
-  header: {
+  },  header: {
     height: 56,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'center', 
     justifyContent: 'space-between',
     paddingHorizontal: 15,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#EFEFEF',
+    zIndex: 10,
   },
   headerLeft: {
     flex: 1,

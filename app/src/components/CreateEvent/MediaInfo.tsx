@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, Text, TextInput, ScrollView } from "react-native";
+import { View, Text, TextInput, FlatList } from "react-native";
 import { CloudinaryImage, CloudinaryImageUpload } from "../";
 import { CloudinaryUploadResponse } from "../../services/cloudinary.service";
 import ImageUpload from "./ImageUpload";
@@ -58,48 +58,57 @@ const MediaInfo: React.FC<MediaInfoProps> = ({
           multiline
           numberOfLines={5}
           textAlignVertical="top"
+          returnKeyType="done"
+          blurOnSubmit={true}
+          scrollEnabled={false}
         />
       </View>
 
       <View style={styles.mediaSection}>
         <Text style={styles.label}>Additional Photos</Text>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={styles.imagesRow}
-        >
-          {images && images.map((imageUrl, index) => {
-            const publicId = imagePublicIds[index];
-            return publicId ? (
-              <CloudinaryImage
-                key={index}
-                publicId={publicId}
-                width={100}
-                height={100}
-                style={styles.imagePreview}
-              />
-            ) : (
-              <CloudinaryImage
-                key={index}
-                publicId=""
-                fallbackUrl={imageUrl}
-                width={100}
-                height={100}
-                style={styles.imagePreview}
-              />
-            );
-          })}
-          
-          <CloudinaryImageUpload
-            onUploadComplete={handleAdditionalImageUpload}
-            folder="events/gallery"
-            tags={['event', 'gallery']}
-            allowMultiple={false}
-            buttonText="+"
-            showPreview={false}
-            style={styles.addImageButton}
+        <View style={styles.imagesRow}>
+          <FlatList 
+            data={[...images, '__ADD_BUTTON__']}
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item, index }) => {
+              if (item === '__ADD_BUTTON__') {
+                return (
+                  <CloudinaryImageUpload
+                    onUploadComplete={handleAdditionalImageUpload}
+                    folder="events/gallery"
+                    tags={['event', 'gallery']}
+                    allowMultiple={false}
+                    buttonText="+"
+                    showPreview={false}
+                    style={styles.addImageButton}
+                  />
+                );
+              }
+              
+              const publicId = imagePublicIds[index];
+              return publicId ? (
+                <CloudinaryImage
+                  publicId={publicId}
+                  width={100}
+                  height={100}
+                  style={styles.imagePreview}
+                />
+              ) : (
+                <CloudinaryImage
+                  publicId=""
+                  fallbackUrl={item}
+                  width={100}
+                  height={100}
+                  style={styles.imagePreview}
+                />
+              );
+            }}
+            contentContainerStyle={{ paddingRight: 20 }}
+            ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
           />
-        </ScrollView>
+        </View>
       </View>
     </View>
   );

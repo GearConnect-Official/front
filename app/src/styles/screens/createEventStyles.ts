@@ -152,6 +152,7 @@ const styles = StyleSheet.create({  container: {
   // Step content styles
   stepContainer: {
     padding: 20,
+    minHeight: 400,
   },
   stepTitle: {
     fontSize: 22,
@@ -192,7 +193,6 @@ const styles = StyleSheet.create({  container: {
     marginBottom: 24,
   },
   imagesRow: {
-    flexDirection: "row",
     marginTop: 8,
     height: 100,
   },
@@ -358,7 +358,12 @@ const styles = StyleSheet.create({  container: {
     color: "red",
     textAlign: "center",
     margin: 10,
-  },  // Info note styles
+  },
+  // ScrollView
+  scrollView: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   // Nouveaux styles pour l'intégration Cloudinary
   uploadInfoContainer: {
     marginTop: 12,

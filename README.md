@@ -2,6 +2,16 @@
 
 Application mobile React Native pour le projet GearConnect, permettant de connecter des équipements et gérer leur utilisation.
 
+## Sites Web GearConnect
+
+En plus de cette application mobile, GearConnect dispose de plusieurs sites web :
+
+- **Site vitrine et waitliste** : [https://gearconnect-status.vercel.app/](https://gearconnect-status.vercel.app/)  
+  Rejoignez notre liste d'attente pour être parmi les premiers à découvrir GearConnect.
+
+- **Statut des services** : [https://gearconnect-status.vercel.app/](https://gearconnect-status.vercel.app/)  
+  Consultez le statut en temps réel de nos services et applications.
+
 ## Configuration de l'environnement
 
 1. Clonez le repository :

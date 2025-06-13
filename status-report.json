@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-06-13T00:37:15.785Z",
+  "overall": {
+    "status": "down",
+    "message": "Major system outage"
+  },
+  "services": {
+    "api": {
+      "status": "down",
+      "error": "Request failed with status code 403"
+    },
+    "database": {
+      "status": "down",
+      "error": "Request failed with status code 403"
+    },
+    "storage": {
+      "status": "degraded",
+      "error": "Request failed with status code 401"
+    }
+  },
+  "metadata": {
+    "checkDuration": 559,
+    "environment": "development",
+    "version": "1.0.0"
+  }
+}

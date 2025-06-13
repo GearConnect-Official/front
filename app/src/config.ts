@@ -71,4 +71,9 @@ export const {
  */
 export const API_BASE_URL = apiConfig.baseUrl;
 
+/**
+ * Alias pour la compatibilité avec les services de monitoring
+ */
+export const API_URL_BASE = API_BASE_URL;
+
 export default apiConfig;

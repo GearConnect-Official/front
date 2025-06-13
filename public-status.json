@@ -1,0 +1,282 @@
+{
+  "status": "down",
+  "lastUpdated": "2025-06-13T00:37:22.385Z",
+  "message": "Major system outage",
+  "services": {
+    "api": {
+      "status": "down",
+      "lastChecked": "2025-06-13T00:37:22.035Z"
+    },
+    "database": {
+      "status": "down",
+      "lastChecked": "2025-06-13T00:37:22.036Z"
+    },
+    "storage": {
+      "status": "down",
+      "lastChecked": "2025-06-13T00:37:22.385Z"
+    },
+    "mobile": {
+      "status": "healthy",
+      "responseTime": 50,
+      "lastChecked": "2025-06-13T00:37:22.030Z"
+    },
+    "auth": {
+      "status": "healthy",
+      "responseTime": 80,
+      "lastChecked": "2025-06-13T00:37:22.031Z"
+    }
+  },
+  "metrics": {
+    "uptime": 99.58,
+    "averageResponseTime": 195,
+    "errorRate": 0.04,
+    "lastUpdated": "2025-06-13T00:37:22.385Z"
+  },
+  "incidents": [
+    {
+      "id": "incident-maintenance-001",
+      "title": "Scheduled Maintenance",
+      "status": "resolved",
+      "severity": "minor",
+      "affectedServices": [
+        "api",
+        "database"
+      ],
+      "createdAt": "2025-06-12T00:37:22.385Z",
+      "resolvedAt": "2025-06-12T01:37:22.385Z",
+      "lastUpdate": {
+        "timestamp": "2025-06-12T01:37:22.385Z",
+        "status": "resolved",
+        "message": "Maintenance completed successfully. All systems operational."
+      }
+    }
+  ],
+  "history": {
+    "uptime": [
+      {
+        "date": "2025-05-15",
+        "uptime": 99.78
+      },
+      {
+        "date": "2025-05-16",
+        "uptime": 99.87
+      },
+      {
+        "date": "2025-05-17",
+        "uptime": 99.75
+      },
+      {
+        "date": "2025-05-18",
+        "uptime": 99.72
+      },
+      {
+        "date": "2025-05-19",
+        "uptime": 99.73
+      },
+      {
+        "date": "2025-05-20",
+        "uptime": 99.95
+      },
+      {
+        "date": "2025-05-21",
+        "uptime": 99.98
+      },
+      {
+        "date": "2025-05-22",
+        "uptime": 99.62
+      },
+      {
+        "date": "2025-05-23",
+        "uptime": 100
+      },
+      {
+        "date": "2025-05-24",
+        "uptime": 99.8
+      },
+      {
+        "date": "2025-05-25",
+        "uptime": 99.63
+      },
+      {
+        "date": "2025-05-26",
+        "uptime": 99.69
+      },
+      {
+        "date": "2025-05-27",
+        "uptime": 99.73
+      },
+      {
+        "date": "2025-05-28",
+        "uptime": 99.78
+      },
+      {
+        "date": "2025-05-29",
+        "uptime": 99.72
+      },
+      {
+        "date": "2025-05-30",
+        "uptime": 99.59
+      },
+      {
+        "date": "2025-05-31",
+        "uptime": 99.52
+      },
+      {
+        "date": "2025-06-01",
+        "uptime": 99.92
+      },
+      {
+        "date": "2025-06-02",
+        "uptime": 99.64
+      },
+      {
+        "date": "2025-06-03",
+        "uptime": 99.98
+      },
+      {
+        "date": "2025-06-04",
+        "uptime": 99.77
+      },
+      {
+        "date": "2025-06-05",
+        "uptime": 99.58
+      },
+      {
+        "date": "2025-06-06",
+        "uptime": 99.51
+      },
+      {
+        "date": "2025-06-07",
+        "uptime": 99.58
+      },
+      {
+        "date": "2025-06-08",
+        "uptime": 99.97
+      },
+      {
+        "date": "2025-06-09",
+        "uptime": 99.91
+      },
+      {
+        "date": "2025-06-10",
+        "uptime": 99.6
+      },
+      {
+        "date": "2025-06-11",
+        "uptime": 99.6
+      },
+      {
+        "date": "2025-06-12",
+        "uptime": 99.98
+      },
+      {
+        "date": "2025-06-13",
+        "uptime": 99.58
+      }
+    ],
+    "responseTime": [
+      {
+        "timestamp": "2025-06-12T01:37:22.385Z",
+        "responseTime": 223
+      },
+      {
+        "timestamp": "2025-06-12T02:37:22.385Z",
+        "responseTime": 173
+      },
+      {
+        "timestamp": "2025-06-12T03:37:22.385Z",
+        "responseTime": 222
+      },
+      {
+        "timestamp": "2025-06-12T04:37:22.385Z",
+        "responseTime": 159
+      },
+      {
+        "timestamp": "2025-06-12T05:37:22.385Z",
+        "responseTime": 236
+      },
+      {
+        "timestamp": "2025-06-12T06:37:22.385Z",
+        "responseTime": 209
+      },
+      {
+        "timestamp": "2025-06-12T07:37:22.385Z",
+        "responseTime": 230
+      },
+      {
+        "timestamp": "2025-06-12T08:37:22.385Z",
+        "responseTime": 196
+      },
+      {
+        "timestamp": "2025-06-12T09:37:22.385Z",
+        "responseTime": 172
+      },
+      {
+        "timestamp": "2025-06-12T10:37:22.385Z",
+        "responseTime": 188
+      },
+      {
+        "timestamp": "2025-06-12T11:37:22.385Z",
+        "responseTime": 191
+      },
+      {
+        "timestamp": "2025-06-12T12:37:22.385Z",
+        "responseTime": 161
+      },
+      {
+        "timestamp": "2025-06-12T13:37:22.385Z",
+        "responseTime": 173
+      },
+      {
+        "timestamp": "2025-06-12T14:37:22.385Z",
+        "responseTime": 247
+      },
+      {
+        "timestamp": "2025-06-12T15:37:22.385Z",
+        "responseTime": 192
+      },
+      {
+        "timestamp": "2025-06-12T16:37:22.385Z",
+        "responseTime": 173
+      },
+      {
+        "timestamp": "2025-06-12T17:37:22.385Z",
+        "responseTime": 178
+      },
+      {
+        "timestamp": "2025-06-12T18:37:22.385Z",
+        "responseTime": 166
+      },
+      {
+        "timestamp": "2025-06-12T19:37:22.385Z",
+        "responseTime": 168
+      },
+      {
+        "timestamp": "2025-06-12T20:37:22.385Z",
+        "responseTime": 224
+      },
+      {
+        "timestamp": "2025-06-12T21:37:22.385Z",
+        "responseTime": 210
+      },
+      {
+        "timestamp": "2025-06-12T22:37:22.385Z",
+        "responseTime": 183
+      },
+      {
+        "timestamp": "2025-06-12T23:37:22.385Z",
+        "responseTime": 196
+      },
+      {
+        "timestamp": "2025-06-13T00:37:22.385Z",
+        "responseTime": 206
+      }
+    ]
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "generator": "GearConnect Status Generator",
+    "environment": "development",
+    "generatedAt": "2025-06-13T00:37:22.385Z"
+  }
+}

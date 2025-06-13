@@ -12,7 +12,13 @@
     "web": "expo start --web",
     "test": "jest --config jest.config.js",
     "test:errors": "bash ./scripts/test-error-handling.sh",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "monitoring:start": "node ./scripts/start-monitoring.js",
+    "monitoring:stop": "node ./scripts/stop-monitoring.js",
+    "monitoring:test": "node ./scripts/test-health-checks.js",
+    "status:check": "node ./scripts/check-status.js",
+    "status:generate": "node ./scripts/generate-status-json.js",
+    "sentry:test": "node ./scripts/test-sentry-integration.js"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.7.1",
@@ -22,6 +28,7 @@
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/datetimepicker": "^8.3.0",
     "@react-native-community/netinfo": "^11.3.1",
+    "@sentry/react-native": "^6.15.1",
     "axios": "^1.8.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.6.1",

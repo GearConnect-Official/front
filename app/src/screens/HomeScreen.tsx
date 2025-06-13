@@ -15,12 +15,14 @@ import {
   NativeSyntheticEvent,
   FlatListProps,
   Dimensions,
+  Button,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
+import * as Sentry from '@sentry/react-native'; // Import Sentry pour le test
 import styles from "../styles/screens/homeStyles";
 import StoryModal from "../components/modals/StoryModal";
 import HierarchicalCommentsModal from "../components/modals/HierarchicalCommentsModal";
@@ -764,6 +766,28 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
+        {/* Bouton de test Sentry (seulement en développement) */}
+        {__DEV__ && (
+          <View style={{ padding: 10, backgroundColor: '#ffeb3b', alignItems: 'center' }}>
+            <Button 
+              title='🚀 Test Sentry Performance Monitoring' 
+              onPress={() => {
+                // Test d'erreur pour Sentry
+                Sentry.captureException(new Error('Test error from GearConnect'));
+                
+                // Test de performance
+                Sentry.addBreadcrumb({
+                  message: 'Performance test button pressed',
+                  level: 'info',
+                  category: 'user.interaction',
+                });
+                
+                Alert.alert('✅ Test Sentry', 'Erreur envoyée à Sentry ! Vérifiez votre dashboard Sentry.');
+              }}
+            />
+          </View>
+        )}
+
         {/* Network Error State */}
         {renderNetworkErrorState()}
       </SafeAreaView>
@@ -803,6 +827,28 @@ const HomeScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Bouton de test Sentry (seulement en développement) */}
+      {__DEV__ && (
+        <View style={{ padding: 10, backgroundColor: '#ffeb3b', alignItems: 'center' }}>
+          <Button 
+            title='🚀 Test Sentry Performance Monitoring' 
+            onPress={() => {
+              // Test d'erreur pour Sentry
+              Sentry.captureException(new Error('Test error from GearConnect'));
+              
+              // Test de performance
+              Sentry.addBreadcrumb({
+                message: 'Performance test button pressed',
+                level: 'info',
+                category: 'user.interaction',
+              });
+              
+              Alert.alert('✅ Test Sentry', 'Erreur envoyée à Sentry ! Vérifiez votre dashboard Sentry.');
+            }}
+          />
+        </View>
+      )}
 
       {/* Main Content */}
       <AnimatedFlatList

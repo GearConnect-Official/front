@@ -18,7 +18,6 @@ interface ProfileMenuProps {
   onPreferencesPress: () => void;
   onLogoutPress: () => void;
   onPerformancesPress?: () => void;
-  userId: number;
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({
@@ -41,7 +40,6 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
   onPreferencesPress,
   onLogoutPress,
   onPerformancesPress,
-  userId,
 }) => {
   return (
     <Modal
@@ -61,10 +59,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
             <MenuItem
               icon="user-edit"
               label="Edit Profile"
-              onPress={() => {
-                onClose();
-                onEditProfilePress();
-              }}
+              onPress={onEditProfilePress}
             />
             <MenuItem
               icon="sliders-h"
@@ -84,5 +79,4 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
     </Modal>
   );
 };
-
 export default ProfileMenu;

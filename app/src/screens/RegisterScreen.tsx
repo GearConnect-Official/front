@@ -24,7 +24,6 @@ const RegisterScreen: React.FC = () => {
 
   // Input states
   const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,11 +38,6 @@ const RegisterScreen: React.FC = () => {
       newErrors.username = "Username is required";
     } else if (username.length < 3) {
       newErrors.username = "Username must contain at least 3 characters";
-    }
-
-    // Name validation
-    if (!name) {
-      newErrors.name = "Name is required";
     }
 
     // Email validation
@@ -80,27 +74,42 @@ const RegisterScreen: React.FC = () => {
       return;
     }
 
-    const result = await register(username, email, password, name);
+    const result = await register(username, email, password);
 
     if (result.success) {
       router.push("/(auth)/login");
     } else {
-      // Réinitialiser les erreurs précédentes
-      setErrors({});
-
       // Gestion des différents types d'erreurs
       if (result.error?.toLowerCase().includes("email")) {
-        setErrors({ email: result.error });
+        setErrors({
+          ...errors,
+          email: result.error,
+        });
       } else if (result.error?.toLowerCase().includes("username")) {
-        setErrors({ username: result.error });
+        setErrors({
+          ...errors,
+          username: result.error,
+        });
       } else if (result.error?.toLowerCase().includes("password")) {
-        setErrors({ password: result.error });
+        setErrors({
+          ...errors,
+          password: result.error,
+        });
       } else if (result.error?.toLowerCase().includes("server")) {
-        // Afficher l'erreur serveur uniquement en haut du formulaire
-        setErrors({ general: "Unable to connect to server" });
+        setErrors({
+          username: "Unable to connect to server",
+          email: "Unable to connect to server",
+          password: "Unable to connect to server",
+          confirmPassword: "Unable to connect to server",
+        });
       } else {
-        // Si l'erreur n'est pas spécifique à un champ, l'afficher en haut du formulaire
-        setErrors({ general: result.error || "An error occurred" });
+        // If the error is not specific to a field
+        setErrors({
+          username: result.error || "An error occurred",
+          email: result.error || "An error occurred",
+          password: result.error || "An error occurred",
+          confirmPassword: result.error || "An error occurred",
+        });
       }
     }
   };
@@ -126,11 +135,6 @@ const RegisterScreen: React.FC = () => {
             {/* Title */}
             <Text style={styles.title}>Welcome! Glad to see you!</Text>
 
-            {/* General error message */}
-            {errors.general && (
-              <Text style={styles.generalError}>{errors.general}</Text>
-            )}
-
             {/* Input fields */}
             <View style={styles.inputContainer}>
               <TextInput
@@ -149,23 +153,6 @@ const RegisterScreen: React.FC = () => {
               />
               {errors.username ? (
                 <Text style={styles.errorText}>{errors.username}</Text>
-              ) : null}
-            </View>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={[styles.input, errors.name ? styles.inputError : null]}
-                placeholder="Name"
-                value={name}
-                onChangeText={(text) => {
-                  setName(text);
-                  if (errors.name) {
-                    setErrors({ ...errors, name: "" });
-                  }
-                }}
-              />
-              {errors.name ? (
-                <Text style={styles.errorText}>{errors.name}</Text>
               ) : null}
             </View>
 

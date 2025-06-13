@@ -1,6 +1,6 @@
 import axios from "axios";
-import { API_URL_USERS } from "../config";
-
+import { API_URL_USERS } from "../config"
+;
 // Types
 export interface UserProfile {
   id: number;

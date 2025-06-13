@@ -11,6 +11,7 @@ import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';
 import { View } from 'react-native';
 import Constants from 'expo-constants';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Feedback Manager Component
 const FeedbackManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -54,11 +55,12 @@ if (!CLERK_PUBLISHABLE_KEY) {
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-        <ThemeProvider>
-          <AxiosConfigProvider>
-            <AuthProvider>
-              <FeedbackManager>
+      <SafeAreaProvider>
+        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+          <ThemeProvider>
+            <AxiosConfigProvider>
+              <AuthProvider>
+                <FeedbackManager>
                 <ConnectivityManager>
                   <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="index" />
@@ -66,11 +68,12 @@ export default function RootLayout() {
                     <Stack.Screen name="(app)" />
                   </Stack>
                 </ConnectivityManager>
-              </FeedbackManager>
+                </FeedbackManager>
             </AuthProvider>
           </AxiosConfigProvider>
         </ThemeProvider>
       </ClerkProvider>
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
-} 
+}

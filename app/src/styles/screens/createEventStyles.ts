@@ -1,10 +1,15 @@
-import { StyleSheet } from "react-native";
-import theme from "../config/theme";
+import { StyleSheet } from 'react-native';
+import theme from '../config/theme';
 
-const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({  container: {
     ...theme.common.container,
     backgroundColor: theme.colors.background.paper,
+  },
+
+  scrollViewContent: {
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.lg * 2,
+    flexGrow: 1,
   },
   contentContainer: {
     padding: theme.spacing.md,
@@ -35,6 +40,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     gap: 8,
+  },
+  deleteButton: {
+    position: 'absolute',
+    right: 15,
+    padding: 10,
+    borderRadius: 8,
   },
   title: {
     fontSize: theme.typography.h4.fontSize,
@@ -86,7 +97,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borders.radius.md,
     borderWidth: 1,
     borderColor: theme.colors.grey[100],
-    borderStyle: "dashed",
+    borderStyle: 'dashed',
     padding: theme.spacing.md,
     ...theme.common.centerContent,
     height: 150,
@@ -98,8 +109,8 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.caption.fontWeight,
   },
   uploadedImage: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     borderRadius: theme.borders.radius.md,
   },
   // Section styles
@@ -139,6 +150,7 @@ const styles = StyleSheet.create({
   // Step content styles
   stepContainer: {
     padding: 20,
+    minHeight: 400,
   },
   stepTitle: {
     fontSize: 22,
@@ -179,7 +191,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   imagesRow: {
-    flexDirection: "row",
     marginTop: 8,
     height: 100,
   },
@@ -234,7 +245,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -314,7 +325,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: theme.spacing.xs + 4,
     borderRadius: theme.borders.radius.md,
-    alignItems: "center",
+    alignItems: 'center',
   },
   cancelButton: {
     backgroundColor: theme.colors.grey[200],
@@ -326,11 +337,11 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: theme.colors.grey[800],
-    fontWeight: "500",
+    fontWeight: '500',
   },
   submitButtonText: {
     color: theme.colors.common.white,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   disabledButton: {
     backgroundColor: theme.colors.grey[400],
@@ -349,6 +360,7 @@ const styles = StyleSheet.create({
   // ScrollView
   scrollView: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   // Nouveaux styles pour l'intégration Cloudinary
   uploadInfoContainer: {
@@ -379,6 +391,35 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e0e0e0",
     borderStyle: "dashed",
+  },
+  // Loading styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 8,
+  },
+  // Info note styles
+  infoNote: {
+    backgroundColor: '#e1f5fe',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: '#29b6f6',
+  },
+  infoNoteText: {
+    fontSize: 14,
+    color: '#01579b',
+    lineHeight: 20,
+  },
+  infoNoteBold: {
+    fontWeight: 'bold',
   },
 });
 

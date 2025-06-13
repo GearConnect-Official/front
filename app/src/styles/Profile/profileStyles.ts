@@ -22,8 +22,7 @@ const THEME_COLORS = {
   success: "#27AE60", // Vert pour badges positifs
 };
 
-const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({  container: {
     flex: 1,
     backgroundColor: THEME_COLORS.background,
   },
@@ -50,8 +49,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: THEME_COLORS.secondary,
-  },
-  header: {
+  },  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -59,6 +57,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: THEME_COLORS.background,
     borderBottomWidth: 0,
+    zIndex: 10,
   },
   backButton: {
     width: 40,
@@ -272,19 +271,20 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: "row",
-    backgroundColor: THEME_COLORS.background,
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-    paddingTop: 10,
-    paddingBottom: 10,
+    justifyContent: "space-around",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5E5",
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 10,
   },
-  tab: {
-    flex: 1,
-    height: 48,
-    justifyContent: "center",
+  tabButton: {
+    padding: 10,
     alignItems: "center",
-    borderRadius: 8,
-    marginHorizontal: 5,
+    justifyContent: "center",
+  },
+  activeTabButton: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#E10600",
   },
   // Style spécial pour l'onglet performance - le plus important
   performanceTab: {
@@ -294,9 +294,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 8,
     marginHorizontal: 5,
-    backgroundColor: 'rgba(225, 6, 0, 0.1)', // Fond rouge subtil
+    backgroundColor: "rgba(225, 6, 0, 0.1)", // Fond rouge subtil
     borderWidth: 2,
-    borderColor: 'rgba(225, 6, 0, 0.3)',
+    borderColor: "rgba(225, 6, 0, 0.3)",
     shadowColor: THEME_COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -512,9 +512,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 2,
-    borderColor: 'rgba(225, 6, 0, 0.2)',
-    position: 'relative',
-    overflow: 'visible',
+    borderColor: "rgba(225, 6, 0, 0.2)",
+    position: "relative",
+    overflow: "visible",
   },
   statColumn: {
     flex: 1,

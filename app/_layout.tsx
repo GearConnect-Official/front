@@ -99,23 +99,23 @@ export default Sentry.wrap(function RootLayout() {
   return (
     <ErrorBoundary>
       <StatusMonitoringProvider>
-        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-          <ThemeProvider>
-            <AxiosConfigProvider>
-              <AuthProvider>
-                <FeedbackManager>
-                  <ConnectivityManager>
-                    <Stack screenOptions={{ headerShown: false }}>
-                      <Stack.Screen name="index" />
-                      <Stack.Screen name="(auth)" />
-                      <Stack.Screen name="(app)" />
-                    </Stack>
-                  </ConnectivityManager>
-                </FeedbackManager>
-              </AuthProvider>
-            </AxiosConfigProvider>
-          </ThemeProvider>
-        </ClerkProvider>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+        <ThemeProvider>
+          <AxiosConfigProvider>
+            <AuthProvider>
+              <FeedbackManager>
+                <ConnectivityManager>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(app)" />
+                  </Stack>
+                </ConnectivityManager>
+              </FeedbackManager>
+            </AuthProvider>
+          </AxiosConfigProvider>
+        </ThemeProvider>
+      </ClerkProvider>
       </StatusMonitoringProvider>
     </ErrorBoundary>
   );

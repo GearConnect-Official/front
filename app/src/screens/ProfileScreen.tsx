@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import styles from "../styles/Profile/profileStyles";
 import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
@@ -20,6 +20,7 @@ import favoritesService from "../services/favoritesService";
 import postService from "../services/postService";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from "../components/media";
+import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
 import { detectMediaType } from "../utils/mediaUtils";
 import { defaultImages } from "../config/defaultImages";
 import PerformanceService from "../services/performanceService";
@@ -122,18 +123,32 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
     setIsLoadingUserData(true);
     try {
+      console.log('🔄 ProfileScreen: Fetching user data for user:', effectiveUserId);
       const response = await userService.getProfile(effectiveUserId);
       if (response.success && response.data) {
+        console.log('✅ ProfileScreen: User data fetched:', {
+          username: response.data.username,
+          hasProfilePicture: !!response.data.profilePicture,
+          hasProfilePicturePublicId: !!response.data.profilePicturePublicId,
+        });
         setUserData(response.data);
       } else {
-        console.error("Failed to fetch user data:", response.error);
+        console.error("❌ ProfileScreen: Failed to fetch user data:", response.error);
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("❌ ProfileScreen: Error fetching user data:", error);
     } finally {
       setIsLoadingUserData(false);
     }
   };
+
+  // Rafraîchir les données utilisateur quand on revient sur l'écran
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('👁️ ProfileScreen: Screen focused, refreshing user data...');
+      fetchUserData();
+    }, [effectiveUserId])
+  );
 
   // Load all data when component mounts or user changes
   useEffect(() => {
@@ -837,14 +852,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <View style={styles.profileContainer}>
           <View style={styles.profileSection}>
             <View style={styles.profileHeader}>
-              <Image
-                source={
-                  userData?.profilePicture
-                    ? { uri: userData.profilePicture }
-                    : defaultImages.profile
-                }
-                style={styles.profileImage}
-              />
+              {/* Photo de profil optimisée avec Cloudinary */}
+              {userData?.profilePicturePublicId ? (
+                <CloudinaryAvatar
+                  publicId={userData.profilePicturePublicId}
+                  size={80}
+                  quality="auto"
+                  format="auto"
+                  style={styles.profileImage}
+                  fallbackUrl={userData?.profilePicture || defaultImages.profile}
+                />
+              ) : (
+                <Image
+                  source={
+                    userData?.profilePicture
+                      ? { uri: userData.profilePicture }
+                      : defaultImages.profile
+                  }
+                  style={styles.profileImage}
+                />
+              )}
               <View style={styles.profileInfo}>
                 <Text style={styles.username}>
                   {userData?.username || user?.username || "User"}

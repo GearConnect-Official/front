@@ -8,6 +8,7 @@ export interface UserProfile {
   name?: string;
   description?: string;
   profilePicture?: string;
+  profilePicturePublicId?: string;
 }
 
 export interface UpdateUserProfileData {
@@ -15,6 +16,7 @@ export interface UpdateUserProfileData {
   name?: string;
   description?: string;
   profilePicture?: string;
+  profilePicturePublicId?: string;
 }
 
 export interface ApiResponse<T> {
@@ -133,6 +135,46 @@ const userService = {
         success: false,
         error:
           error.response?.data?.error || "Failed to upload profile picture",
+      };
+    }
+  },
+
+  /**
+   * Nouvelle méthode : Met à jour la photo de profil avec Cloudinary
+   */
+  updateProfilePictureCloudinary: async (
+    userId: number,
+    cloudinaryUrl: string,
+    publicId: string
+  ): Promise<ApiResponse<UserProfile>> => {
+    try {
+      console.log("Updating profile picture with Cloudinary data:", {
+        cloudinaryUrl,
+        publicId,
+        userId
+      });
+
+      const updateData: UpdateUserProfileData = {
+        profilePicture: cloudinaryUrl,
+        profilePicturePublicId: publicId,
+      };
+
+      const response = await userService.updateProfile(userId, updateData);
+      
+      if (response.success) {
+        return {
+          success: true,
+          data: response.data,
+          message: "Profile picture updated successfully with Cloudinary",
+        };
+      } else {
+        return response;
+      }
+    } catch (error: any) {
+      console.error("Error updating profile picture with Cloudinary:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to update profile picture",
       };
     }
   },

@@ -294,9 +294,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 8,
     marginHorizontal: 5,
-    backgroundColor: "rgba(225, 6, 0, 0.1)", // Fond rouge subtil
+    backgroundColor: 'rgba(225, 6, 0, 0.1)', // Fond rouge subtil
     borderWidth: 2,
-    borderColor: "rgba(225, 6, 0, 0.3)",
+    borderColor: 'rgba(225, 6, 0, 0.3)',
     shadowColor: THEME_COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -512,9 +512,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 2,
-    borderColor: "rgba(225, 6, 0, 0.2)",
-    position: "relative",
-    overflow: "visible",
+    borderColor: 'rgba(225, 6, 0, 0.2)',
+    position: 'relative',
+    overflow: 'visible',
   },
   statColumn: {
     flex: 1,

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import styles from "../../styles/components/bottomNavStyles";
 import { useRouter, usePathname } from "expo-router";
 
@@ -34,7 +34,7 @@ const BottomNav = (props: any) => {
             onPress={() => handleNavigation(tab.path)}
           >
             <FontAwesome
-              name={getIconName(tab.name)}
+              name={getIconName(tab.name) as any}
               size={24}
               color={isActive ? "#000" : "#6A707C"}
             />

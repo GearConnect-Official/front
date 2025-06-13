@@ -91,20 +91,23 @@ const commentService = {
       const response = await axios.get(endpoint);
       return response.data;
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      // console.error('Error fetching comments:', error);
       throw error;
     }
   },
 
-  // Récupérer les réponses d'un commentaire spécifique
-  getCommentReplies: async (commentId: number, page: number = 1, limit: number = 5): Promise<RepliesResponse> => {
-    const endpoint = `${API_URL_COMMENTS}/${commentId}/replies?page=${page}&limit=${limit}`;
-    logRequestDetails(endpoint, 'GET');
+  // Récupérer les réponses d'un commentaire spécifique avec pagination
+  getCommentReplies: async (commentId: number, page: number = 1, limit: number = 10) => {
+    const endpoint = `${API_URL_COMMENTS}/${commentId}/replies`;
+    const params = { page, limit };
+    
+    logRequestDetails(endpoint, 'GET', params);
+    
     try {
-      const response = await axios.get(endpoint);
+      const response = await axios.get(endpoint, { params });
       return response.data;
     } catch (error) {
-      console.error('Error fetching comment replies:', error);
+      // console.error('Error fetching comment replies:', error);
       throw error;
     }
   },

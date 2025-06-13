@@ -364,6 +364,14 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     alignItems: "center",
   },
+  errorTitle: {
+    ...theme.typography.h6,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   errorText: {
     ...theme.typography.body1,
     color: theme.colors.status.error,

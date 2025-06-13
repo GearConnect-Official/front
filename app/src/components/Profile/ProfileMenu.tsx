@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Modal } from "react-native";
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import { FontAwesome5 } from "@expo/vector-icons";
 import styles from "../../styles/Profile/menuProfileStyles";
 
 interface MenuItemProps {

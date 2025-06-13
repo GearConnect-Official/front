@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import AddFriendModal from "../components/modals/AddFriendModal";
 import styles from "../styles/screens/friendRequestStyles";
 
@@ -197,3 +197,4 @@ const FriendRequestScreen: React.FC = () => {
 };
 
 export default FriendRequestScreen;
+

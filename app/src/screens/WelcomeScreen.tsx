@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
 import styles from "../styles/screens/welcomeStyles";
+import { AppImages } from "../assets/images";
 
 const WelcomeScreen: React.FC = () => {
   const router = useRouter();
@@ -9,7 +10,7 @@ const WelcomeScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Logo */}
-      <Image source={require("../../assets/images/logo-rounded.png")} style={styles.logo} />
+      <Image source={AppImages.logoRounded} style={styles.logo} />
 
       {/* Authentication buttons */}
       <TouchableOpacity 

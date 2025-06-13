@@ -125,12 +125,9 @@ const styles = StyleSheet.create({  container: {
     color: "#666666",
   },
   bioSection: {
-    marginBottom: 18,
+    marginBottom: 10,
     padding: 15,
-    backgroundColor: THEME_COLORS.cardLight,
     borderRadius: 10,
-    borderLeftWidth: 3,
-    borderLeftColor: THEME_COLORS.primary,
   },
   displayName: {
     fontSize: 18,
@@ -140,8 +137,8 @@ const styles = StyleSheet.create({  container: {
     marginBottom: 5,
   },
   bioText: {
-    fontSize: 14,
-    color: THEME_COLORS.textSecondary,
+    fontSize: 16,
+    color: THEME_COLORS.secondary,
     marginBottom: 4,
     lineHeight: 20,
   },
@@ -160,22 +157,33 @@ const styles = StyleSheet.create({  container: {
   },
   actionButtonsContainer: {
     flexDirection: "row",
-    marginVertical: 15,
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    gap: 10,
   },
   actionButton: {
     flex: 1,
-    height: 44,
+    paddingVertical: 10,
     borderRadius: 8,
-    borderWidth: 0,
-    justifyContent: "center",
     alignItems: "center",
-    marginRight: 8,
-    backgroundColor: THEME_COLORS.card,
-    shadowColor: THEME_COLORS.secondary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    justifyContent: "center",
+  },
+  followButton: {
+    backgroundColor: THEME_COLORS.primary,
+  },
+  followButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  messageButton: {
+    backgroundColor: "#E0E0E0",
+  },
+  messageButtonText: {
+    color: "#1E1E1E",
+    fontSize: 14,
+    fontWeight: "600",
   },
   primaryActionButton: {
     flex: 1,
@@ -263,19 +271,20 @@ const styles = StyleSheet.create({  container: {
   },
   tabsContainer: {
     flexDirection: "row",
-    backgroundColor: THEME_COLORS.background,
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-    paddingTop: 10,
-    paddingBottom: 10,
+    justifyContent: "space-around",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5E5",
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 10,
   },
-  tab: {
-    flex: 1,
-    height: 48,
-    justifyContent: "center",
+  tabButton: {
+    padding: 10,
     alignItems: "center",
-    borderRadius: 8,
-    marginHorizontal: 5,
+    justifyContent: "center",
+  },
+  activeTabButton: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#E10600",
   },
   // Style spécial pour l'onglet performance - le plus important
   performanceTab: {
@@ -285,9 +294,9 @@ const styles = StyleSheet.create({  container: {
     alignItems: "center",
     borderRadius: 8,
     marginHorizontal: 5,
-    backgroundColor: 'rgba(225, 6, 0, 0.1)', // Fond rouge subtil
+    backgroundColor: "rgba(225, 6, 0, 0.1)", // Fond rouge subtil
     borderWidth: 2,
-    borderColor: 'rgba(225, 6, 0, 0.3)',
+    borderColor: "rgba(225, 6, 0, 0.3)",
     shadowColor: THEME_COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -503,9 +512,9 @@ const styles = StyleSheet.create({  container: {
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 2,
-    borderColor: 'rgba(225, 6, 0, 0.2)',
-    position: 'relative',
-    overflow: 'visible',
+    borderColor: "rgba(225, 6, 0, 0.2)",
+    position: "relative",
+    overflow: "visible",
   },
   statColumn: {
     flex: 1,

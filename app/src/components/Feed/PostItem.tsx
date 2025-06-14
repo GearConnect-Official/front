@@ -16,7 +16,6 @@ export interface Comment {
   id: string;
   username: string;
   avatar: string;
-  profilePicturePublicId?: string;
   text: string;
   timeAgo: string;
   likes: number;
@@ -31,7 +30,6 @@ export interface Post {
   id: string;
   username: string;
   avatar: string;
-  profilePicturePublicId?: string;
   images: string[];
   imagePublicIds?: string[]; // Public IDs Cloudinary pour l'optimisation
   mediaTypes?: ('image' | 'video')[]; // Types de médias pour chaque élément
@@ -200,7 +198,6 @@ const PostItem: React.FC<PostItemProps> = ({
         postId={post.id}
         username={post.username}
         avatar={post.avatar}
-        profilePicturePublicId={post.profilePicturePublicId}
         onProfilePress={() => onProfilePress(post.username)}
         currentUsername={currentUsername}
       />

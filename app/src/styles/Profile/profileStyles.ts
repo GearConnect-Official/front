@@ -865,7 +865,7 @@ const styles = StyleSheet.create({  container: {
     fontSize: 13,
     fontWeight: "600",
     textTransform: "uppercase",
-    letterSpacing: 0.3,
+    letterSpacing: 0.8,
   },
   performanceStatDivider: {
     width: 1,

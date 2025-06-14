@@ -17,8 +17,6 @@ export interface User {
   id: number;
   name: string;
   username: string;
-  profilePicture?: string;
-  profilePicturePublicId?: string;
 }
 
 export interface CommentLike {

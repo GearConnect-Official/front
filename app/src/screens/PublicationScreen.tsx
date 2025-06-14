@@ -6,6 +6,9 @@ import postService from '../services/postService';
 import FeedbackMessage, { FeedbackType } from '../components/ui/FeedbackMessage';
 import { useAuth } from '../context/AuthContext';
 import { CloudinaryUploadResponse } from '../services/cloudinary.service';
+import { useMessage } from '../context/MessageContext';
+import MessageService from '../services/messageService';
+import { QuickMessages } from '../utils/messageUtils';
 
 import Header from '../components/Publication/Header';
 import MediaSection from '../components/Publication/MediaSection';
@@ -27,7 +30,8 @@ import PublicationForm from '../components/Publication/PublicationForm';
 
 const PublicationScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
   const [step, setStep] = useState<'select' | 'crop' | 'form'>('select');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImagePublicId, setSelectedImagePublicId] = useState<string | null>(null);
@@ -45,14 +49,13 @@ const PublicationScreen: React.FC = () => {
   
   const [username, setUsername] = useState('Username');
   const [userAvatar, setUserAvatar] = useState('https://via.placeholder.com/32');
-  
+  const { showMessage, showError, showConfirmation } = useMessage();
+
   // Mettre à jour les informations utilisateur lorsqu'ils sont disponibles
   useEffect(() => {
     if (user) {
-      setUsername(user.username);
-      if (user.photoURL) {
-        setUserAvatar(user.photoURL);
-      }
+      setUsername(user.username || 'Username');
+      setUserAvatar(user.photoURL || 'https://via.placeholder.com/32');
     }
   }, [user]);
 
@@ -91,16 +94,12 @@ const PublicationScreen: React.FC = () => {
     const imageToShare = croppedImage || selectedImage;
     
     if (!imageToShare || !title.trim()) {
-      Alert.alert('Error', 'Please add an image and title');
+      showError('Please add an image and title');
       return;
     }
     
     if (!user) {
-      setFeedback({
-        visible: true,
-        message: 'You must be logged in to create a post',
-        type: FeedbackType.ERROR
-      });
+      showError('You must be logged in to create a post');
       return;
     }
 
@@ -111,7 +110,7 @@ const PublicationScreen: React.FC = () => {
       const newPost = {
         title: title,
         body: description,
-        userId: parseInt(user.id),
+        userId: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
         // Inclure les informations Cloudinary directement
         cloudinaryUrl: imageToShare,
         cloudinaryPublicId: selectedImagePublicId || undefined,
@@ -142,12 +141,7 @@ const PublicationScreen: React.FC = () => {
       setTags([]);
       setStep('select');
       
-      // Afficher un message de succès
-      setFeedback({
-        visible: true,
-        message: 'Post created successfully with optimized images!',
-        type: FeedbackType.SUCCESS
-      });
+      showMessage(QuickMessages.success('Post created successfully with optimized images!'));
       
       // Rediriger vers la page d'accueil après un court délai
       setTimeout(() => {
@@ -156,11 +150,7 @@ const PublicationScreen: React.FC = () => {
       
     } catch (error) {
       console.error('Error creating post:', error);
-      setFeedback({
-        visible: true,
-        message: 'Failed to create post. Please try again.',
-        type: FeedbackType.ERROR
-      });
+      showError('Failed to create post. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -199,7 +189,7 @@ const PublicationScreen: React.FC = () => {
   const handleNext = () => {
     if (step === 'crop') {
       if (!croppedImage && !selectedImage) {
-        Alert.alert('Error', 'Please select an image first');
+        showError('Please select an image first');
         return;
       }
       setStep('form');

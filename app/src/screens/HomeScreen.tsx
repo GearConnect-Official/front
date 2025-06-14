@@ -37,6 +37,9 @@ import { ApiError, ErrorType } from '../services/axiosConfig';
 import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
 import { defaultImages } from "../config/defaultImages";
 import userService from "../services/userService";
+import { useMessage } from '../context/MessageContext';
+import MessageService from '../services/messageService';
+import { QuickMessages } from '../utils/messageUtils';
 
 // Types
 interface Story {
@@ -132,7 +135,8 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as React.Com
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAuth() || {};
+  const { showMessage, showError, showInfo } = useMessage();
   const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
   const [posts, setPosts] = useState<UIPost[]>([]);
@@ -313,7 +317,7 @@ const HomeScreen: React.FC = () => {
 
   const handleLike = async (postId: string) => {
     if (!user?.id) {
-      Alert.alert('Erreur', 'Vous devez être connecté pour liker un post');
+      showError('Vous devez être connecté pour liker un post');
       return;
     }
 
@@ -357,13 +361,13 @@ const HomeScreen: React.FC = () => {
             : post
         )
       );
-      Alert.alert('Erreur', 'Impossible d\'ajouter un like pour le moment.');
+      showError('Impossible d\'ajouter un like pour le moment.');
     }
   };
 
   const handleSave = async (postId: string) => {
     if (!user?.id) {
-      Alert.alert('Erreur', 'Vous devez être connecté pour sauvegarder un post');
+      showError('Vous devez être connecté pour sauvegarder un post');
       return;
     }
 
@@ -395,7 +399,7 @@ const HomeScreen: React.FC = () => {
           post.id === postId ? { ...post, saved: !post.saved } : post
         )
       );
-      Alert.alert('Erreur', 'Impossible de sauvegarder ce post pour le moment.');
+      showError('Impossible de sauvegarder ce post pour le moment.');
     }
   };
 
@@ -601,7 +605,7 @@ const HomeScreen: React.FC = () => {
       // Vérifier si le partage est disponible sur l'appareil
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
-        Alert.alert('Erreur', 'Le partage n\'est pas disponible sur cet appareil');
+        showError('Le partage n\'est pas disponible sur cet appareil');
         return;
       }
 
@@ -629,7 +633,7 @@ const HomeScreen: React.FC = () => {
       
     } catch (error) {
       // console.error('❌ Error sharing post:', error);
-      Alert.alert('Erreur', 'Impossible de partager ce post');
+      showError('Impossible de partager ce post');
     }
   };
 
@@ -649,12 +653,9 @@ const HomeScreen: React.FC = () => {
       await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
       console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
-        { text: 'OK', onPress: () => {
-          // Fallback: copier dans le presse-papiers
-          Clipboard.setStringAsync(content);
-        }}
-      ]);
+      showInfo('Contenu copié dans le presse-papiers');
+      // Fallback: copier dans le presse-papiers
+      Clipboard.setStringAsync(content);
     }
   };
 
@@ -714,7 +715,7 @@ const HomeScreen: React.FC = () => {
             : post
         )
       );
-      Alert.alert('Erreur', 'Impossible d\'ajouter un commentaire pour le moment.');
+      showError('Impossible d\'ajouter un commentaire pour le moment.');
     }
   };
 

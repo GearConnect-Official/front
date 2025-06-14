@@ -35,11 +35,15 @@ import {
   LAYOUT,
   TYPOGRAPHY,
 } from "../styles/screens/performanceStyles";
+import { useMessage } from '../context/MessageContext';
+import MessageService from '../services/messageService';
+import { QuickMessages } from '../utils/messageUtils';
 
 const AddPerformanceScreen: React.FC = () => {
   const router = useRouter();
   const auth = useAuth();
   const user = auth?.user;
+  const { showMessage, showError, showConfirmation } = useMessage();
 
   // Form state
   const [formData, setFormData] = useState<PerformanceFormData>({
@@ -134,7 +138,7 @@ const AddPerformanceScreen: React.FC = () => {
     }
 
     if (!user?.id) {
-      Alert.alert("Error", "You must be logged in to add a performance");
+      showError("You must be logged in to add a performance");
       return;
     }
 
@@ -159,68 +163,44 @@ const AddPerformanceScreen: React.FC = () => {
       );
 
       if (response.success) {
-        Alert.alert(
-          "Success! 🏆",
-          "Your race performance has been recorded successfully!",
-          [
-            {
-              text: "View Dashboard",
-              onPress: () => router.replace("/performances"),
-            },
-            {
-              text: "Add Another",
-              onPress: () => {
-                // Reset form
-                setFormData({
-                  circuitName: "",
-                  lapTime: "",
-                  racePosition: "",
-                  totalParticipants: "",
-                  category: "karting",
-                  date: new Date(),
-                  notes: "",
-                  weather: "",
-                  trackCondition: "dry",
-                });
-                setErrors({});
-              },
-            },
-          ]
-        );
+        showConfirmation({
+          title: "Performance Added",
+          message: response.message || "Your performance has been saved successfully!",
+          confirmText: "View Performances",
+          cancelText: "Add Another",
+          type: 'success',
+          onConfirm: () => {
+            router.push('/(app)/performances');
+          },
+          onCancel: () => {
+            // Reset form
+            setFormData({
+              circuitName: "",
+              lapTime: "",
+              racePosition: "",
+              totalParticipants: "",
+              category: "karting",
+              date: new Date(),
+              notes: "",
+              weather: "",
+              trackCondition: "dry",
+            });
+            setErrors({});
+          }
+        });
       } else {
-        Alert.alert("Error", response.error || "Failed to save performance", [
-          {
-            text: "Retry",
-            onPress: () => handleSubmit(),
-          },
-          {
-            text: "OK",
-          },
-        ]);
+        const errorMessage = response.error || "Failed to save performance";
+        setErrors({});
+        showError(errorMessage);
       }
     } catch (error: any) {
       if (
         error?.code === "NETWORK_ERROR" ||
         error?.message?.includes("Network")
       ) {
-        Alert.alert(
-          "Network Error",
-          "Please check your internet connection and try again.",
-          [
-            {
-              text: "Retry",
-              onPress: () => handleSubmit(),
-            },
-            {
-              text: "OK",
-            },
-          ]
-        );
+        showError("Please check your internet connection and try again.");
       } else {
-        Alert.alert(
-          "Error",
-          "An unexpected error occurred while saving your performance"
-        );
+        showError("An unexpected error occurred while saving your performance");
       }
     } finally {
       setIsLoading(false);

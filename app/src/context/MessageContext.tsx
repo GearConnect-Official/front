@@ -1,8 +1,7 @@
-import { useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { FeedbackType } from '../components/ui/FeedbackMessage';
-import { ApiError, ErrorType, handleApiError } from '../services/axiosConfig';
 import { MessageConfig, ConfirmationConfig, MessageType } from '../types/messages';
-import MessageService from '../services/messageService';
+import { ApiError, ErrorType, handleApiError } from '../services/axiosConfig';
 
 interface FeedbackState {
   visible: boolean;
@@ -16,7 +15,8 @@ interface ConfirmationState extends ConfirmationConfig {
   visible: boolean;
 }
 
-interface UseFeedbackResult {
+interface MessageContextType {
+  // Feedback
   feedbackState: FeedbackState;
   showFeedback: (message: string, type: FeedbackType, duration?: number) => void;
   showError: (message: string, duration?: number) => void;
@@ -24,17 +24,22 @@ interface UseFeedbackResult {
   showWarning: (message: string, duration?: number) => void;
   showInfo: (message: string, duration?: number) => void;
   showApiError: (error: any, customMessage?: string, duration?: number) => void;
-  hideFeedback: () => void;
   showMessage: (messageConfig: MessageConfig) => void;
+  hideFeedback: () => void;
+  
+  // Confirmations
   confirmationState: ConfirmationState;
   showConfirmation: (confirmationConfig: ConfirmationConfig) => void;
   hideConfirmation: () => void;
 }
 
-/**
- * Hook personnalisé pour gérer les messages de feedback et confirmations
- */
-const useFeedback = (): UseFeedbackResult => {
+const MessageContext = createContext<MessageContextType | undefined>(undefined);
+
+interface MessageProviderProps {
+  children: ReactNode;
+}
+
+export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) => {
   const [feedbackState, setFeedbackState] = useState<FeedbackState>({
     visible: false,
     message: '',
@@ -49,6 +54,7 @@ const useFeedback = (): UseFeedbackResult => {
     onConfirm: () => {},
   });
 
+  // === MÉTHODES DE FEEDBACK ===
   const showFeedback = useCallback((message: string, type: FeedbackType, duration = 5000) => {
     setFeedbackState({
       visible: true,
@@ -75,10 +81,7 @@ const useFeedback = (): UseFeedbackResult => {
   }, [showFeedback]);
 
   const showApiError = useCallback((error: any, customMessage?: string, duration = 5000) => {
-    // Normaliser l'erreur API
     const apiError: ApiError = handleApiError(error);
-    
-    // Utiliser le message personnalisé ou celui de l'erreur API
     const errorMessage = customMessage || apiError.message;
     
     setFeedbackState({
@@ -89,20 +92,12 @@ const useFeedback = (): UseFeedbackResult => {
       duration,
     });
     
-    // Log détaillé de l'erreur pour le débogage
-    console.error('API Error handled by useFeedback:', {
+    console.error('API Error handled by MessageContext:', {
       type: apiError.type,
       status: apiError.status,
       message: apiError.message,
       data: apiError.data,
     });
-  }, []);
-
-  const hideFeedback = useCallback(() => {
-    setFeedbackState(prev => ({
-      ...prev,
-      visible: false,
-    }));
   }, []);
 
   const showMessage = useCallback((messageConfig: MessageConfig) => {
@@ -120,6 +115,14 @@ const useFeedback = (): UseFeedbackResult => {
     });
   }, []);
 
+  const hideFeedback = useCallback(() => {
+    setFeedbackState(prev => ({
+      ...prev,
+      visible: false,
+    }));
+  }, []);
+
+  // === MÉTHODES DE CONFIRMATION ===
   const showConfirmation = useCallback((confirmationConfig: ConfirmationConfig) => {
     setConfirmationState({
       ...confirmationConfig,
@@ -134,7 +137,7 @@ const useFeedback = (): UseFeedbackResult => {
     }));
   }, []);
 
-  return {
+  const value: MessageContextType = {
     feedbackState,
     showFeedback,
     showError,
@@ -142,12 +145,24 @@ const useFeedback = (): UseFeedbackResult => {
     showWarning,
     showInfo,
     showApiError,
-    hideFeedback,
     showMessage,
+    hideFeedback,
     confirmationState,
     showConfirmation,
     hideConfirmation,
   };
+
+  return (
+    <MessageContext.Provider value={value}>
+      {children}
+    </MessageContext.Provider>
+  );
 };
 
-export default useFeedback; 
+export const useMessage = (): MessageContextType => {
+  const context = useContext(MessageContext);
+  if (context === undefined) {
+    throw new Error('useMessage must be used within a MessageProvider');
+  }
+  return context;
+}; 

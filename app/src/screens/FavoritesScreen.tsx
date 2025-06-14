@@ -22,6 +22,9 @@ import { Post as APIPost } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import { detectMediaType } from "../utils/mediaUtils";
 import styles from "../styles/screens/favoritesStyles";
+import { useMessage } from '../context/MessageContext';
+import MessageService from '../services/messageService';
+import { QuickMessages } from '../utils/messageUtils';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -128,6 +131,7 @@ const FavoritesScreen: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const { showMessage, showError, showConfirmation } = useMessage();
 
   // Load user's favorite posts
   const loadFavorites = useCallback(
@@ -198,22 +202,34 @@ const FavoritesScreen: React.FC = () => {
     }
   };
 
-  const handleRemoveFromFavorites = async (postId: string) => {
+  const handleRemoveFavorite = async (postId: number) => {
     if (!user?.id) return;
 
-    const currentUserId = parseInt(user.id);
-
     try {
-      await favoritesService.toggleFavorite(parseInt(postId), currentUserId);
-
-      // Remove from local state
-      setFavorites((prev) => prev.filter((post) => post.id !== postId));
-
-      Alert.alert("Success", "Post removed from favorites");
+      await favoritesService.removeFavorite(postId, parseInt(user.id));
+      
+      // Update UI optimistically
+      setFavorites(prevFavorites => 
+        prevFavorites.filter(fav => fav.id !== postId.toString())
+      );
+      
+      showMessage(QuickMessages.success("Post removed from favorites"));
     } catch (error) {
-      console.error("Error removing from favorites:", error);
-      Alert.alert("Error", "Unable to remove this post from favorites");
+      console.error('Error removing favorite:', error);
+      showError("Unable to remove this post from favorites");
     }
+  };
+
+  const confirmRemoveFavorite = (postId: number, postTitle: string) => {
+    showConfirmation({
+      title: "Remove Favorite",
+      message: `Remove "${postTitle}" from your favorites?`,
+      confirmText: "Remove",
+      cancelText: "Cancel",
+      destructive: true,
+      type: 'warning',
+      onConfirm: () => handleRemoveFavorite(postId)
+    });
   };
 
   const handleLike = () => {
@@ -246,7 +262,7 @@ const FavoritesScreen: React.FC = () => {
       onLike={() => handleLike()}
       onComment={() => handleComment()}
       onShare={() => handleShare()}
-      onSave={() => handleRemoveFromFavorites(item.id)}
+      onSave={() => confirmRemoveFavorite(parseInt(item.id), item.title)}
       onProfilePress={() => {}}
       isVisible={true}
       isCurrentlyVisible={true}

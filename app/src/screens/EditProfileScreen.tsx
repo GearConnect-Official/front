@@ -193,7 +193,6 @@ const EditProfileScreen: React.FC = () => {
         }
 
         await fetchUserProfile();
-
         showMessage(MessageService.SUCCESS.PROFILE_UPDATED);
       } else {
         setError(updateResponse.error || "Failed to update profile");

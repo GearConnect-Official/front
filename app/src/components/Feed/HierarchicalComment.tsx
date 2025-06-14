@@ -116,13 +116,18 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
               quality="auto"
               format="auto"
               style={styles.avatar}
-              fallbackUrl={comment.user.profilePicture || defaultImages.profile}
+              fallbackUrl={comment.user.profilePicture}
+            />
+          ) : comment.user.profilePicture ? (
+            <Image
+              source={{
+                uri: comment.user.profilePicture
+              }}
+              style={styles.avatar}
             />
           ) : (
             <Image
-              source={{
-                uri: comment.user.profilePicture || defaultImages.profile
-              }}
+              source={defaultImages.profile}
               style={styles.avatar}
             />
           )}

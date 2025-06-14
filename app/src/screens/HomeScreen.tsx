@@ -76,7 +76,7 @@ const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
   const images = apiPost.cloudinaryUrl ? [apiPost.cloudinaryUrl] : 
-                 apiPost.image ? [apiPost.image.url] : [];
+                 apiPost.image ? [(apiPost.image as any).url] : [];
   
   const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : [];
   const mediaTypes: ('image' | 'video')[] = apiPost.imageMetadata ? 
@@ -107,15 +107,15 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
   })) || [];
 
   // Créer l'avatar de l'utilisateur principal du post
-  const userAvatar = apiPost.user?.profilePicturePublicId ? 
+  const userAvatar = (apiPost.user as any)?.profilePicturePublicId ? 
     '' : // On laisse vide pour CloudinaryAvatar
-    (apiPost.user?.profilePicture || `https://via.placeholder.com/40`);
+    ((apiPost.user as any)?.profilePicture || `https://via.placeholder.com/40`);
 
   return {
     id: apiPost.id?.toString() || '',
     username: apiPost.user?.username || `user_${apiPost.userId}`,
     avatar: userAvatar,
-    profilePicturePublicId: apiPost.user?.profilePicturePublicId, // Nouveau champ
+    profilePicturePublicId: (apiPost.user as any)?.profilePicturePublicId,
     images,
     imagePublicIds,
     mediaTypes,
@@ -135,7 +135,8 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as React.Com
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth() || {};
+  const authContext = useAuth();
+  const user = authContext?.user;
   const { showMessage, showError, showInfo } = useMessage();
   const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
@@ -150,7 +151,7 @@ const HomeScreen: React.FC = () => {
   const [currentStoryId, setCurrentStoryId] = useState("");
   const [isCommentsModalVisible, setIsCommentsModalVisible] = useState(false);
   const [currentPostId, setCurrentPostId] = useState("");
-  const [currentUserData, setCurrentUserData] = useState<any>(null); // Nouvelles données utilisateur
+  const [currentUserData, setCurrentUserData] = useState<any>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const isHeaderVisible = useRef(true);
   const lastScrollY = useRef(0);
@@ -192,7 +193,7 @@ const HomeScreen: React.FC = () => {
     try {
       setLoadingError(null);
       setIsNetworkError(false);
-      const currentUserId = user?.id ? parseInt(user.id) : null;
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : null;
       
       // Utiliser la nouvelle méthode getPosts avec userId pour récupérer l'état des favoris
       const response = currentUserId 
@@ -236,7 +237,7 @@ const HomeScreen: React.FC = () => {
     // Utiliser la vraie photo de profil pour l'utilisateur connecté
     const currentUserAvatar = currentUserData?.profilePicturePublicId ? 
       '' : // CloudinaryAvatar le gérera dans le composant story
-      (currentUserData?.profilePicture || user?.profilePicture || defaultImages.profile);
+      (currentUserData?.profilePicture || (user as any)?.profilePicture || "https://via.placeholder.com/40");
 
     // Stories mock data avec des images réalistes
     const mockStories: Story[] = [
@@ -321,7 +322,7 @@ const HomeScreen: React.FC = () => {
       return;
     }
 
-    const currentUserId = parseInt(user.id);
+    const currentUserId = parseInt(user.id.toString());
     
     // Optimistically update UI
     setPosts((prevPosts) =>
@@ -371,7 +372,7 @@ const HomeScreen: React.FC = () => {
       return;
     }
 
-    const currentUserId = parseInt(user.id);
+    const currentUserId = parseInt(user.id.toString());
     
     // Optimistically update UI
     setPosts((prevPosts) =>
@@ -663,7 +664,12 @@ const HomeScreen: React.FC = () => {
   const handleAddComment = async (postId: string, text: string) => {
     if (!text.trim() || !user?.id) return;
 
-    const currentUserId = parseInt(user.id);
+    const currentUserId = parseInt(user.id.toString());
+
+    // Utiliser la vraie photo de profil de l'utilisateur connecté
+    const userAvatar = currentUserData?.profilePicturePublicId ? 
+      '' : // CloudinaryAvatar le gérera
+      (currentUserData?.profilePicture || (user as any)?.profilePicture || "https://via.placeholder.com/40");
 
     // Utiliser la vraie photo de profil de l'utilisateur connecté
     const userAvatar = currentUserData?.profilePicturePublicId ? 
@@ -771,28 +777,33 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.appTitle}>GearConnect</Text>
           </View>
           <View style={styles.headerRight}>
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              onPress={handleNavigateToProfile}
-            >
-              {currentUserData?.profilePicturePublicId ? (
-                <CloudinaryAvatar
-                  publicId={currentUserData.profilePicturePublicId}
-                  size={32}
-                  quality="auto"
-                  format="auto"
-                  style={styles.profileImage}
-                  fallbackUrl={currentUserData?.profilePicture || defaultImages.profile}
-                />
-              ) : (
-                <Image 
-                  source={{ 
-                    uri: currentUserData?.profilePicture || user?.profilePicture || defaultImages.profile 
-                  }} 
-                  style={styles.profileImage}
-                />
-              )}
-            </TouchableOpacity>
+                      <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={handleNavigateToProfile}
+          >
+            {currentUserData?.profilePicturePublicId ? (
+              <CloudinaryAvatar
+                publicId={currentUserData.profilePicturePublicId}
+                size={32}
+                quality="auto"
+                format="auto"
+                style={styles.profileImage}
+                fallbackUrl={currentUserData?.profilePicture}
+              />
+            ) : currentUserData?.profilePicture || (user as any)?.profilePicture ? (
+              <Image 
+                source={{ 
+                  uri: currentUserData?.profilePicture || (user as any)?.profilePicture 
+                }} 
+                style={styles.profileImage}
+              />
+            ) : (
+              <Image 
+                source={defaultImages.profile} 
+                style={styles.profileImage}
+              />
+            )}
+          </TouchableOpacity>
           </View>
         </View>
 
@@ -834,13 +845,18 @@ const HomeScreen: React.FC = () => {
                 quality="auto"
                 format="auto"
                 style={styles.profileImage}
-                fallbackUrl={currentUserData?.profilePicture || defaultImages.profile}
+                fallbackUrl={currentUserData?.profilePicture}
+              />
+            ) : currentUserData?.profilePicture || (user as any)?.profilePicture ? (
+              <Image 
+                source={{ 
+                  uri: currentUserData?.profilePicture || (user as any)?.profilePicture 
+                }} 
+                style={styles.profileImage}
               />
             ) : (
               <Image 
-                source={{ 
-                  uri: currentUserData?.profilePicture || user?.profilePicture || defaultImages.profile 
-                }} 
+                source={defaultImages.profile} 
                 style={styles.profileImage}
               />
             )}

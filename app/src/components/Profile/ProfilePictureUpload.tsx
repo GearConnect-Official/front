@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   Image,
+  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
@@ -13,6 +14,7 @@ import { CloudinaryAvatar } from '../media/CloudinaryImage';
 import { cloudinaryConfig } from '../../config';
 import { useMessage } from '../../context/MessageContext';
 import MessageService from '../../services/messageService';
+
 
 interface ProfilePictureUploadProps {
   currentProfilePicture?: string;

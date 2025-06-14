@@ -860,7 +860,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   quality="auto"
                   format="auto"
                   style={styles.profileImage}
-                  fallbackUrl={userData?.profilePicture || defaultImages.profile}
+                  fallbackUrl={userData?.profilePicture}
                 />
               ) : (
                 <Image

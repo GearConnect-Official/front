@@ -36,11 +36,16 @@ const PostHeader: React.FC<PostHeaderProps> = ({
             quality="auto"
             format="auto"
             style={styles.avatar}
-            fallbackUrl={avatar || defaultImages.profile}
+            fallbackUrl={avatar}
+          />
+        ) : avatar ? (
+          <Image 
+            source={{ uri: avatar }} 
+            style={styles.avatar} 
           />
         ) : (
           <Image 
-            source={{ uri: avatar || defaultImages.profile }} 
+            source={defaultImages.profile} 
             style={styles.avatar} 
           />
         )}

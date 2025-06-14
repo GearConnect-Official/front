@@ -11,6 +11,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import { HierarchicalComment as CommentType } from '../../services/commentService';
 import { formatPostDate } from '../../utils/dateUtils';
 import { hierarchicalCommentStyles as styles } from '../../styles/components/hierarchicalCommentStyles';
+import { CloudinaryAvatar } from '../media/CloudinaryImage';
+import { defaultImages } from '../../config/defaultImages';
 
 interface HierarchicalCommentProps {
   comment: CommentType;
@@ -107,12 +109,28 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
       {/* Main comment */}
       <View style={styles.commentContainer}>
         <View style={styles.avatarContainer}>
-          <Image
-            source={{
-              uri: `https://randomuser.me/api/portraits/${comment.userId % 2 === 0 ? 'men' : 'women'}/${(comment.userId % 50) + 1}.jpg`
-            }}
-            style={styles.avatar}
-          />
+          {comment.user.profilePicturePublicId ? (
+            <CloudinaryAvatar
+              publicId={comment.user.profilePicturePublicId}
+              size={32}
+              quality="auto"
+              format="auto"
+              style={styles.avatar}
+              fallbackUrl={comment.user.profilePicture}
+            />
+          ) : comment.user.profilePicture ? (
+            <Image
+              source={{
+                uri: comment.user.profilePicture
+              }}
+              style={styles.avatar}
+            />
+          ) : (
+            <Image
+              source={defaultImages.profile}
+              style={styles.avatar}
+            />
+          )}
           {level > 0 && <View style={styles.threadLine} />}
         </View>
 

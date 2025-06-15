@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import theme from '../config/theme';
+import theme from '../../config/theme';
 
 // Racing color palette pour Jobs
 export const RACING_COLORS = {

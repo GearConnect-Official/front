@@ -29,7 +29,7 @@ import {
   performanceStyles,
   THEME_COLORS,
   LAYOUT,
-} from '../styles/screens/performanceStyles';
+} from '../styles/screens/user/performanceStyles';
 
 const PerformancesScreen: React.FC = () => {
   const router = useRouter();

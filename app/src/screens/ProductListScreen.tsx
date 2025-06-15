@@ -9,7 +9,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import ProductList from '../components/CreateEvent/ProductList';
 import { RelatedProduct } from '../services/relatedProductService';
-import { styles } from '../styles/screens/productListScreenStyles';
+import { styles } from '../styles/screens/products/productListScreenStyles';
 
 const ProductListScreen = () => {
   const router = useRouter();

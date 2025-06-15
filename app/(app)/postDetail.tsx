@@ -20,7 +20,7 @@ import postService, { PostTagRelation, Interaction } from '../src/services/postS
 import favoritesService from '../src/services/favoritesService';
 import { formatPostDate } from '../src/utils/dateUtils';
 import { detectMediaType } from '../src/utils/mediaUtils';
-import styles from '../src/styles/screens/postDetailStyles';
+import { postDetailStyles as styles } from '../src/styles/screens';
 
 const PostDetailScreen: React.FC = () => {
   const router = useRouter();

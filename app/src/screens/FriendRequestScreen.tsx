@@ -12,7 +12,7 @@ import {
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import AddFriendModal from "../components/modals/AddFriendModal";
-import styles from "../styles/screens/friendRequestStyles";
+import styles from "../styles/screens/social/friendRequestStyles";
 
 // Racing color palette inspired by automotive and racing world
 const THEME_COLORS = {

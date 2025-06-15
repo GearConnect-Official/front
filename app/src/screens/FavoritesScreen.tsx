@@ -21,7 +21,7 @@ import PostItem, {
 import { Post as APIPost } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import { detectMediaType } from "../utils/mediaUtils";
-import styles from "../styles/screens/favoritesStyles";
+import styles from "../styles/screens/social/favoritesStyles";
 import { useMessage } from '../context/MessageContext';
 import MessageService from '../services/messageService';
 import { QuickMessages } from '../utils/messageUtils';

@@ -13,7 +13,7 @@ import {
   Dimensions,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/screens/eventsStyles";
+import styles from "../styles/screens/events/eventsStyles";
 import EventItem from "../components/items/EventItem";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Event } from "../services/eventService";

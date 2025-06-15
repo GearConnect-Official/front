@@ -1,4 +1,3 @@
-import { useLocalSearchParams } from "expo-router";
 import ModifyReviewScreen from "../src/screens/ModifyReviewScreen";
 import React from "react";
 

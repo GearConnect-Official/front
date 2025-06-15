@@ -9,11 +9,9 @@ import {
   FlatList,
   StatusBar,
   ActivityIndicator,
-  Alert,
   NativeScrollEvent,
   NativeSyntheticEvent,
   FlatListProps,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
@@ -34,6 +32,10 @@ import { useAuth } from '../context/AuthContext';
 import useVisibilityTracker from '../hooks/useVisibilityTracker';
 import { detectMediaType } from '../utils/mediaUtils';
 import { ApiError, ErrorType } from '../services/axiosConfig';
+import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
+import { defaultImages } from "../config/defaultImages";
+import userService from "../services/userService";
+import { useMessage } from '../context/MessageContext';
 
 // Types
 interface Story {
@@ -48,6 +50,7 @@ interface UIPost {
   id: string;
   username: string;
   avatar: string;
+  profilePicturePublicId?: string; // Nouveau : pour CloudinaryAvatar
   images: string[];
   imagePublicIds?: string[];  // Public IDs Cloudinary pour l'optimisation
   mediaTypes?: ('image' | 'video')[];  // Types de médias pour chaque élément
@@ -64,71 +67,50 @@ interface UIPost {
 
 // Nom d'utilisateur courant
 const CURRENT_USERNAME = "john_doe";
-const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
-  console.log('🔄 Converting API post to UI post:', {
-    id: apiPost.id,
-    cloudinaryUrl: apiPost.cloudinaryUrl,
-    cloudinaryPublicId: apiPost.cloudinaryPublicId,
-    imageMetadata: apiPost.imageMetadata,
-    isFavorited: (apiPost as any).isFavorited,
-    favoritesCount: (apiPost as any).favoritesCount
-  });
+  const images = apiPost.cloudinaryUrl ? [apiPost.cloudinaryUrl] : 
+                 apiPost.image ? [(apiPost.image as any).url] : [];
+  
+  const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : [];
+  const mediaTypes: ('image' | 'video')[] = apiPost.imageMetadata ? 
+    [detectMediaType(apiPost.cloudinaryUrl, apiPost.cloudinaryPublicId, apiPost.imageMetadata)] : 
+    ['image'];
 
-  const liked = apiPost.interactions?.some(
-    (interaction) => interaction.userId === currentUserId && interaction.like
-  ) || false;
-  
-  const likes = apiPost.interactions?.filter(interaction => interaction.like).length || 0;
-  
-  const comments = apiPost.interactions?.filter(interaction => interaction.comment)
-    .map(interaction => ({
-      id: `${interaction.userId}`,
-      username: `user_${interaction.userId}`,
-      avatar: `https://randomuser.me/api/portraits/men/${interaction.userId % 50}.jpg`,
-      text: interaction.comment || '',
-      timeAgo: '1h',
-      likes: 0,
-    })) || [];
+  const title = apiPost.title ? `${apiPost.title}` : '';
+  const description = apiPost.body || '';
 
-  const images: string[] = [
-    (typeof apiPost.image === 'string' ? apiPost.image : null) || 
-    apiPost.cloudinaryUrl || 
-    'https://via.placeholder.com/300'
-  ].filter(Boolean) as string[];
-  const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : undefined;
-  
-  // Améliorer la détection du type de média
-  const detectedType = detectMediaType(apiPost.cloudinaryUrl, apiPost.cloudinaryPublicId, apiPost.imageMetadata);
-  const mediaTypes: ('image' | 'video')[] = [detectedType];
-  
-  console.log('📋 Final conversion result:', {
-    postId: apiPost.id,
-    detectedType,
-    mediaTypes,
-    hasPublicId: !!imagePublicIds,
-    imageUrl: images[0]
-  });
-  
-  const timeAgo = formatPostDate(apiPost.createdAt || new Date());
-  
-  // Séparer le titre et la description de manière intelligente
-  const fullContent = `${apiPost.title || ''} ${apiPost.body || ''}`.trim();
-  const title = apiPost.title || fullContent.substring(0, 60) || 'Untitled Post';
-  const description = apiPost.body || fullContent || '';
-  
-  // Mapper les tags avec la structure correcte
-  const tags: PostTag[] = apiPost.tags?.map(tagRelation => ({
-    id: tagRelation.tag.id?.toString(),
+  const likes = apiPost.interactions?.filter((i: any) => i.like).length || 0;
+  const liked = apiPost.interactions?.some((i: any) => i.like && i.userId === currentUserId) || false;
+
+  const comments = apiPost.interactions?.filter((i: any) => i.comment).map((interaction: any) => ({
+    id: interaction.id?.toString() || '',
+    username: interaction.user?.username || `user_${interaction.userId}`,
+    avatar: interaction.user?.profilePicturePublicId ? 
+      '' : // On laisse vide, CloudinaryAvatar le gérera
+      (interaction.user?.profilePicture || `https://via.placeholder.com/32`),
+    profilePicturePublicId: interaction.user?.profilePicturePublicId, // Nouveau champ
+    text: interaction.comment || '',
+    timeAgo: formatPostDate(interaction.createdAt || new Date()),
+    likes: 0,
+  })) || [];
+
+  const tags = apiPost.tags?.map((tagRelation: any) => ({
+    id: tagRelation.tag.id,
     name: tagRelation.tag.name
   })) || [];
+
+  // Créer l'avatar de l'utilisateur principal du post
+  const userAvatar = (apiPost.user as any)?.profilePicturePublicId ? 
+    '' : // On laisse vide pour CloudinaryAvatar
+    ((apiPost.user as any)?.profilePicture || `https://via.placeholder.com/40`);
 
   return {
     id: apiPost.id?.toString() || '',
     username: apiPost.user?.username || `user_${apiPost.userId}`,
-    avatar: apiPost.user?.imageUrl || `https://randomuser.me/api/portraits/men/${apiPost.userId % 50}.jpg`,
+    avatar: userAvatar,
+    profilePicturePublicId: (apiPost.user as any)?.profilePicturePublicId,
     images,
     imagePublicIds,
     mediaTypes,
@@ -139,7 +121,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
     liked,
     saved: (apiPost as any).isFavorited || false,
     comments,
-    timeAgo: timeAgo,
+    timeAgo: formatPostDate(apiPost.createdAt || new Date()),
     isFromToday: isPostFromToday(apiPost.createdAt || new Date()),
   };
 };
@@ -148,7 +130,9 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as React.Com
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const authContext = useAuth();
+  const user = authContext?.user;
+  const { showError, showInfo } = useMessage();
   const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
   const [posts, setPosts] = useState<UIPost[]>([]);
@@ -162,14 +146,13 @@ const HomeScreen: React.FC = () => {
   const [currentStoryId, setCurrentStoryId] = useState("");
   const [isCommentsModalVisible, setIsCommentsModalVisible] = useState(false);
   const [currentPostId, setCurrentPostId] = useState("");
+  const [currentUserData, setCurrentUserData] = useState<any>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const isHeaderVisible = useRef(true);
   const lastScrollY = useRef(0);
 
   // Hook de visibilité pour tracker les posts visibles
   const {
-    visiblePosts,
-    currentlyVisiblePost,
     viewabilityConfigCallbackPairs,
     isPostVisible,
     isPostCurrentlyVisible,
@@ -178,12 +161,32 @@ const HomeScreen: React.FC = () => {
     itemVisiblePercentThreshold: 60, // 60% de l'item doit être visible
   });
 
+  // Charger les données du profil utilisateur connecté
+  const loadCurrentUserData = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      console.log('🔄 HomeScreen: Loading current user data...', user.id);
+      const response = await userService.getProfile(Number(user.id));
+      if (response.success && response.data) {
+        console.log('✅ HomeScreen: Current user data loaded:', {
+          username: response.data.username,
+          hasProfilePicture: !!response.data.profilePicture,
+          hasProfilePicturePublicId: !!response.data.profilePicturePublicId,
+        });
+        setCurrentUserData(response.data);
+      }
+    } catch (error) {
+      console.error("❌ HomeScreen: Error loading current user data:", error);
+    }
+  }, [user?.id]);
+
   // Fonction pour charger les posts depuis l'API
   const loadPosts = useCallback(async (page = 1, limit = 10) => {
     try {
       setLoadingError(null);
       setIsNetworkError(false);
-      const currentUserId = user?.id ? parseInt(user.id) : null;
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : null;
       
       // Utiliser la nouvelle méthode getPosts avec userId pour récupérer l'état des favoris
       const response = currentUserId 
@@ -224,12 +227,17 @@ const HomeScreen: React.FC = () => {
 
   // Simulation du chargement des données des stories (à remplacer par un appel API réel plus tard)
   const loadStories = useCallback(() => {
+    // Utiliser la vraie photo de profil pour l'utilisateur connecté
+    const currentUserAvatar = currentUserData?.profilePicturePublicId ? 
+      '' : // CloudinaryAvatar le gérera dans le composant story
+      (currentUserData?.profilePicture || (user as any)?.profilePicture || "https://via.placeholder.com/40");
+
     // Stories mock data avec des images réalistes
     const mockStories: Story[] = [
       {
         id: "1",
-        username: CURRENT_USERNAME,
-        avatar: CURRENT_USER_AVATAR,
+        username: user?.username || currentUserData?.username || CURRENT_USERNAME,
+        avatar: currentUserAvatar,
         viewed: false,
         content:
           "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
@@ -277,13 +285,14 @@ const HomeScreen: React.FC = () => {
     ];
 
     setStories(mockStories);
-  }, []);
+  }, [currentUserData, user]);
 
   // Charger les données au démarrage
   useEffect(() => {
     loadPosts();
     loadStories();
-  }, [loadPosts, loadStories]);
+    loadCurrentUserData(); // Charger aussi les données utilisateur
+  }, [loadPosts, loadStories, loadCurrentUserData]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -302,11 +311,11 @@ const HomeScreen: React.FC = () => {
 
   const handleLike = async (postId: string) => {
     if (!user?.id) {
-      Alert.alert('Erreur', 'Vous devez être connecté pour liker un post');
+      showError('Vous devez être connecté pour liker un post');
       return;
     }
 
-    const currentUserId = parseInt(user.id);
+    const currentUserId = parseInt(user.id.toString());
     
     // Optimistically update UI
     setPosts((prevPosts) =>
@@ -331,7 +340,7 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (error) {
+    } catch (_error) {
       // console.error('Erreur lors du toggle du like:', error);
       
       // En cas d'erreur, annuler l'optimistic update
@@ -346,17 +355,17 @@ const HomeScreen: React.FC = () => {
             : post
         )
       );
-      Alert.alert('Erreur', 'Impossible d\'ajouter un like pour le moment.');
+      showError('Impossible d\'ajouter un like pour le moment.');
     }
   };
 
   const handleSave = async (postId: string) => {
     if (!user?.id) {
-      Alert.alert('Erreur', 'Vous devez être connecté pour sauvegarder un post');
+      showError('Vous devez être connecté pour sauvegarder un post');
       return;
     }
 
-    const currentUserId = parseInt(user.id);
+    const currentUserId = parseInt(user.id.toString());
     
     // Optimistically update UI
     setPosts((prevPosts) =>
@@ -375,7 +384,7 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (error) {
+    } catch (_error) {
       // console.error('Erreur lors du toggle des favoris:', error);
       
       // En cas d'erreur, annuler l'optimistic update
@@ -384,7 +393,7 @@ const HomeScreen: React.FC = () => {
           post.id === postId ? { ...post, saved: !post.saved } : post
         )
       );
-      Alert.alert('Erreur', 'Impossible de sauvegarder ce post pour le moment.');
+      showError('Impossible de sauvegarder ce post pour le moment.');
     }
   };
 
@@ -439,7 +448,7 @@ const HomeScreen: React.FC = () => {
               : post
           )
         );
-      } catch (error) {
+      } catch (_error) {
         // console.error('Erreur lors de la mise à jour du compteur de commentaires:', error);
         // En cas d'erreur, on recharge simplement tous les posts après un délai
         setTimeout(() => {
@@ -557,7 +566,8 @@ const HomeScreen: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       loadPosts();
-    }, [loadPosts])
+      loadCurrentUserData(); // Rafraîchir aussi les données utilisateur
+    }, [loadPosts, loadCurrentUserData])
   );
 
   const handleScroll = Animated.event(
@@ -589,7 +599,7 @@ const HomeScreen: React.FC = () => {
       // Vérifier si le partage est disponible sur l'appareil
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
-        Alert.alert('Erreur', 'Le partage n\'est pas disponible sur cet appareil');
+        showError('Le partage n\'est pas disponible sur cet appareil');
         return;
       }
 
@@ -615,9 +625,9 @@ const HomeScreen: React.FC = () => {
         await shareTextContent(shareContent);
       }
       
-    } catch (error) {
+    } catch (_error) {
       // console.error('❌ Error sharing post:', error);
-      Alert.alert('Erreur', 'Impossible de partager ce post');
+      showError('Impossible de partager ce post');
     }
   };
 
@@ -637,12 +647,9 @@ const HomeScreen: React.FC = () => {
       await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
       console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
-        { text: 'OK', onPress: () => {
-          // Fallback: copier dans le presse-papiers
-          Clipboard.setStringAsync(content);
-        }}
-      ]);
+      showInfo('Contenu copié dans le presse-papiers');
+      // Fallback: copier dans le presse-papiers
+      Clipboard.setStringAsync(content);
     }
   };
 
@@ -650,12 +657,18 @@ const HomeScreen: React.FC = () => {
   const handleAddComment = async (postId: string, text: string) => {
     if (!text.trim() || !user?.id) return;
 
-    const currentUserId = parseInt(user.id);
+    const currentUserId = parseInt(user.id.toString());
+
+    // Utiliser la vraie photo de profil de l'utilisateur connecté
+    const userAvatar = currentUserData?.profilePicturePublicId ? 
+      '' : // CloudinaryAvatar le gérera
+      (currentUserData?.profilePicture || (user as any)?.profilePicture || "https://via.placeholder.com/40");
 
     const newComment: PostItemComment = {
       id: Date.now().toString(),
-      username: user.username || CURRENT_USERNAME,
-      avatar: CURRENT_USER_AVATAR,
+      username: user.username || currentUserData?.username || CURRENT_USERNAME,
+      avatar: userAvatar,
+      profilePicturePublicId: currentUserData?.profilePicturePublicId, // Ajouter le champ Cloudinary
       text,
       timeAgo: "Now",
       likes: 0,
@@ -682,7 +695,7 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (error) {
+    } catch (_error) {
       // console.error('Erreur lors de l\'ajout du commentaire:', error);
       
       // En cas d'erreur, annuler l'optimistic update
@@ -696,7 +709,7 @@ const HomeScreen: React.FC = () => {
             : post
         )
       );
-      Alert.alert('Erreur', 'Impossible d\'ajouter un commentaire pour le moment.');
+      showError('Impossible d\'ajouter un commentaire pour le moment.');
     }
   };
 
@@ -752,15 +765,33 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.appTitle}>GearConnect</Text>
           </View>
           <View style={styles.headerRight}>
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              onPress={handleNavigateToProfile}
-            >
+                      <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={handleNavigateToProfile}
+          >
+            {currentUserData?.profilePicturePublicId ? (
+              <CloudinaryAvatar
+                publicId={currentUserData.profilePicturePublicId}
+                size={32}
+                quality="auto"
+                format="auto"
+                style={styles.profileImage}
+                fallbackUrl={currentUserData?.profilePicture}
+              />
+            ) : currentUserData?.profilePicture || (user as any)?.profilePicture ? (
               <Image 
-                source={{ uri: CURRENT_USER_AVATAR }} 
+                source={{ 
+                  uri: currentUserData?.profilePicture || (user as any)?.profilePicture 
+                }} 
                 style={styles.profileImage}
               />
-            </TouchableOpacity>
+            ) : (
+              <Image 
+                source={defaultImages.profile} 
+                style={styles.profileImage}
+              />
+            )}
+          </TouchableOpacity>
           </View>
         </View>
 
@@ -795,10 +826,28 @@ const HomeScreen: React.FC = () => {
             style={styles.headerIconBtn}
             onPress={handleNavigateToProfile}
           >
-            <Image 
-              source={{ uri: CURRENT_USER_AVATAR }} 
-              style={styles.profileImage}
-            />
+            {currentUserData?.profilePicturePublicId ? (
+              <CloudinaryAvatar
+                publicId={currentUserData.profilePicturePublicId}
+                size={32}
+                quality="auto"
+                format="auto"
+                style={styles.profileImage}
+                fallbackUrl={currentUserData?.profilePicture}
+              />
+            ) : currentUserData?.profilePicture || (user as any)?.profilePicture ? (
+              <Image 
+                source={{ 
+                  uri: currentUserData?.profilePicture || (user as any)?.profilePicture 
+                }} 
+                style={styles.profileImage}
+              />
+            ) : (
+              <Image 
+                source={defaultImages.profile} 
+                style={styles.profileImage}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>

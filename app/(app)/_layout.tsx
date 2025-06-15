@@ -22,6 +22,8 @@ export default function AppLayout() {
       <Stack.Screen name="userProfile" />
       <Stack.Screen name="verify" />
       <Stack.Screen name="publication" />
+      <Stack.Screen name="performances" />
+      <Stack.Screen name="addPerformance" />
     </Stack>
   );
 } 

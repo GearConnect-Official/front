@@ -16,6 +16,9 @@ import relatedProductService, {
   RelatedProduct,
 } from '../../services/relatedProductService';
 import { styles } from '../../styles/components/relatedProductsSectionStyles';
+import { useMessage } from '../../context/MessageContext';
+import MessageService from '../../services/messageService';
+import { QuickMessages } from '../../utils/messageUtils';
 
 // Define a type that can handle both the related product structure formats
 // EventInterface uses one format, RelatedProduct service uses another
@@ -48,6 +51,8 @@ const RelatedProductsSection: React.FC<RelatedProductsSectionProps> = ({
   const [price, setPrice] = useState('');
   const [link, setLink] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { showMessage, showError } = useMessage();
+
   const handleAddProductModal = () => {
     // Reset form fields and open modal
     setName('');
@@ -57,28 +62,25 @@ const RelatedProductsSection: React.FC<RelatedProductsSectionProps> = ({
   };
 
   const handleSubmit = async () => {
-    // Validation
+    // Form validation
     if (!name.trim()) {
-      Alert.alert('Error', 'Product name is required');
+      showError('Product name is required');
       return;
     }
 
     if (!price.trim()) {
-      Alert.alert('Error', 'Product price is required');
+      showError('Product price is required');
       return;
     }
 
-    // Validate price is a valid number
     const priceNumber = parseFloat(price.trim());
     if (isNaN(priceNumber) || priceNumber <= 0) {
-      Alert.alert('Error', 'Please enter a valid price greater than 0');
+      showError('Please enter a valid price greater than 0');
       return;
     }
 
-    // Validate eventId is a valid number
-    const eventIdNumber = Number(eventId);
-    if (isNaN(eventIdNumber)) {
-      Alert.alert('Error', 'Invalid event ID');
+    if (!eventId) {
+      showError('Invalid event ID');
       return;
     }
 
@@ -90,20 +92,30 @@ const RelatedProductsSection: React.FC<RelatedProductsSectionProps> = ({
         name: name.trim(),
         price: priceNumber,
         link: link.trim() || 'No link provided',
-        eventId: eventIdNumber,
+        eventId: Number(eventId),
       };
 
-      await relatedProductService.createProduct(newProduct);
+      const response = await relatedProductService.createProduct(newProduct);
 
-      // Close modal and refresh data
-      setModalVisible(false);
-      onRefresh();
-
-      // Show success message
-      Alert.alert('Success', 'Product added successfully!');
-    } catch (error: any) {
-      const errorMessage = error?.message || 'Failed to create product';
-      Alert.alert('Error', errorMessage);
+      if (response.success) {
+        // Reset form
+        setName('');
+        setPrice('');
+        setLink('');
+        setModalVisible(false);
+        
+        // Show success message
+        showMessage(QuickMessages.success('Product added successfully!'));
+        
+        // Refresh products list
+        onRefresh();
+      } else {
+        const errorMessage = response.error || 'Failed to add product';
+        showError(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+      showError('Failed to add product. Please try again.');
     } finally {
       setIsLoading(false);
     }

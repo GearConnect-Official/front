@@ -7,10 +7,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
   SafeAreaView,
   Image,
+  StatusBar,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import userService from "../services/userService";
@@ -18,30 +18,43 @@ import styles from "../styles/Profile/editProfileStyles";
 import * as ImagePicker from "expo-image-picker";
 import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
+import { useMessage } from "../context/MessageContext";
+import MessageService from "../services/messageService";
+import ProfilePictureUpload from "../components/Profile/ProfilePictureUpload";
+
+interface FormData {
+  username: string;
+  name: string;
+  description: string;
+  profilePicture: string;
+  profilePicturePublicId?: string;
+}
 
 const EditProfileScreen: React.FC = () => {
   const router = useRouter();
   const { user, updateUser } = useAuth() || {};
-  const [isLoading, setIsLoading] = useState(false);
+  const { showMessage, showError } = useMessage();
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     username: "",
     name: "",
     description: "",
+    profilePicture: "",
+    profilePicturePublicId: "",
   });
 
   useEffect(() => {
     if (!user?.id) {
-      Alert.alert("Error", "You must be logged in to edit your profile", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      showError("You must be logged in to edit your profile");
+      router.back();
       return;
     }
-    loadUserProfile();
+    fetchUserProfile();
   }, [user?.id]);
 
-  const loadUserProfile = async () => {
+  const fetchUserProfile = async () => {
     if (!user?.id) return;
 
     setIsLoading(true);
@@ -53,66 +66,70 @@ const EditProfileScreen: React.FC = () => {
           username: response.data.username || "",
           name: response.data.name || "",
           description: response.data.description || "",
+          profilePicture: response.data.profilePicture || "",
+          profilePicturePublicId: response.data.profilePicturePublicId || "",
         });
       } else {
         setError(response.error || "Failed to load profile data");
       }
     } catch (error) {
-      console.error("Error loading profile:", error);
-      setError("An unexpected error occurred while loading the profile");
+      console.error("Error fetching profile:", error);
+      setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleImagePick = async () => {
+  const handleProfilePictureUpload = async (cloudinaryUrl: string, publicId: string) => {
     try {
-      // Demander la permission d'accéder à la galerie
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission Required",
-          "Please allow access to your photo library to change your profile picture."
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
+      setError(null);
+      console.log('🔄 EditProfileScreen: Updating profile picture...', {
+        cloudinaryUrl,
+        publicId,
+        userId: user?.id
       });
 
-      if (!result.canceled && result.assets[0].uri) {
-        setIsLoading(true);
-        setError(null);
-        const response = await userService.uploadProfilePicture(
-          Number(user?.id),
-          result.assets[0].uri
-        );
+      const response = await userService.updateProfilePictureCloudinary(
+        Number(user?.id),
+        cloudinaryUrl,
+        publicId
+      );
 
-        if (response.success && response.data) {
-          setFormData((prev) => ({
-            ...prev,
-            profilePicture: response.data.profilePicture,
-          }));
-          Alert.alert("Success", "Profile picture updated successfully");
-        } else {
-          setError(response.error || "Failed to upload profile picture");
-          Alert.alert(
-            "Error",
-            response.error || "Failed to upload profile picture"
-          );
+      console.log('📸 EditProfileScreen: Profile picture update response:', response);
+
+      if (response.success && response.data) {
+        // Mettre à jour le formData local
+        setFormData((prev) => ({
+          ...prev,
+          profilePicture: cloudinaryUrl,
+          profilePicturePublicId: publicId,
+        }));
+
+        // Mettre à jour le contexte d'authentification si disponible
+        if (updateUser) {
+          updateUser({
+            ...user,
+            profilePicture: cloudinaryUrl,
+            profilePicturePublicId: publicId,
+          });
         }
-        setIsLoading(false);
+
+        // Rafraîchir les données du profil depuis le serveur
+        await fetchUserProfile();
+
+        console.log('✅ EditProfileScreen: Profile picture updated successfully');
+      } else {
+        console.error('❌ EditProfileScreen: Failed to update profile picture:', response.error);
+        setError(response.error || "Failed to update profile picture");
       }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      setError("An unexpected error occurred while picking the image");
-      Alert.alert("Error", "Failed to pick image");
+    } catch (error: any) {
+      console.error("❌ EditProfileScreen: Error updating profile picture:", error);
+      setError("An unexpected error occurred while updating profile picture");
     }
+  };
+
+  const handleProfilePictureError = (error: string) => {
+    setError(error);
   };
 
   const validateForm = async () => {
@@ -122,7 +139,6 @@ const EditProfileScreen: React.FC = () => {
     }
 
     try {
-      // Vérifier si au moins un champ a été modifié
       const response = await userService.getProfile(Number(user.id));
       const currentData =
         response.success && response.data ? response.data : null;
@@ -142,7 +158,7 @@ const EditProfileScreen: React.FC = () => {
       return true;
     } catch (error) {
       console.error("Error validating form:", error);
-      return true; // En cas d'erreur, on permet la soumission
+      return true;
     }
   };
 
@@ -169,7 +185,6 @@ const EditProfileScreen: React.FC = () => {
       setIsLoading(false);
 
       if (updateResponse.success) {
-        // Mettre à jour l'utilisateur dans le contexte d'authentification
         if (updateUser) {
           updateUser({
             username: formData.username || null,
@@ -177,35 +192,17 @@ const EditProfileScreen: React.FC = () => {
           });
         }
 
-        // Forcer un rafraîchissement des données du profil
-        await loadUserProfile();
-
-        Alert.alert(
-          "Success",
-          updateResponse.message || "Profile updated successfully",
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                // Retourner à l'écran précédent avec un paramètre pour forcer le rafraîchissement
-                router.back();
-                router.setParams({ refresh: Date.now().toString() });
-              },
-            },
-          ]
-        );
+        await fetchUserProfile();
+        showMessage(MessageService.SUCCESS.PROFILE_UPDATED);
       } else {
         setError(updateResponse.error || "Failed to update profile");
-        Alert.alert(
-          "Error",
-          updateResponse.error || "Failed to update profile"
-        );
+        showError(updateResponse.error || "Failed to update profile");
       }
     } catch (error) {
       setIsLoading(false);
       console.error("Error updating profile:", error);
       setError("An unexpected error occurred while updating the profile");
-      Alert.alert("Error", "Failed to update profile");
+      showError("Failed to update profile");
     }
   };
 
@@ -218,93 +215,77 @@ const EditProfileScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Text style={styles.backButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>Edit Profile</Text>
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={handleSubmit}
-              disabled={isLoading}
-            >
-              <Text style={styles.saveButtonText}>Save</Text>
-            </TouchableOpacity>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FFFFFF"
+        translucent={false}
+      />
+
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Edit Profile</Text>
+        <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.form}>
+          <ProfilePictureUpload
+            currentProfilePicture={formData.profilePicture}
+            currentPublicId={formData.profilePicturePublicId}
+            onUploadComplete={handleProfilePictureUpload}
+            onUploadError={handleProfilePictureError}
+            userId={Number(user?.id)}
+            size={120}
+          />
+
+          <View style={styles.formSection}>
+            <Text style={styles.label}>Username</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.username}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, username: text }))
+              }
+              placeholder="Enter your username"
+            />
+
+            <Text style={styles.label}>Name</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.name}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, name: text }))
+              }
+              placeholder="Enter your name"
+            />
+
+            <Text style={styles.label}>Bio</Text>
+            <TextInput
+              style={[styles.input, styles.bioInput]}
+              value={formData.description}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, description: text }))
+              }
+              placeholder="Write something about yourself"
+              placeholderTextColor="#999"
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
           </View>
-
-          {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-
-          <View style={styles.form}>
-            {/* <TouchableOpacity
-              style={styles.profilePictureContainer}
-              onPress={handleImagePick}
-            >
-              {formData.profilePicture ? (
-                <Image
-                  source={{ uri: formData.profilePicture }}
-                  style={styles.profilePicture}
-                />
-              ) : (
-                <View style={styles.profilePicturePlaceholder}>
-                  <FontAwesome name="camera" size={24} color="#999" />
-                </View>
-              )} */}
-            <View style={styles.editIconContainer}>
-              <FontAwesome name="pencil" size={16} color="#FFF" />
-            </View>
-            {/* </TouchableOpacity> */}
-
-            <View style={styles.formSection}>
-              <Text style={styles.label}>Username</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.username}
-                onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, username: text }))
-                }
-                placeholder="Enter your username"
-              />
-
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.name}
-                onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, name: text }))
-                }
-                placeholder="Enter your name"
-              />
-
-              <Text style={styles.label}>Bio</Text>
-              <TextInput
-                style={[styles.input, styles.bioInput]}
-                value={formData.description}
-                onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, description: text }))
-                }
-                placeholder="Write something about yourself"
-                placeholderTextColor="#999"
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

@@ -17,6 +17,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
 import { CloudinaryUploadOptions } from '../../services/cloudinary.service';
 import { cloudinaryUploadStyles } from '../../styles/components/cloudinaryStyles';
+import { useMessage } from '../../context/MessageContext';
+import MessageService from '../../services/messageService';
+import { QuickMessages } from '../../utils/messageUtils';
 
 export interface CloudinaryVideoUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;
@@ -43,6 +46,8 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
 }) => {
   const { uploading, error, uploadVideo, uploadFromCamera, clearError } = useCloudinary();
   const [uploadedVideos, setUploadedVideos] = useState<CloudinaryUploadResponse[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const { showError, showMessage } = useMessage();
 
   const handleUploadOption = () => {
     Alert.alert(
@@ -121,6 +126,31 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
   };
 
   const canAddMore = !allowMultiple ? uploadedVideos.length === 0 : uploadedVideos.length < maxVideos;
+
+  const pickAndUploadVideo = async () => {
+    try {
+      // ... existing video picking logic ...
+      
+      if (result.canceled) {
+        return;
+      }
+
+      // ... existing upload logic ...
+      
+    } catch (error: any) {
+      console.error('Error uploading video:', error);
+      const errorMessage = error?.message || 'Failed to upload video';
+      
+      // REMPLACÉ: Alert.alert par le système centralisé
+      showError(errorMessage);
+      
+      if (onUploadError) {
+        onUploadError(errorMessage);
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <View style={[cloudinaryVideoUploadStyles.container, style]}>

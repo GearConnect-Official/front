@@ -2,11 +2,14 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import styles from "../../styles/feed/postHeaderStyles";
 import PostOptionsButton from "./PostOptionsButton";
+import { CloudinaryAvatar } from "../media/CloudinaryImage";
+import { defaultImages } from "../../config/defaultImages";
 
 interface PostHeaderProps {
   postId: string;
   username: string;
   avatar: string;
+  profilePicturePublicId?: string;
   onProfilePress: () => void;
   currentUsername: string;
 }
@@ -15,6 +18,7 @@ const PostHeader: React.FC<PostHeaderProps> = ({
   postId,
   username,
   avatar,
+  profilePicturePublicId,
   onProfilePress,
   currentUsername,
 }) => {
@@ -25,7 +29,26 @@ const PostHeader: React.FC<PostHeaderProps> = ({
         onPress={onProfilePress}
         activeOpacity={0.8}
       >
-        <Image source={{ uri: avatar }} style={styles.avatar} />
+        {profilePicturePublicId ? (
+          <CloudinaryAvatar
+            publicId={profilePicturePublicId}
+            size={32}
+            quality="auto"
+            format="auto"
+            style={styles.avatar}
+            fallbackUrl={avatar}
+          />
+        ) : avatar ? (
+          <Image 
+            source={{ uri: avatar }} 
+            style={styles.avatar} 
+          />
+        ) : (
+          <Image 
+            source={defaultImages.profile} 
+            style={styles.avatar} 
+          />
+        )}
         <Text style={styles.username}>{username}</Text>
       </TouchableOpacity>
 

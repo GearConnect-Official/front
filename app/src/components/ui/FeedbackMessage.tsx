@@ -1,8 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ErrorType } from '../../services/axiosConfig';
-import { feedbackMessageStyles } from '../../styles/components/feedbackMessageStyles';
+import MessageAnimations from '../../styles/animations/messageAnimations';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Types de feedback
 export enum FeedbackType {
@@ -16,53 +18,164 @@ export enum FeedbackType {
 interface FeedbackMessageProps {
   message: string;
   type?: FeedbackType;
-  duration?: number; // en millisecondes
+  duration?: number;
   onDismiss?: () => void;
-  errorType?: ErrorType; // pour les erreurs API
+  errorType?: ErrorType;
   visible: boolean;
   testID?: string;
 }
 
 /**
- * Composant pour afficher des messages de feedback à l'utilisateur
- * (erreurs, avertissements, succès, etc.)
+ * Composant moderne et responsive pour afficher des messages de feedback
  */
 const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
   message,
   type = FeedbackType.INFO,
-  duration = 5000, // 5 seconds by default
+  duration = 5000,
   onDismiss,
   errorType,
   visible,
   testID
 }) => {
-  const [opacity] = useState(new Animated.Value(0));
+  // Valeurs d'animation
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(-50)).current;
+  const scale = useRef(new Animated.Value(0.95)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const iconRotation = useRef(new Animated.Value(0)).current;
+  
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Configuration responsive
+  const isSmallScreen = screenWidth < 375;
+  const isTablet = screenWidth > 768;
+
+  // Configuration des couleurs selon le type
+  const getTypeConfig = () => {
+    switch (type) {
+      case FeedbackType.SUCCESS:
+        return {
+          iconName: 'checkmark-circle' as const,
+          backgroundColor: '#10B981',
+          textColor: '#FFFFFF',
+        };
+      case FeedbackType.ERROR:
+        return {
+          iconName: 'close-circle' as const,
+          backgroundColor: '#EF4444',
+          textColor: '#FFFFFF',
+        };
+      case FeedbackType.WARNING:
+        return {
+          iconName: 'warning' as const,
+          backgroundColor: '#F59E0B',
+          textColor: '#FFFFFF',
+        };
+      default: // INFO
+        return {
+          iconName: 'information-circle' as const,
+          backgroundColor: '#3B82F6',
+          textColor: '#FFFFFF',
+        };
+    }
+  };
+
+  const typeConfig = getTypeConfig();
+
+  // Styles responsives
+  const getResponsiveStyles = () => {
+    const horizontalPadding = isSmallScreen ? 16 : 20;
+    const messageWidth = screenWidth - (horizontalPadding * 2);
+    
+    return {
+      horizontalPadding,
+      messageWidth,
+      verticalPadding: isSmallScreen ? 12 : 16,
+      iconSize: isSmallScreen ? 20 : 24,
+      fontSize: isSmallScreen ? 14 : 15,
+      borderRadius: isSmallScreen ? 12 : 16,
+      topPosition: isSmallScreen ? 50 : 60,
+      iconMargin: isSmallScreen ? 10 : 12,
+      closeButtonPadding: isSmallScreen ? 6 : 8,
+    };
+  };
+
+  const responsive = getResponsiveStyles();
 
   const handleDismiss = useCallback(() => {
-    // Animation de disparition
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 300,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start(() => {
-      if (onDismiss) {
-        onDismiss();
-      }
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: -30,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scale, {
+        toValue: 0.95,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setTimeout(() => {
+        setIsVisible(false);
+        if (onDismiss) {
+          onDismiss();
+        }
+      }, 0);
     });
-  }, [opacity, onDismiss]);
+  }, [opacity, translateY, scale, onDismiss]);
 
   useEffect(() => {
     if (visible) {
-      // Animation d'apparition
-      Animated.timing(opacity, {
+      setIsVisible(true);
+      
+      // Reset values
+      opacity.setValue(0);
+      translateY.setValue(-50);
+      scale.setValue(0.95);
+      translateX.setValue(0);
+      iconRotation.setValue(0);
+
+      // Entrance animation
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(translateY, {
+          toValue: 0,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scale, {
+          toValue: 1,
+          tension: 120,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      
+      // Icon rotation animation
+      Animated.timing(iconRotation, {
         toValue: 1,
-        duration: 300,
-        easing: Easing.ease,
+        duration: 500,
         useNativeDriver: true,
       }).start();
 
-      // Si duration > 0, configurer la disparition automatique
+      // Shake animation for errors
+      if (type === FeedbackType.ERROR) {
+        setTimeout(() => {
+          MessageAnimations.createShakeAnimation(translateX).start();
+        }, 200);
+      }
+
+      // Auto dismiss
       if (duration > 0) {
         const timer = setTimeout(() => {
           handleDismiss();
@@ -71,34 +184,14 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
         return () => clearTimeout(timer);
       }
     } else {
-      // Réinitialiser l'opacité si le composant devient invisible
-      opacity.setValue(0);
+      setTimeout(() => {
+        opacity.setValue(0);
+        translateY.setValue(-50);
+        scale.setValue(0.95);
+        setIsVisible(false);
+      }, 0);
     }
-  }, [visible, duration, handleDismiss, opacity]);
-
-  // Définir l'icône et les couleurs en fonction du type
-  let iconName: string;
-  let containerStyle;
-
-  switch (type) {
-    case FeedbackType.ERROR:
-      iconName = 'alert-circle';
-      containerStyle = feedbackMessageStyles.errorContainer;
-      break;
-    case FeedbackType.WARNING:
-      iconName = 'warning';
-      containerStyle = feedbackMessageStyles.warningContainer;
-      break;
-    case FeedbackType.SUCCESS:
-      iconName = 'checkmark-circle';
-      containerStyle = feedbackMessageStyles.successContainer;
-      break;
-    case FeedbackType.INFO:
-    default:
-      iconName = 'information-circle';
-      containerStyle = feedbackMessageStyles.infoContainer;
-      break;
-  }
+  }, [visible, duration, handleDismiss, opacity, translateY, scale, translateX, iconRotation, type]);
 
   // Adapter le message en fonction du type d'erreur API
   let displayMessage = message;
@@ -117,32 +210,99 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
     }
   }
 
-  if (!visible) {
+  if (!isVisible) {
     return null;
   }
 
+  const animatedRotation = iconRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <Animated.View 
-      style={[
-        feedbackMessageStyles.container,
-        containerStyle,
-        { opacity, transform: [{ translateY: opacity.interpolate({
-          inputRange: [0, 1],
-          outputRange: [-20, 0]
-        })}] }
-      ]}
+      style={{
+        position: 'absolute',
+        top: responsive.topPosition,
+        left: responsive.horizontalPadding,
+        right: responsive.horizontalPadding,
+        backgroundColor: typeConfig.backgroundColor,
+        borderRadius: responsive.borderRadius,
+        paddingVertical: responsive.verticalPadding,
+        paddingHorizontal: responsive.verticalPadding,
+        flexDirection: 'row',
+        alignItems: 'center',
+        zIndex: 1000,
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 8,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+        elevation: 16,
+        // Contraintes de largeur
+        maxWidth: isTablet ? 500 : undefined,
+        alignSelf: isTablet ? 'center' : 'stretch',
+        opacity,
+        transform: [
+          { translateY },
+          { translateX },
+          { scale }
+        ]
+      }}
       testID={testID || 'feedback-container'}
     >
-      <View style={feedbackMessageStyles.content}>
-        <Ionicons name={iconName as any} size={24} color="white" style={feedbackMessageStyles.icon} />
-        <Text style={feedbackMessageStyles.message}>{displayMessage}</Text>
-      </View>
-      <TouchableOpacity 
-        onPress={handleDismiss} 
-        style={feedbackMessageStyles.closeButton}
-        testID="feedback-close-button"
+      {/* Icon */}
+      <Animated.View
+        style={{
+          marginRight: responsive.iconMargin,
+          transform: [{ rotate: animatedRotation }]
+        }}
       >
-        <Ionicons name="close" size={20} color="white" />
+        <Ionicons 
+          name={typeConfig.iconName} 
+          size={responsive.iconSize} 
+          color={typeConfig.textColor}
+        />
+      </Animated.View>
+
+      {/* Message */}
+      <Text 
+        style={{
+          flex: 1,
+          fontSize: responsive.fontSize,
+          fontWeight: '600',
+          color: typeConfig.textColor,
+          lineHeight: responsive.fontSize * 1.4,
+          letterSpacing: -0.1,
+        }}
+        numberOfLines={3}
+        adjustsFontSizeToFit={isSmallScreen}
+      >
+        {displayMessage}
+      </Text>
+
+      {/* Close button */}
+      <TouchableOpacity 
+        onPress={handleDismiss}
+        style={{
+          marginLeft: responsive.iconMargin,
+          padding: responsive.closeButtonPadding,
+          // Zone de touch plus grande pour les petits écrans
+          minWidth: isSmallScreen ? 32 : 36,
+          minHeight: isSmallScreen ? 32 : 36,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+        testID="feedback-close-button"
+        activeOpacity={0.7}
+      >
+        <Ionicons 
+          name="close" 
+          size={isSmallScreen ? 18 : 20} 
+          color={typeConfig.textColor}
+        />
       </TouchableOpacity>
     </Animated.View>
   );

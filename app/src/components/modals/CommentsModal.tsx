@@ -10,13 +10,15 @@ import {
   Platform,
   SafeAreaView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { formatPostDate } from '../../utils/dateUtils';
 import postService, { Comment } from '../../services/postService';
 import { useAuth } from '../../context/AuthContext';
 import { commentsModalStyles } from '../../styles/modals/commentsModalStyles';
+import { useMessage } from '../../context/MessageContext';
+import MessageService from '../../services/messageService';
+import { QuickMessages } from '../../utils/messageUtils';
 
 interface CommentsModalProps {
   isVisible: boolean;
@@ -41,6 +43,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   const [hasMoreComments, setHasMoreComments] = useState(true);
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
   const [editText, setEditText] = useState('');
+  const { showError, showConfirmation } = useMessage();
 
   const loadComments = useCallback(async (page = 1) => {
     try {
@@ -64,12 +67,12 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       setHasMoreComments(newComments.length === response.pagination.itemsPerPage);
       setCurrentPage(page);
     } catch (error) {
-      console.error('Error loading comments:', error);
-      Alert.alert('Error', 'Failed to load comments');
+      console.error('Failed to load comments:', error);
+      showError('Failed to load comments');
     } finally {
       setIsLoading(false);
     }
-  }, [postId]);
+  }, [postId, showError]);
 
   useEffect(() => {
     if (isVisible) {
@@ -93,8 +96,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       // Recharger les commentaires pour avoir l'ordre correct
       loadComments(1);
     } catch (error) {
-      console.error('Error adding comment:', error);
-      Alert.alert('Error', 'Failed to add comment');
+      console.error('Failed to add comment:', error);
+      showError('Failed to add comment');
     } finally {
       setIsLoading(false);
     }
@@ -109,38 +112,35 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       // Recharger les commentaires
       loadComments(1);
     } catch (error) {
-      console.error('Error editing comment:', error);
-      Alert.alert('Error', 'Failed to edit comment');
+      console.error('Failed to edit comment:', error);
+      showError('Failed to edit comment');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteComment = async (comment: Comment) => {
-    Alert.alert(
-      'Delete Comment',
-      'Are you sure you want to delete this comment?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsLoading(true);
-              await postService.deleteComment(comment.postId, comment.userId);
-              // Recharger les commentaires
-              loadComments(1);
-            } catch (error) {
-              console.error('Error deleting comment:', error);
-              Alert.alert('Error', 'Failed to delete comment');
-            } finally {
-              setIsLoading(false);
-            }
-          },
-        },
-      ]
-    );
+    showConfirmation({
+      title: "Delete Comment",
+      message: "Are you sure you want to delete this comment?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      destructive: true,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          setIsLoading(true);
+          await postService.deleteComment(comment.postId, comment.userId);
+          // Recharger les commentaires
+          loadComments(1);
+        } catch (error) {
+          console.error('Failed to delete comment:', error);
+          showError('Failed to delete comment');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
   };
 
   const renderComment = ({ item: comment }: { item: Comment }) => (

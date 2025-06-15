@@ -15,6 +15,9 @@ import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import styles from "../styles/auth/forgotPasswordStyles";
+import { useMessage } from '../context/MessageContext';
+import MessageService from '../services/messageService';
+import { QuickMessages } from '../utils/messageUtils';
 
 /**
  * ForgotPasswordScreen Component
@@ -36,6 +39,7 @@ const ForgotPasswordScreen: React.FC = () => {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { showMessage, showError, showInfo } = useMessage();
   
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -90,12 +94,12 @@ const ForgotPasswordScreen: React.FC = () => {
 
       setSuccessfulCreation(true);
       setError("");
-      Alert.alert("Success", "Password reset code has been sent to your email");
+      showMessage(QuickMessages.success("Password reset code has been sent to your email"));
     } catch (err: any) {
       console.error('Error sending reset code:', err);
       const errorMessage = err.errors?.[0]?.longMessage || err.message || "Failed to send reset code";
       setError(errorMessage);
-      Alert.alert("Error", errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -141,12 +145,12 @@ const ForgotPasswordScreen: React.FC = () => {
       if (result.status === 'needs_second_factor') {
         setSecondFactor(true);
         setError("");
-        Alert.alert("2FA Required", "Two-factor authentication is required to complete the password reset");
+        showInfo("Two-factor authentication is required to complete the password reset");
       } else if (result.status === 'complete') {
         // Set the active session to the newly created session (user is now signed in)
         await setActive({ session: result.createdSessionId });
         setError("");
-        Alert.alert("Success", "Your password has been reset successfully!");
+        showMessage(QuickMessages.success("Your password has been reset successfully!"));
         router.push("/(app)/(tabs)/home");
       } else {
         console.log('Unexpected result status:', result);
@@ -156,7 +160,7 @@ const ForgotPasswordScreen: React.FC = () => {
       console.error('Error resetting password:', err);
       const errorMessage = err.errors?.[0]?.longMessage || err.message || "Failed to reset password";
       setError(errorMessage);
-      Alert.alert("Error", errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -70,10 +70,32 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 10,
+    position: 'relative',
   },
   activeTab: {
     borderBottomWidth: 2,
     borderBottomColor: THEME_COLORS.primary,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: 5,
+    right: '25%',
+    backgroundColor: THEME_COLORS.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: THEME_COLORS.background,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   section: {
     padding: 15,
@@ -176,6 +198,78 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  // Styles pour les amis
+  friendCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: THEME_COLORS.cardLight,
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    shadowColor: THEME_COLORS.secondary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  friendInfo: {
+    flex: 1,
+    marginLeft: 0,
+  },
+  friendName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: THEME_COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  friendStatus: {
+    fontSize: 14,
+    color: THEME_COLORS.textSecondary,
+  },
+  messageButton: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: THEME_COLORS.background,
+  },
+  // Styles pour les demandes envoyées
+  sentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: THEME_COLORS.cardLight,
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    shadowColor: THEME_COLORS.secondary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  sentInfo: {
+    flex: 1,
+    marginLeft: 0,
+  },
+  sentName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: THEME_COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  sentStatus: {
+    fontSize: 14,
+    color: THEME_COLORS.textSecondary,
+  },
+  cancelButton: {
+    backgroundColor: THEME_COLORS.card,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  cancelButtonText: {
+    color: THEME_COLORS.textPrimary,
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
 

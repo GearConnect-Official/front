@@ -9,10 +9,8 @@ export default function TabsLayout() {
       tabBar={(props: any) => <BottomNav {...props} />}
     >
       <Tabs.Screen name="home" />
-      <Tabs.Screen name="network" />
       <Tabs.Screen name="publication" />
       <Tabs.Screen name="events" />
-      <Tabs.Screen name="jobs" />
     </Tabs>
   );
 } 

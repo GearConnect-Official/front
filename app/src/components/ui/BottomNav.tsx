@@ -12,10 +12,8 @@ const BottomNav = (props: any) => {
   // Define tab routes with their paths and labels
   const tabs = [
     { name: "Home", path: "/(app)/(tabs)/home" },
-    { name: "Network", path: "/(app)/(tabs)/network" },
     { name: "Publication", path: "/(app)/(tabs)/publication" },
-    { name: "Events", path: "/(app)/(tabs)/events" },
-    { name: "Jobs", path: "/(app)/(tabs)/jobs" }
+    { name: "Events", path: "/(app)/(tabs)/events" }
   ];
 
   const handleNavigation = (path: string) => {
@@ -35,13 +33,14 @@ const BottomNav = (props: any) => {
           >
             <FontAwesome
               name={getIconName(tab.name) as any}
-              size={24}
-              color={isActive ? "#000" : "#6A707C"}
+              size={tab.name === "Home" ? 26 : 24}
+              color={isActive ? "#E10600" : "#6A707C"}
             />
             <Text
               style={[
                 styles.tabText,
                 isActive && styles.activeTabText,
+                { color: isActive ? "#E10600" : "#6A707C" }
               ]}
             >
               {tab.name}
@@ -57,15 +56,11 @@ const BottomNav = (props: any) => {
 const getIconName = (routeName: string) => {
   switch (routeName) {
     case "Home":
-      return "home";
-    case "Network":
-      return "users";
+      return "flag-checkered"; // Drapeau à damier - symbole emblématique de la course
     case "Publication":
-      return "plus-square";
+      return "camera"; // Caméra pour capturer les moments de course
     case "Events":
-      return "calendar";
-    case "Jobs":
-      return "briefcase";
+      return "trophy"; // Trophée pour les événements de course
     default:
       return "circle";
   }

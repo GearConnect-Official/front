@@ -28,7 +28,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   color = "#1E1E1E",
 }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-    <FontAwesome5 name={icon} size={20} color={color} style={styles.menuIcon} />
+    <FontAwesome5 name={icon} size={18} color={color} style={styles.menuIcon} />
     <Text style={[styles.menuText, { color }]}>{label}</Text>
   </TouchableOpacity>
 );

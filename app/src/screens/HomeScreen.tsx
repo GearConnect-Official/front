@@ -471,6 +471,11 @@ const HomeScreen: React.FC = () => {
     router.push("/profile");
   };
 
+  const handleNavigateToMessages = () => {
+    // TODO: Implémenter la navigation vers la messagerie
+    console.log("Navigate to messages - not implemented yet");
+  };
+
   const renderSeparator = () => {
     return (
       <View style={styles.dateSeperatorContainer}>
@@ -765,33 +770,49 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.appTitle}>GearConnect</Text>
           </View>
           <View style={styles.headerRight}>
-                      <TouchableOpacity
-            style={styles.headerIconBtn}
-            onPress={handleNavigateToProfile}
-          >
-            {currentUserData?.profilePicturePublicId ? (
-              <CloudinaryAvatar
-                publicId={currentUserData.profilePicturePublicId}
-                size={32}
-                quality="auto"
-                format="auto"
-                style={styles.profileImage}
-                fallbackUrl={currentUserData?.profilePicture}
-              />
-            ) : currentUserData?.profilePicture || (user as any)?.profilePicture ? (
-              <Image 
-                source={{ 
-                  uri: currentUserData?.profilePicture || (user as any)?.profilePicture 
-                }} 
-                style={styles.profileImage}
-              />
-            ) : (
-              <Image 
-                source={defaultImages.profile} 
-                style={styles.profileImage}
-              />
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.headerIconBtn, { position: 'relative' }]}
+              onPress={handleNavigateToMessages}
+            >
+              <FontAwesome name="comments" size={22} color="#6A707C" />
+              {/* Badge pour futures notifications */}
+              {/* <View style={{
+                position: 'absolute',
+                top: 6,
+                right: 6,
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: '#E10600'
+              }} /> */}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              onPress={handleNavigateToProfile}
+            >
+              {currentUserData?.profilePicturePublicId ? (
+                <CloudinaryAvatar
+                  publicId={currentUserData.profilePicturePublicId}
+                  size={32}
+                  quality="auto"
+                  format="auto"
+                  style={styles.profileImage}
+                  fallbackUrl={currentUserData?.profilePicture}
+                />
+              ) : currentUserData?.profilePicture || (user as any)?.profilePicture ? (
+                <Image 
+                  source={{ 
+                    uri: currentUserData?.profilePicture || (user as any)?.profilePicture 
+                  }} 
+                  style={styles.profileImage}
+                />
+              ) : (
+                <Image 
+                  source={defaultImages.profile} 
+                  style={styles.profileImage}
+                />
+              )}
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -822,6 +843,22 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.appTitle}>GearConnect</Text>
         </View>
         <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={[styles.headerIconBtn, { position: 'relative' }]}
+            onPress={handleNavigateToMessages}
+          >
+            <FontAwesome name="comments" size={22} color="#6A707C" />
+            {/* Badge pour futures notifications */}
+            {/* <View style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: '#E10600'
+            }} /> */}
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerIconBtn}
             onPress={handleNavigateToProfile}

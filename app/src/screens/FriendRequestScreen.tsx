@@ -27,10 +27,10 @@ const THEME_COLORS = {
   border: '#E0E0E0',
 };
 
-const FriendRequestScreen: React.FC = () => {
+const FriendsScreen: React.FC = () => {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState("requests");
+  const [activeTab, setActiveTab] = useState("friends");
   const [isAddFriendModalVisible, setIsAddFriendModalVisible] = useState(false);
   const scrollY = new Animated.Value(0);
 
@@ -63,7 +63,7 @@ const FriendRequestScreen: React.FC = () => {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.secondary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: THEME_COLORS.secondary }]}>Network</Text>
+        <Text style={[styles.headerTitle, { color: THEME_COLORS.secondary }]}>Friends</Text>
         <View style={styles.placeholderRight}></View>
       </View>
 
@@ -74,8 +74,25 @@ const FriendRequestScreen: React.FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={THEME_COLORS.primary} />
         }
       >
-        {/* Tabs filter section */}
+        {/* Tabs navigation section */}
         <View style={styles.tabsContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'friends' && styles.activeTab]} 
+            onPress={() => setActiveTab('friends')}
+          >
+            <FontAwesome 
+              name="users" 
+              size={22} 
+              color={activeTab === 'friends' ? THEME_COLORS.primary : THEME_COLORS.textSecondary} 
+            />
+            <Text style={[
+              styles.tabText, 
+              { color: activeTab === 'friends' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
+            ]}>
+              Mes amis
+            </Text>
+          </TouchableOpacity>
+          
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'requests' && styles.activeTab]} 
             onPress={() => setActiveTab('requests')}
@@ -85,34 +102,78 @@ const FriendRequestScreen: React.FC = () => {
               size={22} 
               color={activeTab === 'requests' ? THEME_COLORS.primary : THEME_COLORS.textSecondary} 
             />
+            <Text style={[
+              styles.tabText, 
+              { color: activeTab === 'requests' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
+            ]}>
+              Reçues
+            </Text>
+            {/* Badge pour nouvelles demandes */}
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>2</Text>
+            </View>
           </TouchableOpacity>
+          
           <TouchableOpacity 
-            style={[styles.tab, activeTab === 'connections' && styles.activeTab]} 
-            onPress={() => setActiveTab('connections')}
+            style={[styles.tab, activeTab === 'sent' && styles.activeTab]} 
+            onPress={() => setActiveTab('sent')}
           >
             <FontAwesome 
-              name="users" 
+              name="paper-plane" 
               size={22} 
-              color={activeTab === 'connections' ? THEME_COLORS.primary : THEME_COLORS.textSecondary} 
+              color={activeTab === 'sent' ? THEME_COLORS.primary : THEME_COLORS.textSecondary} 
             />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'suggestions' && styles.activeTab]} 
-            onPress={() => setActiveTab('suggestions')}
-          >
-            <FontAwesome 
-              name="user-circle" 
-              size={22} 
-              color={activeTab === 'suggestions' ? THEME_COLORS.primary : THEME_COLORS.textSecondary} 
-            />
+            <Text style={[
+              styles.tabText, 
+              { color: activeTab === 'sent' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
+            ]}>
+              Envoyées
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Tabs filter section */}
+        {/* Content based on active tab */}
         <View style={styles.mainContainer}>
+          {/* Onglet Mes amis */}
+          {activeTab === "friends" && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Mes amis • 12</Text>
+              
+              {/* Liste des amis */}
+              <View style={styles.friendCard}>
+                <Image
+                  source={{ uri: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg" }}
+                  style={styles.avatarImage}
+                />
+                <View style={styles.friendInfo}>
+                  <Text style={styles.friendName}>Marc Dubois</Text>
+                  <Text style={styles.friendStatus}>🏁 Pilote GT3 • En ligne</Text>
+                </View>
+                <TouchableOpacity style={styles.messageButton}>
+                  <FontAwesome name="comment" size={18} color={THEME_COLORS.primary} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.friendCard}>
+                <Image
+                  source={{ uri: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg" }}
+                  style={styles.avatarImage}
+                />
+                <View style={styles.friendInfo}>
+                  <Text style={styles.friendName}>Sophie Martin</Text>
+                  <Text style={styles.friendStatus}>🏎️ Formule 4 • Hors ligne</Text>
+                </View>
+                <TouchableOpacity style={styles.messageButton}>
+                  <FontAwesome name="comment" size={18} color={THEME_COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Onglet Demandes reçues */}
           {activeTab === "requests" && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Friend Requests</Text>
+              <Text style={styles.sectionTitle}>Demandes d'amis</Text>
               <View style={styles.requestCard}>
                 <Image
                   source={{ uri: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg" }}
@@ -120,13 +181,13 @@ const FriendRequestScreen: React.FC = () => {
                 />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName}>John Doe</Text>
-                  <Text style={styles.requestMutual}>5 mutual friends</Text>
+                  <Text style={styles.requestMutual}>🏁 5 amis en commun • Pilote amateur</Text>
                   <View style={styles.requestActions}>
                     <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptRequest}>
-                      <Text style={styles.acceptButtonText}>Accept</Text>
+                      <Text style={styles.acceptButtonText}>Accepter</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.declineButton}>
-                      <Text style={styles.declineButtonText}>Decline</Text>
+                      <Text style={styles.declineButtonText}>Refuser</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -139,13 +200,13 @@ const FriendRequestScreen: React.FC = () => {
                 />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName}>Jane Smith</Text>
-                  <Text style={styles.requestMutual}>2 mutual friends</Text>
+                  <Text style={styles.requestMutual}>🏎️ 2 amis en commun • Karting</Text>
                   <View style={styles.requestActions}>
                     <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptRequest}>
-                      <Text style={styles.acceptButtonText}>Accept</Text>
+                      <Text style={styles.acceptButtonText}>Accepter</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.declineButton}>
-                      <Text style={styles.declineButtonText}>Decline</Text>
+                      <Text style={styles.declineButtonText}>Refuser</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -153,26 +214,37 @@ const FriendRequestScreen: React.FC = () => {
             </View>
           )}
 
-          {activeTab === "connections" && (
+          {/* Onglet Demandes envoyées */}
+          {activeTab === "sent" && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Your Connections</Text>
-              {/* Add connections list here */}
-              <View style={styles.emptyContainer}>
-                <FontAwesome name="users" size={60} color="#CCCCCC" />
-                <Text style={styles.emptyTitle}>No Connections</Text>
-                <Text style={styles.emptySubtitle}>Start connecting with other motorsport enthusiasts</Text>
+              <Text style={styles.sectionTitle}>Demandes envoyées</Text>
+              
+              <View style={styles.sentCard}>
+                <Image
+                  source={{ uri: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg" }}
+                  style={styles.avatarImage}
+                />
+                <View style={styles.sentInfo}>
+                  <Text style={styles.sentName}>Alex Rodriguez</Text>
+                  <Text style={styles.sentStatus}>🏁 Demande envoyée il y a 2 jours</Text>
+                </View>
+                <TouchableOpacity style={styles.cancelButton}>
+                  <Text style={styles.cancelButtonText}>Annuler</Text>
+                </TouchableOpacity>
               </View>
-            </View>
-          )}
 
-          {activeTab === "suggestions" && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Suggestions</Text>
-              {/* Add suggestions list here */}
-              <View style={styles.emptyContainer}>
-                <FontAwesome name="user-circle" size={60} color="#CCCCCC" />
-                <Text style={styles.emptyTitle}>No Suggestions</Text>
-                <Text style={styles.emptySubtitle}>We&apos;ll suggest connections based on your interests</Text>
+              <View style={styles.sentCard}>
+                <Image
+                  source={{ uri: "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg" }}
+                  style={styles.avatarImage}
+                />
+                <View style={styles.sentInfo}>
+                  <Text style={styles.sentName}>Lisa Chen</Text>
+                  <Text style={styles.sentStatus}>🏎️ Demande envoyée il y a 5 jours</Text>
+                </View>
+                <TouchableOpacity style={styles.cancelButton}>
+                  <Text style={styles.cancelButtonText}>Annuler</Text>
+                </TouchableOpacity>
               </View>
             </View>
           )}
@@ -196,5 +268,5 @@ const FriendRequestScreen: React.FC = () => {
   );
 };
 
-export default FriendRequestScreen;
+export default FriendsScreen;
 

@@ -20,6 +20,7 @@ export default function AppLayout() {
       <Stack.Screen name="createEvent" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="userProfile" />
+      <Stack.Screen name="friends" />
       <Stack.Screen name="verify" />
       <Stack.Screen name="publication" />
       <Stack.Screen name="performances" />

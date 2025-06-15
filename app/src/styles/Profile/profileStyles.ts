@@ -66,10 +66,44 @@ const styles = StyleSheet.create({  container: {
     alignItems: "flex-start",
   },
   menuButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     justifyContent: "center",
-    alignItems: "flex-end",
+    alignItems: "center",
+    borderRadius: 8,
+    backgroundColor: "transparent",
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  friendsButton: {
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    backgroundColor: "transparent",
+    position: "relative",
+    marginRight: 10,
+  },
+  friendsBadge: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "#E10600",
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  friendsBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "bold",
   },
   username: {
     fontSize: 18,
@@ -703,7 +737,8 @@ const styles = StyleSheet.create({  container: {
     fontWeight: "500",
   },
   loadingContainer: {
-    paddingVertical: 20,
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
   },
   loadingText: {
@@ -850,6 +885,21 @@ const styles = StyleSheet.create({  container: {
     shadowRadius: 8,
     elevation: 4,
   },
+  performanceStatIconRaces: {
+    backgroundColor: "rgba(225, 6, 0, 0.1)",
+  },
+  performanceStatIconWins: {
+    backgroundColor: "rgba(255, 215, 0, 0.15)",
+  },
+  performanceStatIconPodiums: {
+    backgroundColor: "rgba(192, 192, 192, 0.15)",
+  },
+  performanceStatValueWins: {
+    color: "#FFD700",
+  },
+  performanceStatValuePodiums: {
+    color: "#C0C0C0",
+  },
   performanceStatContent: {
     alignItems: "center",
   },
@@ -955,6 +1005,13 @@ const styles = StyleSheet.create({  container: {
     height: 40,
     borderRadius: 20,
     backgroundColor: "rgba(225, 6, 0, 0.04)",
+  },
+  gridRow: {
+    flexDirection: "row",
+  },
+  mainTabContent: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
   },
 });
 

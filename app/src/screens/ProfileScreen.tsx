@@ -448,12 +448,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     router.push("/performances");
   };
 
+  const handleFriendsPress = () => {
+    router.push("/friends");
+  };
+
+  const handleSendMessage = () => {
+    // TODO: Naviguer vers la messagerie pour envoyer un message
+    console.log("Navigate to send message - not implemented yet");
+  };
+
   const renderPostsGrid = () => {
     if (isLoadingPosts) {
       return (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E10600" />
         </View>
       );
@@ -470,7 +477,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     for (let i = 0; i < rows; i++) {
       const rowItems = posts.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
       const row = (
-        <View key={`row-${i}`} style={{ flexDirection: "row" }}>
+        <View key={`row-${i}`} style={styles.gridRow}>
           {rowItems.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -527,9 +534,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const renderReelsGrid = () => {
     if (isLoadingPosts) {
       return (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E10600" />
         </View>
       );
@@ -548,7 +553,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     for (let i = 0; i < rows; i++) {
       const rowItems = videoPosts.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
       const row = (
-        <View key={`row-${i}`} style={{ flexDirection: "row" }}>
+        <View key={`row-${i}`} style={styles.gridRow}>
           {rowItems.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -593,9 +598,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const renderFavoritesGrid = () => {
     if (isLoadingFavorites) {
       return (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E10600" />
         </View>
       );
@@ -619,7 +622,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     for (let i = 0; i < rows; i++) {
       const rowItems = favorites.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
       const row = (
-        <View key={`row-${i}`} style={{ flexDirection: "row" }}>
+        <View key={`row-${i}`} style={styles.gridRow}>
           {rowItems.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -710,7 +713,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     for (let i = 0; i < rows; i++) {
       const rowItems = likedPosts.slice(i * NUM_COLUMNS, (i + 1) * NUM_COLUMNS);
       const row = (
-        <View key={`row-${i}`} style={{ flexDirection: "row" }}>
+        <View key={`row-${i}`} style={styles.gridRow}>
           {rowItems.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -840,12 +843,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <FontAwesome name="arrow-left" size={20} color="#1E1E1E" />
           </TouchableOpacity>
           <Text style={styles.username}>Profile</Text>
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => setMenuVisible(true)}
-          >
-            <FontAwesome name="ellipsis-v" size={20} color="#1E1E1E" />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.friendsButton}
+              onPress={handleFriendsPress}
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            >
+              <FontAwesome name="users" size={20} color="#1E1E1E" />
+              {/* Badge pour nouvelles demandes d'amis */}
+              <View style={styles.friendsBadge}>
+                <Text style={styles.friendsBadgeText}>2</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setMenuVisible(true)}
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            >
+              <FontAwesome name="bars" size={24} color="#1E1E1E" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Profile section with avatar and statistics */}
@@ -910,7 +927,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, styles.messageButton]}
-                onPress={() => console.log("Message pressed")}
+                onPress={handleSendMessage}
               >
                 <Text style={styles.messageButtonText}>Message</Text>
               </TouchableOpacity>
@@ -953,7 +970,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                       <View
                         style={[
                           styles.performanceStatIcon,
-                          { backgroundColor: "rgba(225, 6, 0, 0.1)" },
+                          styles.performanceStatIconRaces,
                         ]}
                       >
                         <FontAwesome
@@ -976,7 +993,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                       <View
                         style={[
                           styles.performanceStatIcon,
-                          { backgroundColor: "rgba(255, 215, 0, 0.15)" },
+                          styles.performanceStatIconWins,
                         ]}
                       >
                         <FontAwesome name="trophy" size={28} color="#FFD700" />
@@ -985,7 +1002,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         <Text
                           style={[
                             styles.performanceStatValue,
-                            { color: "#FFD700" },
+                            styles.performanceStatValueWins,
                           ]}
                         >
                           {driverStats.wins}
@@ -1002,7 +1019,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                       <View
                         style={[
                           styles.performanceStatIcon,
-                          { backgroundColor: "rgba(192, 192, 192, 0.15)" },
+                          styles.performanceStatIconPodiums,
                         ]}
                       >
                         <FontAwesome name="trophy" size={28} color="#C0C0C0" />
@@ -1011,7 +1028,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         <Text
                           style={[
                             styles.performanceStatValue,
-                            { color: "#C0C0C0" },
+                            styles.performanceStatValuePodiums,
                           ]}
                         >
                           {driverStats.podiums}

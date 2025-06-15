@@ -5,32 +5,15 @@ import { ThemeProvider } from './src/context/ThemeContext';
 import AxiosConfigProvider from './src/services/axiosConfig';
 import { AuthProvider } from './src/context/AuthContext';
 import ErrorBoundary from './src/components/ui/ErrorBoundary';
-import FeedbackMessage from './src/components/ui/FeedbackMessage';
-import useFeedback from './src/hooks/useFeedback';
+
+// NOUVEAU: Système de messages centralisé
+import { MessageProvider } from './src/context/MessageContext';
+import MessageDisplay from './src/components/ui/MessageProvider';
+
 import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';
-import { View } from 'react-native';
 import Constants from 'expo-constants';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-// Feedback Manager Component
-const FeedbackManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { feedbackState, hideFeedback } = useFeedback();
-  
-  return (
-    <View style={{ flex: 1 }}>
-      {children}
-      <FeedbackMessage
-        message={feedbackState.message}
-        type={feedbackState.type}
-        duration={feedbackState.duration}
-        onDismiss={hideFeedback}
-        errorType={feedbackState.errorType}
-        visible={feedbackState.visible}
-      />
-    </View>
-  );
-};
 
 // Connectivity Manager Component - Now only handles initialization, individual screens handle their own network errors
 const ConnectivityManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -60,19 +43,22 @@ export default function RootLayout() {
           <ThemeProvider>
             <AxiosConfigProvider>
               <AuthProvider>
-                <FeedbackManager>
-                <ConnectivityManager>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="(auth)" />
-                    <Stack.Screen name="(app)" />
-                  </Stack>
-                </ConnectivityManager>
-                </FeedbackManager>
-            </AuthProvider>
-          </AxiosConfigProvider>
-        </ThemeProvider>
-      </ClerkProvider>
+                {/* NOUVEAU: MessageProvider remplace FeedbackManager */}
+                <MessageProvider>
+                  <MessageDisplay>
+                    <ConnectivityManager>
+                      <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="index" />
+                        <Stack.Screen name="(auth)" />
+                        <Stack.Screen name="(app)" />
+                      </Stack>
+                    </ConnectivityManager>
+                  </MessageDisplay>
+                </MessageProvider>
+              </AuthProvider>
+            </AxiosConfigProvider>
+          </ThemeProvider>
+        </ClerkProvider>
       </SafeAreaProvider>
     </ErrorBoundary>
   );

@@ -14,6 +14,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useCloudinary } from '../../hooks/useCloudinary';
 import { CloudinaryUploadResponse, CloudinaryUploadOptions } from '../../services/cloudinary.service';
 import { cloudinaryImageUploadStyles } from '../../styles/components/cloudinaryStyles';
+import { useMessage } from '../../context/MessageContext';
+import MessageService from '../../services/messageService';
+import { QuickMessages } from '../../utils/messageUtils';
 
 export interface CloudinaryImageUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;
@@ -40,6 +43,8 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
 }) => {
   const { uploading, error, uploadImage, uploadFromCamera, uploadMultiple, clearError } = useCloudinary();
   const [uploadedImages, setUploadedImages] = useState<CloudinaryUploadResponse[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const { showError, showMessage } = useMessage();
 
   const handleUploadOption = () => {
     Alert.alert(
@@ -88,9 +93,15 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
           onUploadComplete?.(result);
         }
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'upload';
-      onUploadError?.(errorMessage);
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      const errorMessage = error?.message || 'Failed to upload image';
+      
+      showError(errorMessage);
+      
+      if (onUploadError) {
+        onUploadError(errorMessage);
+      }
     }
   };
 
@@ -107,9 +118,15 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
         setUploadedImages(prev => [...prev, result]);
         onUploadComplete?.(result);
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'upload';
-      onUploadError?.(errorMessage);
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      const errorMessage = error?.message || 'Failed to upload image';
+      
+      showError(errorMessage);
+      
+      if (onUploadError) {
+        onUploadError(errorMessage);
+      }
     }
   };
 

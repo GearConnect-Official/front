@@ -6,13 +6,14 @@ import {
   TouchableOpacity,
   Switch,
   StatusBar,
-  Alert,
   ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
+import { useMessage } from '../context/MessageContext';
+import MessageService from '../services/messageService';
 import styles, { colors } from '../styles/screens/settingsStyles';
 
 
@@ -87,6 +88,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
 const SettingsScreen: React.FC = () => {
   const router = useRouter();
   const { logout } = useAuth();
+  const { showMessage, showConfirmation } = useMessage();
   const [isPushNotificationsEnabled, setIsPushNotificationsEnabled] = useState(true);
   const [isEmailNotificationsEnabled, setIsEmailNotificationsEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,83 +121,63 @@ const SettingsScreen: React.FC = () => {
   };
 
   const handlePrivacySettings = () => {
-    Alert.alert('Coming Soon', 'Privacy settings will be available in the next update.');
+    showMessage(MessageService.INFO.COMING_SOON);
   };
   
   const handleSecuritySettings = () => {
-    Alert.alert('Coming Soon', 'Security settings will be available in the next update.');
+    showMessage(MessageService.INFO.COMING_SOON);
   };
 
   const handleAccountSettings = () => {
     // router.push('/editProfile');
-    Alert.alert('Coming Soon', 'Account settings will be available in the next update.');
+    showMessage(MessageService.INFO.COMING_SOON);
   };
 
   const handleLanguageSettings = () => {
-    Alert.alert('Coming Soon', 'Language settings will be available in the next update.');
+    showMessage(MessageService.INFO.COMING_SOON);
   };
 
   const handleAppearanceSettings = () => {
-    Alert.alert('Coming Soon', 'Appearance settings will be available in the next update.');
+    showMessage(MessageService.INFO.COMING_SOON);
   };
 
   const handleHelpCenter = () => {
-    Alert.alert('Support', 'Please contact support@gearconnect.com for assistance.');
+    showMessage(MessageService.INFO.SUPPORT_CONTACT);
   };
 
   const handleTermsAndConditions = () => {
-    Alert.alert('Terms & Conditions', 'The full terms and conditions will be available in the next update.');
+    showMessage(MessageService.INFO.TERMS_CONDITIONS);
   };
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            setIsLoading(true);
-            try {
-              await logout();
-                // await fetch(API_URL_AUTH + '/logout');
-              router.replace("/(auth)");
-            } catch (error) {
-              console.error("Error during logout:", error);
-              Alert.alert("Error", "Failed to logout. Please try again.");
-            } finally {
-              setIsLoading(false);
-            }
-          }
+    showConfirmation({
+      ...MessageService.CONFIRMATIONS.LOGOUT,
+      onConfirm: async () => {
+        setIsLoading(true);
+        try {
+          await logout();
+          // await fetch(API_URL_AUTH + '/logout');
+          router.replace("/(auth)");
+        } catch (error) {
+          console.error("Error during logout:", error);
+          showMessage(MessageService.ERROR.LOGOUT_FAILED);
+        } finally {
+          setIsLoading(false);
         }
-      ]
-    );
+      }
+    });
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account? This action cannot be undone.",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Delete Account",
-          style: "destructive",
-          onPress: () => {
-            Alert.alert("Coming Soon", "Account deletion will be available in the next update.");
-          }
-        }
-      ]
-    );
-  };  if (isFetchingUser) {
+    showConfirmation({
+      ...MessageService.CONFIRMATIONS.DELETE_ACCOUNT,
+      onConfirm: () => {
+        showMessage(MessageService.INFO.COMING_SOON);
+      }
+    });
+  };
+
+  if (isFetchingUser) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={['top', 'left', 'right']}>
         <StatusBar barStyle="dark-content" backgroundColor={colors.statusBarBackground} translucent={true} />

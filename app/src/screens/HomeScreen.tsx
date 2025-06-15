@@ -9,11 +9,9 @@ import {
   FlatList,
   StatusBar,
   ActivityIndicator,
-  Alert,
   NativeScrollEvent,
   NativeSyntheticEvent,
   FlatListProps,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
@@ -37,6 +35,7 @@ import { ApiError, ErrorType } from '../services/axiosConfig';
 import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
 import { defaultImages } from "../config/defaultImages";
 import userService from "../services/userService";
+import { useMessage } from '../context/MessageContext';
 
 // Types
 interface Story {
@@ -68,7 +67,6 @@ interface UIPost {
 
 // Nom d'utilisateur courant
 const CURRENT_USERNAME = "john_doe";
-const CURRENT_USER_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
@@ -112,7 +110,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
     id: apiPost.id?.toString() || '',
     username: apiPost.user?.username || `user_${apiPost.userId}`,
     avatar: userAvatar,
-    profilePicturePublicId: (apiPost.user as any)?.profilePicturePublicId, // Nouveau champ
+    profilePicturePublicId: (apiPost.user as any)?.profilePicturePublicId,
     images,
     imagePublicIds,
     mediaTypes,
@@ -134,6 +132,7 @@ const HomeScreen: React.FC = () => {
   const router = useRouter();
   const authContext = useAuth();
   const user = authContext?.user;
+  const { showError, showInfo } = useMessage();
   const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
   const [posts, setPosts] = useState<UIPost[]>([]);
@@ -147,15 +146,13 @@ const HomeScreen: React.FC = () => {
   const [currentStoryId, setCurrentStoryId] = useState("");
   const [isCommentsModalVisible, setIsCommentsModalVisible] = useState(false);
   const [currentPostId, setCurrentPostId] = useState("");
-  const [currentUserData, setCurrentUserData] = useState<any>(null); // Nouvelles données utilisateur
+  const [currentUserData, setCurrentUserData] = useState<any>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const isHeaderVisible = useRef(true);
   const lastScrollY = useRef(0);
 
   // Hook de visibilité pour tracker les posts visibles
   const {
-    visiblePosts,
-    currentlyVisiblePost,
     viewabilityConfigCallbackPairs,
     isPostVisible,
     isPostCurrentlyVisible,
@@ -314,7 +311,7 @@ const HomeScreen: React.FC = () => {
 
   const handleLike = async (postId: string) => {
     if (!user?.id) {
-      Alert.alert('Erreur', 'Vous devez être connecté pour liker un post');
+      showError('Vous devez être connecté pour liker un post');
       return;
     }
 
@@ -343,7 +340,7 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (error) {
+    } catch (_error) {
       // console.error('Erreur lors du toggle du like:', error);
       
       // En cas d'erreur, annuler l'optimistic update
@@ -358,13 +355,13 @@ const HomeScreen: React.FC = () => {
             : post
         )
       );
-      Alert.alert('Erreur', 'Impossible d\'ajouter un like pour le moment.');
+      showError('Impossible d\'ajouter un like pour le moment.');
     }
   };
 
   const handleSave = async (postId: string) => {
     if (!user?.id) {
-      Alert.alert('Erreur', 'Vous devez être connecté pour sauvegarder un post');
+      showError('Vous devez être connecté pour sauvegarder un post');
       return;
     }
 
@@ -387,7 +384,7 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (error) {
+    } catch (_error) {
       // console.error('Erreur lors du toggle des favoris:', error);
       
       // En cas d'erreur, annuler l'optimistic update
@@ -396,7 +393,7 @@ const HomeScreen: React.FC = () => {
           post.id === postId ? { ...post, saved: !post.saved } : post
         )
       );
-      Alert.alert('Erreur', 'Impossible de sauvegarder ce post pour le moment.');
+      showError('Impossible de sauvegarder ce post pour le moment.');
     }
   };
 
@@ -451,7 +448,7 @@ const HomeScreen: React.FC = () => {
               : post
           )
         );
-      } catch (error) {
+      } catch (_error) {
         // console.error('Erreur lors de la mise à jour du compteur de commentaires:', error);
         // En cas d'erreur, on recharge simplement tous les posts après un délai
         setTimeout(() => {
@@ -602,7 +599,7 @@ const HomeScreen: React.FC = () => {
       // Vérifier si le partage est disponible sur l'appareil
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
-        Alert.alert('Erreur', 'Le partage n\'est pas disponible sur cet appareil');
+        showError('Le partage n\'est pas disponible sur cet appareil');
         return;
       }
 
@@ -628,9 +625,9 @@ const HomeScreen: React.FC = () => {
         await shareTextContent(shareContent);
       }
       
-    } catch (error) {
+    } catch (_error) {
       // console.error('❌ Error sharing post:', error);
-      Alert.alert('Erreur', 'Impossible de partager ce post');
+      showError('Impossible de partager ce post');
     }
   };
 
@@ -650,12 +647,9 @@ const HomeScreen: React.FC = () => {
       await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
       console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
-        { text: 'OK', onPress: () => {
-          // Fallback: copier dans le presse-papiers
-          Clipboard.setStringAsync(content);
-        }}
-      ]);
+      showInfo('Contenu copié dans le presse-papiers');
+      // Fallback: copier dans le presse-papiers
+      Clipboard.setStringAsync(content);
     }
   };
 
@@ -701,7 +695,7 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (error) {
+    } catch (_error) {
       // console.error('Erreur lors de l\'ajout du commentaire:', error);
       
       // En cas d'erreur, annuler l'optimistic update
@@ -715,7 +709,7 @@ const HomeScreen: React.FC = () => {
             : post
         )
       );
-      Alert.alert('Erreur', 'Impossible d\'ajouter un commentaire pour le moment.');
+      showError('Impossible d\'ajouter un commentaire pour le moment.');
     }
   };
 

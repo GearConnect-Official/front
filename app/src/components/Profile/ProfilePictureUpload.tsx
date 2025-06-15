@@ -12,6 +12,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { cloudinaryService, CloudinaryUploadResponse } from '../../services/cloudinary.service';
 import { CloudinaryAvatar } from '../media/CloudinaryImage';
 import { cloudinaryConfig } from '../../config';
+import { useMessage } from '../../context/MessageContext';
+import MessageService from '../../services/messageService';
+
 
 interface ProfilePictureUploadProps {
   currentProfilePicture?: string;
@@ -32,6 +35,7 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
   size = 120,
   style
 }) => {
+  const { showMessage } = useMessage();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [localImageUri, setLocalImageUri] = useState<string | null>(null);
@@ -64,17 +68,18 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
       if (!cloudinaryConfig.cloudName || !cloudinaryConfig.uploadPreset) {
         const configError = 'Cloudinary not configured. Please check your environment variables.';
         setError(configError);
-        Alert.alert("Configuration Error", configError);
+        showMessage(MessageService.ERROR.CONFIGURATION_ERROR);
         return;
       }
       
       // Demander la permission d'accéder à la galerie
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "Permission Required",
-          "Please allow access to your photo library to change your profile picture."
-        );
+        showMessage(MessageService.createCustomMessage(
+          MessageService.ERROR.LOGIN_REQUIRED.type,
+          "Veuillez autoriser l'accès à votre galerie photo pour changer votre photo de profil.",
+          6000
+        ));
         return;
       }
 
@@ -96,7 +101,7 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
       const errorMessage = "An unexpected error occurred while picking the image";
       setError(errorMessage);
       onUploadError?.(errorMessage);
-      Alert.alert("Error", errorMessage);
+      showMessage(MessageService.ERROR.GENERIC_ERROR);
     }
   };
 
@@ -124,7 +129,7 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
 
       if (response) {
         onUploadComplete?.(response.secure_url, response.public_id);
-        Alert.alert("Success", "Profile picture updated successfully");
+        showMessage(MessageService.SUCCESS.PROFILE_PICTURE_UPDATED);
         setLocalImageUri(null); // Reset local image after successful upload
       }
     } catch (error: any) {
@@ -132,7 +137,7 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
       const errorMessage = error.message || "Failed to upload profile picture";
       setError(errorMessage);
       onUploadError?.(errorMessage);
-      Alert.alert("Error", errorMessage);
+      showMessage(MessageService.ERROR.PROFILE_PICTURE_UPLOAD_FAILED);
       setLocalImageUri(null); // Reset on error
     } finally {
       setUploading(false);

@@ -7,7 +7,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
   SafeAreaView,
   Image,
@@ -19,6 +18,8 @@ import styles from "../styles/Profile/editProfileStyles";
 import * as ImagePicker from "expo-image-picker";
 import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
+import { useMessage } from "../context/MessageContext";
+import MessageService from "../services/messageService";
 import ProfilePictureUpload from "../components/Profile/ProfilePictureUpload";
 
 interface FormData {
@@ -32,6 +33,7 @@ interface FormData {
 const EditProfileScreen: React.FC = () => {
   const router = useRouter();
   const { user, updateUser } = useAuth() || {};
+  const { showMessage, showError } = useMessage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,9 +47,8 @@ const EditProfileScreen: React.FC = () => {
 
   useEffect(() => {
     if (!user?.id) {
-      Alert.alert("Error", "You must be logged in to edit your profile", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      showError("You must be logged in to edit your profile");
+      router.back();
       return;
     }
     fetchUserProfile();
@@ -192,28 +193,16 @@ const EditProfileScreen: React.FC = () => {
         }
 
         await fetchUserProfile();
-
-        Alert.alert(
-          "Success",
-          updateResponse.message || "Profile updated successfully",
-          [
-            {
-              text: "OK",
-            },
-          ]
-        );
+        showMessage(MessageService.SUCCESS.PROFILE_UPDATED);
       } else {
         setError(updateResponse.error || "Failed to update profile");
-        Alert.alert(
-          "Error",
-          updateResponse.error || "Failed to update profile"
-        );
+        showError(updateResponse.error || "Failed to update profile");
       }
     } catch (error) {
       setIsLoading(false);
       console.error("Error updating profile:", error);
       setError("An unexpected error occurred while updating the profile");
-      Alert.alert("Error", "Failed to update profile");
+      showError("Failed to update profile");
     }
   };
 

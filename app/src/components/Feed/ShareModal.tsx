@@ -8,10 +8,11 @@ import {
   StyleSheet,
   FlatList,
   Image,
-  Alert,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import postService from '../../services/postService';
+import { useMessage } from '../../context/MessageContext';
+import MessageService from '../../services/messageService';
 
 interface ShareOption {
   id: string;
@@ -31,15 +32,16 @@ const ShareModal: React.FC<ShareModalProps> = ({
   onClose,
   postId,
 }) => {
+  const { showMessage } = useMessage();
   
   const handleShareToApp = async () => {
     try {
       await postService.sharePost(parseInt(postId), 1); // Utiliser l'ID de l'utilisateur connecté
-      Alert.alert('Succès', 'Post partagé avec succès!');
+      showMessage(MessageService.SUCCESS.POST_SHARED);
       onClose();
     } catch (error) {
       console.error('Erreur lors du partage:', error);
-      Alert.alert('Erreur', 'Impossible de partager le post pour le moment.');
+      showMessage(MessageService.ERROR.FAILED_TO_SHARE_POST);
     }
   };
 

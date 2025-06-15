@@ -21,6 +21,9 @@ import commentService, {
 } from "../../services/commentService";
 import HierarchicalCommentComponent from "../Feed/HierarchicalComment";
 import { hierarchicalCommentsStyles } from "../../styles/modals/hierarchicalCommentsStyles";
+import { useMessage } from '../../context/MessageContext';
+import MessageService from '../../services/messageService';
+import { QuickMessages } from '../../utils/messageUtils';
 
 // Modal pour affichage des commentaires hiérarchiques
 interface HierarchicalCommentsModalProps {
@@ -46,6 +49,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
     username: string;
   } | null>(null);
   const textInputRef = useRef<TextInput>(null);
+  const { showError, showConfirmation } = useMessage();
 
   const loadComments = useCallback(
     async (page = 1) => {
@@ -66,7 +70,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
         setCurrentPage(page);
       } catch (error) {
         console.error("Error loading comments:", error);
-        Alert.alert("Error", "Unable to load comments");
+        showError("Unable to load comments");
       } finally {
         setIsLoading(false);
       }
@@ -123,7 +127,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
       Keyboard.dismiss();
     } catch (error) {
       console.error("Error adding comment:", error);
-      Alert.alert("Error", "Unable to add comment");
+      showError("Unable to add comment");
     } finally {
       setIsSubmitting(false);
     }
@@ -176,7 +180,15 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
       );
     } catch (error) {
       console.error("Error toggling comment like:", error);
-      Alert.alert("Error", "Unable to like comment");
+      showError("Unable to like comment");
+      // Revert optimistic update
+      setComments(prevComments => 
+        prevComments.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, liked: !comment.liked, likes: comment.liked ? comment.likes + 1 : comment.likes - 1 }
+            : comment
+        )
+      );
     }
   };
 
@@ -226,20 +238,30 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
       );
     } catch (error) {
       console.error("Error updating comment:", error);
-      Alert.alert("Error", "Unable to update comment");
+      showError("Unable to update comment");
     }
   };
 
   const handleDelete = async (commentId: number) => {
     if (!user?.id) return;
 
-    try {
-      await commentService.deleteComment(commentId, parseInt(user.id));
-      setComments((prev) => removeComment(prev, commentId));
-    } catch (error) {
-      console.error("Error deleting comment:", error);
-      Alert.alert("Error", "Unable to delete comment");
-    }
+    showConfirmation({
+      title: "Delete Comment",
+      message: "Are you sure you want to delete this comment?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      destructive: true,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await commentService.deleteComment(commentId, parseInt(user.id));
+          setComments((prev) => removeComment(prev, commentId));
+        } catch (error) {
+          console.error("Error deleting comment:", error);
+          showError("Unable to delete comment");
+        }
+      }
+    });
   };
 
   const updateCommentContent = (
@@ -290,7 +312,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
       );
     } catch (error) {
       console.error("Error loading replies:", error);
-      Alert.alert("Error", "Unable to load replies");
+      showError("Unable to load replies");
     }
   };
 

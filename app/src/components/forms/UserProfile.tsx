@@ -3,36 +3,36 @@ import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvo
 import { FontAwesome } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import styles from '../../styles/Profile/userProfileStyles';
+import { useMessage } from '../../context/MessageContext';
+import MessageService from '../../services/messageService';
 
 interface UserProfileProps {
   navigateToHome?: () => void;
+  onLogout?: () => void;
+  user?: any;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ navigateToHome }) => {
-  const { user, logout } = useAuth();
+const UserProfile: React.FC<UserProfileProps> = ({
+  navigateToHome,
+  onLogout,
+  user,
+}) => {
+  const { logout } = useAuth();
+  const { showConfirmation, showError } = useMessage();
 
-  const handleLogout = async () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Logout",
-        onPress: async () => {
-          try {
-            await logout();
-          } catch (error) {
-            console.error("Error during logout:", error);
-            Alert.alert(
-              "Error",
-              "An error occurred during logout. Please try again."
-            );
-          }
-        },
-        style: "destructive",
-      },
-    ]);
+  const handleLogout = () => {
+    showConfirmation({
+      ...MessageService.CONFIRMATIONS.LOGOUT,
+      onConfirm: () => {
+        if (onLogout) {
+          onLogout();
+        }
+      }
+    });
+  };
+
+  const handleError = (error: string) => {
+    showError(error);
   };
 
   return (

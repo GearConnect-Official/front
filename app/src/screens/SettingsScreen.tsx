@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   Switch,
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -89,8 +90,6 @@ const SettingsScreen: React.FC = () => {
   const router = useRouter();
   const { logout } = useAuth();
   const { showMessage, showConfirmation } = useMessage();
-  const [isPushNotificationsEnabled, setIsPushNotificationsEnabled] = useState(true);
-  const [isEmailNotificationsEnabled, setIsEmailNotificationsEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingUser, setIsFetchingUser] = useState(true);
   const [appVersion] = useState('1.0.0');
@@ -112,14 +111,6 @@ const SettingsScreen: React.FC = () => {
     loadUserPreferences();
   }, []);
 
-  const handleTogglePushNotifications = (value: boolean) => {
-    setIsPushNotificationsEnabled(value);
-  };
-
-  const handleToggleEmailNotifications = (value: boolean) => {
-    setIsEmailNotificationsEnabled(value);
-  };
-
   const handlePrivacySettings = () => {
     showMessage(MessageService.INFO.COMING_SOON);
   };
@@ -133,16 +124,12 @@ const SettingsScreen: React.FC = () => {
     showMessage(MessageService.INFO.COMING_SOON);
   };
 
-  const handleLanguageSettings = () => {
-    showMessage(MessageService.INFO.COMING_SOON);
-  };
-
-  const handleAppearanceSettings = () => {
-    showMessage(MessageService.INFO.COMING_SOON);
+  const handlePreferences = () => {
+    router.push('/preferences');
   };
 
   const handleHelpCenter = () => {
-    showMessage(MessageService.INFO.SUPPORT_CONTACT);
+    Linking.openURL('https://gearconnect-landing.vercel.app/faq');
   };
 
   const handleTermsAndConditions = () => {
@@ -225,51 +212,13 @@ const SettingsScreen: React.FC = () => {
           />
         </SettingsSection>
         
-        {/* Preferences Section */}
-        <SettingsSection title="Preferences">
+        {/* App Preferences Section */}
+        <SettingsSection title="App Preferences">
           <SettingsItem
-            icon="bell"
-            title="Push Notifications"
-            subtitle="Receive alerts and updates"
-            rightElement={
-              <Switch
-                value={isPushNotificationsEnabled}
-                onValueChange={handleTogglePushNotifications}
-                trackColor={{ false: colors.switchTrackInactive, true: colors.switchTrackActive }}
-                thumbColor={isPushNotificationsEnabled ? colors.switchThumbActive : colors.switchThumbInactive}
-              />
-            }
-          />
-          <SettingsItem
-            icon="envelope"
-            title="Email Notifications"
-            subtitle="Receive email updates"
-            rightElement={
-              <Switch
-                value={isEmailNotificationsEnabled}
-                onValueChange={handleToggleEmailNotifications}
-                trackColor={{ false: colors.switchTrackInactive, true: colors.switchTrackActive }}
-                thumbColor={isEmailNotificationsEnabled ? colors.switchThumbActive : colors.switchThumbInactive}
-              />
-            }
-          />
-          <SettingsItem
-            icon="globe"
-            title="Language"
-            subtitle="Change your language preference"
-            onPress={handleLanguageSettings}
-            rightElement={
-              <Text style={styles.settingsItemValue}>English</Text>
-            }
-          />
-          <SettingsItem
-            icon="adjust"
-            title="Appearance"
-            subtitle="Customize the look of the app"
-            onPress={handleAppearanceSettings}
-            rightElement={
-              <Text style={styles.settingsItemValue}>Light</Text>
-            }
+            icon="cog"
+            title="Preferences"
+            subtitle="Customize your app experience"
+            onPress={handlePreferences}
           />
         </SettingsSection>
         

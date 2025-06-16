@@ -424,15 +424,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const handleEditProfilePress = () => {
     setMenuVisible(false);
-    router.push({
-      pathname: "/editProfile",
-      params: { userId: effectiveUserId },
-    });
-  };
-
-  const handlePreferencesPress = () => {
-    setMenuVisible(false);
-    router.push("/preferences");
+    router.push("/editProfile");
   };
 
   const handleLogoutPress = async () => {
@@ -1143,7 +1135,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         onClose={() => setMenuVisible(false)}
         onSettingsPress={handleSettingsPress}
         onEditProfilePress={handleEditProfilePress}
-        onPreferencesPress={handlePreferencesPress}
         onLogoutPress={handleLogoutPress}
         onPerformancesPress={handlePerformancesPress}
         userId={effectiveUserId || 0}

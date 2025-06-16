@@ -10,7 +10,7 @@ import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { EventInterface } from '../services/EventInterface';
-import { styles } from '../styles/screens/eventDetailStyles';
+import { styles } from '../styles/screens/events/eventDetailStyles';
 import {
   API_URL_EVENTS,
   API_URL_EVENTTAGS,

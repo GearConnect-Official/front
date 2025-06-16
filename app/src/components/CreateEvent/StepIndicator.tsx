@@ -1,13 +1,13 @@
 import * as React from "react";
 import { View } from "react-native";
-import styles from "../../styles/screens/createEventStyles";
+import { createEventStyles as styles } from "../../styles/screens";
 
 interface StepIndicatorProps {
   currentStep: number;
   totalSteps: number;
 }
 
-const StepIndicator: React.FC<StepIndicatorProps> = ({
+const StepIndicator: React.FC<StepIndicatorProps>  = ({
   currentStep,
   totalSteps,
 }) => {

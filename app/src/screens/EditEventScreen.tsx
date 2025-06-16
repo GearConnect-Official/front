@@ -2,8 +2,8 @@ import * as React from "react";
 import { View, ScrollView, ActivityIndicator, Text, TouchableOpacity, Alert } from "react-native";
 import TopBar from "../components/CreateEvent/TopBar";
 import ModifyEvent from "../components/ModifyEvent";
-import styles from "../styles/screens/createEventStyles";
-import { styles as editStyles } from "../styles/screens/editEventStyles";
+import { createEventStyles as styles } from "../styles/screens";
+import { editEventStyles as editStyles } from "../styles/screens";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import eventService, { Event } from "../services/eventService";
 

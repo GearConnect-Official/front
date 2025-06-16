@@ -2,7 +2,7 @@ import * as React from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import styles from "../../styles/screens/createEventStyles";
+import { createEventStyles as styles } from "../../styles/screens";
 import { Event } from "../../services/eventService";
 
 interface BasicInfoProps {

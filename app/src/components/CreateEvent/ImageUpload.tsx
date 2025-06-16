@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { CloudinaryImageUpload } from '../media/CloudinaryImageUpload';
 import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
-import styles from '../../styles/screens/createEventStyles';
+import { createEventStyles as styles } from '../../styles/screens';
 
 interface ImageUploadProps {
   title: string;

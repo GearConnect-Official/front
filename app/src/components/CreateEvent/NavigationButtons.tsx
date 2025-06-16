@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import styles from '../../styles/screens/createEventStyles';
+import { createEventStyles as styles } from '../../styles/screens';
 
 interface NavigationButtonsProps {
   currentStep: number;

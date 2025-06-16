@@ -7,7 +7,6 @@ import {
   ScrollView,
   SafeAreaView,
   Platform,
-  Alert,
   Modal,
   ActivityIndicator,
   Animated,
@@ -34,16 +33,14 @@ import {
   THEME_COLORS,
   LAYOUT,
   TYPOGRAPHY,
-} from "../styles/screens/performanceStyles";
+} from "../styles/screens/user/performanceStyles";
 import { useMessage } from '../context/MessageContext';
-import MessageService from '../services/messageService';
-import { QuickMessages } from '../utils/messageUtils';
 
 const AddPerformanceScreen: React.FC = () => {
   const router = useRouter();
   const auth = useAuth();
   const user = auth?.user;
-  const { showMessage, showError, showConfirmation } = useMessage();
+  const { showError, showConfirmation } = useMessage();
 
   // Form state
   const [formData, setFormData] = useState<PerformanceFormData>({

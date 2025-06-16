@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Alert, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
-import styles from '../styles/screens/publicationStyles';
+import styles from '../styles/screens/social/publicationStyles';
 import postService from '../services/postService';
 import FeedbackMessage, { FeedbackType } from '../components/ui/FeedbackMessage';
 import { useAuth } from '../context/AuthContext';

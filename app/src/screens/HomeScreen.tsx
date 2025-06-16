@@ -19,7 +19,7 @@ import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
-import styles from "../styles/screens/homeStyles";
+import styles from "../styles/screens/user/homeStyles";
 import StoryModal from "../components/modals/StoryModal";
 import HierarchicalCommentsModal from "../components/modals/HierarchicalCommentsModal";
 import PostItem, { Comment as PostItemComment, PostTag } from "../components/Feed/PostItem";
@@ -472,8 +472,11 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleNavigateToMessages = () => {
-    // TODO: Implémenter la navigation vers la messagerie
-    console.log("Navigate to messages - not implemented yet");
+    router.push("/(app)/messages");
+  };
+
+  const handleNavigateToGroups = () => {
+    router.push("/(app)/groups");
   };
 
   const renderSeparator = () => {

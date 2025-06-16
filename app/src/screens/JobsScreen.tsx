@@ -9,8 +9,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/screens/jobsStyles";
-import { jobsScreenStyles, RACING_COLORS } from "../styles/screens/jobsScreenStyles";
+import styles from "../styles/screens/jobs/jobsStyles";
+import { jobsScreenStyles, RACING_COLORS } from "../styles/screens/jobs/jobsScreenStyles";
 import JobItem from "../components/items/JobItem";
 import { useRouter } from "expo-router";
 

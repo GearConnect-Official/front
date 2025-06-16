@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../../styles/components/bottomNavStyles";
 import { useRouter, usePathname } from "expo-router";
@@ -13,7 +13,7 @@ const BottomNav = (props: any) => {
   const tabs = [
     { name: "Home", path: "/(app)/(tabs)/home" },
     { name: "Publication", path: "/(app)/(tabs)/publication" },
-    { name: "Events", path: "/(app)/(tabs)/events" }
+    { name: "Events", path: "/(app)/(tabs)/events" },
   ];
 
   const handleNavigation = (path: string) => {
@@ -24,7 +24,7 @@ const BottomNav = (props: any) => {
     <View style={styles.container}>
       {tabs.map((tab) => {
         const isActive = pathname.includes(tab.path);
-          
+
         return (
           <TouchableOpacity
             key={tab.name}
@@ -33,18 +33,9 @@ const BottomNav = (props: any) => {
           >
             <FontAwesome
               name={getIconName(tab.name) as any}
-              size={tab.name === "Home" ? 26 : 24}
+              size={tab.name === "Home" ? 32 : 30}
               color={isActive ? "#E10600" : "#6A707C"}
             />
-            <Text
-              style={[
-                styles.tabText,
-                isActive && styles.activeTabText,
-                { color: isActive ? "#E10600" : "#6A707C" }
-              ]}
-            >
-              {tab.name}
-            </Text>
           </TouchableOpacity>
         );
       })}
@@ -56,9 +47,9 @@ const BottomNav = (props: any) => {
 const getIconName = (routeName: string) => {
   switch (routeName) {
     case "Home":
-      return "flag-checkered"; // Drapeau à damier - symbole emblématique de la course
+      return "home"; // Icône de maison pour la page d'accueil
     case "Publication":
-      return "camera"; // Caméra pour capturer les moments de course
+      return "plus-circle"; // Symbole plus pour créer une nouvelle publication
     case "Events":
       return "trophy"; // Trophée pour les événements de course
     default:

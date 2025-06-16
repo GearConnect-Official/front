@@ -17,6 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import followService from '../services/followService';
 import FollowButton from '../components/FollowButton';
 import { FollowUser } from '../types/follow.types';
+import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
+import { useAuth } from '../context/AuthContext';
 
 type TabType = 'followers' | 'following';
 
@@ -26,6 +28,7 @@ const FollowListScreen: React.FC = () => {
     initialTab?: string;
   }>();
   const router = useRouter();
+  const { user } = useAuth() || {};
 
   const [activeTab, setActiveTab] = useState<TabType>(initialTab as TabType);
   const [followers, setFollowers] = useState<FollowUser[]>([]);
@@ -61,15 +64,54 @@ const FollowListScreen: React.FC = () => {
         followService.getFollowing(targetUserId),
       ]);
 
+      // Récupérer les données de base
+      let followersData: FollowUser[] = [];
+      let followingData: FollowUser[] = [];
+
       if (followersResponse.success && followersResponse.data) {
-        setFollowers(followersResponse.data.followers);
+        followersData = followersResponse.data.followers;
         setFollowersCount(followersResponse.data.totalCount);
       }
 
       if (followingResponse.success && followingResponse.data) {
-        setFollowing(followingResponse.data.following);
+        followingData = followingResponse.data.following;
         setFollowingCount(followingResponse.data.totalCount);
       }
+
+      // Vérifier l'état de follow pour l'utilisateur connecté
+      if (user && user.id) {
+        const currentUserId = Number(user.id);
+        const allUserIds = [
+          ...followersData.map(f => f.id),
+          ...followingData.map(f => f.id)
+        ].filter(id => id !== currentUserId); // Exclure l'utilisateur connecté
+
+        if (allUserIds.length > 0) {
+          try {
+            const followStatusResponse = await followService.checkFollowingStatus(allUserIds, currentUserId);
+            if (followStatusResponse.success && followStatusResponse.data) {
+              const followedUserIds = followStatusResponse.data;
+              
+              // Mettre à jour l'état de follow pour les followers
+              followersData = followersData.map(user => ({
+                ...user,
+                isFollowing: followedUserIds.includes(user.id),
+              }));
+              
+              // Mettre à jour l'état de follow pour les following
+              followingData = followingData.map(user => ({
+                ...user,
+                isFollowing: followedUserIds.includes(user.id),
+              }));
+            }
+          } catch (error) {
+            console.warn('Could not check follow status for list users:', error);
+          }
+        }
+      }
+
+      setFollowers(followersData);
+      setFollowing(followingData);
     } catch (error) {
       console.error('Error loading follow data:', error);
       Alert.alert('Erreur', 'Impossible de charger les données');
@@ -107,30 +149,75 @@ const FollowListScreen: React.FC = () => {
     });
   };
 
+  const handleFollowStateChange = (userId: number, isFollowing: boolean) => {
+    // Mettre à jour l'état dans les deux listes
+    setFollowers(prev => 
+      prev.map(user => 
+        user.id === userId 
+          ? { ...user, isFollowing }
+          : user
+      )
+    );
+    
+    setFollowing(prev => 
+      prev.map(user => 
+        user.id === userId 
+          ? { ...user, isFollowing }
+          : user
+      )
+    );
+  };
+
   const renderUserItem = ({ item }: { item: FollowUser }) => (
     <TouchableOpacity
       style={styles.userItem}
       onPress={() => navigateToProfile(item)}
-      activeOpacity={0.7}
+      activeOpacity={0.95}
     >
       <View style={styles.userInfo}>
-        <Image
-          source={{
-            uri: item.profilePicture || 'https://via.placeholder.com/50x50/CCCCCC/FFFFFF?text=U',
-          }}
-          style={styles.avatar}
-        />
+        <View style={styles.avatarContainer}>
+          {item.profilePicturePublicId ? (
+            <CloudinaryAvatar
+              publicId={item.profilePicturePublicId}
+              size={54}
+              quality="auto"
+              format="auto"
+              style={styles.avatar}
+              fallbackUrl={item.profilePicture}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {(item.username || 'U')[0].toUpperCase()}
+              </Text>
+            </View>
+          )}
+        </View>
+        
         <View style={styles.userDetails}>
-          <Text style={styles.username}>{item.username}</Text>
-          {item.name && <Text style={styles.name}>{item.name}</Text>}
+          <Text style={styles.username} numberOfLines={1}>
+            {item.username}
+          </Text>
+          {item.name && (
+            <Text style={styles.name} numberOfLines={1}>
+              {item.name}
+            </Text>
+          )}
         </View>
       </View>
-      <FollowButton
-        targetUserId={item.id}
-        initialFollowState={item.isFollowing}
-        size="small"
-        variant="outline"
-      />
+      
+      <View style={styles.followButtonContainer}>
+        <FollowButton
+          targetUserId={item.id}
+          initialFollowState={item.isFollowing}
+          onFollowStateChange={(isFollowing) => 
+            handleFollowStateChange(item.id, isFollowing)
+          }
+          size="small"
+          variant="primary"
+          iconOnly={true}
+        />
+      </View>
     </TouchableOpacity>
   );
 
@@ -360,10 +447,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  avatarContainer: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    marginRight: 12,
+  },
+  avatarPlaceholder: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    marginRight: 12,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#111827',
+  },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     marginRight: 12,
   },
   userDetails: {
@@ -378,6 +485,9 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     color: '#6B7280',
+  },
+  followButtonContainer: {
+    padding: 8,
   },
   emptyListContainer: {
     flex: 1,

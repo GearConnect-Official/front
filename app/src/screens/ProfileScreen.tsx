@@ -169,10 +169,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           following: response.data?.followingCount || 0,
         }));
       } else {
-        console.error("Failed to fetch follow stats:", response.error);
+        console.error("❌ ProfileScreen: Failed to fetch follow stats:", response.error);
       }
     } catch (error) {
-      console.error("Error fetching follow stats:", error);
+      console.error("❌ ProfileScreen: Error fetching follow stats:", error);
     } finally {
       setIsLoadingFollowStats(false);
     }
@@ -971,6 +971,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 // Boutons pour un autre utilisateur
                 <>
                   <FollowButton
+                    key={`follow-${effectiveUserId}-${followStats.isFollowing}`}
                     targetUserId={effectiveUserId}
                     initialFollowState={followStats.isFollowing}
                     onFollowStateChange={(isFollowing, stats) => {

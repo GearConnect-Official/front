@@ -1,6 +1,9 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect } from 'react';
+import { useAuth } from '@clerk/clerk-expo';
+// Import officiel Clerk pour accéder au token hors composants
+import { getClerkInstance } from '@clerk/clerk-expo';
 
 // Types d'erreurs identifiables
 export enum ErrorType {
@@ -29,49 +32,89 @@ interface ApiErrorResponse {
   [key: string]: any;
 }
 
-// Configure axios interceptors
+// 🔥 Configuration professionnelle des interceptors Axios avec Clerk
+let interceptorsConfigured = false;
+
 export const configureAxios = async () => {
-  // Request interceptor to add user ID from storage to all requests
+  // Éviter la double configuration
+  if (interceptorsConfigured) {
+    console.log('✅ Axios interceptors already configured');
+    return;
+  }
+
+  console.log('🚀 Configuring Axios interceptors with Clerk...');
+
+  // 🔐 REQUEST INTERCEPTOR - Ajouter automatiquement le Bearer token
   axios.interceptors.request.use(
     async (config) => {
       try {
-        // Get user from AsyncStorage
-        const userString = await AsyncStorage.getItem('user');
-        if (userString) {
-          const user = JSON.parse(userString);
+        console.log(`📤 [${config.method?.toUpperCase()}] ${config.url}`);
+
+        // 1. Récupérer le token Clerk (approche officielle)
+        try {
+          const clerkInstance = getClerkInstance();
+          const token = await clerkInstance.session?.getToken();
           
-          // Add user ID to headers if available
-          if (user && user.id) {
-            config.headers['user-id'] = user.id;
+          if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+            console.log('🔑 Bearer token added to request');
+          } else {
+            console.log('⚠️ No Clerk token available');
           }
+        } catch (clerkError) {
+          console.warn('⚠️ Could not get Clerk token:', clerkError);
         }
+
+        // 2. Ajouter l'ID utilisateur depuis AsyncStorage (si nécessaire pour votre API)
+        try {
+          const userString = await AsyncStorage.getItem('user');
+          if (userString) {
+            const user = JSON.parse(userString);
+            if (user && user.id) {
+              config.headers['user-id'] = user.id;
+              console.log('👤 User ID added to headers');
+            }
+          }
+        } catch (storageError) {
+          console.warn('⚠️ Could not get user from storage:', storageError);
+        }
+
+        // 3. Ajouter headers par défaut
+        config.headers['Content-Type'] = config.headers['Content-Type'] || 'application/json';
+        config.headers['Accept'] = 'application/json';
+
         return config;
       } catch (error) {
-        console.error('Error in axios interceptor:', error);
+        console.error('❌ Error in request interceptor:', error);
         return config;
       }
     },
     (error) => {
+      console.error('❌ Request interceptor error:', error);
       return Promise.reject(error);
     }
   );
 
-  // Réponse interceptor pour normaliser la gestion des erreurs
+  // 📥 RESPONSE INTERCEPTOR - Gestion des erreurs et logs
   axios.interceptors.response.use(
     (response: AxiosResponse) => {
+      console.log(`✅ [${response.config.method?.toUpperCase()}] ${response.config.url} - ${response.status}`);
       return response;
     },
     (error: AxiosError) => {
+      const url = error.config?.url || 'unknown';
+      const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
+      
       let apiError: ApiError = {
         type: ErrorType.UNKNOWN,
         message: 'Une erreur inattendue s\'est produite',
         originalError: error
       };
 
-      // Vérifier si c'est une requête de health check en vérifiant l'URL
-      const isHealthCheck = error.config?.url?.includes('/api/health');
+      // Vérifier si c'est une requête de health check pour éviter les logs de spam
+      const isHealthCheck = url.includes('/api/health');
 
-      // Pas de réponse du serveur (problème réseau)
+      // Gestion des erreurs réseau
       if (error.code === 'ECONNABORTED') {
         apiError = {
           type: ErrorType.TIMEOUT,
@@ -85,7 +128,7 @@ export const configureAxios = async () => {
           originalError: error
         };
       } else if (error.response) {
-        // Récupérer le status HTTP et les données de l'erreur
+        // Réponse d'erreur du serveur
         const { status, data } = error.response;
         const errorData = data as ApiErrorResponse;
         
@@ -96,50 +139,45 @@ export const configureAxios = async () => {
         switch (status) {
           case 401:
             apiError.type = ErrorType.UNAUTHORIZED;
-            apiError.message = 'Votre session a expiré. Veuillez vous reconnecter.';
+            apiError.message = 'Authentication requise. Token invalide ou expiré.';
+            console.log('🔒 401 Unauthorized - Token problem detected');
             break;
           case 403:
             apiError.type = ErrorType.UNAUTHORIZED;
-            apiError.message = 'Vous n\'avez pas les droits nécessaires pour effectuer cette action.';
+            apiError.message = 'Accès refusé. Permissions insuffisantes.';
             break;
           case 404:
             apiError.type = ErrorType.NOT_FOUND;
-            apiError.message = 'La ressource demandée n\'existe pas.';
+            apiError.message = 'Ressource non trouvée.';
             break;
           case 422:
             apiError.type = ErrorType.VALIDATION;
-            apiError.message = 'Les données fournies sont invalides.';
+            apiError.message = 'Données invalides.';
             break;
           case 500:
           case 502:
           case 503:
           case 504:
             apiError.type = ErrorType.SERVER;
-            apiError.message = 'Le serveur a rencontré une erreur. Veuillez réessayer plus tard.';
+            apiError.message = 'Erreur serveur. Veuillez réessayer plus tard.';
             break;
           default:
             apiError.type = ErrorType.UNKNOWN;
-            apiError.message = errorData?.message || errorData?.error || 'Une erreur est survenue.';
+            apiError.message = errorData?.message || errorData?.error || 'Erreur inconnue.';
         }
       }
 
-      // Log l'erreur pour le débogage seulement si ce n'est pas un health check
-      if (!isHealthCheck) {
-        // Only log errors that are not network errors to avoid console spam when WiFi is down
-        if (apiError.type !== ErrorType.NETWORK) {
-          console.error('API Error:', {
-            type: apiError.type,
-            status: apiError.status,
-            message: apiError.message,
-            url: error.config?.url
-          });
-        }
+      // Logs conditionnels
+      if (!isHealthCheck && apiError.type !== ErrorType.NETWORK) {
+        console.error(`❌ [${method}] ${url} - ${apiError.status || 'Network'}: ${apiError.message}`);
       }
 
-      // Rejeter avec l'erreur formatée
       return Promise.reject(apiError);
     }
   );
+
+  interceptorsConfigured = true;
+  console.log('✅ Axios interceptors configured successfully!');
 };
 
 // Handler d'erreur global pour les composants
@@ -157,13 +195,18 @@ export const handleApiError = (error: any): ApiError => {
   };
 };
 
-// Create a component wrapper to satisfy Expo Router's requirement for default exports
+// 🚀 Provider moderne pour Expo Router avec configuration automatique
 const AxiosConfigProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  useEffect(() => {
-    configureAxios();
-  }, []);
+  const { isLoaded } = useAuth();
 
-  // Just return children directly without JSX fragment syntax to avoid TypeScript error
+  useEffect(() => {
+    // Attendre que Clerk soit chargé avant de configurer axios
+    if (isLoaded) {
+      console.log('🎯 Clerk loaded, configuring axios...');
+      configureAxios();
+    }
+  }, [isLoaded]);
+
   return children as React.ReactElement || null;
 };
 

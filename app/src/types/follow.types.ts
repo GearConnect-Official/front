@@ -8,6 +8,7 @@ export interface FollowUser {
   username: string;
   name?: string;
   profilePicture?: string;
+  profilePicturePublicId?: string;
   isFollowing?: boolean;
   followedAt?: string;
 }

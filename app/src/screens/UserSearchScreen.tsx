@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import FollowButton from '../components/FollowButton';
 import followService from '../services/followService';
 import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
+import { useAuth } from '../context/AuthContext';
 
 // Type pour les résultats de recherche (adapté à la réponse API)
 interface SearchUser {
@@ -29,6 +30,7 @@ interface SearchUser {
 
 const UserSearchScreen: React.FC = () => {
   const router = useRouter();
+  const { user } = useAuth() || {}; // Récupérer l'utilisateur connecté
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +58,36 @@ const UserSearchScreen: React.FC = () => {
       const response = await followService.searchUsers(query.trim(), 20, page);
       
       if (response.success && response.data) {
-        const usersWithFollowState = response.data.users.map(user => ({
+        // Filtrer l'utilisateur connecté des résultats
+        const filteredUsers = user && user.id 
+          ? response.data.users.filter(searchUser => searchUser.id !== Number(user.id))
+          : response.data.users;
+
+        let usersWithFollowState = filteredUsers.map(user => ({
           ...user,
-          isFollowing: false, // TODO: Déterminer l'état de follow réel
+          isFollowing: false, // Valeur par défaut
         }));
+
+        // Vérifier l'état de follow réel si l'utilisateur est connecté
+        if (user && user.id && filteredUsers.length > 0) {
+          const currentUserId = Number(user.id);
+          const userIds = filteredUsers.map(u => u.id);
+          
+          try {
+            const followStatusResponse = await followService.checkFollowingStatus(userIds, currentUserId);
+            if (followStatusResponse.success && followStatusResponse.data) {
+              const followedUserIds = followStatusResponse.data;
+              
+              // Mettre à jour l'état de follow pour chaque utilisateur
+              usersWithFollowState = usersWithFollowState.map(user => ({
+                ...user,
+                isFollowing: followedUserIds.includes(user.id),
+              }));
+            }
+          } catch (error) {
+            console.warn('Could not check follow status:', error);
+          }
+        }
         
         if (page === 1) {
           setSearchResults(usersWithFollowState);
@@ -130,45 +158,57 @@ const UserSearchScreen: React.FC = () => {
     <TouchableOpacity
       style={styles.userItem}
       onPress={() => navigateToProfile(item)}
-      activeOpacity={0.7}
+      activeOpacity={0.95}
     >
       <View style={styles.userInfo}>
-        {item.profilePicturePublicId ? (
-          <CloudinaryAvatar
-            publicId={item.profilePicturePublicId}
-            size={48}
-            quality="auto"
-            format="auto"
-            style={styles.avatar}
-            fallbackUrl={item.profilePicture}
-          />
-        ) : (
-          <Image
-            source={{
-              uri: item.profilePicture || 'https://via.placeholder.com/48x48/CCCCCC/FFFFFF?text=U',
-            }}
-            style={styles.avatar}
-          />
-        )}
+        <View style={styles.avatarContainer}>
+          {item.profilePicturePublicId ? (
+            <CloudinaryAvatar
+              publicId={item.profilePicturePublicId}
+              size={54}
+              quality="auto"
+              format="auto"
+              style={styles.avatar}
+              fallbackUrl={item.profilePicture}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {(item.username || item.name || 'U')[0].toUpperCase()}
+              </Text>
+            </View>
+          )}
+          {item.isVerify && (
+            <View style={styles.verifyBadge}>
+              <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+            </View>
+          )}
+        </View>
+        
         <View style={styles.userDetails}>
-          <View style={styles.userNameContainer}>
-            <Text style={styles.username}>{item.username}</Text>
-            {item.isVerify && (
-              <Ionicons name="checkmark-circle" size={16} color="#3B82F6" style={styles.verifyIcon} />
-            )}
-          </View>
-          {item.name && <Text style={styles.name}>{item.name}</Text>}
+          <Text style={styles.username} numberOfLines={1}>
+            {item.username}
+          </Text>
+          {item.name && (
+            <Text style={styles.name} numberOfLines={1}>
+              {item.name}
+            </Text>
+          )}
         </View>
       </View>
-      <FollowButton
-        targetUserId={item.id}
-        initialFollowState={item.isFollowing}
-        onFollowStateChange={(isFollowing) => 
-          handleFollowStateChange(item.id, isFollowing)
-        }
-        size="small"
-        variant="outline"
-      />
+      
+      <View style={styles.followButtonContainer}>
+        <FollowButton
+          targetUserId={item.id}
+          initialFollowState={item.isFollowing}
+          onFollowStateChange={(isFollowing) => 
+            handleFollowStateChange(item.id, isFollowing)
+          }
+          size="small"
+          variant="primary"
+          iconOnly={true}
+        />
+      </View>
     </TouchableOpacity>
   );
 
@@ -291,7 +331,7 @@ const UserSearchScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
   },
   header: {
     flexDirection: 'row',
@@ -299,6 +339,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -315,15 +356,26 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   searchIcon: {
     marginRight: 8,
@@ -335,83 +387,142 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   resultsInfo: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#FFFFFF',
   },
   resultsText: {
     fontSize: 14,
     color: '#6B7280',
+    fontWeight: '500',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 32,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
     color: '#6B7280',
+    fontWeight: '500',
   },
   list: {
     flex: 1,
   },
   listContainer: {
-    paddingBottom: 20,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
   userItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    marginHorizontal: 16,
+    marginVertical: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  avatarContainer: {
+    position: 'relative',
+  },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: '#F3F4F6',
+  },
+  avatarPlaceholder: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    marginRight: 16,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
+  verifyBadge: {
+    position: 'absolute',
+    top: -2,
+    right: 12,
+    backgroundColor: '#10B981',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   userDetails: {
     flex: 1,
-  },
-  userNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 2,
+    justifyContent: 'center',
   },
   username: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#111827',
-  },
-  verifyIcon: {
-    marginLeft: 4,
+    marginBottom: 2,
   },
   name: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#6B7280',
+    fontWeight: '500',
+  },
+  followButtonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   footerContainer: {
-    paddingVertical: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
     alignItems: 'center',
   },
   loadMoreButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 20,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   loadMoreText: {
     color: '#374151',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
   },
   emptyListContainer: {
     flex: 1,
@@ -421,19 +532,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    paddingVertical: 48,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#111827',
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: 20,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   emptyDescription: {
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
+    fontWeight: '500',
   },
 });
 

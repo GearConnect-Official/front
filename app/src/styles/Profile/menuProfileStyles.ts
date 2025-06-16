@@ -1,77 +1,66 @@
-import { StyleSheet, Dimensions } from "react-native";
-import theme from "../config";
-
-const { width: screenWidth } = Dimensions.get("window");
+import { StyleSheet } from "react-native";
+import theme from "../config/theme";
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  menuContainer: {
     position: "absolute",
-    top: 60,
-    right: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    width: Math.min(180, screenWidth * 0.45), // Responsive: max 180px ou 45% de l'écran
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    ...theme.common.centerContent,
+  },
+  container: {
+    backgroundColor: theme.colors.background.paper,
+    borderRadius: theme.borders.radius.lg,
+    padding: theme.spacing.lg,
+    width: "80%",
+    maxWidth: 300,
+    ...theme.shadows.apply({}, 'md'),
+  },
+  title: {
+    ...theme.typography.h5,
+    color: theme.colors.text.primary,
+    textAlign: "center",
+    marginBottom: theme.spacing.lg,
   },
   menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    justifyContent: "space-between",
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
   },
-  menuIconContainer: {
-    position: "relative",
-    marginRight: 12,
-  },
-  menuIcon: {
-    width: 18,
-    textAlign: "center",
-  },
-  notificationBadge: {
-    position: "absolute",
-    top: -8,
-    right: -8,
-    backgroundColor: "#E10600",
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  badgeText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "bold",
+  lastMenuItem: {
+    borderBottomWidth: 0,
   },
   menuText: {
-    fontSize: 15,
-    fontWeight: "500",
-    flex: 1,
-    textAlign: "right",
-    marginLeft: 10,
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
+    textAlign: "center",
   },
-  separator: {
-    height: 1,
-    backgroundColor: "#E5E5E5",
-    marginVertical: 6,
-    marginHorizontal: 12,
+  logoutButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: theme.borders.radius.md,
+    paddingVertical: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: theme.colors.common.white,
+  },
+  logoutText: {
+    ...theme.typography.button,
+    color: theme.colors.common.white,
+    textAlign: "center",
+  },
+  cancelButton: {
+    backgroundColor: theme.colors.grey[200],
+    borderRadius: theme.borders.radius.md,
+    paddingVertical: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+  },
+  cancelText: {
+    ...theme.typography.button,
+    color: theme.colors.text.primary,
+    textAlign: "center",
   },
 });
 

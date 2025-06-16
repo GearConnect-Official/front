@@ -3,36 +3,24 @@ import theme from '../config/theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Color constants for preferences
-export const colors = {
-  primary: '#E10600',
-  secondary: '#FF6B6B',
-  accent: '#4ECDC4',
-  success: '#45B7D1',
-  warning: '#FFA726',
-  background: '#FFFFFF',
-  cardBackground: '#F8F9FA',
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  textMuted: '#BDC3C7',
-  border: '#E8E8E8',
-  borderActive: '#E10600',
-  switchTrackActive: '#E1060080',
-  switchTrackInactive: '#BDC3C7',
-  switchThumbActive: '#E10600',
-  switchThumbInactive: '#FFFFFF',
-  gradientStart: '#E10600',
-  gradientEnd: '#FF6B6B',
-  shadow: '#000000',
-  overlay: 'rgba(0,0,0,0.5)',
-  ripple: 'rgba(225,6,0,0.1)',
+// Récupération des couleurs depuis le thème
+const colors = {
+  primary: theme.colors.primary.main,
+  background: theme.colors.background.default,
+  cardBackground: theme.colors.background.paper,
+  textPrimary: theme.colors.text.primary,
+  textSecondary: theme.colors.text.secondary,
+  border: theme.colors.border.light,
+  shadow: theme.colors.common.black,
+  success: theme.colors.status.success,
+  overlay: 'rgba(0, 0, 0, 0.5)',
+  ripple: 'rgba(0, 0, 0, 0.1)',
 };
 
 export default StyleSheet.create({
   // Main container
   container: {
-    flex: 1,
-    backgroundColor: colors.background,
+    ...theme.common.container,
   },
 
   // Header styles with gradient - FIXED: Removed extra spacing
@@ -40,21 +28,15 @@ export default StyleSheet.create({
     backgroundColor: colors.background,
     paddingTop: 0, // Changed from 50 to 0
     paddingBottom: 0,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    ...theme.shadows.apply({}, 'sm'),
     zIndex: 1000,
   },
 
   headerGradient: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    paddingTop: 20, // Added specific top padding
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm + 3,
+    paddingTop: theme.spacing.lg, // Added specific top padding
+    ...theme.common.spaceBetween,
   },
 
   backButton: {
@@ -62,22 +44,16 @@ export default StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    ...theme.common.centerContent,
+    ...theme.shadows.apply({}, 'xs'),
   },
 
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    ...theme.typography.h2,
     color: colors.textPrimary,
     textAlign: 'center',
     flex: 1,
-    marginHorizontal: 20,
+    marginHorizontal: theme.spacing.lg,
   },
 
   headerActions: {
@@ -85,8 +61,7 @@ export default StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    ...theme.common.centerContent,
   },
 
   // Animated scroll view
@@ -96,21 +71,17 @@ export default StyleSheet.create({
   },
 
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: theme.spacing.xl,
   },
 
   // Section styles with animations
   sectionContainer: {
-    marginHorizontal: 16,
-    marginVertical: 8,
+    marginHorizontal: theme.spacing.md,
+    marginVertical: theme.spacing.xs,
     backgroundColor: colors.cardBackground,
-    borderRadius: 16,
+    borderRadius: theme.borders.radius.md,
     overflow: 'hidden',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    ...theme.shadows.apply({}, 'sm'),
   },
 
   sectionHeader: {

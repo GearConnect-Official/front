@@ -1,4 +1,127 @@
 import { StyleSheet } from 'react-native';
+import theme from '../config/theme';
+
+const styles = StyleSheet.create({
+  // Avatar styles
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
+    borderWidth: 2,
+    borderColor: theme.colors.border.light,
+  },
+  avatarPlaceholder: {
+    backgroundColor: theme.colors.grey[100],
+    ...theme.common.centerContent,
+    borderWidth: 2,
+    borderColor: theme.colors.border.light,
+  },
+  avatarText: {
+    ...theme.typography.subtitle1,
+    color: theme.colors.text.secondary,
+  },
+  
+  // Loading states
+  loadingContainer: {
+    ...theme.common.centerContent,
+    backgroundColor: theme.colors.grey[50],
+  },
+  uploadingContainer: {
+    ...theme.common.centerContent,
+    backgroundColor: theme.colors.grey[50],
+  },
+  uploadingText: {
+    ...theme.typography.caption,
+    color: theme.colors.primary.main,
+    marginTop: theme.spacing.xs,
+  },
+  
+  // Error states
+  errorContainer: {
+    ...theme.common.centerContent,
+    backgroundColor: theme.colors.status.error + '15', // 15% opacity
+  },
+  errorText: {
+    ...theme.typography.caption,
+    color: theme.colors.status.error,
+    marginTop: theme.spacing.xs,
+  },
+  
+  // Retry button
+  retryButton: {
+    backgroundColor: theme.colors.status.error,
+    borderRadius: theme.borders.radius.md,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    marginTop: theme.spacing.xs,
+  },
+  retryButtonText: {
+    ...theme.typography.caption,
+    color: theme.colors.common.white,
+  },
+  
+  // Image styles
+  imageContainer: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    backgroundColor: theme.colors.grey[100],
+    ...theme.common.centerContent,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  imagePlaceholderText: {
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+  },
+  
+  // Gallery error states
+  galleryErrorContainer: {
+    ...theme.common.centerContent,
+    backgroundColor: theme.colors.status.error + '15', // 15% opacity
+  },
+  galleryErrorText: {
+    ...theme.typography.caption,
+    color: theme.colors.status.error,
+    marginTop: theme.spacing.xs,
+  },
+  
+  // Gallery retry button
+  galleryRetryButton: {
+    backgroundColor: theme.colors.status.error,
+    borderRadius: theme.borders.radius.md,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    marginTop: theme.spacing.xs,
+  },
+  galleryRetryButtonText: {
+    ...theme.typography.caption,
+    color: theme.colors.common.white,
+  },
+  
+  // Progress indicator
+  progressContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    ...theme.common.centerContent,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  progressText: {
+    ...theme.typography.caption,
+    color: theme.colors.common.white,
+    marginTop: theme.spacing.xs,
+  },
+});
+
+export default styles;
 
 export const cloudinaryImageStyles = StyleSheet.create({
   avatar: {

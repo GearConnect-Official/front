@@ -1,26 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { View, Alert, SafeAreaView, StatusBar } from 'react-native';
-import { useRouter } from 'expo-router';
-import styles from '../styles/screens/social/publicationStyles';
-import postService from '../services/postService';
-import FeedbackMessage, { FeedbackType } from '../components/ui/FeedbackMessage';
-import { useAuth } from '../context/AuthContext';
-import { CloudinaryUploadResponse } from '../services/cloudinary.service';
-import { useMessage } from '../context/MessageContext';
-import MessageService from '../services/messageService';
-import { QuickMessages } from '../utils/messageUtils';
+import React, { useState, useEffect } from "react";
+import { View, Alert, SafeAreaView, StatusBar } from "react-native";
+import { useRouter } from "expo-router";
+import styles from "../styles/screens/social/publicationStyles";
+import postService from "../services/postService";
+import FeedbackMessage, {
+  FeedbackType,
+} from "../components/ui/FeedbackMessage";
+import { useAuth } from "../context/AuthContext";
+import { CloudinaryUploadResponse } from "../services/cloudinary.service";
+import { useMessage } from "../context/MessageContext";
+import MessageService from "../services/messageService";
+import { QuickMessages } from "../utils/messageUtils";
 
-import Header from '../components/Publication/Header';
-import MediaSection from '../components/Publication/MediaSection';
-import ImageViewer from '../components/Publication/ImageViewer';
-import PublicationForm from '../components/Publication/PublicationForm';
+import Header from "../components/Publication/Header";
+import MediaSection from "../components/Publication/MediaSection";
+import ImageViewer from "../components/Publication/ImageViewer";
+import PublicationForm from "../components/Publication/PublicationForm";
 
 /**
  * Écran de publication de post
- * 
+ *
  * TODO: Fonctionnalités à implémenter dans les prochaines itérations:
  * 1. Gestion des images: intégration complète avec Cloudinary pour le stockage et l'optimisation
- * 
+ *
  * Implémentation actuelle:
  * - Création de posts avec titre et description
  * - Upload automatique vers Cloudinary avec optimisation
@@ -32,52 +34,56 @@ const PublicationScreen: React.FC = () => {
   const router = useRouter();
   const auth = useAuth();
   const user = auth?.user;
-  const [step, setStep] = useState<'select' | 'crop' | 'form'>('select');
+  const [step, setStep] = useState<"select" | "crop" | "form">("select");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedImagePublicId, setSelectedImagePublicId] = useState<string | null>(null);
+  const [selectedImagePublicId, setSelectedImagePublicId] = useState<
+    string | null
+  >(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [resourceType, setResourceType] = useState<string>('image');
+  const [resourceType, setResourceType] = useState<string>("image");
   const [feedback, setFeedback] = useState({
     visible: false,
-    message: '',
-    type: FeedbackType.SUCCESS
+    message: "",
+    type: FeedbackType.SUCCESS,
   });
-  
-  const [username, setUsername] = useState('Username');
-  const [userAvatar, setUserAvatar] = useState('https://via.placeholder.com/32');
+
+  const [username, setUsername] = useState("Username");
+  const [userAvatar, setUserAvatar] = useState(
+    "https://via.placeholder.com/32"
+  );
   const { showMessage, showError, showConfirmation } = useMessage();
 
   // Mettre à jour les informations utilisateur lorsqu'ils sont disponibles
   useEffect(() => {
     if (user) {
-      setUsername(user.username || 'Username');
-      setUserAvatar(user.photoURL || 'https://via.placeholder.com/32');
+      setUsername(user.username || "Username");
+      setUserAvatar(user.photoURL || "https://via.placeholder.com/32");
     }
   }, [user]);
 
   const handleGoBack = () => {
-    if (step !== 'select') {
+    if (step !== "select") {
       Alert.alert(
-        'Discard Post?',
-        'If you go back now, you will lose your post.',
+        "Discard Post?",
+        "If you go back now, you will lose your post.",
         [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Discard', 
-            style: 'destructive',
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Discard",
+            style: "destructive",
             onPress: () => {
               setSelectedImage(null);
               setCroppedImage(null);
-              setTitle('');
-              setDescription('');
+              setTitle("");
+              setDescription("");
               setTags([]);
-              setStep('select');
+              setStep("select");
               router.back();
-            }
+            },
           },
         ]
       );
@@ -87,30 +93,30 @@ const PublicationScreen: React.FC = () => {
   };
 
   const hideFeedback = () => {
-    setFeedback(prev => ({ ...prev, visible: false }));
+    setFeedback((prev) => ({ ...prev, visible: false }));
   };
-  
+
   const handleShare = async () => {
     const imageToShare = croppedImage || selectedImage;
-    
+
     if (!imageToShare || !title.trim()) {
-      showError('Please add an image and title');
+      showError("Please add an image and title");
       return;
     }
-    
+
     if (!user) {
-      showError('You must be logged in to create a post');
+      showError("You must be logged in to create a post");
       return;
     }
 
     try {
       setIsLoading(true);
-      
+
       // Objet post avec informations Cloudinary
       const newPost = {
         title: title,
         body: description,
-        userId: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
+        userId: typeof user.id === "string" ? parseInt(user.id, 10) : user.id,
         // Inclure les informations Cloudinary directement
         cloudinaryUrl: imageToShare,
         cloudinaryPublicId: selectedImagePublicId || undefined,
@@ -121,64 +127,69 @@ const PublicationScreen: React.FC = () => {
           publicId: selectedImagePublicId,
           uploadedAt: new Date().toISOString(),
           resource_type: resourceType,
-          format: resourceType === 'video' ? 'mp4' : 'auto',
+          format: resourceType === "video" ? "mp4" : "auto",
           mediaType: resourceType,
-        })
+        }),
       };
-      
-      console.log('Sending post data with Cloudinary info:', newPost);
-      console.log('With tags:', tags);
-      
+
+      console.log("Sending post data with Cloudinary info:", newPost);
+      console.log("With tags:", tags);
+
       // Appeler l'API pour créer le post avec les tags
       await postService.createPostWithTags(newPost, tags);
-      
+
       // Réinitialiser le formulaire
       setSelectedImage(null);
       setSelectedImagePublicId(null);
       setCroppedImage(null);
-      setTitle('');
-      setDescription('');
+      setTitle("");
+      setDescription("");
       setTags([]);
-      setStep('select');
-      
-      showMessage(QuickMessages.success('Post created successfully with optimized images!'));
-      
+      setStep("select");
+
+      showMessage(
+        QuickMessages.success(
+          "Post created successfully with optimized images!"
+        )
+      );
+
       // Rediriger vers la page d'accueil après un court délai
       setTimeout(() => {
-        router.replace('/(app)/(tabs)');
+        router.replace("/(app)/(tabs)");
       }, 1500);
-      
     } catch (error) {
-      console.error('Error creating post:', error);
-      showError('Failed to create post. Please try again.');
+      console.error("Error creating post:", error);
+      showError("Failed to create post. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleImageSelected = (cloudinaryResponse: CloudinaryUploadResponse) => {
-    console.log('📸 Media selected from Cloudinary:', {
+  const handleImageSelected = (
+    cloudinaryResponse: CloudinaryUploadResponse
+  ) => {
+    console.log("📸 Media selected from Cloudinary:", {
       resource_type: cloudinaryResponse.resource_type,
       format: cloudinaryResponse.format,
       secure_url: cloudinaryResponse.secure_url,
-      public_id: cloudinaryResponse.public_id
+      public_id: cloudinaryResponse.public_id,
     });
-    
+
     setSelectedImage(cloudinaryResponse.secure_url);
     setCroppedImage(cloudinaryResponse.secure_url);
     setSelectedImagePublicId(cloudinaryResponse.public_id);
-    
+
     // Stocker le type de ressource pour les métadonnées
-    const resourceType = cloudinaryResponse.resource_type || 'image';
+    const resourceType = cloudinaryResponse.resource_type || "image";
     setResourceType(resourceType);
-    console.log('📸 Resource type set to:', resourceType);
-    
+    console.log("📸 Resource type set to:", resourceType);
+
     // Les vidéos sautent directement au formulaire, pas de crop
-    if (resourceType === 'video') {
-      console.log('📹 Video detected, skipping crop step');
-      setStep('form');
+    if (resourceType === "video") {
+      console.log("📹 Video detected, skipping crop step");
+      setStep("form");
     } else {
-      setStep('crop');
+      setStep("crop");
     }
   };
 
@@ -187,22 +198,22 @@ const PublicationScreen: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (step === 'crop') {
+    if (step === "crop") {
       if (!croppedImage && !selectedImage) {
-        showError('Please select an image first');
+        showError("Please select an image first");
         return;
       }
-      setStep('form');
+      setStep("form");
     }
   };
 
   const handleBack = () => {
     switch (step) {
-      case 'form':
-        setStep('crop');
+      case "form":
+        setStep("crop");
         break;
-      case 'crop':
-        setStep('select');
+      case "crop":
+        setStep("select");
         break;
       default:
         handleGoBack();
@@ -210,18 +221,18 @@ const PublicationScreen: React.FC = () => {
   };
 
   const handleTagsChange = (newTags: string[]) => {
-    console.log('handleTagsChange called with:', newTags);
-    console.log('Current tags before update:', tags);
+    console.log("handleTagsChange called with:", newTags);
+    console.log("Current tags before update:", tags);
     setTags(newTags);
-    console.log('Tags updated in PublicationScreen');
+    console.log("Tags updated in PublicationScreen");
   };
 
   const renderContent = () => {
     switch (step) {
-      case 'select':
+      case "select":
         return <MediaSection onImageSelected={handleImageSelected} />;
-      
-      case 'crop':
+
+      case "crop":
         return selectedImage ? (
           <ImageViewer
             imageUri={selectedImage}
@@ -231,8 +242,8 @@ const PublicationScreen: React.FC = () => {
             isLastStep={false}
           />
         ) : null;
-      
-      case 'form':
+
+      case "form":
         const imageToShow = croppedImage || selectedImage;
         return imageToShow ? (
           <PublicationForm
@@ -243,14 +254,12 @@ const PublicationScreen: React.FC = () => {
             setTitle={setTitle}
             setDescription={setDescription}
             setTags={handleTagsChange}
-            username={username}
-            userAvatar={userAvatar}
             isLoading={isLoading}
-            mediaType={resourceType as 'image' | 'video'}
+            mediaType={resourceType as "image" | "video"}
             publicId={selectedImagePublicId || undefined}
           />
         ) : null;
-      
+
       default:
         return null;
     }
@@ -259,18 +268,16 @@ const PublicationScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header 
-        isCropping={step === 'crop'}
-        isLastStep={step === 'form'}
+      <Header
+        isCropping={step === "crop"}
+        isLastStep={step === "form"}
         onBack={handleBack}
         onConfirm={handleNext}
-        onNext={step === 'form' ? handleShare : handleNext}
+        onNext={step === "form" ? handleShare : handleNext}
         onGoBack={handleGoBack}
         isLoading={isLoading}
       />
-      <View style={styles.contentContainer}>
-        {renderContent()}
-      </View>
+      <View style={styles.contentContainer}>{renderContent()}</View>
       <FeedbackMessage
         visible={feedback.visible}
         message={feedback.message}

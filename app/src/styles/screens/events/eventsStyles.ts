@@ -1,33 +1,62 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions, Platform, StatusBar } from "react-native";
 import theme from "../../config/theme";
+
+const { width } = Dimensions.get("window");
+const STATUSBAR_HEIGHT =
+  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
+const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 const styles = StyleSheet.create({
   container: {
-    ...theme.common.container,
-    maxWidth: 480,
-    width: "100%",
-    marginLeft: "auto",
-    marginRight: "auto",
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderBottomWidth: 0,
+    height: HEADER_HEIGHT,
+    marginTop: -STATUSBAR_HEIGHT,
+    paddingTop: STATUSBAR_HEIGHT,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+  },
+  backButton: {
+    marginRight: 15,
+    padding: 8,
+    position: "relative",
+    zIndex: 20,
+  },
+  placeholderRight: {
+    width: 40,
+    height: 40,
+  },
+  contentContainer: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
   },
   topBar: {
     backgroundColor: theme.colors.background.paper,
-    ...theme.shadows.apply({}, 'topBar'),
+    ...theme.shadows.apply({}, "topBar"),
     minHeight: theme.spacing.height.toolbar,
   },
   topBarContent: {
     ...theme.common.spaceBetween,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.xs,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   topBarTitle: {
     ...theme.typography.h4,
@@ -45,25 +74,25 @@ const styles = StyleSheet.create({
     ...theme.typography.h4,
     color: theme.colors.text.primary,
   },
-  
+
   // Hero section
   heroSection: {
     padding: theme.spacing.lg,
-    backgroundColor: '#f0f7ff',
+    backgroundColor: "#f0f7ff",
     marginBottom: theme.spacing.md,
   },
   heroTitle: {
     ...theme.typography.h3,
     color: theme.colors.primary.dark,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: theme.spacing.xs,
   },
   heroSubtitle: {
     ...theme.typography.subtitle1,
     color: theme.colors.text.secondary,
-    maxWidth: '80%',
+    maxWidth: "80%",
   },
-  
+
   // Featured events section
   featuredSection: {
     marginBottom: theme.spacing.md,
@@ -71,100 +100,103 @@ const styles = StyleSheet.create({
   featuredCard: {
     height: 220,
     borderRadius: 16,
-    overflow: 'hidden',
-    ...theme.shadows.apply({}, 'md'),
+    overflow: "hidden",
+    ...theme.shadows.apply({}, "md"),
     marginBottom: theme.spacing.md,
   },
   featuredImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    width: "100%",
+    height: "100%",
+    position: "absolute",
   },
   featuredGradient: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    height: '70%',
-    justifyContent: 'flex-end',
+    height: "70%",
+    justifyContent: "flex-end",
     padding: theme.spacing.md,
   },
   featuredDate: {
-    color: '#fff',
+    color: "#fff",
     ...theme.typography.caption,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    backgroundColor: 'rgba(58, 134, 255, 0.7)',
-    alignSelf: 'flex-start',
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    backgroundColor: "rgba(58, 134, 255, 0.7)",
+    alignSelf: "flex-start",
     paddingHorizontal: theme.spacing.xs,
     paddingVertical: 4,
     borderRadius: 4,
     marginBottom: 8,
   },
   featuredTitle: {
-    color: '#fff',
+    color: "#fff",
     ...theme.typography.h5,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   featuredLocation: {
-    color: '#fff',
+    color: "#fff",
     ...theme.typography.body2,
     marginBottom: 12,
   },
   featuredActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   featuredButton: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.xs,
     borderRadius: 20,
   },
   featuredButtonText: {
     color: theme.colors.primary.main,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   featuredIconButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  
+
   // Create button
   createButton: {
     backgroundColor: theme.colors.primary.main,
     borderRadius: 20,
     paddingVertical: 6,
     paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   createButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
-  
+
   // Search section
   searchSection: {
     padding: theme.spacing.md,
   },
   searchBar: {
     ...theme.common.row,
-    ...theme.borders.apply({}, { 
-      width: 1, 
-      color: theme.colors.border.medium, 
-      radius: 'sm' 
-    }),
+    ...theme.borders.apply(
+      {},
+      {
+        width: 1,
+        color: theme.colors.border.medium,
+        radius: "sm",
+      }
+    ),
     padding: theme.spacing.xxs,
-    backgroundColor: '#fff',
-    ...theme.shadows.apply({}, 'xs'),
+    backgroundColor: "#fff",
+    ...theme.shadows.apply({}, "xs"),
   },
   searchInput: {
     flex: 1,
@@ -188,7 +220,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     marginTop: theme.spacing.xxs,
   },
-  
+
   // Tabs section
   tabGroup: {
     ...theme.common.row,
@@ -199,16 +231,19 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     flexDirection: "column",
-    ...theme.borders.apply({}, { 
-      width: 1, 
-      color: theme.colors.border.medium, 
-      radius: 'sm' 
-    }),
+    ...theme.borders.apply(
+      {},
+      {
+        width: 1,
+        color: theme.colors.border.medium,
+        radius: "sm",
+      }
+    ),
     paddingVertical: theme.spacing.xs,
     alignItems: "center",
     justifyContent: "center",
     gap: theme.spacing.xxs,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   tabIcon: {
     width: 24,
@@ -220,7 +255,7 @@ const styles = StyleSheet.create({
     ...theme.typography.body2,
     textAlign: "center",
   },
-  
+
   // Events list section
   sectionTitle: {
     ...theme.typography.h5,
@@ -228,7 +263,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.xs,
     paddingBottom: theme.spacing.md,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   eventsContainer: {
     marginBottom: theme.spacing.lg,
@@ -272,50 +307,50 @@ const styles = StyleSheet.create({
   emojiText: {
     fontSize: 20,
   },
-  
+
   // CTA Section
   ctaSection: {
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.lg,
     borderRadius: 16,
-    overflow: 'hidden',
-    ...theme.shadows.apply({}, 'md'),
+    overflow: "hidden",
+    ...theme.shadows.apply({}, "md"),
   },
   ctaGradient: {
     padding: theme.spacing.lg,
   },
   ctaTitle: {
     ...theme.typography.h5,
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     marginBottom: theme.spacing.xs,
   },
   ctaText: {
     ...theme.typography.body1,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: "rgba(255, 255, 255, 0.9)",
     marginBottom: theme.spacing.md,
   },
   ctaButton: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   ctaButtonText: {
     color: theme.colors.primary.main,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-  
+
   // Empty state
   emptyContainer: {
     padding: theme.spacing.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginVertical: theme.spacing.lg,
   },
   emptyText: {
@@ -327,7 +362,7 @@ const styles = StyleSheet.create({
   emptySubtext: {
     ...theme.typography.body1,
     color: theme.colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: theme.spacing.md,
   },
   createEventButton: {
@@ -335,17 +370,17 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
     marginTop: theme.spacing.md,
   },
   createEventButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
-  
+
   // State styles
   activeTab: {
     backgroundColor: theme.colors.primary.main,
@@ -369,8 +404,8 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.xs,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
   errorText: {
     ...theme.typography.body1,

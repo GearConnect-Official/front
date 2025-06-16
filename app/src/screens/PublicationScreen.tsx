@@ -248,6 +248,8 @@ const PublicationScreen: React.FC = () => {
         return imageToShow ? (
           <PublicationForm
             imageUri={imageToShow}
+            username={username}
+            userAvatar={userAvatar}
             title={title}
             description={description}
             tags={tags}
@@ -266,25 +268,26 @@ const PublicationScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <Header
-        isCropping={step === "crop"}
-        isLastStep={step === "form"}
-        onBack={handleBack}
-        onConfirm={handleNext}
-        onNext={step === "form" ? handleShare : handleNext}
-        onGoBack={handleGoBack}
-        isLoading={isLoading}
-      />
-      <View style={styles.contentContainer}>{renderContent()}</View>
-      <FeedbackMessage
-        visible={feedback.visible}
-        message={feedback.message}
-        type={feedback.type}
-        duration={3000}
-        onDismiss={hideFeedback}
-      />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.container}>
+        <Header
+          isCropping={step === "crop"}
+          isLastStep={step === "form"}
+          onBack={handleBack}
+          onConfirm={handleNext}
+          onNext={step === "form" ? handleShare : handleNext}
+          onGoBack={handleGoBack}
+          isLoading={isLoading}
+        />
+        <View style={styles.contentContainer}>{renderContent()}</View>
+        <FeedbackMessage
+          visible={feedback.visible}
+          message={feedback.message}
+          type={feedback.type}
+          onDismiss={hideFeedback}
+        />
+      </View>
     </SafeAreaView>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,15 @@ import {
   Switch,
   StatusBar,
   ActivityIndicator,
-  Linking
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useRouter } from 'expo-router';
-import { useAuth } from '../context/AuthContext';
-import { useMessage } from '../context/MessageContext';
-import MessageService from '../services/messageService';
-import styles, { colors } from '../styles/screens/user/settingsStyles';
-
+  Linking,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { useRouter } from "expo-router";
+import { useAuth } from "../context/AuthContext";
+import { useMessage } from "../context/MessageContext";
+import MessageService from "../services/messageService";
+import styles, { colors } from "../styles/screens/user/settingsStyles";
 
 interface SettingsSectionProps {
   title: string;
@@ -32,45 +31,50 @@ interface SettingsItemProps {
   isDestructive?: boolean;
 }
 
-const SettingsSection: React.FC<SettingsSectionProps> = ({ title, children }) => (
+const SettingsSection: React.FC<SettingsSectionProps> = ({
+  title,
+  children,
+}) => (
   <View style={styles.sectionContainer}>
     <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={styles.sectionContent}>
-      {children}
-    </View>
+    <View style={styles.sectionContent}>{children}</View>
   </View>
 );
 
-const SettingsItem: React.FC<SettingsItemProps> = ({ 
-  icon, 
-  title, 
-  subtitle, 
-  onPress, 
+const SettingsItem: React.FC<SettingsItemProps> = ({
+  icon,
+  title,
+  subtitle,
+  onPress,
   rightElement,
-  isDestructive = false
+  isDestructive = false,
 }) => (
-  <TouchableOpacity 
-    style={styles.settingsItem} 
+  <TouchableOpacity
+    style={styles.settingsItem}
     onPress={onPress}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
   >
     <View style={styles.settingsItemLeft}>
-      <View style={[
-        styles.iconContainer, 
-        isDestructive ? styles.destructiveIconContainer : null
-      ]}>
-        <FontAwesome 
-          name={icon} 
-          size={20} 
-          color={isDestructive ? colors.iconError : colors.iconPrimary} 
+      <View
+        style={[
+          styles.iconContainer,
+          isDestructive ? styles.destructiveIconContainer : null,
+        ]}
+      >
+        <FontAwesome
+          name={icon}
+          size={20}
+          color={isDestructive ? colors.iconError : colors.iconPrimary}
         />
       </View>
       <View style={styles.settingsItemTextContainer}>
-        <Text style={[
-          styles.settingsItemTitle,
-          isDestructive ? styles.destructiveText : null
-        ]}>
+        <Text
+          style={[
+            styles.settingsItemTitle,
+            isDestructive ? styles.destructiveText : null,
+          ]}
+        >
           {title}
         </Text>
         {subtitle && (
@@ -79,9 +83,14 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
       </View>
     </View>
     <View style={styles.settingsItemRight}>
-      {rightElement || (
-        onPress && <FontAwesome name="chevron-right" size={16} color={colors.iconChevron} />
-      )}
+      {rightElement ||
+        (onPress && (
+          <FontAwesome
+            name="chevron-right"
+            size={16}
+            color={colors.iconChevron}
+          />
+        ))}
     </View>
   </TouchableOpacity>
 );
@@ -92,8 +101,8 @@ const SettingsScreen: React.FC = () => {
   const { showMessage, showConfirmation } = useMessage();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingUser, setIsFetchingUser] = useState(true);
-  const [appVersion] = useState('1.0.0');
-  
+  const [appVersion] = useState("1.0.0");
+
   // Initial load of user preferences
   useEffect(() => {
     const loadUserPreferences = async () => {
@@ -103,18 +112,18 @@ const SettingsScreen: React.FC = () => {
           setIsFetchingUser(false);
         }, 500);
       } catch (error) {
-        console.error('Error loading user preferences:', error);
+        console.error("Error loading user preferences:", error);
         setIsFetchingUser(false);
       }
     };
-    
+
     loadUserPreferences();
   }, []);
 
   const handlePrivacySettings = () => {
     showMessage(MessageService.INFO.COMING_SOON);
   };
-  
+
   const handleSecuritySettings = () => {
     showMessage(MessageService.INFO.COMING_SOON);
   };
@@ -125,11 +134,11 @@ const SettingsScreen: React.FC = () => {
   };
 
   const handlePreferences = () => {
-    router.push('/preferences');
+    router.push("/preferences");
   };
 
   const handleHelpCenter = () => {
-    Linking.openURL('https://gearconnect-landing.vercel.app/faq');
+    Linking.openURL("https://gearconnect-landing.vercel.app/faq");
   };
 
   const handleTermsAndConditions = () => {
@@ -151,7 +160,7 @@ const SettingsScreen: React.FC = () => {
         } finally {
           setIsLoading(false);
         }
-      }
+      },
     });
   };
 
@@ -160,115 +169,131 @@ const SettingsScreen: React.FC = () => {
       ...MessageService.CONFIRMATIONS.DELETE_ACCOUNT,
       onConfirm: () => {
         showMessage(MessageService.INFO.COMING_SOON);
-      }
+      },
     });
   };
 
   if (isFetchingUser) {
     return (
-      <SafeAreaView style={styles.loadingContainer} edges={['top', 'left', 'right']}>
-        <StatusBar barStyle="dark-content" backgroundColor={colors.statusBarBackground} translucent={true} />
+      <SafeAreaView
+        style={styles.loadingContainer}
+        edges={["top", "left", "right"]}
+      >
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={colors.statusBarBackground}
+          translucent={true}
+        />
         <ActivityIndicator size="large" color={colors.activityIndicator} />
         <Text style={styles.loadingText}>Loading settings...</Text>
       </SafeAreaView>
     );
   }
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.statusBarBackground} />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <FontAwesome name="arrow-left" size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <View style={styles.placeholderRight} />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Settings</Text>
+          <View style={styles.placeholderRight} />
+        </View>
+        <View style={styles.contentContainer}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Account Section */}
+            <SettingsSection title="Account">
+              <SettingsItem
+                icon="user"
+                title="Account Settings"
+                subtitle="Manage your profile information"
+                onPress={handleAccountSettings}
+              />
+              <SettingsItem
+                icon="lock"
+                title="Privacy Settings"
+                subtitle="Control your privacy preferences"
+                onPress={handlePrivacySettings}
+              />
+              <SettingsItem
+                icon="shield"
+                title="Security Settings"
+                subtitle="Protect your account"
+                onPress={handleSecuritySettings}
+              />
+            </SettingsSection>
+
+            {/* App Preferences Section */}
+            <SettingsSection title="App Preferences">
+              <SettingsItem
+                icon="cog"
+                title="Preferences"
+                subtitle="Customize your app experience"
+                onPress={handlePreferences}
+              />
+            </SettingsSection>
+
+            {/* Support Section */}
+            <SettingsSection title="Support">
+              <SettingsItem
+                icon="question-circle"
+                title="Help Center"
+                subtitle="Get assistance and answers to your questions"
+                onPress={handleHelpCenter}
+              />
+              <SettingsItem
+                icon="file-text-o"
+                title="Terms & Conditions"
+                subtitle="Review our terms of service"
+                onPress={handleTermsAndConditions}
+              />
+              <SettingsItem
+                icon="info-circle"
+                title="App Version"
+                subtitle="Current version of the application"
+                rightElement={
+                  <Text style={styles.settingsItemValue}>{appVersion}</Text>
+                }
+              />
+            </SettingsSection>
+
+            {/* Actions Section */}
+            <SettingsSection title="Actions">
+              <SettingsItem
+                icon="sign-out"
+                title="Logout"
+                subtitle="Sign out of your account"
+                onPress={isLoading ? undefined : handleLogout}
+                rightElement={
+                  isLoading ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={colors.activityIndicator}
+                    />
+                  ) : undefined
+                }
+              />
+              <SettingsItem
+                icon="trash-o"
+                title="Delete Account"
+                subtitle="Permanently delete your account and data"
+                onPress={handleDeleteAccount}
+                isDestructive
+              />
+            </SettingsSection>
+
+            {/* Bottom spacing */}
+            <View style={styles.bottomSpace} />
+          </ScrollView>
+        </View>
       </View>
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Account Section */}
-        <SettingsSection title="Account">
-          <SettingsItem
-            icon="user"
-            title="Account Settings"
-            subtitle="Manage your profile information"
-            onPress={handleAccountSettings}
-          />
-          <SettingsItem
-            icon="lock"
-            title="Privacy Settings"
-            subtitle="Control your privacy preferences"
-            onPress={handlePrivacySettings}
-          />
-          <SettingsItem
-            icon="shield"
-            title="Security Settings"
-            subtitle="Protect your account"
-            onPress={handleSecuritySettings}
-          />
-        </SettingsSection>
-        
-        {/* App Preferences Section */}
-        <SettingsSection title="App Preferences">
-          <SettingsItem
-            icon="cog"
-            title="Preferences"
-            subtitle="Customize your app experience"
-            onPress={handlePreferences}
-          />
-        </SettingsSection>
-        
-        {/* Support Section */}
-        <SettingsSection title="Support">
-          <SettingsItem
-            icon="question-circle"
-            title="Help Center"
-            subtitle="Get assistance and answers to your questions"
-            onPress={handleHelpCenter}
-          />
-          <SettingsItem
-            icon="file-text-o"
-            title="Terms & Conditions"
-            subtitle="Review our terms of service"
-            onPress={handleTermsAndConditions}
-          />
-          <SettingsItem
-            icon="info-circle"
-            title="App Version"
-            subtitle="Current version of the application"
-            rightElement={
-              <Text style={styles.settingsItemValue}>{appVersion}</Text>
-            }
-          />
-        </SettingsSection>
-        
-        {/* Actions Section */}
-        <SettingsSection title="Actions">
-          <SettingsItem
-            icon="sign-out"
-            title="Logout"
-            subtitle="Sign out of your account"
-            onPress={isLoading ? undefined : handleLogout}            
-            rightElement={isLoading ? (
-              <ActivityIndicator size="small" color={colors.activityIndicator} />
-            ) : undefined}
-          />
-          <SettingsItem
-            icon="trash-o"
-            title="Delete Account"
-            subtitle="Permanently delete your account and data"
-            onPress={handleDeleteAccount}
-            isDestructive
-          />
-        </SettingsSection>
-        
-        {/* Bottom spacing */}
-        <View style={styles.bottomSpace} />
-      </ScrollView>
     </SafeAreaView>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Image,
   Animated,
   Dimensions,
+  StatusBar,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/screens/events/eventsStyles";
@@ -18,14 +19,14 @@ import EventItem from "../components/items/EventItem";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";
-import { API_URL_EVENTS, API_URL_USERS } from '../config';
+import { API_URL_EVENTS, API_URL_USERS } from "../config";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.8;
 
 const EventsScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [events, setEvents] = useState<{ [key: string]: Event[] }>({
     all: [],
     upcoming: [],
@@ -53,9 +54,9 @@ const EventsScreen: React.FC = () => {
   }
 
   const tabs: TabItem[] = [
-    { key: 'all', label: 'All Events', icon: 'calendar' },
-    { key: 'upcoming', label: 'Upcoming Events', icon: 'star' },
-    { key: 'passed', label: 'Passed Events', icon: 'history' },
+    { key: "all", label: "All Events", icon: "calendar" },
+    { key: "upcoming", label: "Upcoming Events", icon: "star" },
+    { key: "passed", label: "Passed Events", icon: "history" },
   ];
 
   const fetchEvents = async () => {
@@ -82,7 +83,7 @@ const EventsScreen: React.FC = () => {
               console.error(
                 `Failed to fetch user for event ${event.id}: ${userResponse.status}`
               );
-              return { ...event, creators: 'Unknown' };
+              return { ...event, creators: "Unknown" };
             }
             const user = await userResponse.json();
             return { ...event, creators: user.name };
@@ -91,7 +92,7 @@ const EventsScreen: React.FC = () => {
               `Error fetching creator for event ${event.id}:`,
               error
             );
-            return { ...event, creators: 'Unknown' };
+            return { ...event, creators: "Unknown" };
           }
         })
       );
@@ -121,9 +122,15 @@ const EventsScreen: React.FC = () => {
       });
     } catch (err) {
       // Check if it's a network error (fetch API throws TypeError for network issues)
-      if (err instanceof TypeError && (err.message.includes('Network request failed') || err.message.includes('Failed to fetch'))) {
+      if (
+        err instanceof TypeError &&
+        (err.message.includes("Network request failed") ||
+          err.message.includes("Failed to fetch"))
+      ) {
         setIsNetworkError(true);
-        setError("Your WiFi connection might not be working properly. Please check your internet connection and try again.");
+        setError(
+          "Your WiFi connection might not be working properly. Please check your internet connection and try again."
+        );
       } else {
         setError("Unable to load events. Please try again later.");
       }
@@ -154,7 +161,7 @@ const EventsScreen: React.FC = () => {
         ),
       };
       setFilteredEvents(filtered);
-    } else if (searchQuery === '') {
+    } else if (searchQuery === "") {
       setFilteredEvents(events);
     }
   };
@@ -167,13 +174,13 @@ const EventsScreen: React.FC = () => {
 
   const handleEventPress = (event: Event) => {
     router.push({
-      pathname: '/(app)/eventDetail',
+      pathname: "/(app)/eventDetail",
       params: { eventId: event.id },
     });
   };
 
   const handleCreateEvent = () => {
-    router.push('/(app)/createEvent');
+    router.push("/(app)/createEvent");
   };
 
   const renderFeaturedItem = ({
@@ -184,10 +191,10 @@ const EventsScreen: React.FC = () => {
     index: number;
   }) => {
     const date = new Date(item.date);
-    const formattedDate = date.toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+    const formattedDate = date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
 
     const inputRange = [
@@ -199,13 +206,13 @@ const EventsScreen: React.FC = () => {
     const scale = scrollX.interpolate({
       inputRange,
       outputRange: [0.9, 1, 0.9],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
 
     const opacity = scrollX.interpolate({
       inputRange,
       outputRange: [0.7, 1, 0.7],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
 
     return (
@@ -225,12 +232,12 @@ const EventsScreen: React.FC = () => {
             <Image
               source={{
                 uri:
-                  item.logo || 'https://via.placeholder.com/300x200?text=Event',
+                  item.logo || "https://via.placeholder.com/300x200?text=Event",
               }}
               style={styles.featuredImage}
             />
             <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.8)']}
+              colors={["transparent", "rgba(0,0,0,0.8)"]}
               style={styles.featuredGradient}
             >
               <Text style={styles.featuredDate}>{formattedDate}</Text>
@@ -263,191 +270,191 @@ const EventsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={styles.topBarContent}>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.container}>
+        <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <FontAwesome name="arrow-left" size={24} color="#1E232C" />
+            <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
           </TouchableOpacity>
-          <Text style={styles.title}>Events</Text>
-          <View style={styles.topBarIcons}>
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={handleCreateEvent}
-            >
-              <FontAwesome name="plus" size={20} color="#fff" />
-              <Text style={styles.createButtonText}>Create</Text>
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <FontAwesome name="bell" size={24} color="#1E232C" />
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.headerTitle}>Events</Text>
+          <View style={styles.placeholderRight} />
+        </View>
+        <View style={styles.contentContainer}>
+          <ScrollView
+            style={styles.scrollView}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
+            {/* Hero section */}
+            <View style={styles.heroSection}>
+              <Text style={styles.heroTitle}>Discover Amazing Events</Text>
+              <Text style={styles.heroSubtitle}>
+                Join the community and share your passions
+              </Text>
+            </View>
+
+            {/* Featured events carousel */}
+            {featured.length > 0 && (
+              <View style={styles.featuredSection}>
+                <Text style={styles.sectionTitle}>Featured Events</Text>
+                <Animated.FlatList
+                  data={featured}
+                  keyExtractor={(item: Event) =>
+                    item.id?.toString() || Math.random().toString()
+                  }
+                  renderItem={renderFeaturedItem}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  pagingEnabled
+                  snapToInterval={CARD_WIDTH + 20}
+                  decelerationRate="fast"
+                  contentContainerStyle={{ paddingHorizontal: 10 }}
+                  onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                    { useNativeDriver: true }
+                  )}
+                />
+              </View>
+            )}
+
+            <View style={styles.searchSection}>
+              <View style={styles.searchBar}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search for an event"
+                  value={searchQuery}
+                  onChangeText={(text: string) => {
+                    setSearchQuery(text);
+                    if (text === "") {
+                      setFilteredEvents(events);
+                    }
+                  }}
+                  onSubmitEditing={handleSearch}
+                />
+                <TouchableOpacity
+                  style={styles.searchButton}
+                  onPress={handleSearch}
+                >
+                  <FontAwesome name="search" size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.tabGroup}>
+              {tabs.map((tab: TabItem) => (
+                <TouchableOpacity
+                  key={tab.key}
+                  onPress={() => setActiveTab(tab.key)}
+                  style={[
+                    styles.tab,
+                    activeTab === tab.key ? styles.activeTab : {},
+                  ]}
+                >
+                  <FontAwesome
+                    name={tab.icon}
+                    size={20}
+                    color={activeTab === tab.key ? "#FFFFFF" : "#1E232C"}
+                    style={styles.tabIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.tabText,
+                      activeTab === tab.key ? styles.activeTabText : {},
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#1E232C" />
+              </View>
+            ) : error ? (
+              <View style={styles.errorContainer}>
+                {isNetworkError ? (
+                  <>
+                    <FontAwesome name="wifi" size={50} color="#E10600" />
+                    <Text style={styles.errorTitle}>Connection Issue</Text>
+                    <Text style={styles.errorText}>{error}</Text>
+                  </>
+                ) : (
+                  <>
+                    <FontAwesome
+                      name="exclamation-triangle"
+                      size={50}
+                      color="#E10600"
+                    />
+                    <Text style={styles.errorText}>{error}</Text>
+                  </>
+                )}
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={fetchEvents}
+                >
+                  <Text style={styles.retryButtonText}>Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            ) : filteredEvents[activeTab]?.length === 0 ? (
+              renderEmptyState()
+            ) : (
+              <View style={styles.eventsContainer}>
+                <Text style={styles.sectionTitle}>
+                  {activeTab === "all" && "All Events"}
+                  {activeTab === "upcoming" && "Upcoming Events"}
+                  {activeTab === "passed" && "Past Events"}
+                </Text>
+                {filteredEvents[activeTab]?.map(
+                  (event: Event, index: number) => (
+                    <EventItem
+                      key={event.id?.toString() || index.toString()}
+                      title={event.name}
+                      subtitle={`By: ${event.creators}`}
+                      date={new Date(event.date).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                      emoji="🎉"
+                      location={event.location}
+                      attendees={Math.floor(Math.random() * 100)}
+                      onPress={() => handleEventPress(event)}
+                    />
+                  )
+                )}
+              </View>
+            )}
+
+            {/* CTA Section */}
+            <View style={styles.ctaSection}>
+              <LinearGradient
+                colors={["#3a86ff", "#5e60ce"]}
+                style={styles.ctaGradient}
+              >
+                <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
+                <Text style={styles.ctaText}>
+                  Share your passion and meet new people
+                </Text>
+                <TouchableOpacity
+                  style={styles.ctaButton}
+                  onPress={handleCreateEvent}
+                >
+                  <Text style={styles.ctaButtonText}>Create Now</Text>
+                  <FontAwesome name="arrow-right" size={16} color="#3a86ff" />
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+
+            <View style={{ height: 60 }} />
+          </ScrollView>
         </View>
       </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Hero section */}
-        <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>Discover Amazing Events</Text>
-          <Text style={styles.heroSubtitle}>
-            Join the community and share your passions
-          </Text>
-        </View>
-
-        {/* Featured events carousel */}
-        {featured.length > 0 && (
-          <View style={styles.featuredSection}>
-            <Text style={styles.sectionTitle}>Featured Events</Text>
-            <Animated.FlatList
-              data={featured}
-              keyExtractor={(item: Event) =>
-                item.id?.toString() || Math.random().toString()
-              }
-              renderItem={renderFeaturedItem}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              pagingEnabled
-              snapToInterval={CARD_WIDTH + 20}
-              decelerationRate="fast"
-              contentContainerStyle={{ paddingHorizontal: 10 }}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                { useNativeDriver: true }
-              )}
-            />
-          </View>
-        )}
-
-        <View style={styles.searchSection}>
-          <View style={styles.searchBar}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search for an event"
-              value={searchQuery}
-              onChangeText={(text: string) => {
-                setSearchQuery(text);
-                if (text === '') {
-                  setFilteredEvents(events);
-                }
-              }}
-              onSubmitEditing={handleSearch}
-            />
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={handleSearch}
-            >
-              <FontAwesome name="search" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.tabGroup}>
-          {tabs.map((tab: TabItem) => (
-            <TouchableOpacity
-              key={tab.key}
-              onPress={() => setActiveTab(tab.key)}
-              style={[
-                styles.tab,
-                activeTab === tab.key ? styles.activeTab : {},
-              ]}
-            >
-              <FontAwesome
-                name={tab.icon}
-                size={20}
-                color={activeTab === tab.key ? '#FFFFFF' : '#1E232C'}
-                style={styles.tabIcon}
-              />
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === tab.key ? styles.activeTabText : {},
-                ]}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#1E232C" />
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            {isNetworkError ? (
-              <>
-                <FontAwesome name="wifi" size={50} color="#E10600" />
-                <Text style={styles.errorTitle}>Connection Issue</Text>
-                <Text style={styles.errorText}>{error}</Text>
-              </>
-            ) : (
-              <>
-                <FontAwesome name="exclamation-triangle" size={50} color="#E10600" />
-                <Text style={styles.errorText}>{error}</Text>
-              </>
-            )}
-            <TouchableOpacity style={styles.retryButton} onPress={fetchEvents}>
-              <Text style={styles.retryButtonText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        ) : filteredEvents[activeTab]?.length === 0 ? (
-          renderEmptyState()
-        ) : (
-          <View style={styles.eventsContainer}>
-            <Text style={styles.sectionTitle}>
-              {activeTab === 'all' && 'All Events'}
-              {activeTab === 'upcoming' && 'Upcoming Events'}
-              {activeTab === 'passed' && 'Past Events'}
-            </Text>
-            {filteredEvents[activeTab]?.map((event: Event, index: number) => (
-              <EventItem
-                key={event.id?.toString() || index.toString()}
-                title={event.name}
-                subtitle={`By: ${event.creators}`}
-                date={new Date(event.date).toLocaleDateString('en-US', {
-                  day: 'numeric',
-                  month: 'short',
-                })}
-                emoji="🎉"
-                location={event.location}
-                attendees={Math.floor(Math.random() * 100)}
-                onPress={() => handleEventPress(event)}
-              />
-            ))}
-          </View>
-        )}
-
-        {/* CTA Section */}
-        <View style={styles.ctaSection}>
-          <LinearGradient
-            colors={['#3a86ff', '#5e60ce']}
-            style={styles.ctaGradient}
-          >
-            <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
-            <Text style={styles.ctaText}>
-              Share your passion and meet new people
-            </Text>
-            <TouchableOpacity
-              style={styles.ctaButton}
-              onPress={handleCreateEvent}
-            >
-              <Text style={styles.ctaButtonText}>Create Now</Text>
-              <FontAwesome name="arrow-right" size={16} color="#3a86ff" />
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
-
-        <View style={{ height: 60 }} />
-      </ScrollView>
     </SafeAreaView>
   );
 };

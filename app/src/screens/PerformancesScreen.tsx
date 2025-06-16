@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   RefreshControl,
   Alert,
   Animated,
+  Switch,
+  Vibration,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -42,6 +44,260 @@ const PerformancesScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<RaceCategory | 'all'>('all');
   const [fadeAnim] = useState(new Animated.Value(0));
+
+  // ISOLATED: Performance preferences state
+  const [performanceNotifications, setPerformanceNotifications] = useState(true);
+  const [autoSync, setAutoSync] = useState(true);
+  const [detailedAnalytics, setDetailedAnalytics] = useState(false);
+  const [personalRecordAlerts, setPersonalRecordAlerts] = useState(true);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+
+  // ISOLATED: Separate timeout refs for each performance switch
+  const performanceNotificationsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const detailedAnalyticsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const personalRecordAlertsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+
+  // Cleanup function for performance switches
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (performanceNotificationsTimeoutRef.current) {
+        clearTimeout(performanceNotificationsTimeoutRef.current);
+      }
+      if (autoSyncTimeoutRef.current) {
+        clearTimeout(autoSyncTimeoutRef.current);
+      }
+      if (detailedAnalyticsTimeoutRef.current) {
+        clearTimeout(detailedAnalyticsTimeoutRef.current);
+      }
+      if (personalRecordAlertsTimeoutRef.current) {
+        clearTimeout(personalRecordAlertsTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // ISOLATED: Success notification for performance settings
+  const showPerformanceNotification = useCallback((message: string) => {
+    if (!isMountedRef.current) return;
+    Alert.alert('Performance Settings', message, [{ text: 'OK' }]);
+  }, []);
+
+  // ISOLATED: Completely separate toggle handlers for each performance switch
+  const handlePerformanceNotificationsToggle = useCallback((value: boolean) => {
+    if (!isMountedRef.current) return;
+    
+    if (performanceNotificationsTimeoutRef.current) {
+      clearTimeout(performanceNotificationsTimeoutRef.current);
+    }
+    
+    setPerformanceNotifications(value);
+    Vibration.vibrate(30);
+    
+    performanceNotificationsTimeoutRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        showPerformanceNotification(`Performance notifications ${value ? 'enabled' : 'disabled'}! 🏁`);
+      }
+    }, 100);
+  }, [showPerformanceNotification]);
+
+  const handleAutoSyncToggle = useCallback((value: boolean) => {
+    if (!isMountedRef.current) return;
+    
+    if (autoSyncTimeoutRef.current) {
+      clearTimeout(autoSyncTimeoutRef.current);
+    }
+    
+    setAutoSync(value);
+    Vibration.vibrate(30);
+    
+    autoSyncTimeoutRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        showPerformanceNotification(`Auto sync ${value ? 'enabled' : 'disabled'}! 🔄`);
+      }
+    }, 100);
+  }, [showPerformanceNotification]);
+
+  const handleDetailedAnalyticsToggle = useCallback((value: boolean) => {
+    if (!isMountedRef.current) return;
+    
+    if (detailedAnalyticsTimeoutRef.current) {
+      clearTimeout(detailedAnalyticsTimeoutRef.current);
+    }
+    
+    setDetailedAnalytics(value);
+    Vibration.vibrate(30);
+    
+    detailedAnalyticsTimeoutRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        showPerformanceNotification(`Detailed analytics ${value ? 'enabled' : 'disabled'}! 📊`);
+      }
+    }, 100);
+  }, [showPerformanceNotification]);
+
+  const handlePersonalRecordAlertsToggle = useCallback((value: boolean) => {
+    if (!isMountedRef.current) return;
+    
+    if (personalRecordAlertsTimeoutRef.current) {
+      clearTimeout(personalRecordAlertsTimeoutRef.current);
+    }
+    
+    setPersonalRecordAlerts(value);
+    Vibration.vibrate(30);
+    
+    personalRecordAlertsTimeoutRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        showPerformanceNotification(`Personal record alerts ${value ? 'enabled' : 'disabled'}! 🏆`);
+      }
+    }, 100);
+  }, [showPerformanceNotification]);
+
+  // ISOLATED: Individual switch components for performance settings
+  const PerformanceNotificationsSwitch = React.memo(() => {
+    const switchAnim = useRef(new Animated.Value(performanceNotifications ? 1 : 0)).current;
+    const switchMountedRef = useRef(true);
+
+    useEffect(() => {
+      const animation = Animated.timing(switchAnim, {
+        toValue: performanceNotifications ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+      });
+      animation.start();
+      return () => {
+        switchMountedRef.current = false;
+        animation.stop();
+      };
+    }, [performanceNotifications]);
+
+    useEffect(() => {
+      return () => {
+        switchMountedRef.current = false;
+        switchAnim.stopAnimation();
+      };
+    }, []);
+
+    return (
+      <Switch
+        value={performanceNotifications}
+        onValueChange={handlePerformanceNotificationsToggle}
+        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.SUCCESS }}
+        thumbColor={performanceNotifications ? '#FFFFFF' : '#9CA3AF'}
+        style={{ transform: [{ scale: 0.9 }] }}
+      />
+    );
+  });
+
+  const AutoSyncSwitch = React.memo(() => {
+    const switchAnim = useRef(new Animated.Value(autoSync ? 1 : 0)).current;
+    const switchMountedRef = useRef(true);
+
+    useEffect(() => {
+      const animation = Animated.timing(switchAnim, {
+        toValue: autoSync ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+      });
+      animation.start();
+      return () => {
+        switchMountedRef.current = false;
+        animation.stop();
+      };
+    }, [autoSync]);
+
+    useEffect(() => {
+      return () => {
+        switchMountedRef.current = false;
+        switchAnim.stopAnimation();
+      };
+    }, []);
+
+    return (
+      <Switch
+        value={autoSync}
+        onValueChange={handleAutoSyncToggle}
+        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.INFO }}
+        thumbColor={autoSync ? '#FFFFFF' : '#9CA3AF'}
+        style={{ transform: [{ scale: 0.9 }] }}
+      />
+    );
+  });
+
+  const DetailedAnalyticsSwitch = React.memo(() => {
+    const switchAnim = useRef(new Animated.Value(detailedAnalytics ? 1 : 0)).current;
+    const switchMountedRef = useRef(true);
+
+    useEffect(() => {
+      const animation = Animated.timing(switchAnim, {
+        toValue: detailedAnalytics ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+      });
+      animation.start();
+      return () => {
+        switchMountedRef.current = false;
+        animation.stop();
+      };
+    }, [detailedAnalytics]);
+
+    useEffect(() => {
+      return () => {
+        switchMountedRef.current = false;
+        switchAnim.stopAnimation();
+      };
+    }, []);
+
+    return (
+      <Switch
+        value={detailedAnalytics}
+        onValueChange={handleDetailedAnalyticsToggle}
+        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.WARNING }}
+        thumbColor={detailedAnalytics ? '#FFFFFF' : '#9CA3AF'}
+        style={{ transform: [{ scale: 0.9 }] }}
+      />
+    );
+  });
+
+  const PersonalRecordAlertsSwitch = React.memo(() => {
+    const switchAnim = useRef(new Animated.Value(personalRecordAlerts ? 1 : 0)).current;
+    const switchMountedRef = useRef(true);
+
+    useEffect(() => {
+      const animation = Animated.timing(switchAnim, {
+        toValue: personalRecordAlerts ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+      });
+      animation.start();
+      return () => {
+        switchMountedRef.current = false;
+        animation.stop();
+      };
+    }, [personalRecordAlerts]);
+
+    useEffect(() => {
+      return () => {
+        switchMountedRef.current = false;
+        switchAnim.stopAnimation();
+      };
+    }, []);
+
+    return (
+      <Switch
+        value={personalRecordAlerts}
+        onValueChange={handlePersonalRecordAlertsToggle}
+        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.VICTORY_GOLD }}
+        thumbColor={personalRecordAlerts ? '#FFFFFF' : '#9CA3AF'}
+        style={{ transform: [{ scale: 0.9 }] }}
+      />
+    );
+  });
+
+  PerformanceNotificationsSwitch.displayName = 'PerformanceNotificationsSwitch';
+  AutoSyncSwitch.displayName = 'AutoSyncSwitch';
+  DetailedAnalyticsSwitch.displayName = 'DetailedAnalyticsSwitch';
+  PersonalRecordAlertsSwitch.displayName = 'PersonalRecordAlertsSwitch';
 
   /**
    * Load performances and statistics
@@ -433,6 +689,115 @@ const PerformancesScreen: React.FC = () => {
     return suffix;
   };
 
+  /**
+   * Render performance settings panel
+   */
+  const renderPerformanceSettings = () => {
+    if (!showSettingsPanel) return null;
+
+    return (
+      <Animated.View style={{
+        backgroundColor: '#F9FAFB',
+        marginHorizontal: LAYOUT.SPACING_MD,
+        marginBottom: LAYOUT.SPACING_MD,
+        borderRadius: 12,
+        padding: LAYOUT.SPACING_MD,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: LAYOUT.SPACING_MD }}>
+          <FontAwesome name="cog" size={20} color={THEME_COLORS.PRIMARY} />
+          <Text style={{ 
+            fontSize: 18, 
+            fontWeight: '600', 
+            color: THEME_COLORS.TEXT_PRIMARY,
+            marginLeft: 8
+          }}>
+            Performance Settings
+          </Text>
+        </View>
+
+        {/* Performance Notifications */}
+        <View style={{ 
+          flexDirection: 'row', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          paddingVertical: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5E7EB'
+        }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, color: THEME_COLORS.TEXT_PRIMARY, fontWeight: '500' }}>
+              🏁 Performance Notifications
+            </Text>
+            <Text style={{ fontSize: 12, color: THEME_COLORS.TEXT_SECONDARY, marginTop: 2 }}>
+              Get notified about race updates
+            </Text>
+          </View>
+          <PerformanceNotificationsSwitch />
+        </View>
+
+        {/* Auto Sync */}
+        <View style={{ 
+          flexDirection: 'row', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          paddingVertical: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5E7EB'
+        }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, color: THEME_COLORS.TEXT_PRIMARY, fontWeight: '500' }}>
+              🔄 Auto Sync
+            </Text>
+            <Text style={{ fontSize: 12, color: THEME_COLORS.TEXT_SECONDARY, marginTop: 2 }}>
+              Automatically sync race data
+            </Text>
+          </View>
+          <AutoSyncSwitch />
+        </View>
+
+        {/* Detailed Analytics */}
+        <View style={{ 
+          flexDirection: 'row', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          paddingVertical: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5E7EB'
+        }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, color: THEME_COLORS.TEXT_PRIMARY, fontWeight: '500' }}>
+              📊 Detailed Analytics
+            </Text>
+            <Text style={{ fontSize: 12, color: THEME_COLORS.TEXT_SECONDARY, marginTop: 2 }}>
+              Show advanced performance metrics
+            </Text>
+          </View>
+          <DetailedAnalyticsSwitch />
+        </View>
+
+        {/* Personal Record Alerts */}
+        <View style={{ 
+          flexDirection: 'row', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          paddingVertical: 12
+        }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, color: THEME_COLORS.TEXT_PRIMARY, fontWeight: '500' }}>
+              🏆 Personal Record Alerts
+            </Text>
+            <Text style={{ fontSize: 12, color: THEME_COLORS.TEXT_SECONDARY, marginTop: 2 }}>
+              Get notified when you set new records
+            </Text>
+          </View>
+          <PersonalRecordAlertsSwitch />
+        </View>
+      </Animated.View>
+    );
+  };
+
   // Loading state
   if (isLoading && !isRefreshing) {
     return (
@@ -458,12 +823,25 @@ const PerformancesScreen: React.FC = () => {
         
         <Text style={performanceStyles.headerTitle}>Performance Tracker</Text>
         
-        <TouchableOpacity
-          style={performanceStyles.headerButton}
-          onPress={handleAddPerformance}
-        >
-          <FontAwesome name="plus" size={20} color={THEME_COLORS.PRIMARY} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity
+            style={[performanceStyles.headerButton, { marginRight: 8 }]}
+            onPress={() => setShowSettingsPanel(!showSettingsPanel)}
+          >
+            <FontAwesome 
+              name="cog" 
+              size={20} 
+              color={showSettingsPanel ? THEME_COLORS.PRIMARY : THEME_COLORS.TEXT_SECONDARY} 
+            />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={performanceStyles.headerButton}
+            onPress={handleAddPerformance}
+          >
+            <FontAwesome name="plus" size={20} color={THEME_COLORS.PRIMARY} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -508,6 +886,9 @@ const PerformancesScreen: React.FC = () => {
             </>
           )}
         </View>
+
+        {/* Performance Settings */}
+        {renderPerformanceSettings()}
       </ScrollView>
     </SafeAreaView>
   );

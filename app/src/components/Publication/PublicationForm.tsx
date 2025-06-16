@@ -1,23 +1,27 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  TextInput, 
-  Image, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  Image,
+  Text,
+  ScrollView,
+  TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Dimensions,
-} from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { publicationStyles as styles } from '../../styles/screens';
-import { publicationFormStyles, MAX_DESCRIPTION_LENGTH, SUGGESTED_TAGS } from '../../styles/components/publicationFormStyles';
-import theme from '../../styles/config/theme';
-import CloudinaryMedia from '../media/CloudinaryMedia';
+} from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import { publicationStyles as styles } from "../../styles/screens";
+import {
+  publicationFormStyles,
+  MAX_DESCRIPTION_LENGTH,
+  SUGGESTED_TAGS,
+} from "../../styles/components/publicationFormStyles";
+import theme from "../../styles/config/theme";
+import CloudinaryMedia from "../media/CloudinaryMedia";
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
 interface PublicationFormProps {
   imageUri: string;
@@ -30,7 +34,7 @@ interface PublicationFormProps {
   setDescription: (description: string) => void;
   setTags: (tags: string[]) => void;
   isLoading?: boolean;
-  mediaType?: 'image' | 'video';
+  mediaType?: "image" | "video";
   publicId?: string;
 }
 
@@ -46,77 +50,78 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   setTags,
   isLoading = false,
   mediaType,
-  publicId
+  publicId,
 }) => {
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   // Debug logs
-  console.log('PublicationForm rendered with:', {
+  console.log("PublicationForm rendered with:", {
     tags: tags,
     tagsLength: tags.length,
     setTagsType: typeof setTags,
     isLoading: isLoading,
     tagInput: tagInput,
     tagInputTrimmed: tagInput.trim(),
-    buttonDisabled: isLoading || !tagInput.trim()
+    buttonDisabled: isLoading || !tagInput.trim(),
   });
 
   const handleAddTag = () => {
-    console.log('=== handleAddTag DEBUT ===');
-    console.log('tagInput raw:', JSON.stringify(tagInput));
-    console.log('tagInput length:', tagInput.length);
-    console.log('tagInput trimmed:', JSON.stringify(tagInput.trim()));
-    console.log('tagInput trimmed length:', tagInput.trim().length);
-    console.log('current tags:', JSON.stringify(tags));
-    console.log('tag already exists?', tags.includes(tagInput.trim()));
-    
+    console.log("=== handleAddTag DEBUT ===");
+    console.log("tagInput raw:", JSON.stringify(tagInput));
+    console.log("tagInput length:", tagInput.length);
+    console.log("tagInput trimmed:", JSON.stringify(tagInput.trim()));
+    console.log("tagInput trimmed length:", tagInput.trim().length);
+    console.log("current tags:", JSON.stringify(tags));
+    console.log("tag already exists?", tags.includes(tagInput.trim()));
+
     const trimmedInput = tagInput.trim();
     if (trimmedInput && !tags.includes(trimmedInput)) {
-      console.log('✅ CONDITIONS REMPLIES - Adding tag:', trimmedInput);
+      console.log("✅ CONDITIONS REMPLIES - Adding tag:", trimmedInput);
       const newTags = [...tags, trimmedInput];
-      console.log('New tags array:', JSON.stringify(newTags));
+      console.log("New tags array:", JSON.stringify(newTags));
       setTags(newTags);
-      setTagInput('');
-      console.log('✅ setTags called and tagInput cleared');
+      setTagInput("");
+      console.log("✅ setTags called and tagInput cleared");
     } else {
-      console.log('❌ CONDITIONS NON REMPLIES:', {
+      console.log("❌ CONDITIONS NON REMPLIES:", {
         hasContent: !!trimmedInput,
         contentLength: trimmedInput.length,
         notAlreadyIncluded: !tags.includes(trimmedInput),
         currentTags: tags,
-        inputValue: trimmedInput
+        inputValue: trimmedInput,
       });
     }
-    console.log('=== handleAddTag FIN ===');
+    console.log("=== handleAddTag FIN ===");
   };
 
   const handleRemoveTag = (index: number) => {
-    console.log('handleRemoveTag called with index:', index);
+    console.log("handleRemoveTag called with index:", index);
     const newTags = [...tags];
     newTags.splice(index, 1);
-    console.log('New tags after removal:', newTags);
+    console.log("New tags after removal:", newTags);
     setTags(newTags);
   };
-  
+
   const handleAddSuggestedTag = (tag: string) => {
-    console.log('handleAddSuggestedTag called with:', tag);
+    console.log("handleAddSuggestedTag called with:", tag);
     if (!tags.includes(tag)) {
-      console.log('Adding suggested tag:', tag);
+      console.log("Adding suggested tag:", tag);
       setTags([...tags, tag]);
     } else {
-      console.log('Suggested tag already exists:', tag);
+      console.log("Suggested tag already exists:", tag);
     }
   };
-  
+
   const togglePreviewMode = () => {
     setIsPreviewMode(!isPreviewMode);
   };
-  
+
   const descriptionCharactersLeft = MAX_DESCRIPTION_LENGTH - description.length;
   const isDescriptionLimitWarning = descriptionCharactersLeft <= 50;
-  const filteredSuggestions = SUGGESTED_TAGS.filter(tag => 
-    !tags.includes(tag) && tag.toLowerCase().includes(tagInput.toLowerCase())
+  const filteredSuggestions = SUGGESTED_TAGS.filter(
+    (tag) =>
+      !tags.includes(tag) && tag.toLowerCase().includes(tagInput.toLowerCase())
   );
 
   if (isPreviewMode) {
@@ -128,60 +133,71 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
             style={publicationFormStyles.previewCloseButton}
             onPress={togglePreviewMode}
           >
-            <FontAwesome name="edit" size={18} color={theme.colors.primary.main} />
+            <FontAwesome
+              name="edit"
+              size={18}
+              color={theme.colors.primary.main}
+            />
             <Text style={publicationFormStyles.previewCloseText}>Edit</Text>
           </TouchableOpacity>
         </View>
-        
+
         <ScrollView>
           <View style={styles.formImagePreview}>
             {publicId ? (
               <CloudinaryMedia
                 publicId={publicId}
-                mediaType={mediaType || 'auto'}
+                mediaType={mediaType || "auto"}
                 width={SCREEN_WIDTH}
                 height={SCREEN_WIDTH}
                 style={styles.formImagePreview}
                 fallbackUrl={imageUri}
-                shouldPlay={mediaType === 'video'}
+                shouldPlay={mediaType === "video"}
                 isMuted={true}
-                useNativeControls={mediaType === 'video'}
-                isLooping={mediaType === 'video'}
+                useNativeControls={mediaType === "video"}
+                isLooping={mediaType === "video"}
               />
             ) : (
-              <Image 
-                source={{ uri: imageUri }} 
+              <Image
+                source={{ uri: imageUri }}
                 style={styles.formImagePreview}
                 resizeMode="cover"
               />
             )}
           </View>
-          
+
           <View style={publicationFormStyles.previewContent}>
             <View style={publicationFormStyles.previewUserInfo}>
-              <Image 
-                source={{ uri: userAvatar }} 
-                style={styles.userAvatar}
-              />
+              <Image source={{ uri: userAvatar }} style={styles.userAvatar} />
               <Text style={styles.headerText}>{username}</Text>
             </View>
-            
-            <Text style={publicationFormStyles.previewPostTitle}>{title || "Untitled"}</Text>
-            
+
+            <Text style={publicationFormStyles.previewPostTitle}>
+              {title || "Untitled"}
+            </Text>
+
             {description ? (
-              <Text style={publicationFormStyles.previewDescription}>{description}</Text>
+              <Text style={publicationFormStyles.previewDescription}>
+                {description}
+              </Text>
             ) : (
-              <Text style={publicationFormStyles.previewNoContent}>No description</Text>
+              <Text style={publicationFormStyles.previewNoContent}>
+                No description
+              </Text>
             )}
-            
+
             {tags.length > 0 ? (
               <View style={publicationFormStyles.previewTags}>
                 {tags.map((tag, index) => (
-                  <Text key={index} style={publicationFormStyles.previewTag}>#{tag}</Text>
+                  <Text key={index} style={publicationFormStyles.previewTag}>
+                    #{tag}
+                  </Text>
                 ))}
               </View>
             ) : (
-              <Text style={publicationFormStyles.previewNoContent}>No tags</Text>
+              <Text style={publicationFormStyles.previewNoContent}>
+                No tags
+              </Text>
             )}
           </View>
         </ScrollView>
@@ -192,7 +208,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={100}
     >
       <ScrollView style={styles.formContainer}>
@@ -200,44 +216,45 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
           {publicId ? (
             <CloudinaryMedia
               publicId={publicId}
-              mediaType={mediaType || 'auto'}
+              mediaType={mediaType || "auto"}
               width={SCREEN_WIDTH}
               height={SCREEN_WIDTH}
               style={styles.formImagePreview}
               fallbackUrl={imageUri}
-              shouldPlay={mediaType === 'video'}
+              shouldPlay={mediaType === "video"}
               isMuted={true}
-              useNativeControls={mediaType === 'video'}
-              isLooping={mediaType === 'video'}
+              useNativeControls={mediaType === "video"}
+              isLooping={mediaType === "video"}
             />
           ) : (
-            <Image 
-              source={{ uri: imageUri }} 
+            <Image
+              source={{ uri: imageUri }}
               style={styles.formImagePreview}
               resizeMode="cover"
             />
           )}
           {/* Debug info */}
           <Text style={publicationFormStyles.debugInfo}>
-            {mediaType || 'unknown'} {publicId ? `(${publicId})` : '(no publicId)'}
+            {mediaType || "unknown"}{" "}
+            {publicId ? `(${publicId})` : "(no publicId)"}
           </Text>
         </View>
-        
+
         <View style={styles.formContent}>
           <View style={styles.userInfoContainer}>
-            <Image 
-              source={{ uri: userAvatar }} 
-              style={styles.userAvatar}
-            />
-            <Text style={styles.headerText}>{username}</Text>
-            
             <TouchableOpacity
               style={publicationFormStyles.previewButton}
               onPress={togglePreviewMode}
               disabled={isLoading}
             >
-              <FontAwesome name="eye" size={16} color={theme.colors.primary.main} />
-              <Text style={publicationFormStyles.previewButtonText}>Preview</Text>
+              <FontAwesome
+                name="eye"
+                size={16}
+                color={theme.colors.primary.main}
+              />
+              <Text style={publicationFormStyles.previewButtonText}>
+                Preview
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -257,11 +274,16 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
 
             <View style={publicationFormStyles.inputSection}>
               <View style={publicationFormStyles.labelRow}>
-                <Text style={publicationFormStyles.inputLabel}>Description</Text>
-                <Text style={[
-                  publicationFormStyles.charCounter,
-                  isDescriptionLimitWarning && publicationFormStyles.charCounterWarning
-                ]}>
+                <Text style={publicationFormStyles.inputLabel}>
+                  Description
+                </Text>
+                <Text
+                  style={[
+                    publicationFormStyles.charCounter,
+                    isDescriptionLimitWarning &&
+                      publicationFormStyles.charCounterWarning,
+                  ]}
+                >
                   {descriptionCharactersLeft}
                 </Text>
               </View>
@@ -270,7 +292,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 placeholder="Write your description"
                 placeholderTextColor={theme.colors.text.secondary}
                 value={description}
-                onChangeText={text => setDescription(text.slice(0, MAX_DESCRIPTION_LENGTH))}
+                onChangeText={(text) =>
+                  setDescription(text.slice(0, MAX_DESCRIPTION_LENGTH))
+                }
                 multiline
                 editable={!isLoading}
               />
@@ -281,23 +305,27 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
 
             <View style={publicationFormStyles.inputSection}>
               <Text style={publicationFormStyles.inputLabel}>Tags</Text>
-              
+
               {tags.length > 0 && (
                 <View style={styles.tagsContainer}>
                   {tags.map((tag, index) => (
                     <View key={index} style={styles.tagItem}>
                       <Text style={styles.tagText}>#{tag}</Text>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         onPress={() => handleRemoveTag(index)}
                         disabled={isLoading}
                       >
-                        <FontAwesome name="times" size={14} color={theme.colors.text.secondary} />
+                        <FontAwesome
+                          name="times"
+                          size={14}
+                          color={theme.colors.text.secondary}
+                        />
                       </TouchableOpacity>
                     </View>
                   ))}
                 </View>
               )}
-              
+
               <View style={styles.tagInputContainer}>
                 <TextInput
                   style={styles.tagInput}
@@ -305,13 +333,19 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   placeholderTextColor={theme.colors.text.secondary}
                   value={tagInput}
                   onChangeText={(text) => {
-                    console.log('🔄 Tag input changed to:', JSON.stringify(text));
-                    console.log('🔄 Text length:', text.length);
+                    console.log(
+                      "🔄 Tag input changed to:",
+                      JSON.stringify(text)
+                    );
+                    console.log("🔄 Text length:", text.length);
                     setTagInput(text);
-                    console.log('🔄 setTagInput called with:', JSON.stringify(text));
+                    console.log(
+                      "🔄 setTagInput called with:",
+                      JSON.stringify(text)
+                    );
                   }}
                   onSubmitEditing={() => {
-                    console.log('Tag input submitted');
+                    console.log("Tag input submitted");
                     handleAddTag();
                   }}
                   returnKeyType="done"
@@ -321,24 +355,27 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   editable={!isLoading}
                 />
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[
                   styles.addTagButton,
-                  (!tagInput.trim() || isLoading) && publicationFormStyles.disabledButton
-                ]} 
+                  (!tagInput.trim() || isLoading) &&
+                    publicationFormStyles.disabledButton,
+                ]}
                 onPress={() => {
-                  console.log('Add tag button pressed');
+                  console.log("Add tag button pressed");
                   handleAddTag();
                 }}
                 disabled={isLoading || !tagInput.trim()}
               >
                 <Text style={styles.addTagButtonText}>Add</Text>
               </TouchableOpacity>
-              
+
               {tagInput.trim() && filteredSuggestions.length > 0 ? (
                 <View style={publicationFormStyles.suggestionsContainer}>
-                  <Text style={publicationFormStyles.suggestionsTitle}>Suggestions:</Text>
+                  <Text style={publicationFormStyles.suggestionsTitle}>
+                    Suggestions:
+                  </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={publicationFormStyles.suggestionsList}>
                       {filteredSuggestions.map((tag, index) => (
@@ -348,7 +385,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                           onPress={() => handleAddSuggestedTag(tag)}
                           disabled={isLoading}
                         >
-                          <Text style={publicationFormStyles.suggestionTagText}>#{tag}</Text>
+                          <Text style={publicationFormStyles.suggestionTagText}>
+                            #{tag}
+                          </Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -356,19 +395,27 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 </View>
               ) : !tagInput.trim() ? (
                 <View style={publicationFormStyles.suggestionsContainer}>
-                  <Text style={publicationFormStyles.suggestionsTitle}>Popular tags:</Text>
+                  <Text style={publicationFormStyles.suggestionsTitle}>
+                    Popular tags:
+                  </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={publicationFormStyles.suggestionsList}>
-                      {SUGGESTED_TAGS.filter(tag => !tags.includes(tag)).slice(0, 8).map((tag, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          style={publicationFormStyles.suggestionTag}
-                          onPress={() => handleAddSuggestedTag(tag)}
-                          disabled={isLoading}
-                        >
-                          <Text style={publicationFormStyles.suggestionTagText}>#{tag}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {SUGGESTED_TAGS.filter((tag) => !tags.includes(tag))
+                        .slice(0, 8)
+                        .map((tag, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={publicationFormStyles.suggestionTag}
+                            onPress={() => handleAddSuggestedTag(tag)}
+                            disabled={isLoading}
+                          >
+                            <Text
+                              style={publicationFormStyles.suggestionTagText}
+                            >
+                              #{tag}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
                   </ScrollView>
                 </View>
@@ -378,8 +425,13 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
 
           {isLoading && (
             <View style={publicationFormStyles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.colors.primary.main} />
-              <Text style={publicationFormStyles.loadingText}>Publishing...</Text>
+              <ActivityIndicator
+                size="large"
+                color={theme.colors.primary.main}
+              />
+              <Text style={publicationFormStyles.loadingText}>
+                Publishing...
+              </Text>
             </View>
           )}
         </View>
@@ -388,4 +440,4 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   );
 };
 
-export default PublicationForm; 
+export default PublicationForm;

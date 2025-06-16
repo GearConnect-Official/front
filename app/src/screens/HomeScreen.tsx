@@ -774,6 +774,12 @@ const HomeScreen: React.FC = () => {
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity
+              style={styles.headerIconBtn}
+              onPress={() => router.push('/userSearch')}
+            >
+              <FontAwesome name="search" size={22} color="#6A707C" />
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[styles.headerIconBtn, { position: 'relative' }]}
               onPress={handleNavigateToMessages}
             >
@@ -846,6 +852,12 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.appTitle}>GearConnect</Text>
         </View>
         <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={() => router.push('/userSearch')}
+          >
+            <FontAwesome name="search" size={22} color="#6A707C" />
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.headerIconBtn, { position: 'relative' }]}
             onPress={handleNavigateToMessages}

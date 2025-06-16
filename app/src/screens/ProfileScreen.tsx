@@ -25,6 +25,9 @@ import { detectMediaType } from "../utils/mediaUtils";
 import { defaultImages } from "../config/defaultImages";
 import PerformanceService from "../services/performanceService";
 import userService from "../services/userService";
+import followService from "../services/followService";
+import FollowButton from "../components/FollowButton";
+import { FollowStats } from "../types/follow.types";
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -111,6 +114,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [isLoadingLikedPosts, setIsLoadingLikedPosts] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
+  const [followStats, setFollowStats] = useState<FollowStats>({
+    followersCount: 0,
+    followingCount: 0,
+    isFollowing: false,
+    isFollowedBy: false,
+  });
+  const [isLoadingFollowStats, setIsLoadingFollowStats] = useState(false);
 
   // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
@@ -142,11 +152,38 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }
   };
 
+  // Function to fetch follow statistics
+  const fetchFollowStats = async () => {
+    if (!effectiveUserId) return;
+
+    setIsLoadingFollowStats(true);
+    try {
+      const currentUserId = user?.id ? Number(user.id) : undefined;
+      const response = await followService.getFollowStats(effectiveUserId, currentUserId);
+      if (response.success && response.data) {
+        setFollowStats(response.data);
+        // Update stats state for display consistency
+        setStats((prev) => ({
+          ...prev,
+          followers: response.data?.followersCount || 0,
+          following: response.data?.followingCount || 0,
+        }));
+      } else {
+        console.error("Failed to fetch follow stats:", response.error);
+      }
+    } catch (error) {
+      console.error("Error fetching follow stats:", error);
+    } finally {
+      setIsLoadingFollowStats(false);
+    }
+  };
+
   // Rafraîchir les données utilisateur quand on revient sur l'écran
   useFocusEffect(
     React.useCallback(() => {
       console.log('👁️ ProfileScreen: Screen focused, refreshing user data...');
       fetchUserData();
+      fetchFollowStats();
     }, [effectiveUserId])
   );
 
@@ -156,8 +193,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
     const loadAllData = async () => {
       try {
-        // Load user data
-        await fetchUserData();
+        // Load user data and follow stats
+        await Promise.all([
+          fetchUserData(),
+          fetchFollowStats(),
+        ]);
 
         // Load user posts
         const loadUserPostsAsync = async () => {
@@ -319,7 +359,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const onRefreshProfile = async () => {
     setRefreshing(true);
     try {
-      await fetchUserData();
+      await Promise.all([
+        fetchUserData(),
+        fetchFollowStats(),
+      ]);
+      
       // Recharger les données selon l'onglet actif
       if (activeTab === "favorites" && effectiveUserId) {
         setIsLoadingFavorites(true);
@@ -890,14 +934,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     <Text style={styles.statNumber}>{stats.posts}</Text>
                     <Text style={styles.statLabel}>Posts</Text>
                   </View>
-                  <View style={styles.statItem}>
+                  <TouchableOpacity 
+                    style={styles.statItem}
+                    onPress={() => router.push({
+                      pathname: '/followList',
+                      params: { userId: effectiveUserId?.toString(), initialTab: 'followers' }
+                    })}
+                  >
                     <Text style={styles.statNumber}>{stats.followers}</Text>
                     <Text style={styles.statLabel}>Followers</Text>
-                  </View>
-                  <View style={styles.statItem}>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.statItem}
+                    onPress={() => router.push({
+                      pathname: '/followList',
+                      params: { userId: effectiveUserId?.toString(), initialTab: 'following' }
+                    })}
+                  >
                     <Text style={styles.statNumber}>{stats.following}</Text>
                     <Text style={styles.statLabel}>Following</Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -911,18 +967,47 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
             {/* Action Buttons */}
             <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.followButton]}
-                onPress={() => console.log("Follow pressed")}
-              >
-                <Text style={styles.followButtonText}>Suivre</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.messageButton]}
-                onPress={handleSendMessage}
-              >
-                <Text style={styles.messageButtonText}>Message</Text>
-              </TouchableOpacity>
+              {effectiveUserId && user?.id && effectiveUserId !== Number(user.id) ? (
+                // Boutons pour un autre utilisateur
+                <>
+                  <FollowButton
+                    targetUserId={effectiveUserId}
+                    initialFollowState={followStats.isFollowing}
+                    onFollowStateChange={(isFollowing, stats) => {
+                      setFollowStats(prev => ({
+                        ...prev,
+                        isFollowing,
+                        followersCount: stats?.followersCount || prev.followersCount,
+                        followingCount: stats?.followingCount || prev.followingCount,
+                      }));
+                      // Update display stats
+                      setStats(prevStats => ({
+                        ...prevStats,
+                        followers: stats?.followersCount || prevStats.followers,
+                        following: stats?.followingCount || prevStats.following,
+                      }));
+                    }}
+                    size="large"
+                    variant="primary"
+                  />
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.messageButton]}
+                    onPress={handleSendMessage}
+                  >
+                    <Text style={styles.messageButtonText}>Message</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                // Boutons pour son propre profil
+                <>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.followButton]}
+                    onPress={handleEditProfilePress}
+                  >
+                    <Text style={styles.followButtonText}>Modifier le profil</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
 
             {/* Driver statistics - SECTION MISE EN VALEUR */}

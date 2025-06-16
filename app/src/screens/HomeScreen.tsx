@@ -19,7 +19,8 @@ import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
-import styles from "../styles/screens/user/homeStyles";
+import { homeStyles as styles } from "../styles/screens";
+import theme from "../styles/config/theme";
 import StoryModal from "../components/modals/StoryModal";
 import HierarchicalCommentsModal from "../components/modals/HierarchicalCommentsModal";
 import PostItem, { Comment as PostItemComment, PostTag } from "../components/Feed/PostItem";
@@ -70,9 +71,7 @@ const CURRENT_USERNAME = "john_doe";
 
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
-  const images = apiPost.cloudinaryUrl ? [apiPost.cloudinaryUrl] : 
-                 apiPost.image ? [(apiPost.image as any).url] : [];
-  
+  const images = apiPost.cloudinaryUrl ? [apiPost.cloudinaryUrl] : [];
   const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : [];
   const mediaTypes: ('image' | 'video')[] = apiPost.imageMetadata ? 
     [detectMediaType(apiPost.cloudinaryUrl, apiPost.cloudinaryPublicId, apiPost.imageMetadata)] : 
@@ -311,7 +310,7 @@ const HomeScreen: React.FC = () => {
 
   const handleLike = async (postId: string) => {
     if (!user?.id) {
-      showError('Vous devez être connecté pour liker un post');
+      showError('You must be logged in to like a post');
       return;
     }
 
@@ -340,8 +339,8 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (_error) {
-      // console.error('Erreur lors du toggle du like:', error);
+    } catch {
+      // console.error('Error when toggling like:', error);
       
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
@@ -355,13 +354,13 @@ const HomeScreen: React.FC = () => {
             : post
         )
       );
-      showError('Impossible d\'ajouter un like pour le moment.');
+      showError('Unable to add a like at the moment.');
     }
   };
 
   const handleSave = async (postId: string) => {
     if (!user?.id) {
-      showError('Vous devez être connecté pour sauvegarder un post');
+      showError('You must be logged in to save a post');
       return;
     }
 
@@ -384,8 +383,8 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (_error) {
-      // console.error('Erreur lors du toggle des favoris:', error);
+    } catch {
+      // console.error('Error when toggling favorites:', error);
       
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
@@ -393,7 +392,7 @@ const HomeScreen: React.FC = () => {
           post.id === postId ? { ...post, saved: !post.saved } : post
         )
       );
-      showError('Impossible de sauvegarder ce post pour le moment.');
+      showError('Unable to save this post at the moment.');
     }
   };
 
@@ -448,8 +447,8 @@ const HomeScreen: React.FC = () => {
               : post
           )
         );
-      } catch (_error) {
-        // console.error('Erreur lors de la mise à jour du compteur de commentaires:', error);
+      } catch {
+        // console.error('Error updating comment count:', error);
         // En cas d'erreur, on recharge simplement tous les posts après un délai
         setTimeout(() => {
           loadPosts();
@@ -475,10 +474,6 @@ const HomeScreen: React.FC = () => {
     router.push("/(app)/messages");
   };
 
-  const handleNavigateToGroups = () => {
-    router.push("/(app)/groups");
-  };
-
   const renderSeparator = () => {
     return (
       <View style={styles.dateSeperatorContainer}>
@@ -498,7 +493,7 @@ const HomeScreen: React.FC = () => {
       <View
         style={[
           styles.storyRing,
-          { borderColor: item.viewed ? "#8e8e8e" : "#FF5864" },
+          item.viewed ? styles.storyRingViewed : styles.storyRingUnviewed,
         ]}
       >
         <Image source={{ uri: item.avatar }} style={styles.storyAvatar} />
@@ -555,7 +550,7 @@ const HomeScreen: React.FC = () => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyStateContainer}>
-      <FontAwesome name="camera" size={60} color="#CCCCCC" />
+      <FontAwesome name="camera" size={60} color={theme.colors.grey[300]} />
       <Text style={styles.emptyStateTitle}>No posts yet</Text>
       <Text style={styles.emptyStateDescription}>
         Be the first to share your passion for cars!
@@ -564,7 +559,7 @@ const HomeScreen: React.FC = () => {
         style={styles.createPostButton}
         onPress={() => router.push('/publication')}
       >
-        <FontAwesome name="plus" size={16} color="#FFFFFF" style={styles.createPostIcon} />
+        <FontAwesome name="plus" size={16} color={theme.colors.common.white} style={styles.createPostIcon} />
         <Text style={styles.createPostText}>Create my first post</Text>
       </TouchableOpacity>
     </View>
@@ -607,7 +602,7 @@ const HomeScreen: React.FC = () => {
       // Vérifier si le partage est disponible sur l'appareil
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
-        showError('Le partage n\'est pas disponible sur cet appareil');
+        showError('Sharing is not available on this device');
         return;
       }
 
@@ -633,7 +628,7 @@ const HomeScreen: React.FC = () => {
         await shareTextContent(shareContent);
       }
       
-    } catch (_error) {
+    } catch {
       // console.error('❌ Error sharing post:', error);
       showError('Impossible de partager ce post');
     }
@@ -655,7 +650,7 @@ const HomeScreen: React.FC = () => {
       await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
       console.log('⚠️ Text file sharing failed:', error);
-      showInfo('Contenu copié dans le presse-papiers');
+      showInfo('Content copied to clipboard');
       // Fallback: copier dans le presse-papiers
       Clipboard.setStringAsync(content);
     }
@@ -703,8 +698,8 @@ const HomeScreen: React.FC = () => {
         loadPosts();
       }, 500);
       
-    } catch (_error) {
-      // console.error('Erreur lors de l\'ajout du commentaire:', error);
+    } catch {
+      // console.error('Error when adding comment:', error);
       
       // En cas d'erreur, annuler l'optimistic update
       setPosts((prevPosts) =>
@@ -717,7 +712,7 @@ const HomeScreen: React.FC = () => {
             : post
         )
       );
-      showError('Impossible d\'ajouter un commentaire pour le moment.');
+      showError('Unable to add a comment at the moment.');
     }
   };
 
@@ -743,7 +738,7 @@ const HomeScreen: React.FC = () => {
 
   const renderNetworkErrorState = () => (
     <View style={styles.networkErrorContainer}>
-      <FontAwesome name="wifi" size={60} color="#E10600" />
+      <FontAwesome name="wifi" size={60} color={theme.colors.primary.main} />
       <Text style={styles.networkErrorTitle}>Connection Issue</Text>
       <Text style={styles.networkErrorDescription}>
         Your WiFi connection might not be working properly. Please check your internet connection and try again.
@@ -757,7 +752,7 @@ const HomeScreen: React.FC = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF5864" />
+        <ActivityIndicator size="large" color={theme.colors.primary.main} />
       </View>
     );
   }
@@ -765,7 +760,7 @@ const HomeScreen: React.FC = () => {
   if (isNetworkError) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background.paper} />
 
         {/* Header */}
         <View style={styles.header}>
@@ -777,23 +772,15 @@ const HomeScreen: React.FC = () => {
               style={styles.headerIconBtn}
               onPress={() => router.push('/userSearch')}
             >
-              <FontAwesome name="search" size={22} color="#6A707C" />
+              <FontAwesome name="search" size={22} color={theme.colors.text.secondary} />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.headerIconBtn, { position: 'relative' }]}
+              style={[styles.headerIconBtn, styles.notificationButton]}
               onPress={handleNavigateToMessages}
             >
-              <FontAwesome name="comments" size={22} color="#6A707C" />
+              <FontAwesome name="comments" size={22} color={theme.colors.text.secondary} />
               {/* Badge pour futures notifications */}
-              {/* <View style={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: '#E10600'
-              }} /> */}
+              {/* <View style={styles.notificationBadge} /> */}
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -834,7 +821,7 @@ const HomeScreen: React.FC = () => {
   if (loadingError) {
     return (
       <View style={styles.errorContainer}>
-        <FontAwesome name="warning" size={50} color="#FF5864" />
+        <FontAwesome name="warning" size={50} color={theme.colors.primary.main} />
         <Text style={styles.errorText}>{loadingError}</Text>
         <TouchableOpacity style={styles.reloadButton} onPress={() => loadPosts()}>
           <Text style={styles.reloadButtonText}>Try Again</Text>
@@ -844,7 +831,7 @@ const HomeScreen: React.FC = () => {
   }
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background.paper} translucent={true} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -856,23 +843,15 @@ const HomeScreen: React.FC = () => {
             style={styles.headerIconBtn}
             onPress={() => router.push('/userSearch')}
           >
-            <FontAwesome name="search" size={22} color="#6A707C" />
+            <FontAwesome name="search" size={22} color={theme.colors.text.secondary} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.headerIconBtn, { position: 'relative' }]}
+            style={[styles.headerIconBtn, styles.notificationButton]}
             onPress={handleNavigateToMessages}
           >
-            <FontAwesome name="comments" size={22} color="#6A707C" />
+            <FontAwesome name="comments" size={22} color={theme.colors.text.secondary} />
             {/* Badge pour futures notifications */}
-            {/* <View style={{
-              position: 'absolute',
-              top: 6,
-              right: 6,
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: '#E10600'
-            }} /> */}
+            {/* <View style={styles.notificationBadge} /> */}
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerIconBtn}
@@ -933,7 +912,7 @@ const HomeScreen: React.FC = () => {
         ListFooterComponent={
           isLoadingMore ? (
             <View style={styles.footerLoader}>
-              <ActivityIndicator size="small" color="#FF5864" />
+              <ActivityIndicator size="small" color={theme.colors.primary.main} />
             </View>
           ) : null
         }

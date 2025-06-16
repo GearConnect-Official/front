@@ -218,9 +218,9 @@ const UserSearchScreen: React.FC = () => {
       return (
         <View style={styles.emptyState}>
           <Ionicons name="search-outline" size={64} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>Rechercher des utilisateurs</Text>
+          <Text style={styles.emptyTitle}>Search users</Text>
           <Text style={styles.emptyDescription}>
-            Tapez un nom d'utilisateur ou un nom pour commencer la recherche
+            Type a username or name to start searching
           </Text>
         </View>
       );
@@ -229,9 +229,9 @@ const UserSearchScreen: React.FC = () => {
     return (
       <View style={styles.emptyState}>
         <Ionicons name="person-outline" size={64} color="#9CA3AF" />
-        <Text style={styles.emptyTitle}>Aucun résultat</Text>
+        <Text style={styles.emptyTitle}>No results</Text>
         <Text style={styles.emptyDescription}>
-          Aucun utilisateur trouvé pour "{searchQuery}"
+          No users found for "{searchQuery}"
         </Text>
       </View>
     );
@@ -260,7 +260,7 @@ const UserSearchScreen: React.FC = () => {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Rechercher</Text>
+        <Text style={styles.headerTitle}>Search</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -270,7 +270,7 @@ const UserSearchScreen: React.FC = () => {
           <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher des utilisateurs..."
+            placeholder="Search users..."
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={handleSearchInputChange}
@@ -297,7 +297,7 @@ const UserSearchScreen: React.FC = () => {
       {hasSearched && !isLoading && (
         <View style={styles.resultsInfo}>
           <Text style={styles.resultsText}>
-            {pagination.totalCount} résultat{pagination.totalCount > 1 ? 's' : ''} trouvé{pagination.totalCount > 1 ? 's' : ''}
+            {pagination.totalCount} result{pagination.totalCount > 1 ? 's' : ''} found
           </Text>
         </View>
       )}
@@ -306,7 +306,7 @@ const UserSearchScreen: React.FC = () => {
       {isLoading && searchResults.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3B82F6" />
-          <Text style={styles.loadingText}>Recherche en cours...</Text>
+          <Text style={styles.loadingText}>Searching...</Text>
         </View>
       ) : (
         /* Results List */

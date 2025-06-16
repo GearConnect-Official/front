@@ -89,7 +89,7 @@ const FriendsScreen: React.FC = () => {
               styles.tabText, 
               { color: activeTab === 'friends' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
             ]}>
-              Mes amis
+              My friends
             </Text>
           </TouchableOpacity>
           
@@ -106,9 +106,9 @@ const FriendsScreen: React.FC = () => {
               styles.tabText, 
               { color: activeTab === 'requests' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
             ]}>
-              Reçues
+              Received
             </Text>
-            {/* Badge pour nouvelles demandes */}
+            {/* Badge for new requests */}
             <View style={styles.badge}>
               <Text style={styles.badgeText}>2</Text>
             </View>
@@ -127,19 +127,19 @@ const FriendsScreen: React.FC = () => {
               styles.tabText, 
               { color: activeTab === 'sent' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
             ]}>
-              Envoyées
+              Sent
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Content based on active tab */}
         <View style={styles.mainContainer}>
-          {/* Onglet Mes amis */}
+          {/* Friends tab */}
           {activeTab === "friends" && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Mes amis • 12</Text>
+              <Text style={styles.sectionTitle}>My friends • 12</Text>
               
-              {/* Liste des amis */}
+              {/* Friends list */}
               <View style={styles.friendCard}>
                 <Image
                   source={{ uri: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg" }}
@@ -147,7 +147,7 @@ const FriendsScreen: React.FC = () => {
                 />
                 <View style={styles.friendInfo}>
                   <Text style={styles.friendName}>Marc Dubois</Text>
-                  <Text style={styles.friendStatus}>🏁 Pilote GT3 • En ligne</Text>
+                  <Text style={styles.friendStatus}>🏁 GT3 Driver • Online</Text>
                 </View>
                 <TouchableOpacity style={styles.messageButton}>
                   <FontAwesome name="comment" size={18} color={THEME_COLORS.primary} />
@@ -161,7 +161,7 @@ const FriendsScreen: React.FC = () => {
                 />
                 <View style={styles.friendInfo}>
                   <Text style={styles.friendName}>Sophie Martin</Text>
-                  <Text style={styles.friendStatus}>🏎️ Formule 4 • Hors ligne</Text>
+                  <Text style={styles.friendStatus}>🏎️ Formula 4 • Offline</Text>
                 </View>
                 <TouchableOpacity style={styles.messageButton}>
                   <FontAwesome name="comment" size={18} color={THEME_COLORS.textSecondary} />
@@ -170,10 +170,10 @@ const FriendsScreen: React.FC = () => {
             </View>
           )}
 
-          {/* Onglet Demandes reçues */}
+          {/* Received requests tab */}
           {activeTab === "requests" && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Demandes d'amis</Text>
+              <Text style={styles.sectionTitle}>Friend requests</Text>
               <View style={styles.requestCard}>
                 <Image
                   source={{ uri: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg" }}
@@ -181,13 +181,13 @@ const FriendsScreen: React.FC = () => {
                 />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName}>John Doe</Text>
-                  <Text style={styles.requestMutual}>🏁 5 amis en commun • Pilote amateur</Text>
+                  <Text style={styles.requestMutual}>🏁 5 mutual friends • Amateur driver</Text>
                   <View style={styles.requestActions}>
                     <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptRequest}>
-                      <Text style={styles.acceptButtonText}>Accepter</Text>
+                      <Text style={styles.acceptButtonText}>Accept</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.declineButton}>
-                      <Text style={styles.declineButtonText}>Refuser</Text>
+                      <Text style={styles.declineButtonText}>Decline</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -200,13 +200,13 @@ const FriendsScreen: React.FC = () => {
                 />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName}>Jane Smith</Text>
-                  <Text style={styles.requestMutual}>🏎️ 2 amis en commun • Karting</Text>
+                  <Text style={styles.requestMutual}>🏎️ 2 mutual friends • Karting</Text>
                   <View style={styles.requestActions}>
                     <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptRequest}>
-                      <Text style={styles.acceptButtonText}>Accepter</Text>
+                      <Text style={styles.acceptButtonText}>Accept</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.declineButton}>
-                      <Text style={styles.declineButtonText}>Refuser</Text>
+                      <Text style={styles.declineButtonText}>Decline</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -214,10 +214,10 @@ const FriendsScreen: React.FC = () => {
             </View>
           )}
 
-          {/* Onglet Demandes envoyées */}
+          {/* Sent requests tab */}
           {activeTab === "sent" && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Demandes envoyées</Text>
+              <Text style={styles.sectionTitle}>Sent requests</Text>
               
               <View style={styles.sentCard}>
                 <Image
@@ -226,10 +226,10 @@ const FriendsScreen: React.FC = () => {
                 />
                 <View style={styles.sentInfo}>
                   <Text style={styles.sentName}>Alex Rodriguez</Text>
-                  <Text style={styles.sentStatus}>🏁 Demande envoyée il y a 2 jours</Text>
+                  <Text style={styles.sentStatus}>🏁 Request sent 2 days ago</Text>
                 </View>
                 <TouchableOpacity style={styles.cancelButton}>
-                  <Text style={styles.cancelButtonText}>Annuler</Text>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
 
@@ -240,10 +240,10 @@ const FriendsScreen: React.FC = () => {
                 />
                 <View style={styles.sentInfo}>
                   <Text style={styles.sentName}>Lisa Chen</Text>
-                  <Text style={styles.sentStatus}>🏎️ Demande envoyée il y a 5 jours</Text>
+                  <Text style={styles.sentStatus}>🏎️ Request sent 5 days ago</Text>
                 </View>
                 <TouchableOpacity style={styles.cancelButton}>
-                  <Text style={styles.cancelButtonText}>Annuler</Text>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </View>

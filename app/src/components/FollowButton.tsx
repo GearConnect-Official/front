@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, Alert, View } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, Alert, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import followService from '../services/followService';
 import { FollowStats } from '../types/follow.types';
 import { useAuth } from '../context/AuthContext';
+import theme from '../styles/config/theme';
 
 interface FollowButtonProps {
   targetUserId: number;
@@ -37,7 +38,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
 
     // Vérifier que l'utilisateur est connecté
     if (!user || !user.id) {
-      Alert.alert('Erreur', 'Vous devez être connecté pour suivre des utilisateurs');
+      Alert.alert('Error', 'You must be logged in to follow users');
       return;
     }
 
@@ -45,7 +46,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     
     // Vérifier qu'on ne peut pas se suivre soi-même
     if (currentUserId === targetUserId) {
-      Alert.alert('Erreur', 'Vous ne pouvez pas vous suivre vous-même');
+      Alert.alert('Error', 'You cannot follow yourself');
       return;
     }
 
@@ -68,105 +69,36 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         }
       } else {
         Alert.alert(
-          'Erreur',
-          response.error || 'Une erreur est survenue lors de l\'action'
+          'Error',
+          response.error || 'An error occurred during the action'
         );
       }
     } catch (error) {
       console.error('Error in follow action:', error);
-      Alert.alert('Erreur', 'Une erreur inattendue est survenue');
+      Alert.alert('Error', 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
   };
 
   const getButtonStyle = () => {
-    // Style de base
-    const baseStyle = {
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-    };
-
-    // Style pour le mode icône (circulaire)
     if (iconOnly) {
-      const iconBaseStyle = {
-        ...baseStyle,
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-      };
-
-      if (disabled) {
-        return {
-          ...iconBaseStyle,
-          backgroundColor: '#E5E5E5',
-        };
-      }
-
-      if (isFollowing) {
-        return {
-          ...iconBaseStyle,
-          backgroundColor: '#E0E0E0',
-        };
-      } else {
-        return {
-          ...iconBaseStyle,
-          backgroundColor: '#E10600',
-        };
-      }
+      if (disabled) return styles.iconButtonDisabled;
+      return isFollowing ? styles.iconButtonFollowing : styles.iconButtonNotFollowing;
     }
 
-    // Style pour le mode texte (rectangulaire)
-    const textBaseStyle = {
-      ...baseStyle,
-      flex: 1,
-      paddingVertical: 10,
-      borderRadius: 8,
-    };
-
-    if (disabled) {
-      return {
-        ...textBaseStyle,
-        backgroundColor: '#E5E5E5',
-      };
-    }
-
-    if (isFollowing) {
-      return {
-        ...textBaseStyle,
-        backgroundColor: '#E0E0E0',
-      };
-    } else {
-      return {
-        ...textBaseStyle,
-        backgroundColor: '#E10600',
-      };
-    }
+    if (disabled) return styles.textButtonDisabled;
+    return isFollowing ? styles.textButtonFollowing : styles.textButtonNotFollowing;
   };
 
   const getTextStyle = () => {
-    const baseStyle = {
-      fontSize: 14,
-      fontWeight: '600' as const,
-    };
-
-    if (disabled) {
-      return {
-        ...baseStyle,
-        color: '#9CA3AF',
-      };
-    }
-
-    // Texte blanc quand pas suivi (fond rouge), noir quand suivi (fond gris)
-    return {
-      ...baseStyle,
-      color: isFollowing ? '#1E1E1E' : '#FFFFFF',
-    };
+    if (disabled) return styles.textDisabled;
+    return isFollowing ? styles.textFollowing : styles.textNotFollowing;
   };
 
   const getButtonText = () => {
     if (isLoading) return '';
-    return isFollowing ? 'Suivi(e)' : 'Suivre';
+    return isFollowing ? 'Following' : 'Follow';
   };
 
   const getIcon = () => {
@@ -178,8 +110,8 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   };
 
   const getIconColor = () => {
-    if (disabled) return '#9CA3AF';
-    return isFollowing ? '#1E1E1E' : '#FFFFFF';
+    if (disabled) return theme.colors.text.disabled;
+    return isFollowing ? theme.colors.text.primary : theme.colors.common.white;
   };
 
   return (
@@ -192,7 +124,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       {isLoading ? (
         <ActivityIndicator
           size="small"
-          color={disabled ? '#9CA3AF' : isFollowing ? '#1E1E1E' : '#FFFFFF'}
+          color={disabled ? theme.colors.text.disabled : isFollowing ? theme.colors.text.primary : theme.colors.common.white}
         />
       ) : iconOnly ? (
         <Ionicons
@@ -206,5 +138,86 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  // Icon button styles
+  iconButtonBase: {
+    ...theme.common.centerContent,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  iconButtonDisabled: {
+    ...theme.common.centerContent,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.grey[200],
+  },
+  iconButtonFollowing: {
+    ...theme.common.centerContent,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.grey[300],
+  },
+  iconButtonNotFollowing: {
+    ...theme.common.centerContent,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.primary.main,
+  },
+
+  // Text button styles
+  textButtonBase: {
+    ...theme.common.centerContent,
+    flex: 1,
+    paddingVertical: theme.spacing.xs + 2,
+    borderRadius: theme.borders.radius.xs,
+  },
+  textButtonDisabled: {
+    ...theme.common.centerContent,
+    flex: 1,
+    paddingVertical: theme.spacing.xs + 2,
+    borderRadius: theme.borders.radius.xs,
+    backgroundColor: theme.colors.grey[200],
+  },
+  textButtonFollowing: {
+    ...theme.common.centerContent,
+    flex: 1,
+    paddingVertical: theme.spacing.xs + 2,
+    borderRadius: theme.borders.radius.xs,
+    backgroundColor: theme.colors.grey[300],
+  },
+  textButtonNotFollowing: {
+    ...theme.common.centerContent,
+    flex: 1,
+    paddingVertical: theme.spacing.xs + 2,
+    borderRadius: theme.borders.radius.xs,
+    backgroundColor: theme.colors.primary.main,
+  },
+
+  // Text styles
+  textBase: {
+    ...theme.typography.body2,
+    fontWeight: theme.typography.weights.semiBold,
+  },
+  textDisabled: {
+    ...theme.typography.body2,
+    fontWeight: theme.typography.weights.semiBold,
+    color: theme.colors.text.disabled,
+  },
+  textFollowing: {
+    ...theme.typography.body2,
+    fontWeight: theme.typography.weights.semiBold,
+    color: theme.colors.text.primary,
+  },
+  textNotFollowing: {
+    ...theme.typography.body2,
+    fontWeight: theme.typography.weights.semiBold,
+    color: theme.colors.common.white,
+  },
+});
 
 export default FollowButton; 

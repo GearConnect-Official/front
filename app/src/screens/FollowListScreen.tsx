@@ -115,7 +115,7 @@ const FollowListScreen: React.FC = () => {
       setFollowing(followingData);
     } catch (error) {
       console.error('Error loading follow data:', error);
-      Alert.alert('Erreur', 'Impossible de charger les données');
+      Alert.alert('Error', 'Unable to load data');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -248,14 +248,14 @@ const FollowListScreen: React.FC = () => {
         color="#9CA3AF"
       />
       <Text style={styles.emptyTitle}>
-        {activeTab === 'followers' ? 'Aucun follower' : 'Aucun abonnement'}
+        {activeTab === 'followers' ? 'No followers' : 'No following'}
       </Text>
       <Text style={styles.emptyDescription}>
         {searchQuery
-          ? 'Aucun résultat trouvé pour votre recherche'
+          ? 'No results found for your search'
           : activeTab === 'followers'
-          ? 'Cet utilisateur n\'a pas encore de followers'
-          : 'Cet utilisateur ne suit personne pour le moment'}
+          ? 'This user doesn\'t have any followers yet'
+          : 'This user is not following anyone yet'}
       </Text>
     </View>
   );
@@ -264,7 +264,7 @@ const FollowListScreen: React.FC = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3B82F6" />
-        <Text style={styles.loadingText}>Chargement...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -276,14 +276,14 @@ const FollowListScreen: React.FC = () => {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Abonnements</Text>
+        <Text style={styles.headerTitle}>Following</Text>
         <View style={styles.headerRight} />
       </View>
 
       {/* Tabs */}
       <View style={styles.tabContainer}>
         {renderTabButton('followers', 'Followers', followersCount)}
-        {renderTabButton('following', 'Abonnements', followingCount)}
+        {renderTabButton('following', 'Following', followingCount)}
       </View>
 
       {/* Search Bar */}
@@ -292,7 +292,7 @@ const FollowListScreen: React.FC = () => {
           <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher..."
+            placeholder="Search..."
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}

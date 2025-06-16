@@ -810,8 +810,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <FontAwesome name="camera" size={60} color="#CCCCCC" />
           <Text style={styles.emptyTitle}>No Posts</Text>
           <Text style={styles.emptySubtitle}>
-            Photos and videos from your races and training sessions will appear
-            here.
+            Photos and videos from your races and training sessions will appear here.
           </Text>
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareButtonText}>Share a Photo</Text>
@@ -1005,7 +1004,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     style={[styles.actionButton, styles.followButton]}
                     onPress={handleEditProfilePress}
                   >
-                    <Text style={styles.followButtonText}>Modifier le profil</Text>
+                    <Text style={styles.followButtonText}>Edit Profile</Text>
                   </TouchableOpacity>
                 </>
               )}

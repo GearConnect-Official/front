@@ -1,5 +1,7 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
 import theme from "../config/theme";
+
+const screenWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   overlay: {
@@ -11,27 +13,40 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     ...theme.common.centerContent,
   },
-  container: {
+  menuContainer: {
+    position: "absolute",
+    top: 60,
+    right: 16,
     backgroundColor: theme.colors.background.paper,
     borderRadius: theme.borders.radius.lg,
-    padding: theme.spacing.lg,
-    width: "80%",
-    maxWidth: 300,
-    ...theme.shadows.apply({}, 'md'),
-  },
-  title: {
-    ...theme.typography.h5,
-    color: theme.colors.text.primary,
-    textAlign: "center",
-    marginBottom: theme.spacing.lg,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.xxs,
+    width: Math.min(180, screenWidth * 0.45),
+    shadowColor: theme.colors.common.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    paddingHorizontal: theme.spacing.sm,
+    borderRadius: theme.borders.radius.sm,
+    justifyContent: "space-between",
   },
-  lastMenuItem: {
-    borderBottomWidth: 0,
+  menuIcon: {
+    width: 18,
+    textAlign: "center",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: theme.colors.border.light,
+    marginVertical: theme.spacing.sm,
   },
   menuText: {
     ...theme.typography.body1,

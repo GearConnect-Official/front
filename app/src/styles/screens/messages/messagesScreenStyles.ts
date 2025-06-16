@@ -25,6 +25,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.text.primary,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  groupsButton: {
+    padding: theme.spacing.sm,
+  },
   newMessageButton: {
     padding: theme.spacing.sm,
   },

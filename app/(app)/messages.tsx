@@ -264,6 +264,11 @@ export default function MessagesScreen() {
     router.push('/(app)/newConversation');
   };
 
+  // Navigation vers les groupes
+  const navigateToGroups = () => {
+    router.push('/(app)/groups');
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -275,12 +280,20 @@ export default function MessagesScreen() {
           <FontAwesome name="arrow-left" size={20} color="#6A707C" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Messages</Text>
-        <TouchableOpacity
-          style={styles.newMessageButton}
-          onPress={startNewConversation}
-        >
-          <FontAwesome name="edit" size={20} color="#E10600" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.groupsButton}
+            onPress={navigateToGroups}
+          >
+            <FontAwesome name="users" size={20} color="#E10600" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.newMessageButton}
+            onPress={startNewConversation}
+          >
+            <FontAwesome name="edit" size={20} color="#E10600" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Liste des conversations */}

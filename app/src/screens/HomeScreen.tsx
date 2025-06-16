@@ -790,22 +790,6 @@ const HomeScreen: React.FC = () => {
               }} /> */}
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.headerIconBtn, { position: 'relative' }]}
-              onPress={handleNavigateToGroups}
-            >
-              <FontAwesome name="users" size={22} color="#6A707C" />
-              {/* Badge pour futures notifications de groupes */}
-              {/* <View style={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: '#E10600'
-              }} /> */}
-            </TouchableOpacity>
-            <TouchableOpacity
               style={styles.headerIconBtn}
               onPress={handleNavigateToProfile}
             >
@@ -868,22 +852,6 @@ const HomeScreen: React.FC = () => {
           >
             <FontAwesome name="comments" size={22} color="#6A707C" />
             {/* Badge pour futures notifications */}
-            {/* <View style={{
-              position: 'absolute',
-              top: 6,
-              right: 6,
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: '#E10600'
-            }} /> */}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.headerIconBtn, { position: 'relative' }]}
-            onPress={handleNavigateToGroups}
-          >
-            <FontAwesome name="users" size={22} color="#6A707C" />
-            {/* Badge pour futures notifications de groupes */}
             {/* <View style={{
               position: 'absolute',
               top: 6,

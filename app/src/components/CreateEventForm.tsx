@@ -12,7 +12,7 @@ import {
 import StepIndicator from './CreateEvent/StepIndicator';
 import BasicInfo from './CreateEvent/BasicInfo';
 import NavigationButtons from './CreateEvent/NavigationButtons';
-import styles from '../styles/screens/createEventStyles';
+import { createEventStyles as styles } from '../styles/screens';
 import eventService, { Event } from '../services/eventService';
 import { useAuth } from '../context/AuthContext';
 import MediaInfo from './CreateEvent/MediaInfo';

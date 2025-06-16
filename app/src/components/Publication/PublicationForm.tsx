@@ -12,7 +12,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import styles from '../../styles/screens/publicationStyles';
+import { publicationStyles as styles } from '../../styles/screens';
 import { publicationFormStyles, MAX_DESCRIPTION_LENGTH, SUGGESTED_TAGS } from '../../styles/components/publicationFormStyles';
 import theme from '../../styles/config/theme';
 import CloudinaryMedia from '../media/CloudinaryMedia';

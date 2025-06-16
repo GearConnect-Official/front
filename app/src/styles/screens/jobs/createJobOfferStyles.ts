@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import theme from '../config/theme';
+import theme from '../../config/theme';
 
 // Couleurs de la thématique racing
 const RACING_RED = '#E10600';

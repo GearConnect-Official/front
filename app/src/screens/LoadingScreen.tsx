@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
-import styles from '../styles/screens/loadingStyles';
+import styles from "../styles/screens/common/loadingStyles";
 
 const LoadingScreen: React.FC = () => {
   return (

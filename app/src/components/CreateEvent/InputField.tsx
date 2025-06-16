@@ -1,6 +1,6 @@
 import * as React from "react";
 import { View, Text, TextInput } from "react-native";
-import styles from "../../styles/screens/createEventStyles";
+import { createEventStyles as styles } from "../../styles/screens";
 
 interface InputFieldProps {
   title: string;

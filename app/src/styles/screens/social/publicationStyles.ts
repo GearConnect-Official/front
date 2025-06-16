@@ -1,5 +1,5 @@
 import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native';
-import theme from '../config/theme';
+import theme from '../../config/theme';
 
 const { width } = Dimensions.get('window');
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;

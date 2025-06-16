@@ -3,7 +3,7 @@ import { View, Text, TextInput, FlatList } from "react-native";
 import { CloudinaryImage, CloudinaryImageUpload } from "../";
 import { CloudinaryUploadResponse } from "../../services/cloudinary.service";
 import ImageUpload from "./ImageUpload";
-import styles from "../../styles/screens/createEventStyles";
+import { createEventStyles as styles } from "../../styles/screens";
 import { Event } from "../../services/eventService";
 
 interface MediaInfoProps {

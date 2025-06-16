@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import styles from '../styles/screens/eventDetailStyles';
+import { eventDetailStyles as styles } from '../styles/screens';
 import { EventInterface } from '../services/EventInterface';
 
 // Create a star rating component

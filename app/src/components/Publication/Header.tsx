@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import styles from '../../styles/screens/publicationStyles';
+import { publicationStyles as styles } from '../../styles/screens';
 
 // Racing color palette
 const THEME_COLORS = {

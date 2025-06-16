@@ -14,7 +14,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
-import styles from "../styles/screens/createJobOfferStyles";
+import styles from "../styles/screens/jobs/createJobOfferStyles";
 import theme from "../styles/config/theme";
 
 // Couleur racing principale

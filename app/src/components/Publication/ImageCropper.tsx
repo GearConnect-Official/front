@@ -1,6 +1,6 @@
 import { View, Image, TouchableOpacity, Text } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import styles from '../../styles/screens/publicationStyles';
+import { publicationStyles as styles } from '../../styles/screens';
 
 interface ImageCropperProps {
   imageUri: string;

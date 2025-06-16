@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { useMessage } from '../context/MessageContext';
 import MessageService from '../services/messageService';
-import styles, { colors } from '../styles/screens/settingsStyles';
+import styles, { colors } from '../styles/screens/user/settingsStyles';
 
 
 interface SettingsSectionProps {

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useCloudinary } from '../../hooks/useCloudinary';
 import { CloudinaryUploadResponse, cloudinaryService } from '../../services/cloudinary.service';
-import styles from '../../styles/screens/publicationStyles';
+import { publicationStyles as styles } from '../../styles/screens';
 import * as ImagePicker from 'expo-image-picker';
 
 // Racing color palette

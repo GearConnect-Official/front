@@ -22,7 +22,8 @@ const THEME_COLORS = {
   success: "#27AE60", // Vert pour badges positifs
 };
 
-const styles = StyleSheet.create({  container: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
     backgroundColor: THEME_COLORS.background,
   },
@@ -49,7 +50,8 @@ const styles = StyleSheet.create({  container: {
     fontSize: 18,
     fontWeight: "700",
     color: THEME_COLORS.secondary,
-  },  header: {
+  },
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",

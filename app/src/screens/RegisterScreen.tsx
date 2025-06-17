@@ -83,7 +83,7 @@ const RegisterScreen: React.FC = () => {
     const result = await register(username, email, password, name);
 
     if (result.success) {
-      router.push("/(auth)/login");
+      router.push("/verification");
     } else {
       // Réinitialiser les erreurs précédentes
       setErrors({});
@@ -280,4 +280,3 @@ const RegisterScreen: React.FC = () => {
 };
 
 export default RegisterScreen;
-

@@ -123,17 +123,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
     setIsLoadingUserData(true);
     try {
-      console.log('🔄 ProfileScreen: Fetching user data for user:', effectiveUserId);
+      console.log(
+        "🔄 ProfileScreen: Fetching user data for user:",
+        effectiveUserId
+      );
       const response = await userService.getProfile(effectiveUserId);
       if (response.success && response.data) {
-        console.log('✅ ProfileScreen: User data fetched:', {
+        console.log("✅ ProfileScreen: User data fetched:", {
           username: response.data.username,
           hasProfilePicture: !!response.data.profilePicture,
           hasProfilePicturePublicId: !!response.data.profilePicturePublicId,
         });
         setUserData(response.data);
       } else {
-        console.error("❌ ProfileScreen: Failed to fetch user data:", response.error);
+        console.error(
+          "❌ ProfileScreen: Failed to fetch user data:",
+          response.error
+        );
       }
     } catch (error) {
       console.error("❌ ProfileScreen: Error fetching user data:", error);
@@ -145,7 +151,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   // Rafraîchir les données utilisateur quand on revient sur l'écran
   useFocusEffect(
     React.useCallback(() => {
-      console.log('👁️ ProfileScreen: Screen focused, refreshing user data...');
+      console.log("👁️ ProfileScreen: Screen focused, refreshing user data...");
       fetchUserData();
     }, [effectiveUserId])
   );
@@ -1144,9 +1150,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         visible={postModalVisible}
         animationType="slide"
         transparent={false}
-        onRequestClose={handleClosePostModal}      >
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
+        onRequestClose={handleClosePostModal}
+      >
+        <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+          <StatusBar
+            barStyle="dark-content"
+            backgroundColor="#FFFFFF"
+            translucent={true}
+          />
           {selectedPost && (
             <ProfilePost
               post={{

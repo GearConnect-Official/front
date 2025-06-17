@@ -1,6 +1,6 @@
-import { Stack, useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { useAuth } from '../src/context/AuthContext';
+import { Stack, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { useAuth } from "../src/context/AuthContext";
 
 export default function AuthLayout() {
   const { isAuthenticated } = useAuth();
@@ -8,7 +8,7 @@ export default function AuthLayout() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/(app)/(tabs)/home');
+      router.replace("/(app)/(tabs)/home");
     }
   }, [isAuthenticated, router]);
 
@@ -20,4 +20,4 @@ export default function AuthLayout() {
       <Stack.Screen name="forgotPassword" />
     </Stack>
   );
-} 
+}

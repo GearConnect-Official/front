@@ -270,6 +270,17 @@ const styles = StyleSheet.create({
     ...theme.common.centerContent,
     flex: 1,
   },
+  // Styles pour les icônes
+  networkErrorIcon: {
+    width: 60,
+    height: 60,
+    color: theme.colors.primary.main,
+  },
+  warningIcon: {
+    width: 50,
+    height: 50,
+    color: theme.colors.primary.main,
+  },
 });
 
 export default styles;

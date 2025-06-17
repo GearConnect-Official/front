@@ -738,7 +738,7 @@ const HomeScreen: React.FC = () => {
 
   const renderNetworkErrorState = () => (
     <View style={styles.networkErrorContainer}>
-      <FontAwesome name="wifi" size={60} color={theme.colors.primary.main} />
+      <FontAwesome name="wifi" style={styles.networkErrorIcon} />
       <Text style={styles.networkErrorTitle}>Connection Issue</Text>
       <Text style={styles.networkErrorDescription}>
         Your WiFi connection might not be working properly. Please check your internet connection and try again.
@@ -821,7 +821,7 @@ const HomeScreen: React.FC = () => {
   if (loadingError) {
     return (
       <View style={styles.errorContainer}>
-        <FontAwesome name="warning" size={50} color={theme.colors.primary.main} />
+        <FontAwesome name="warning" style={styles.warningIcon} />
         <Text style={styles.errorText}>{loadingError}</Text>
         <TouchableOpacity style={styles.reloadButton} onPress={() => loadPosts()}>
           <Text style={styles.reloadButtonText}>Try Again</Text>

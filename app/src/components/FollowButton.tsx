@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, Alert, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, Alert, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import followService from '../services/followService';
 import { FollowStats } from '../types/follow.types';
 import { useAuth } from '../context/AuthContext';
 import theme from '../styles/config/theme';
+import styles from '../styles/components/followButtonStyles';
 
 interface FollowButtonProps {
   targetUserId: number;
@@ -36,7 +37,6 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   const handleFollowPress = async () => {
     if (isLoading || disabled) return;
 
-    // Vérifier que l'utilisateur est connecté
     if (!user || !user.id) {
       Alert.alert('Error', 'You must be logged in to follow users');
       return;
@@ -44,7 +44,6 @@ const FollowButton: React.FC<FollowButtonProps> = ({
 
     const currentUserId = Number(user.id);
     
-    // Vérifier qu'on ne peut pas se suivre soi-même
     if (currentUserId === targetUserId) {
       Alert.alert('Error', 'You cannot follow yourself');
       return;
@@ -138,86 +137,5 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  // Icon button styles
-  iconButtonBase: {
-    ...theme.common.centerContent,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  iconButtonDisabled: {
-    ...theme.common.centerContent,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: theme.colors.grey[200],
-  },
-  iconButtonFollowing: {
-    ...theme.common.centerContent,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: theme.colors.grey[300],
-  },
-  iconButtonNotFollowing: {
-    ...theme.common.centerContent,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: theme.colors.primary.main,
-  },
-
-  // Text button styles
-  textButtonBase: {
-    ...theme.common.centerContent,
-    flex: 1,
-    paddingVertical: theme.spacing.xs + 2,
-    borderRadius: theme.borders.radius.xs,
-  },
-  textButtonDisabled: {
-    ...theme.common.centerContent,
-    flex: 1,
-    paddingVertical: theme.spacing.xs + 2,
-    borderRadius: theme.borders.radius.xs,
-    backgroundColor: theme.colors.grey[200],
-  },
-  textButtonFollowing: {
-    ...theme.common.centerContent,
-    flex: 1,
-    paddingVertical: theme.spacing.xs + 2,
-    borderRadius: theme.borders.radius.xs,
-    backgroundColor: theme.colors.grey[300],
-  },
-  textButtonNotFollowing: {
-    ...theme.common.centerContent,
-    flex: 1,
-    paddingVertical: theme.spacing.xs + 2,
-    borderRadius: theme.borders.radius.xs,
-    backgroundColor: theme.colors.primary.main,
-  },
-
-  // Text styles
-  textBase: {
-    ...theme.typography.body2,
-    fontWeight: theme.typography.weights.semiBold,
-  },
-  textDisabled: {
-    ...theme.typography.body2,
-    fontWeight: theme.typography.weights.semiBold,
-    color: theme.colors.text.disabled,
-  },
-  textFollowing: {
-    ...theme.typography.body2,
-    fontWeight: theme.typography.weights.semiBold,
-    color: theme.colors.text.primary,
-  },
-  textNotFollowing: {
-    ...theme.typography.body2,
-    fontWeight: theme.typography.weights.semiBold,
-    color: theme.colors.common.white,
-  },
-});
 
 export default FollowButton; 

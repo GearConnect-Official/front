@@ -1,23 +1,28 @@
 import { StyleSheet, Dimensions } from "react-native";
-import theme from "../config";
+import theme from "../config/theme";
 
-const { width: screenWidth } = Dimensions.get("window");
+const screenWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+    ...theme.common.centerContent,
   },
   menuContainer: {
     position: "absolute",
     top: 60,
     right: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    width: Math.min(180, screenWidth * 0.45), // Responsive: max 180px ou 45% de l'écran
-    shadowColor: "#000",
+    backgroundColor: theme.colors.background.paper,
+    borderRadius: theme.borders.radius.lg,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.xxs,
+    width: Math.min(180, screenWidth * 0.45),
+    shadowColor: theme.colors.common.black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -29,49 +34,48 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.sm,
+    borderRadius: theme.borders.radius.sm,
     justifyContent: "space-between",
-  },
-  menuIconContainer: {
-    position: "relative",
-    marginRight: 12,
   },
   menuIcon: {
     width: 18,
     textAlign: "center",
   },
-  notificationBadge: {
-    position: "absolute",
-    top: -8,
-    right: -8,
-    backgroundColor: "#E10600",
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  badgeText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  menuText: {
-    fontSize: 15,
-    fontWeight: "500",
-    flex: 1,
-    textAlign: "right",
-    marginLeft: 10,
-  },
   separator: {
     height: 1,
-    backgroundColor: "#E5E5E5",
-    marginVertical: 6,
-    marginHorizontal: 12,
+    backgroundColor: theme.colors.border.light,
+    marginVertical: theme.spacing.sm,
+  },
+  menuText: {
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
+    textAlign: "center",
+  },
+  logoutButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: theme.borders.radius.md,
+    paddingVertical: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: theme.colors.common.white,
+  },
+  logoutText: {
+    ...theme.typography.button,
+    color: theme.colors.common.white,
+    textAlign: "center",
+  },
+  cancelButton: {
+    backgroundColor: theme.colors.grey[200],
+    borderRadius: theme.borders.radius.md,
+    paddingVertical: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+  },
+  cancelText: {
+    ...theme.typography.button,
+    color: theme.colors.text.primary,
+    textAlign: "center",
   },
 });
 

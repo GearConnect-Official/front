@@ -1,35 +1,32 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import theme from '../../config/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    ...theme.common.container,
   },
   
   // Header styles
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    ...theme.common.spaceBetween,
+    paddingHorizontal: theme.spacing.md,
     paddingTop: 50,
-    paddingBottom: 12,
-    backgroundColor: '#FFFFFF',
+    paddingBottom: theme.spacing.sm,
+    backgroundColor: theme.colors.background.paper,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: theme.colors.border.light,
   },
   
   backButton: {
-    padding: 8,
+    padding: theme.spacing.xs,
     borderRadius: 20,
   },
   
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
+    ...theme.typography.h5,
+    color: theme.colors.text.primary,
   },
   
   headerSpacer: {
@@ -38,71 +35,66 @@ const styles = StyleSheet.create({
   
   // Loading states
   loadingContainer: {
+    ...theme.common.centerContent,
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: theme.spacing.lg,
   },
   
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666666',
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.md,
     textAlign: 'center',
   },
   
   // Error state
   errorContainer: {
+    ...theme.common.centerContent,
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: theme.spacing.lg,
   },
   
   errorText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666666',
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.md,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: theme.spacing.lg,
   },
   
   reloadButton: {
-    backgroundColor: '#FF5864',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    backgroundColor: theme.colors.primary.main,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.sm,
     borderRadius: 25,
   },
   
   reloadButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    ...theme.typography.subtitle1,
+    color: theme.colors.common.white,
   },
   
   // Empty state
   emptyStateContainer: {
+    ...theme.common.centerContent,
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: theme.spacing.xxxl,
     paddingVertical: 60,
   },
   
   emptyStateTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#333333',
-    marginTop: 24,
-    marginBottom: 12,
+    ...theme.typography.h2,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.sm,
   },
   
   emptyStateDescription: {
-    fontSize: 16,
-    color: '#666666',
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: theme.spacing.xxl,
   },
   
   goHomeButton: {

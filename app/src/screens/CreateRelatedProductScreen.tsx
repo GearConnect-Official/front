@@ -4,6 +4,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import axios from 'axios';
 import { API_URL_RELATEDPRODUCTS } from '../config';
+import theme from '../styles/config/theme';
 
 type RootStackParamList = {
   CreateRelatedProduct: { eventId: string };
@@ -129,50 +130,43 @@ const CreateRelatedProductScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    ...theme.common.container,
+    padding: theme.spacing.lg,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    ...theme.typography.h2,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.lg,
     textAlign: 'center',
   },
   formGroup: {
-    marginBottom: 15,
+    marginBottom: theme.spacing.sm + 3,
   },
   label: {
-    fontSize: 16,
-    marginBottom: 5,
-    fontWeight: '500',
+    ...theme.typography.subtitle1,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xxs + 1,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
-    fontSize: 16,
+    ...theme.common.input,
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
   },
   button: {
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 20,
+    ...theme.common.button,
+    marginTop: theme.spacing.lg,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    ...theme.typography.button,
+    color: theme.colors.common.white,
   },
   errorText: {
-    color: 'red',
-    marginBottom: 10,
+    ...theme.typography.error,
+    marginBottom: theme.spacing.xs + 2,
   },
 });
 

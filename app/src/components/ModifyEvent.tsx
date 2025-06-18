@@ -100,28 +100,37 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
     handleAddImage,
   } = useEventForm(initialFormData);
   const handleSubmit = async () => {
+    console.log('🚀 Starting event update process...');
     setLoading(true);
 
     if (!validateForm()) {
+      console.log('❌ Form validation failed');
       setLoading(false);
       return;
     }
 
     if (!user) {
+      console.log('❌ User not logged in');
       setError('You must be logged in to update this event');
       setLoading(false);
       return;
     }
 
     if (!eventId) {
+      console.log('❌ Event ID is missing');
       setError('Event ID is missing');
       setLoading(false);
       return;
     }
 
+    console.log('📋 Form data before processing:', formData);
+    console.log('🆔 Event ID:', eventId);
+    console.log('👤 User:', user);
+
     try {
       // Format date properly
       const formattedDate = new Date(formData.date);
+      console.log('📅 Formatted date:', formattedDate);
 
       // Create a clean object with properties that need to be updated
       const updatedData: Partial<Event> = {
@@ -136,14 +145,23 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
         images: formData.images || [],
       };
 
+      console.log('📤 Data to be sent for update:', updatedData);
+
       // Update the event details
-      await eventService.updateEvent(eventId, updatedData);
+      console.log('🔄 Calling eventService.updateEvent...');
+      const result = await eventService.updateEvent(eventId, updatedData);
+      console.log('✅ Update result:', result);
 
       Alert.alert('Success', 'Event has been updated successfully!', [
         { text: 'OK', onPress: onSuccess },
       ]);
     } catch (err: any) {
-      console.error('Error updating event:', err);
+      console.error('❌ Error updating event:', err);
+      console.error('📋 Error details:', {
+        message: err?.message,
+        response: err?.response?.data,
+        status: err?.response?.status
+      });
 
       const errorMessage =
         err?.response?.data?.error ||
@@ -151,6 +169,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
         err?.message ||
         'An unexpected error occurred. Please try again.';
 
+      console.log('📝 Final error message:', errorMessage);
       setError(`Error: ${errorMessage}`);
       Alert.alert(
         'Error',
@@ -158,6 +177,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
       );
     } finally {
       setLoading(false);
+      console.log('🏁 Update process finished');
     }
   };
 

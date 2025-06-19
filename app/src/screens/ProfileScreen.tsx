@@ -28,6 +28,9 @@ import userService from "../services/userService";
 import followService from "../services/followService";
 import FollowButton from "../components/FollowButton";
 import { FollowStats } from "../types/follow.types";
+import MessageService from "../services/messageService";
+import { useMessage } from "../context/MessageContext";
+import { MessageType } from "../types/messages";
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -121,6 +124,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     isFollowedBy: false,
   });
   const [isLoadingFollowStats, setIsLoadingFollowStats] = useState(false);
+  const { showMessage, showError } = useMessage();
 
   // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
@@ -133,17 +137,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
     setIsLoadingUserData(true);
     try {
-      console.log('🔄 ProfileScreen: Fetching user data for user:', effectiveUserId);
+      console.log(
+        "🔄 ProfileScreen: Fetching user data for user:",
+        effectiveUserId
+      );
       const response = await userService.getProfile(effectiveUserId);
       if (response.success && response.data) {
-        console.log('✅ ProfileScreen: User data fetched:', {
+        console.log("✅ ProfileScreen: User data fetched:", {
           username: response.data.username,
           hasProfilePicture: !!response.data.profilePicture,
           hasProfilePicturePublicId: !!response.data.profilePicturePublicId,
         });
         setUserData(response.data);
       } else {
-        console.error("❌ ProfileScreen: Failed to fetch user data:", response.error);
+        console.error(
+          "❌ ProfileScreen: Failed to fetch user data:",
+          response.error
+        );
       }
     } catch (error) {
       console.error("❌ ProfileScreen: Error fetching user data:", error);
@@ -159,7 +169,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     setIsLoadingFollowStats(true);
     try {
       const currentUserId = user?.id ? Number(user.id) : undefined;
-      const response = await followService.getFollowStats(effectiveUserId, currentUserId);
+      const response = await followService.getFollowStats(
+        effectiveUserId,
+        currentUserId
+      );
       if (response.success && response.data) {
         setFollowStats(response.data);
         // Update stats state for display consistency
@@ -169,7 +182,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           following: response.data?.followingCount || 0,
         }));
       } else {
-        console.error("❌ ProfileScreen: Failed to fetch follow stats:", response.error);
+        console.error(
+          "❌ ProfileScreen: Failed to fetch follow stats:",
+          response.error
+        );
       }
     } catch (error) {
       console.error("❌ ProfileScreen: Error fetching follow stats:", error);
@@ -181,7 +197,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   // Rafraîchir les données utilisateur quand on revient sur l'écran
   useFocusEffect(
     React.useCallback(() => {
-      console.log('👁️ ProfileScreen: Screen focused, refreshing user data...');
+      console.log("👁️ ProfileScreen: Screen focused, refreshing user data...");
       fetchUserData();
       fetchFollowStats();
     }, [effectiveUserId])
@@ -194,10 +210,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     const loadAllData = async () => {
       try {
         // Load user data and follow stats
-        await Promise.all([
-          fetchUserData(),
-          fetchFollowStats(),
-        ]);
+        await Promise.all([fetchUserData(), fetchFollowStats()]);
 
         // Load user posts
         const loadUserPostsAsync = async () => {
@@ -359,11 +372,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const onRefreshProfile = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
-        fetchUserData(),
-        fetchFollowStats(),
-      ]);
-      
+      await Promise.all([fetchUserData(), fetchFollowStats()]);
+
       // Recharger les données selon l'onglet actif
       if (activeTab === "favorites" && effectiveUserId) {
         setIsLoadingFavorites(true);
@@ -488,9 +498,38 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     router.push("/friends");
   };
 
-  const handleSendMessage = () => {
-    // TODO: Naviguer vers la messagerie pour envoyer un message
-    console.log("Navigate to send message - not implemented yet");
+  const handleSendMessage = async () => {
+    if (!user?.id || !effectiveUserId) return;
+    try {
+      // Crée une conversation (directe) entre les deux utilisateurs
+      const data = await MessageService.createConversation([
+        Number(user.id),
+        Number(effectiveUserId),
+      ]);
+      // Navigue vers la conversation nouvellement créée
+      if (data && data.id) {
+        router.push({
+          pathname: "/(app)/conversation",
+          params: {
+            conversationId: data.id.toString(),
+            conversationName: data.name || userData?.name || "Conversation",
+          },
+        });
+      }
+    } catch (error: any) {
+      // Affiche un message d'erreur si besoin
+      const errorMsg =
+        error?.response?.data?.error ||
+        error?.message ||
+        "Impossible de démarrer la conversation.";
+      if (typeof showMessage === "function") {
+        showMessage({ type: MessageType.ERROR, message: errorMsg });
+      } else if (typeof showError === "function") {
+        showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+    }
   };
 
   const renderPostsGrid = () => {
@@ -810,7 +849,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <FontAwesome name="camera" size={60} color="#CCCCCC" />
           <Text style={styles.emptyTitle}>No Posts</Text>
           <Text style={styles.emptySubtitle}>
-            Photos and videos from your races and training sessions will appear here.
+            Photos and videos from your races and training sessions will appear
+            here.
           </Text>
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareButtonText}>Share a Photo</Text>
@@ -933,22 +973,32 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     <Text style={styles.statNumber}>{stats.posts}</Text>
                     <Text style={styles.statLabel}>Posts</Text>
                   </View>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.statItem}
-                    onPress={() => router.push({
-                      pathname: '/followList',
-                      params: { userId: effectiveUserId?.toString(), initialTab: 'followers' }
-                    })}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/followList",
+                        params: {
+                          userId: effectiveUserId?.toString(),
+                          initialTab: "followers",
+                        },
+                      })
+                    }
                   >
                     <Text style={styles.statNumber}>{stats.followers}</Text>
                     <Text style={styles.statLabel}>Followers</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.statItem}
-                    onPress={() => router.push({
-                      pathname: '/followList',
-                      params: { userId: effectiveUserId?.toString(), initialTab: 'following' }
-                    })}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/followList",
+                        params: {
+                          userId: effectiveUserId?.toString(),
+                          initialTab: "following",
+                        },
+                      })
+                    }
                   >
                     <Text style={styles.statNumber}>{stats.following}</Text>
                     <Text style={styles.statLabel}>Following</Text>
@@ -966,7 +1016,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
             {/* Action Buttons */}
             <View style={styles.actionButtonsContainer}>
-              {effectiveUserId && user?.id && effectiveUserId !== Number(user.id) ? (
+              {effectiveUserId &&
+              user?.id &&
+              effectiveUserId !== Number(user.id) ? (
                 // Boutons pour un autre utilisateur
                 <>
                   <FollowButton
@@ -974,14 +1026,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     targetUserId={effectiveUserId}
                     initialFollowState={followStats.isFollowing}
                     onFollowStateChange={(isFollowing, stats) => {
-                      setFollowStats(prev => ({
+                      setFollowStats((prev) => ({
                         ...prev,
                         isFollowing,
-                        followersCount: stats?.followersCount || prev.followersCount,
-                        followingCount: stats?.followingCount || prev.followingCount,
+                        followersCount:
+                          stats?.followersCount || prev.followersCount,
+                        followingCount:
+                          stats?.followingCount || prev.followingCount,
                       }));
                       // Update display stats
-                      setStats(prevStats => ({
+                      setStats((prevStats) => ({
                         ...prevStats,
                         followers: stats?.followersCount || prevStats.followers,
                         following: stats?.followingCount || prevStats.following,
@@ -990,12 +1044,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     size="large"
                     variant="primary"
                   />
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.messageButton]}
-                    onPress={handleSendMessage}
-                  >
-                    <Text style={styles.messageButtonText}>Message</Text>
-                  </TouchableOpacity>
+                  {followStats.isFollowing && followStats.isFollowedBy && (
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.messageButton]}
+                      onPress={handleSendMessage}
+                    >
+                      <Text style={styles.messageButtonText}>Message</Text>
+                    </TouchableOpacity>
+                  )}
                 </>
               ) : (
                 // Boutons pour son propre profil
@@ -1229,9 +1285,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         visible={postModalVisible}
         animationType="slide"
         transparent={false}
-        onRequestClose={handleClosePostModal}      >
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
+        onRequestClose={handleClosePostModal}
+      >
+        <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+          <StatusBar
+            barStyle="dark-content"
+            backgroundColor="#FFFFFF"
+            translucent={true}
+          />
           {selectedPost && (
             <ProfilePost
               post={{

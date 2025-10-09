@@ -36,4 +36,7 @@ export const AppImages = {
 };
 
 // Type safety for image keys
-export type ImageKey = keyof typeof AppImages; 
+export type ImageKey = keyof typeof AppImages;
+
+// Export par défaut factice pour Expo Router
+export default () => null; 

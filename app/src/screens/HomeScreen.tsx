@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Clipboard from 'expo-clipboard';
 import { homeStyles as styles } from "../styles/screens";
 import theme from "../styles/config/theme";
@@ -29,6 +29,7 @@ import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import * as postService from '../services/postService';
 import commentService from '../services/commentService';
 import favoritesService from '../services/favoritesService';
+import recommendationService from '../services/recommendationService';
 import { useAuth } from '../context/AuthContext';
 import useVisibilityTracker from '../hooks/useVisibilityTracker';
 import { detectMediaType } from '../utils/mediaUtils';
@@ -161,7 +162,7 @@ const HomeScreen: React.FC = () => {
   });
 
   // Charger les données du profil utilisateur connecté
-  const loadCurrentUserData = useCallback(async () => {
+  const loadCurrentUserData = async () => {
     if (!user?.id) return;
     
     try {
@@ -178,30 +179,40 @@ const HomeScreen: React.FC = () => {
     } catch (error) {
       console.error("❌ HomeScreen: Error loading current user data:", error);
     }
-  }, [user?.id]);
+  };
 
-  // Fonction pour charger les posts depuis l'API
+  // Fonction pour charger les posts depuis l'API avec algorithme de recommandation
   const loadPosts = useCallback(async (page = 1, limit = 10) => {
     try {
       setLoadingError(null);
       setIsNetworkError(false);
       const currentUserId = user?.id ? parseInt(user.id.toString()) : null;
       
-      // Utiliser la nouvelle méthode getPosts avec userId pour récupérer l'état des favoris
-      const response = currentUserId 
-        ? await postService.default.getPosts(page, limit, currentUserId)
-        : await postService.default.getAllPosts();
+      let response;
+      
+      // Utiliser l'algorithme de recommandation si l'utilisateur est connecté
+      if (currentUserId) {
+        try {
+          console.log('🎯 Chargement des posts recommandés pour l\'utilisateur', currentUserId);
+          const recommendationsResponse = await recommendationService.getRecommendedPosts(
+            currentUserId,
+            limit
+          );
+          response = recommendationsResponse.recommendations;
+          console.log('✅ Posts recommandés chargés:', response.length);
+        } catch (error) {
+          console.warn('⚠️ Erreur lors du chargement des recommandations, fallback vers posts normaux:', error);
+          // Fallback vers les posts normaux si les recommandations échouent
+          response = await postService.default.getPosts(page, limit, currentUserId);
+        }
+      } else {
+        // Si pas connecté, utiliser les posts normaux
+        response = await postService.default.getAllPosts();
+      }
       
       if (Array.isArray(response)) {
-        // Trier les posts du plus récent au plus ancien
-        const sortedPosts = [...response].sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateB.getTime() - dateA.getTime();
-        });
-        
-        // Transformer les posts API en posts UI en utilisant l'ID utilisateur réel
-        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId || 1));
+        // Transformer les posts API en posts UI
+        const uiPosts = response.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId || 1));
         
         setPosts(uiPosts);
         setHasMorePosts(uiPosts.length === limit);
@@ -286,13 +297,6 @@ const HomeScreen: React.FC = () => {
     setStories(mockStories);
   }, [currentUserData, user]);
 
-  // Charger les données au démarrage
-  useEffect(() => {
-    loadPosts();
-    loadStories();
-    loadCurrentUserData(); // Charger aussi les données utilisateur
-  }, [loadPosts, loadStories, loadCurrentUserData]);
-
   const handleRefresh = () => {
     setRefreshing(true);
     setCurrentPage(1);
@@ -333,11 +337,8 @@ const HomeScreen: React.FC = () => {
       // Utiliser la nouvelle méthode toggleLike
       await postService.default.toggleLike(parseInt(postId), currentUserId);
       
-      // Recharger les posts pour synchroniser avec la base de données
-      // On fait ça de manière silencieuse pour éviter les clignotements
-      setTimeout(() => {
-        loadPosts();
-      }, 500);
+      // Pas besoin de recharger tous les posts juste pour un like
+      // L'optimistic update suffit pour l'UX
       
     } catch {
       // console.error('Error when toggling like:', error);
@@ -377,11 +378,8 @@ const HomeScreen: React.FC = () => {
       // Utiliser le service des favoris pour persister en base de données
       await favoritesService.toggleFavorite(parseInt(postId), currentUserId);
       
-      // Recharger les posts pour synchroniser avec la base de données
-      // On fait ça de manière silencieuse pour éviter les clignotements
-      setTimeout(() => {
-        loadPosts();
-      }, 500);
+      // Pas besoin de recharger tous les posts juste pour un favori
+      // L'optimistic update suffit pour l'UX
       
     } catch {
       // console.error('Error when toggling favorites:', error);
@@ -449,10 +447,7 @@ const HomeScreen: React.FC = () => {
         );
       } catch {
         // console.error('Error updating comment count:', error);
-        // En cas d'erreur, on recharge simplement tous les posts après un délai
-        setTimeout(() => {
-          loadPosts();
-        }, 500);
+        // En cas d'erreur de suppression, pas besoin de recharger tout
       }
     }
   };
@@ -542,9 +537,7 @@ const HomeScreen: React.FC = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCreatePost = () => {
-    // Rafraîchir la liste des posts avant de naviguer
-    loadPosts();
-    // Naviguer vers l'écran de création
+    // Naviguer vers l'écran de création (pas besoin de rafraîchir avant)
     router.push("/publication");
   };
 
@@ -565,12 +558,13 @@ const HomeScreen: React.FC = () => {
     </View>
   );
 
-  // Rafraîchir la liste des posts lorsque l'écran est focus
+  // Rafraîchir la liste des posts lorsque l'écran est focus (UNE SEULE FOIS)
   useFocusEffect(
     React.useCallback(() => {
       loadPosts();
-      loadCurrentUserData(); // Rafraîchir aussi les données utilisateur
-    }, [loadPosts, loadCurrentUserData])
+      loadStories();
+      loadCurrentUserData();
+    }, []) // Dépendances vides pour éviter les re-renders infinis
   );
 
   const handleScroll = Animated.event(
@@ -693,10 +687,7 @@ const HomeScreen: React.FC = () => {
       // Utiliser la nouvelle méthode addComment
       await postService.default.addComment(parseInt(postId), currentUserId, text);
       
-      // Recharger les posts après un délai pour synchroniser
-      setTimeout(() => {
-        loadPosts();
-      }, 500);
+      // Pas besoin de recharger tous les posts juste pour un commentaire
       
     } catch {
       // console.error('Error when adding comment:', error);

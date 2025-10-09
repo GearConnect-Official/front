@@ -125,3 +125,6 @@ export const hierarchicalCommentsStyles = StyleSheet.create({
     maxHeight: screenHeight * 0.9,
   },
 }); 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

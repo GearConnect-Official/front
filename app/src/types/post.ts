@@ -40,3 +40,6 @@ export interface Post {
     shares: number;
   };
 }
+
+// Export par défaut factice pour Expo Router
+export default () => null;

@@ -249,6 +249,25 @@ class CloudinaryService {
   private getFileExtension(uri: string): string {
     return uri.split('.').pop() || '';
   }
+
+  /**
+   * Génère une URL optimisée pour les vidéos
+   */
+  getVideoUrl(publicId: string, options: {
+    width?: number;
+    height?: number;
+    quality?: 'auto' | number;
+    format?: 'auto' | 'mp4' | 'webm' | 'mov';
+    crop?: 'fill' | 'fit' | 'limit' | 'scale' | 'crop';
+  } = {}): string {
+    return this.generateOptimizedUrl(publicId, {
+      ...options,
+      resource_type: 'video'
+    });
+  }
 }
 
-export const cloudinaryService = new CloudinaryService(); 
+export const cloudinaryService = new CloudinaryService();
+
+// Export par défaut factice pour Expo Router
+export default () => null; 

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
-  Alert,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
@@ -21,7 +20,8 @@ import { AppImages } from "../assets/images";
 
 const AuthScreen: React.FC = () => {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
+  const authContext = useAuth();
+  const { login, isLoading } = authContext || { login: null, isLoading: false };
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -58,6 +58,11 @@ const AuthScreen: React.FC = () => {
       return;
     }
 
+    if (!login) {
+      setErrors({ general: "Authentication service not available" });
+      return;
+    }
+    
     const result = await login(email, password);
     if (!result.success) {
       if (result.error === "Your account has been deleted or desactivated") {
@@ -248,4 +253,3 @@ const AuthScreen: React.FC = () => {
 };
 
 export default AuthScreen;
-

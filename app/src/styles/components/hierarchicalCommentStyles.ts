@@ -95,3 +95,6 @@ export const hierarchicalCommentStyles = StyleSheet.create({
     paddingLeft: 0,
   },
 }); 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

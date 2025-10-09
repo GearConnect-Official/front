@@ -51,3 +51,7 @@ export const styles = StyleSheet.create({
     height: '100%',
   },
 });
+
+
+// Export par défaut factice pour Expo Router
+export default () => null;

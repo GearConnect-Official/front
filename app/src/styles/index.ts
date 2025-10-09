@@ -7,3 +7,6 @@ export * from './media';
 
 // Keep existing exports
 export { default as ThemeProvider } from './ThemeProvider'; 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

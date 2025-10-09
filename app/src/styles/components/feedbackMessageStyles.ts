@@ -5,3 +5,6 @@
 export const feedbackMessageStyles = {
   // Styles deprecated - see FeedbackMessage.tsx for new inline styles
 }; 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

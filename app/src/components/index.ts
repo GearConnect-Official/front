@@ -24,3 +24,6 @@ export type {
   CloudinaryUploadResponse, 
   CloudinaryUploadOptions 
 } from '../services/cloudinary.service'; 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

@@ -32,3 +32,6 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+// Export par défaut factice pour Expo Router
+export default () => null;

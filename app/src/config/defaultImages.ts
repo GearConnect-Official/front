@@ -6,3 +6,6 @@ export const defaultImages = {
   event: AppImages.logoRounded,
   avatar: AppImages.formula1,
 };
+
+// Export par défaut factice pour Expo Router
+export default () => null;

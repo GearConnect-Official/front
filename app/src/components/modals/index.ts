@@ -3,3 +3,6 @@ export { default as HierarchicalCommentsModal } from './HierarchicalCommentsModa
 export { default as CommentsModal } from './CommentsModal';
 export { default as AddFriendModal } from './AddFriendModal';
 export { default as StoryModal } from './StoryModal'; 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

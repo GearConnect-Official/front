@@ -122,4 +122,7 @@ export const detectMediaType = (cloudinaryUrl?: string, cloudinaryPublicId?: str
   
   // Default to image
   return 'image';
-}; 
+}
+
+// Export par défaut factice pour Expo Router
+export default () => null; 

@@ -9,3 +9,6 @@ export {
 export { default as CloudinaryMedia } from './CloudinaryMedia';
 export { CloudinaryVideoUpload } from './CloudinaryVideoUpload';
 export { CloudinaryImageUpload } from './CloudinaryImageUpload'; 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

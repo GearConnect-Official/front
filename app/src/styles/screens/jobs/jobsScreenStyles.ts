@@ -160,3 +160,6 @@ export const jobsScreenStyles = StyleSheet.create({
     marginTop: theme.spacing.sm,
   },
 }); 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

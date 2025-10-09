@@ -175,3 +175,6 @@ export const publicationFormStyles = StyleSheet.create({
     fontSize: 12,
   },
 }); 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useCloudinary } from '../../hooks/useCloudinary';
 import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
@@ -224,4 +224,6 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
       )}
     </View>
   );
-}; 
+};
+
+export default CloudinaryVideoUpload; 

@@ -59,3 +59,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+export default StoryPreview;

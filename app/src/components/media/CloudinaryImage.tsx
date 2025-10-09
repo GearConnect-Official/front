@@ -106,4 +106,6 @@ export const CloudinaryHeroImage: React.FC<Omit<CloudinaryImageProps, 'width' | 
       props.style
     ]}
   />
-); 
+);
+
+export default CloudinaryImage; 

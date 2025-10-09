@@ -183,4 +183,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     uploadMultiple,
     clearError,
   };
-}; 
+};
+
+// Export par défaut factice pour Expo Router
+export default () => null; 

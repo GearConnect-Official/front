@@ -179,3 +179,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
+
+
+// Export par défaut factice pour Expo Router
+export default () => null;

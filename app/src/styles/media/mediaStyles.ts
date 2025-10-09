@@ -108,3 +108,6 @@ export const mediaStyles = StyleSheet.create({
     textAlign: 'center',
   },
 }); 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

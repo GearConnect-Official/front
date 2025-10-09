@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../../styles/feed/postFooterStyles";
+import styles from "../../styles/Feed/postFooterStyles";
 
 export interface PostTag {
   id?: string;

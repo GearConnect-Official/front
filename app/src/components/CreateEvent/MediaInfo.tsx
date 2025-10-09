@@ -1,6 +1,7 @@
 import * as React from "react";
 import { View, Text, TextInput, FlatList } from "react-native";
-import { CloudinaryImage, CloudinaryImageUpload } from "../";
+import { CloudinaryImage } from "../media/CloudinaryImage";
+import { CloudinaryImageUpload } from "../media/CloudinaryImageUpload";
 import { CloudinaryUploadResponse } from "../../services/cloudinary.service";
 import ImageUpload from "./ImageUpload";
 import { createEventStyles as styles } from "../../styles/screens";

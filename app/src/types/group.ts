@@ -61,3 +61,6 @@ export interface GroupDetails {
   };
   createdAt: string;
 }
+
+// Export par défaut factice pour Expo Router
+export default () => null;

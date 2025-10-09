@@ -1,5 +1,3 @@
-import { UserProfile } from '../services/userService';
-
 /**
  * Interface pour un utilisateur suiveur/suivi
  */
@@ -82,4 +80,7 @@ export interface FollowStats {
   followingCount: number;
   isFollowing?: boolean;
   isFollowedBy?: boolean;
-} 
+}
+
+// Export par défaut factice pour Expo Router
+export default () => null; 

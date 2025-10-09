@@ -25,3 +25,6 @@ export interface StoryGroup {
   stories: Story[];
   hasUnviewedStories: boolean;
 }
+
+// Export par défaut factice pour Expo Router
+export default () => null;

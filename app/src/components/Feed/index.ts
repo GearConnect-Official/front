@@ -7,4 +7,8 @@ export { default as PostActions } from './PostActions';
 export { default as PostHeader } from './PostHeader';
 export { default as PostOptionsButton } from './PostOptionsButton';
 export { default as PostOptionsMenu } from './PostOptionsMenu';
-export { default as ProfilePost } from './ProfilePost'; 
+export { default as ProfilePost } from './ProfilePost';
+export { default as RecommendedUsers } from './RecommendedUsers'; 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

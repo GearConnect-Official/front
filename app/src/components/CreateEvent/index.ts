@@ -8,3 +8,6 @@ export { default as MediaInfo } from './MediaInfo';
 export { default as NavigationButtons } from './NavigationButtons';
 export { default as ActionButtons } from './ActionButtons';
 export { default as AdditionalInfo } from './AdditionalInfo'; 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

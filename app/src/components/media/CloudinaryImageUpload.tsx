@@ -195,4 +195,6 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
       )}
     </View>
   );
-}; 
+};
+
+export default CloudinaryImageUpload; 

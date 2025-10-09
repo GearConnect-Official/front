@@ -1,6 +1,6 @@
 import React from "react";
 import { Image, ImageStyle, View } from "react-native";
-import { Video, ResizeMode } from "expo-av";
+import { VideoView, useVideoPlayer } from "expo-video";
 
 interface CloudinaryImageProps {
   publicId: string;

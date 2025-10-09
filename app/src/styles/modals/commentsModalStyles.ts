@@ -139,3 +139,6 @@ export const commentsModalStyles = StyleSheet.create({
     marginTop: 4,
   },
 }); 
+
+// Export par défaut factice pour Expo Router
+export default () => null;

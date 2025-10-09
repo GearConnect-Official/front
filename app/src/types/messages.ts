@@ -29,4 +29,7 @@ export interface ConfirmationConfig {
   type?: 'success' | 'warning' | 'danger' | 'info';
   onConfirm: () => void;
   onCancel?: () => void;
-} 
+}
+
+// Export par défaut factice pour Expo Router
+export default () => null; 

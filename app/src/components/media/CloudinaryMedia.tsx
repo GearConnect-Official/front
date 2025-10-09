@@ -1,5 +1,4 @@
 import React from 'react';
-import { ViewStyle } from 'react-native';
 import { CloudinaryImage } from './CloudinaryImage';
 import CloudinaryVideo from './CloudinaryVideo';
 import { VIDEO_EXTENSIONS, VIDEO_URL_PATTERNS, VIDEO_METADATA_FORMATS } from '../../utils/mediaUtils';
@@ -9,10 +8,10 @@ interface CloudinaryMediaProps {
   mediaType?: 'image' | 'video' | 'auto';
   width?: number;
   height?: number;
-  quality?: string;
-  format?: string;
-  crop?: string;
-  style?: ViewStyle;
+  quality?: any;
+  format?: any;
+  crop?: any;
+  style?: any;
   fallbackUrl?: string;
   // Props spécifiques aux vidéos
   shouldPlay?: boolean;
@@ -117,9 +116,9 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
         publicId={publicId}
         width={width}
         height={height}
-        quality={quality}
-        format={format || 'mp4'}
-        crop={crop}
+        quality={quality as any}
+        format={format as any}
+        crop={crop as any}
         style={style}
         fallbackUrl={fallbackUrl}
         shouldPlay={shouldPlay}
@@ -142,10 +141,10 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
       publicId={publicId}
       width={width}
       height={height}
-      quality={quality}
-      format={format || 'auto'}
-      crop={crop}
-      style={style}
+      quality={quality as any}
+      format={format as any}
+      crop={crop as any}
+      style={style as any}
       fallbackUrl={fallbackUrl}
     />
   );

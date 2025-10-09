@@ -9,14 +9,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { FontAwesome } from '@expo/vector-icons';
 import { useCloudinary } from '../../hooks/useCloudinary';
-import { CloudinaryUploadResponse, CloudinaryUploadOptions } from '../../services/cloudinary.service';
+import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
 import { cloudinaryImageUploadStyles } from '../../styles/components/cloudinaryStyles';
 import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
-import { QuickMessages } from '../../utils/messageUtils';
 
 export interface CloudinaryImageUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;
@@ -43,8 +39,7 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
 }) => {
   const { uploading, error, uploadImage, uploadFromCamera, uploadMultiple, clearError } = useCloudinary();
   const [uploadedImages, setUploadedImages] = useState<CloudinaryUploadResponse[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const { showError, showMessage } = useMessage();
+  const { showError } = useMessage();
 
   const handleUploadOption = () => {
     Alert.alert(
@@ -197,4 +192,4 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
   );
 };
 
-export default CloudinaryImageUpload; 
+export default CloudinaryImageUpload;

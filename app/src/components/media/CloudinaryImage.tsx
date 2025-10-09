@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { Image, ImageProps } from 'react-native';
 import { cloudinaryService } from '../../services/cloudinary.service';
-import { CLOUDINARY_CONFIG } from '../../config';
+import { cloudinaryConfig } from '../../config';
 import { cloudinaryImageStyles } from '../../styles/components/cloudinaryStyles';
 
 export interface CloudinaryImageProps extends Omit<ImageProps, 'source'> {
@@ -35,7 +35,7 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
 
     if (transformation) {
       // Utiliser une transformation personnalisée
-      return `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${transformation}/${publicId}`;
+      return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformation}/${publicId}`;
     }
 
     // Utiliser la méthode de génération d'URL optimisée
@@ -68,11 +68,13 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
 };
 
 // Composants pré-configurés pour des cas d'usage courants
-export const CloudinaryAvatar: React.FC<Omit<CloudinaryImageProps, 'width' | 'height' | 'crop'> & { size?: number }> = ({
+export const CloudinaryAvatar: React.FC<Omit<CloudinaryImageProps, 'width' | 'height' | 'crop'> & { size?: number; publicId: string }> = ({
   size = 50,
+  publicId,
   ...props
 }) => (
   <CloudinaryImage
+    publicId={publicId}
     {...props}
     width={size}
     height={size}
@@ -81,11 +83,13 @@ export const CloudinaryAvatar: React.FC<Omit<CloudinaryImageProps, 'width' | 'he
   />
 );
 
-export const CloudinaryThumbnail: React.FC<Omit<CloudinaryImageProps, 'width' | 'height'> & { size?: number }> = ({
+export const CloudinaryThumbnail: React.FC<Omit<CloudinaryImageProps, 'width' | 'height'> & { size?: number; publicId: string }> = ({
   size = 100,
+  publicId,
   ...props
 }) => (
   <CloudinaryImage
+    publicId={publicId}
     {...props}
     width={size}
     height={size}
@@ -93,11 +97,13 @@ export const CloudinaryThumbnail: React.FC<Omit<CloudinaryImageProps, 'width' | 
   />
 );
 
-export const CloudinaryHeroImage: React.FC<Omit<CloudinaryImageProps, 'width' | 'height'> & { aspectRatio?: number }> = ({
+export const CloudinaryHeroImage: React.FC<Omit<CloudinaryImageProps, 'width' | 'height'> & { aspectRatio?: number; publicId: string }> = ({
   aspectRatio = 16/9,
+  publicId,
   ...props
 }) => (
   <CloudinaryImage
+    publicId={publicId}
     {...props}
     crop="fill"
     style={[

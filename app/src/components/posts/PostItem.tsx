@@ -164,3 +164,6 @@ const styles = StyleSheet.create({
     color: "#6A707C",
   },
 });
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute';

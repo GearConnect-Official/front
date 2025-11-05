@@ -131,3 +131,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
 });
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute';

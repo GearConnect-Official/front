@@ -165,4 +165,7 @@ export const useMessage = (): MessageContextType => {
     throw new Error('useMessage must be used within a MessageProvider');
   }
   return context;
-}; 
+};
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute'; 

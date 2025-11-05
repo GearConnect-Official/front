@@ -8,4 +8,7 @@ export {
 } from './CloudinaryImage';
 export { default as CloudinaryMedia } from './CloudinaryMedia';
 export { CloudinaryVideoUpload } from './CloudinaryVideoUpload';
-export { CloudinaryImageUpload } from './CloudinaryImageUpload'; 
+export { CloudinaryImageUpload } from './CloudinaryImageUpload';
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

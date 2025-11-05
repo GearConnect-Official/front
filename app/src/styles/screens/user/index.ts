@@ -2,4 +2,7 @@
 export { default as homeStyles } from './homeStyles';
 export { default as settingsStyles } from './settingsStyles';
 export { default as welcomeStyles } from './welcomeStyles';
-export { default as performanceStyles } from './performanceStyles'; 
+export { default as performanceStyles } from './performanceStyles';
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../../NoRoute'; 

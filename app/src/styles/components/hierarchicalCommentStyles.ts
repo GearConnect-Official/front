@@ -94,4 +94,7 @@ export const hierarchicalCommentStyles = StyleSheet.create({
     marginTop: 8,
     paddingLeft: 0,
   },
-}); 
+});
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

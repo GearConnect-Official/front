@@ -82,4 +82,7 @@ export interface FollowStats {
   followingCount: number;
   isFollowing?: boolean;
   isFollowedBy?: boolean;
-} 
+}
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute'; 

@@ -82,4 +82,7 @@ export const QuickMessages = {
     ...MessageService.CONFIRMATIONS.LOGOUT,
     onConfirm
   }),
-}; 
+};
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute'; 

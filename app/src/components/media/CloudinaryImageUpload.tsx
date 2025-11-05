@@ -195,4 +195,7 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
       )}
     </View>
   );
-}; 
+};
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

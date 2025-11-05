@@ -65,3 +65,6 @@ export const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
 });
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute';

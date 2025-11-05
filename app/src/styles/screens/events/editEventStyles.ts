@@ -32,3 +32,6 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../../NoRoute';

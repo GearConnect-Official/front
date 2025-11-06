@@ -112,4 +112,7 @@ export const CloudinaryHeroImage: React.FC<Omit<CloudinaryImageProps, 'width' | 
       props.style
     ]}
   />
-); 
+);
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

@@ -107,4 +107,7 @@ export const mediaStyles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
-}); 
+});
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

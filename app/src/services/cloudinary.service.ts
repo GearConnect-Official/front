@@ -251,4 +251,7 @@ class CloudinaryService {
   }
 }
 
-export const cloudinaryService = new CloudinaryService(); 
+export const cloudinaryService = new CloudinaryService();
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute'; 

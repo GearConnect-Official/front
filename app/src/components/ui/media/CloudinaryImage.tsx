@@ -66,3 +66,6 @@ export const CloudinaryAvatar: React.FC<CloudinaryImageProps> = ({
     />
   );
 };
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../../NoRoute';

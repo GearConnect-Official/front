@@ -7,4 +7,7 @@ export { default as InputField } from './InputField';
 export { default as MediaInfo } from './MediaInfo';
 export { default as NavigationButtons } from './NavigationButtons';
 export { default as ActionButtons } from './ActionButtons';
-export { default as AdditionalInfo } from './AdditionalInfo'; 
+export { default as AdditionalInfo } from './AdditionalInfo';
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

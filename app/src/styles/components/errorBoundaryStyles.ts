@@ -37,4 +37,7 @@ export const errorBoundaryStyles = StyleSheet.create({
     fontSize: theme.typography.sizes.md,
     fontWeight: theme.typography.weights.semiBold,
   },
-}); 
+});
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

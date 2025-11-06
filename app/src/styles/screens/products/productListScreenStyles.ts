@@ -51,3 +51,6 @@ export const styles = StyleSheet.create({
     height: '100%',
   },
 });
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../../NoRoute';

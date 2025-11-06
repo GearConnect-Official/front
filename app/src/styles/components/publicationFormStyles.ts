@@ -174,4 +174,7 @@ export const publicationFormStyles = StyleSheet.create({
     borderRadius: theme.borders.radius.xs,
     fontSize: 12,
   },
-}); 
+});
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

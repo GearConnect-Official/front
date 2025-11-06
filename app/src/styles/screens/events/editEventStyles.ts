@@ -33,5 +33,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// Default export to prevent Expo Router warnings
-export { default } from '../../../NoRoute';
+export default styles;
+
+// Default export to prevent Expo Router warnings as secondary export
+export { default as NoRoute } from '../../../NoRoute';

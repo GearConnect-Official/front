@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 
 interface ViewabilityConfig {
   minimumViewTime: number;
@@ -16,12 +16,10 @@ const useVisibilityTracker = (config?: Partial<ViewabilityConfig>) => {
     currentlyVisiblePost: null,
   });
 
-  const defaultConfig: ViewabilityConfig = {
-    minimumViewTime: 500, // 500ms minimum pour être considéré comme visible
-    itemVisiblePercentThreshold: 50, // 50% de l'item doit être visible
-  };
-
-  const finalConfig = { ...defaultConfig, ...config };
+  const finalConfig = useMemo(() => ({
+    minimumViewTime: config?.minimumViewTime ?? 500,
+    itemVisiblePercentThreshold: config?.itemVisiblePercentThreshold ?? 50,
+  }), [config?.minimumViewTime, config?.itemVisiblePercentThreshold]);
 
   // Configuration pour FlatList
   const viewabilityConfig = useRef({

@@ -1,16 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { useSignIn, useSignUp, useUser, useClerk } from "@clerk/clerk-expo";
+import { useSignIn, useUser, useClerk } from "@clerk/clerk-expo";
 import {
   signUp as authSignUp,
   signIn as authSignIn,
   getUserInfo,
 } from "../services/AuthService";
-import { API_URL_AUTH } from "../config";
 import { useRouter } from "expo-router";
 import { Platform } from "react-native";
-import { useAuth as useClerkAuth } from "@clerk/clerk-expo";
 import type { UserResource } from "@clerk/types";
-import axios from "axios";
 
 // Define types for our context
 interface User {
@@ -56,8 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const { signIn } = useSignIn();
-  const { signUp: clerkSignUp } = useSignUp();
+  const { signIn: clerkSignIn } = useSignIn();
   const { signOut } = useClerk();
   const clerk = useClerk();
   const { user: clerkUser, isLoaded: clerkIsLoaded } = useUser();
@@ -114,8 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 "Error syncing with backend but user exists in Clerk:",
                 error
               );
-              setIsAuthenticated(true);
-              setUser(clerkUser);
+              await handleClerkUser(clerkUser);
             }
           } else {
             // No Clerk user, ensure authenticated is false
@@ -131,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     initializeAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clerkUser, clerkIsLoaded]);
 
   // Register a new user
@@ -261,12 +257,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Login with Clerk - uniquement si la réponse backend est un succès
-      if (!signIn) {
+      if (!clerkSignIn) {
         throw new Error("Clerk signIn is undefined");
       }
 
       try {
-        await signIn.create({
+        await clerkSignIn.create({
           identifier: email,
           password,
         });
@@ -275,7 +271,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           success: true,
           user: backendResponse.user,
         };
-      } catch (clerkError: any) {
+      } catch {
         // If the error indicates that the user doesn't exist in Clerk,
         // but backend validated them, we can still return success
         console.warn("Clerk error but user authenticated on backend side");
@@ -417,6 +413,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Get Current User Error:", error);
       return null;
     }
+  };
+
+  // Simple signIn wrapper for Clerk
+  const signIn = async (email: string, password: string): Promise<void> => {
+    if (!clerkSignIn) {
+      throw new Error("Clerk signIn is not available");
+    }
+    await clerkSignIn.create({
+      identifier: email,
+      password,
+    });
   };
 
   const handleClerkUser = async (clerkUser: UserResource | null) => {

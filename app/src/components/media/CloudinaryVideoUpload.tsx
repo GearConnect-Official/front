@@ -1,25 +1,67 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useCloudinary } from '../../hooks/useCloudinary';
 import { CloudinaryUploadResponse } from '../../services/cloudinary.service';
 import { cloudinaryVideoUploadStyles } from '../../styles/components/cloudinaryStyles';
-import * as ImagePicker from 'expo-image-picker';
-import { FontAwesome } from '@expo/vector-icons';
-import { CloudinaryUploadOptions } from '../../services/cloudinary.service';
-import { cloudinaryUploadStyles } from '../../styles/components/cloudinaryStyles';
-import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
-import { QuickMessages } from '../../utils/messageUtils';
+
+// Composant pour la prévisualisation vidéo
+interface VideoPreviewItemProps {
+  video: CloudinaryUploadResponse;
+  onRemove: () => void;
+  formatDuration: (duration?: number) => string;
+  formatFileSize: (bytes: number) => string;
+}
+
+const VideoPreviewItem: React.FC<VideoPreviewItemProps> = ({
+  video,
+  onRemove,
+  formatDuration,
+  formatFileSize,
+}) => {
+  const player = useVideoPlayer(video.secure_url, (player) => {
+    player.loop = false;
+    player.pause();
+  });
+
+  return (
+    <View style={cloudinaryVideoUploadStyles.videoPreview}>
+      <VideoView
+        player={player}
+        style={cloudinaryVideoUploadStyles.previewVideo}
+        contentFit="cover"
+        nativeControls
+        allowsFullscreen={false}
+        allowsPictureInPicture={false}
+      />
+      
+      {/* Informations sur la vidéo */}
+      <View style={cloudinaryVideoUploadStyles.videoInfo}>
+        <Text style={cloudinaryVideoUploadStyles.videoDuration}>
+          {formatDuration(video.duration)}
+        </Text>
+        <Text style={cloudinaryVideoUploadStyles.videoSize}>
+          {formatFileSize(video.bytes)}
+        </Text>
+      </View>
+      
+      <TouchableOpacity
+        style={cloudinaryVideoUploadStyles.removeButton}
+        onPress={onRemove}
+      >
+        <Ionicons name="close" size={16} color="white" />
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 export interface CloudinaryVideoUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;
@@ -46,8 +88,6 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
 }) => {
   const { uploading, error, uploadVideo, uploadFromCamera, clearError } = useCloudinary();
   const [uploadedVideos, setUploadedVideos] = useState<CloudinaryUploadResponse[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const { showError, showMessage } = useMessage();
 
   const handleUploadOption = () => {
     Alert.alert(
@@ -127,31 +167,6 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
 
   const canAddMore = !allowMultiple ? uploadedVideos.length === 0 : uploadedVideos.length < maxVideos;
 
-  const pickAndUploadVideo = async () => {
-    try {
-      // ... existing video picking logic ...
-      
-      if (result.canceled) {
-        return;
-      }
-
-      // ... existing upload logic ...
-      
-    } catch (error: any) {
-      console.error('Error uploading video:', error);
-      const errorMessage = error?.message || 'Failed to upload video';
-      
-      // REMPLACÉ: Alert.alert par le système centralisé
-      showError(errorMessage);
-      
-      if (onUploadError) {
-        onUploadError(errorMessage);
-      }
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   return (
     <View style={[cloudinaryVideoUploadStyles.container, style]}>
       {/* Bouton d'upload */}
@@ -186,32 +201,13 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
       {showPreview && uploadedVideos.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={cloudinaryVideoUploadStyles.previewContainer}>
           {uploadedVideos.map((video, index) => (
-            <View key={video.public_id} style={cloudinaryVideoUploadStyles.videoPreview}>
-              <Video
-                source={{ uri: video.secure_url }}
-                style={cloudinaryVideoUploadStyles.previewVideo}
-                useNativeControls
-                resizeMode={ResizeMode.COVER}
-                shouldPlay={false}
-              />
-              
-              {/* Informations sur la vidéo */}
-              <View style={cloudinaryVideoUploadStyles.videoInfo}>
-                <Text style={cloudinaryVideoUploadStyles.videoDuration}>
-                  {formatDuration(video.duration)}
-                </Text>
-                <Text style={cloudinaryVideoUploadStyles.videoSize}>
-                  {formatFileSize(video.bytes)}
-                </Text>
-              </View>
-              
-              <TouchableOpacity
-                style={cloudinaryVideoUploadStyles.removeButton}
-                onPress={() => removeVideo(index)}
-              >
-                <Ionicons name="close" size={16} color="white" />
-              </TouchableOpacity>
-            </View>
+            <VideoPreviewItem
+              key={video.public_id}
+              video={video}
+              onRemove={() => removeVideo(index)}
+              formatDuration={formatDuration}
+              formatFileSize={formatFileSize}
+            />
           ))}
         </ScrollView>
       )}

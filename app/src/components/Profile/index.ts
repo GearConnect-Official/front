@@ -7,4 +7,7 @@ export {
   LargeProfileAvatar,
   SquareProfileAvatar,
 } from './CloudinaryProfileAvatar';
-export { default as ProfileMenu } from './ProfileMenu'; 
+export { default as ProfileMenu } from './ProfileMenu';
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

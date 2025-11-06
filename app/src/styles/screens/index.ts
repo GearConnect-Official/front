@@ -43,4 +43,7 @@ export { default as conversationScreenStyles } from './messages/conversationScre
 export { default as newConversationScreenStyles } from './messages/newConversationScreenStyles';
 export { default as groupsScreenStyles } from './groups/groupsScreenStyles';
 export { default as groupDetailScreenStyles } from './groups/groupDetailScreenStyles';
-export { default as groupChannelScreenStyles } from './groups/groupChannelScreenStyles'; 
+export { default as groupChannelScreenStyles } from './groups/groupChannelScreenStyles';
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

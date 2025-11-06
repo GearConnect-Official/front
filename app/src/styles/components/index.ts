@@ -8,4 +8,7 @@ export { publicationFormStyles, MAX_DESCRIPTION_LENGTH, SUGGESTED_TAGS } from '.
 
 // Exports centralisés des styles de composants
 export * from './errorBoundaryStyles';
-export * from './feedbackMessageStyles'; 
+export * from './feedbackMessageStyles';
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

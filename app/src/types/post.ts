@@ -40,3 +40,6 @@ export interface Post {
     shares: number;
   };
 }
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute';

@@ -33,4 +33,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles;
+// Default export to prevent Expo Router warnings
+export { default } from '../../../NoRoute';

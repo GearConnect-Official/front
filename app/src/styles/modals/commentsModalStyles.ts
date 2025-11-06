@@ -138,4 +138,7 @@ export const commentsModalStyles = StyleSheet.create({
     color: '#CCCCCC',
     marginTop: 4,
   },
-}); 
+});
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

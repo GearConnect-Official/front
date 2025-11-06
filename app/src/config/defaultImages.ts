@@ -6,3 +6,6 @@ export const defaultImages = {
   event: AppImages.logoRounded,
   avatar: AppImages.formula1,
 };
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute';

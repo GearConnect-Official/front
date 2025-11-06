@@ -61,3 +61,6 @@ export interface GroupDetails {
   };
   createdAt: string;
 }
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute';

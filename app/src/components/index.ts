@@ -23,4 +23,7 @@ export { cloudinaryService } from '../services/cloudinary.service';
 export type { 
   CloudinaryUploadResponse, 
   CloudinaryUploadOptions 
-} from '../services/cloudinary.service'; 
+} from '../services/cloudinary.service';
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute'; 

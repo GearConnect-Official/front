@@ -103,7 +103,7 @@ const EditEventScreen: React.FC = () => {
       Alert.alert(
         "Success",
         "Event deleted successfully",
-        [{ text: "OK", onPress: () => router.replace("/(app)/events") }]
+        [{ text: "OK", onPress: () => router.back() }]
       );
     } catch (error: any) {
       console.error("Failed to delete event:", error);

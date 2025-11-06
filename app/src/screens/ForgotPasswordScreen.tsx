@@ -14,7 +14,9 @@ import {
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { useSignIn, useAuth } from "@clerk/clerk-expo";
-import styles from "../styles/auth/forgotPasswordStyles";
+import stylesImport from "../styles/auth/forgotPasswordStyles";
+
+const styles = stylesImport as any;
 import { useMessage } from '../context/MessageContext';
 import MessageService from '../services/messageService';
 import { QuickMessages } from '../utils/messageUtils';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Modal,
@@ -54,21 +54,29 @@ const StoryModal: React.FC<StoryModalProps> = ({
     }
   }, [currentStoryId, stories]);
 
-  useEffect(() => {
-    if (isVisible) {
-      startProgress();
-    } else {
-      resetProgress();
+  const resetProgress = useCallback(() => {
+    if (progressAnimation.current) {
+      progressAnimation.current.stop();
     }
-    
-    return () => {
-      if (progressAnimation.current) {
-        progressAnimation.current.stop();
-      }
-    };
-  }, [isVisible, activeStoryIndex, paused]);
+    progressAnim.setValue(0);
+  }, [progressAnim]);
 
-  const startProgress = () => {
+  const nextStory = useCallback(() => {
+    if (activeStoryIndex < stories.length - 1) {
+      setActiveStoryIndex(prev => prev + 1);
+      resetProgress();
+    } else {
+      // Dernier story complété
+      onClose();
+    }
+
+    // Marquer cette story comme vue
+    if (stories[activeStoryIndex]) {
+      onStoryComplete(stories[activeStoryIndex].id);
+    }
+  }, [activeStoryIndex, stories, onClose, onStoryComplete, resetProgress]);
+
+  const startProgress = useCallback(() => {
     progressAnim.setValue(0);
     progressAnimation.current = Animated.timing(progressAnim, {
       toValue: 1,
@@ -84,29 +92,21 @@ const StoryModal: React.FC<StoryModalProps> = ({
         }
       });
     }
-  };
+  }, [progressAnim, paused, nextStory]);
 
-  const resetProgress = () => {
-    if (progressAnimation.current) {
-      progressAnimation.current.stop();
-    }
-    progressAnim.setValue(0);
-  };
-
-  const nextStory = () => {
-    if (activeStoryIndex < stories.length - 1) {
-      setActiveStoryIndex(prev => prev + 1);
-      resetProgress();
+  useEffect(() => {
+    if (isVisible) {
+      startProgress();
     } else {
-      // Dernier story complété
-      onClose();
+      resetProgress();
     }
-
-    // Marquer cette story comme vue
-    if (stories[activeStoryIndex]) {
-      onStoryComplete(stories[activeStoryIndex].id);
-    }
-  };
+    
+    return () => {
+      if (progressAnimation.current) {
+        progressAnimation.current.stop();
+      }
+    };
+  }, [isVisible, activeStoryIndex, paused, startProgress, resetProgress]);
 
   const prevStory = () => {
     if (activeStoryIndex > 0) {

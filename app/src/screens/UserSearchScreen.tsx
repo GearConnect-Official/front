@@ -5,7 +5,6 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  Image,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
@@ -31,12 +30,13 @@ interface SearchUser {
 
 const UserSearchScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth() || {}; // Récupérer l'utilisateur connecté
+  const auth = useAuth();
+  const user = auth?.user; // Récupérer l'utilisateur connecté
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [pagination, setPagination] = useState({
     totalCount: 0,
     currentPage: 1,
@@ -231,7 +231,7 @@ const UserSearchScreen: React.FC = () => {
         <Ionicons name="person-outline" size={64} color="#9CA3AF" />
         <Text style={styles.emptyTitle}>No results</Text>
         <Text style={styles.emptyDescription}>
-          No users found for "{searchQuery}"
+          No users found for &quot;{searchQuery}&quot;
         </Text>
       </View>
     );

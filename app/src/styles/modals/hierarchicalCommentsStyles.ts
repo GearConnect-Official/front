@@ -124,4 +124,7 @@ export const hierarchicalCommentsStyles = StyleSheet.create({
   modalContainer: {
     maxHeight: screenHeight * 0.9,
   },
-}); 
+});
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

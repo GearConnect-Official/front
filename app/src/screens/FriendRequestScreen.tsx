@@ -6,7 +6,6 @@ import {
   ScrollView,
   SafeAreaView,
   Image,
-  Animated,
   RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -32,7 +31,6 @@ const FriendsScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("friends");
   const [isAddFriendModalVisible, setIsAddFriendModalVisible] = useState(false);
-  const scrollY = new Animated.Value(0);
 
   const handleRefresh = () => {
     setRefreshing(true);

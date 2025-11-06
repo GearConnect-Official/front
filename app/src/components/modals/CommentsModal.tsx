@@ -17,8 +17,6 @@ import postService, { Comment } from '../../services/postService';
 import { useAuth } from '../../context/AuthContext';
 import { commentsModalStyles } from '../../styles/modals/commentsModalStyles';
 import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
-import { QuickMessages } from '../../utils/messageUtils';
 
 interface CommentsModalProps {
   isVisible: boolean;
@@ -35,7 +33,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   onClose,
   onAddComment,
 }) => {
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -91,7 +90,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
 
     try {
       setIsLoading(true);
-      await postService.addComment(postId, parseInt(user.id), newComment.trim());
+      const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+      await postService.addComment(postId, userId, newComment.trim());
       setNewComment('');
       // Recharger les commentaires pour avoir l'ordre correct
       loadComments(1);

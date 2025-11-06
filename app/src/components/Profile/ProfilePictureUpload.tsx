@@ -4,16 +4,15 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { cloudinaryService, CloudinaryUploadResponse } from '../../services/cloudinary.service';
+import { cloudinaryService } from '../../services/cloudinary.service';
 import { CloudinaryAvatar } from '../media/CloudinaryImage';
 import { cloudinaryConfig } from '../../config';
 import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
+import { MessageService } from '../../services/messageService';
 
 
 interface ProfilePictureUploadProps {
@@ -84,12 +83,12 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images' as ImagePicker.MediaType],
         allowsEditing: true,
         aspect: [1, 1], // Force un ratio carré pour les photos de profil
         quality: 0.8,
         // Forcer l'éditeur à présenter un cadre circulaire quand possible
-        presentationStyle: 'automatic',
+        presentationStyle: ImagePicker.UIImagePickerPresentationStyle.AUTOMATIC,
       });
 
       if (!result.canceled && result.assets[0].uri) {

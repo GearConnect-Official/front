@@ -1,6 +1,6 @@
 import * as React from "react";
 import { View, Text, TextInput, FlatList } from "react-native";
-import { CloudinaryImage, CloudinaryImageUpload } from "../";
+import { CloudinaryImage, CloudinaryImageUpload } from "../media";
 import { CloudinaryUploadResponse } from "../../services/cloudinary.service";
 import ImageUpload from "./ImageUpload";
 import { createEventStyles as styles } from "../../styles/screens";
@@ -51,7 +51,7 @@ const MediaInfo: React.FC<MediaInfoProps> = ({
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Event Description</Text>
         <TextInput
-          style={[styles.input, styles.textArea]}
+          style={[styles.input, styles.textArea] as any}
           placeholder="Describe your event in detail..."
           value={description}
           onChangeText={(text) => onInputChange("description", text)}

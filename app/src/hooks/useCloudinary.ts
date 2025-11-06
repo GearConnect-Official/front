@@ -183,4 +183,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     uploadMultiple,
     clearError,
   };
-}; 
+};
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute'; 

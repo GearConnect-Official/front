@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
 import { ProfilePicture } from "../ui/ProfilePicture";
 import { StoryGroup } from "../../types/story";
 
@@ -59,3 +58,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute';

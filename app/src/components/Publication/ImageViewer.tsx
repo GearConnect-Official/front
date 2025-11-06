@@ -6,14 +6,14 @@ import {
     Dimensions,
     Alert,
     Text,
-    SafeAreaView,
     StatusBar,
     Animated,
     PanResponder,
     StyleSheet
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImageManipulator from "expo-image-manipulator";
-import { State, PinchGestureHandlerStateChangeEvent, PinchGestureHandler } from "react-native-gesture-handler";
+import { State, PinchGestureHandlerStateChangeEvent, PinchGestureHandler, GestureHandlerRootView } from "react-native-gesture-handler";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { publicationStyles as styles } from "../../styles/screens";
 
@@ -324,11 +324,13 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor={THEME_COLORS.background} />
-            
-            {isCropping ? renderCropTool() : renderImageViewer()}
-        </SafeAreaView>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="dark-content" backgroundColor={THEME_COLORS.background} />
+                
+                {isCropping ? renderCropTool() : renderImageViewer()}
+            </SafeAreaView>
+        </GestureHandlerRootView>
     );
 };
 

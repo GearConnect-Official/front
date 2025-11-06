@@ -274,14 +274,14 @@ const PreferencesScreen: React.FC = () => {
   const isMountedRef = useRef(true);
   
   // ISOLATED: Separate timeout refs for each switch to prevent conflicts
-  const notificationsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const autoSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const offlineModeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hapticFeedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const generalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const modalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const comingSoonTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const notificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const offlineModeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hapticFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const generalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const modalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const comingSoonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notificationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // State for preferences
   const [notifications, setNotifications] = useState(true);
@@ -556,11 +556,6 @@ const PreferencesScreen: React.FC = () => {
       </View>
     );
   }, [hapticFeedback, handleHapticFeedbackToggle]);
-
-  NotificationsSwitch.displayName = 'NotificationsSwitch';
-  AutoSyncSwitch.displayName = 'AutoSyncSwitch';
-  OfflineModeSwitch.displayName = 'OfflineModeSwitch';
-  HapticFeedbackSwitch.displayName = 'HapticFeedbackSwitch';
 
   // Memoized FontSizeSlider with proper cleanup
   const FontSizeSlider = React.memo(() => {

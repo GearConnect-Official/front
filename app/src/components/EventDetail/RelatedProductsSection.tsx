@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
@@ -17,7 +16,6 @@ import relatedProductService, {
 } from '../../services/relatedProductService';
 import { styles } from '../../styles/components/relatedProductsSectionStyles';
 import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
 import { QuickMessages } from '../../utils/messageUtils';
 
 // Define a type that can handle both the related product structure formats

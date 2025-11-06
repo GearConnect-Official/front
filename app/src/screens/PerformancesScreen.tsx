@@ -35,7 +35,8 @@ import {
 
 const PerformancesScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
 
   // State management
   const [performances, setPerformances] = useState<Performance[]>([]);
@@ -53,10 +54,10 @@ const PerformancesScreen: React.FC = () => {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
 
   // ISOLATED: Separate timeout refs for each performance switch
-  const performanceNotificationsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const autoSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const detailedAnalyticsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const personalRecordAlertsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const performanceNotificationsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const detailedAnalyticsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const personalRecordAlertsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
 
   // Cleanup function for performance switches
@@ -154,150 +155,45 @@ const PerformancesScreen: React.FC = () => {
   }, [showPerformanceNotification]);
 
   // ISOLATED: Individual switch components for performance settings
-  const PerformanceNotificationsSwitch = React.memo(() => {
-    const switchAnim = useRef(new Animated.Value(performanceNotifications ? 1 : 0)).current;
-    const switchMountedRef = useRef(true);
+  const renderPerformanceNotificationsSwitch = useCallback(() => (
+    <Switch
+      value={performanceNotifications}
+      onValueChange={handlePerformanceNotificationsToggle}
+      trackColor={{ false: '#E5E7EB', true: THEME_COLORS.SUCCESS }}
+      thumbColor={performanceNotifications ? '#FFFFFF' : '#9CA3AF'}
+      style={{ transform: [{ scale: 0.9 }] }}
+    />
+  ), [performanceNotifications, handlePerformanceNotificationsToggle]);
 
-    useEffect(() => {
-      const animation = Animated.timing(switchAnim, {
-        toValue: performanceNotifications ? 1 : 0,
-        duration: 300,
-        useNativeDriver: false,
-      });
-      animation.start();
-      return () => {
-        switchMountedRef.current = false;
-        animation.stop();
-      };
-    }, [performanceNotifications]);
+  const renderAutoSyncSwitch = useCallback(() => (
+    <Switch
+      value={autoSync}
+      onValueChange={handleAutoSyncToggle}
+      trackColor={{ false: '#E5E7EB', true: THEME_COLORS.INFO }}
+      thumbColor={autoSync ? '#FFFFFF' : '#9CA3AF'}
+      style={{ transform: [{ scale: 0.9 }] }}
+    />
+  ), [autoSync, handleAutoSyncToggle]);
 
-    useEffect(() => {
-      return () => {
-        switchMountedRef.current = false;
-        switchAnim.stopAnimation();
-      };
-    }, []);
+  const renderDetailedAnalyticsSwitch = useCallback(() => (
+    <Switch
+      value={detailedAnalytics}
+      onValueChange={handleDetailedAnalyticsToggle}
+      trackColor={{ false: '#E5E7EB', true: THEME_COLORS.WARNING }}
+      thumbColor={detailedAnalytics ? '#FFFFFF' : '#9CA3AF'}
+      style={{ transform: [{ scale: 0.9 }] }}
+    />
+  ), [detailedAnalytics, handleDetailedAnalyticsToggle]);
 
-    return (
-      <Switch
-        value={performanceNotifications}
-        onValueChange={handlePerformanceNotificationsToggle}
-        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.SUCCESS }}
-        thumbColor={performanceNotifications ? '#FFFFFF' : '#9CA3AF'}
-        style={{ transform: [{ scale: 0.9 }] }}
-      />
-    );
-  });
-
-  const AutoSyncSwitch = React.memo(() => {
-    const switchAnim = useRef(new Animated.Value(autoSync ? 1 : 0)).current;
-    const switchMountedRef = useRef(true);
-
-    useEffect(() => {
-      const animation = Animated.timing(switchAnim, {
-        toValue: autoSync ? 1 : 0,
-        duration: 300,
-        useNativeDriver: false,
-      });
-      animation.start();
-      return () => {
-        switchMountedRef.current = false;
-        animation.stop();
-      };
-    }, [autoSync]);
-
-    useEffect(() => {
-      return () => {
-        switchMountedRef.current = false;
-        switchAnim.stopAnimation();
-      };
-    }, []);
-
-    return (
-      <Switch
-        value={autoSync}
-        onValueChange={handleAutoSyncToggle}
-        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.INFO }}
-        thumbColor={autoSync ? '#FFFFFF' : '#9CA3AF'}
-        style={{ transform: [{ scale: 0.9 }] }}
-      />
-    );
-  });
-
-  const DetailedAnalyticsSwitch = React.memo(() => {
-    const switchAnim = useRef(new Animated.Value(detailedAnalytics ? 1 : 0)).current;
-    const switchMountedRef = useRef(true);
-
-    useEffect(() => {
-      const animation = Animated.timing(switchAnim, {
-        toValue: detailedAnalytics ? 1 : 0,
-        duration: 300,
-        useNativeDriver: false,
-      });
-      animation.start();
-      return () => {
-        switchMountedRef.current = false;
-        animation.stop();
-      };
-    }, [detailedAnalytics]);
-
-    useEffect(() => {
-      return () => {
-        switchMountedRef.current = false;
-        switchAnim.stopAnimation();
-      };
-    }, []);
-
-    return (
-      <Switch
-        value={detailedAnalytics}
-        onValueChange={handleDetailedAnalyticsToggle}
-        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.WARNING }}
-        thumbColor={detailedAnalytics ? '#FFFFFF' : '#9CA3AF'}
-        style={{ transform: [{ scale: 0.9 }] }}
-      />
-    );
-  });
-
-  const PersonalRecordAlertsSwitch = React.memo(() => {
-    const switchAnim = useRef(new Animated.Value(personalRecordAlerts ? 1 : 0)).current;
-    const switchMountedRef = useRef(true);
-
-    useEffect(() => {
-      const animation = Animated.timing(switchAnim, {
-        toValue: personalRecordAlerts ? 1 : 0,
-        duration: 300,
-        useNativeDriver: false,
-      });
-      animation.start();
-      return () => {
-        switchMountedRef.current = false;
-        animation.stop();
-      };
-    }, [personalRecordAlerts]);
-
-    useEffect(() => {
-      return () => {
-        switchMountedRef.current = false;
-        switchAnim.stopAnimation();
-      };
-    }, []);
-
-    return (
-      <Switch
-        value={personalRecordAlerts}
-        onValueChange={handlePersonalRecordAlertsToggle}
-        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.VICTORY_GOLD }}
-        thumbColor={personalRecordAlerts ? '#FFFFFF' : '#9CA3AF'}
-        style={{ transform: [{ scale: 0.9 }] }}
-      />
-    );
-  });
-
-  PerformanceNotificationsSwitch.displayName = 'PerformanceNotificationsSwitch';
-  AutoSyncSwitch.displayName = 'AutoSyncSwitch';
-  DetailedAnalyticsSwitch.displayName = 'DetailedAnalyticsSwitch';
-  PersonalRecordAlertsSwitch.displayName = 'PersonalRecordAlertsSwitch';
+  const renderPersonalRecordAlertsSwitch = useCallback(() => (
+    <Switch
+      value={personalRecordAlerts}
+      onValueChange={handlePersonalRecordAlertsToggle}
+      trackColor={{ false: '#E5E7EB', true: THEME_COLORS.VICTORY_GOLD }}
+      thumbColor={personalRecordAlerts ? '#FFFFFF' : '#9CA3AF'}
+      style={{ transform: [{ scale: 0.9 }] }}
+    />
+  ), [personalRecordAlerts, handlePersonalRecordAlertsToggle]);
 
   /**
    * Load performances and statistics
@@ -734,7 +630,7 @@ const PerformancesScreen: React.FC = () => {
               Get notified about race updates
             </Text>
           </View>
-          <PerformanceNotificationsSwitch />
+          {renderPerformanceNotificationsSwitch()}
         </View>
 
         {/* Auto Sync */}
@@ -754,7 +650,7 @@ const PerformancesScreen: React.FC = () => {
               Automatically sync race data
             </Text>
           </View>
-          <AutoSyncSwitch />
+          {renderAutoSyncSwitch()}
         </View>
 
         {/* Detailed Analytics */}
@@ -774,7 +670,7 @@ const PerformancesScreen: React.FC = () => {
               Show advanced performance metrics
             </Text>
           </View>
-          <DetailedAnalyticsSwitch />
+          {renderDetailedAnalyticsSwitch()}
         </View>
 
         {/* Personal Record Alerts */}
@@ -792,7 +688,7 @@ const PerformancesScreen: React.FC = () => {
               Get notified when you set new records
             </Text>
           </View>
-          <PersonalRecordAlertsSwitch />
+          {renderPersonalRecordAlertsSwitch()}
         </View>
       </Animated.View>
     );

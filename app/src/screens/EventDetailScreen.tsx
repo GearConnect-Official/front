@@ -5,12 +5,15 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { RouteProp, useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { EventInterface } from '../services/EventInterface';
-import { styles } from '../styles/screens/events/eventDetailStyles';
+import stylesImport from '../styles/screens/events/eventDetailStyles';
+
+const styles = stylesImport as any;
 import {
   API_URL_EVENTS,
   API_URL_EVENTTAGS,
@@ -19,18 +22,10 @@ import {
   API_URL_USERS,
 } from '../config';
 import { useAuth } from '../context/AuthContext';
-import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
 import relatedProductService from '../services/relatedProductService';
 import EventDetailReview from '../components/EventDetailReview';
-
-type RootStackParamList = {
-  EventDetail: { eventId: string };
-  // Add other routes as needed
-};
-
-type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
 interface MeteoInfo {
   condition: string;
@@ -44,7 +39,8 @@ const EventDetailScreen: React.FC = () => {
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
   const [userReview, setUserReview] = useState<
     EventInterface['reviews'][0] | null
   >(null);
@@ -529,7 +525,10 @@ const EventDetailScreen: React.FC = () => {
           </View>
            <RelatedProductsSection
           eventId={eventId}
-          products={event.relatedProducts || []}
+          products={(event.relatedProducts || []).map(p => ({
+            ...p,
+            price: typeof p.price === 'string' ? parseFloat(p.price) : p.price
+          }))}
           isCreator={isCreator}
           onRefresh={fetchData}
         />

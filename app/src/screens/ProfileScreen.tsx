@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -113,14 +113,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [likedPosts, setLikedPosts] = useState<Post[]>([]);
   const [isLoadingLikedPosts, setIsLoadingLikedPosts] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-  const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [followStats, setFollowStats] = useState<FollowStats>({
     followersCount: 0,
     followingCount: 0,
     isFollowing: false,
     isFollowedBy: false,
   });
-  const [isLoadingFollowStats, setIsLoadingFollowStats] = useState(false);
 
   // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
@@ -128,10 +126,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     propUserId || (user?.id ? Number(user.id) : undefined);
 
   // Function to fetch user data
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     if (!effectiveUserId) return;
 
-    setIsLoadingUserData(true);
     try {
       console.log('🔄 ProfileScreen: Fetching user data for user:', effectiveUserId);
       const response = await userService.getProfile(effectiveUserId);
@@ -147,16 +144,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       }
     } catch (error) {
       console.error("❌ ProfileScreen: Error fetching user data:", error);
-    } finally {
-      setIsLoadingUserData(false);
     }
-  };
+  }, [effectiveUserId]);
 
   // Function to fetch follow statistics
-  const fetchFollowStats = async () => {
+  const fetchFollowStats = useCallback(async () => {
     if (!effectiveUserId) return;
 
-    setIsLoadingFollowStats(true);
     try {
       const currentUserId = user?.id ? Number(user.id) : undefined;
       const response = await followService.getFollowStats(effectiveUserId, currentUserId);
@@ -173,10 +167,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       }
     } catch (error) {
       console.error("❌ ProfileScreen: Error fetching follow stats:", error);
-    } finally {
-      setIsLoadingFollowStats(false);
     }
-  };
+  }, [effectiveUserId, user]);
 
   // Rafraîchir les données utilisateur quand on revient sur l'écran
   useFocusEffect(
@@ -184,7 +176,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       console.log('👁️ ProfileScreen: Screen focused, refreshing user data...');
       fetchUserData();
       fetchFollowStats();
-    }, [effectiveUserId])
+    }, [fetchUserData, fetchFollowStats])
   );
 
   // Load all data when component mounts or user changes
@@ -354,7 +346,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     };
 
     loadAllData();
-  }, [effectiveUserId, params.refresh]);
+  }, [effectiveUserId, params.refresh, fetchUserData, fetchFollowStats]);
 
   const onRefreshProfile = async () => {
     setRefreshing(true);
@@ -452,13 +444,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const handleProfilePress = (username: string) => {
     console.log(`Navigate to profile of ${username}`);
-  };
-
-  const handleEventPress = (eventId: string) => {
-    router.push({
-      pathname: "/(app)/eventDetail",
-      params: { eventId },
-    });
   };
 
   const handleSettingsPress = () => {

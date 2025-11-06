@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from 'react';
-import { Dimensions } from 'react-native';
 
 interface ViewabilityConfig {
   minimumViewTime: number;
@@ -76,7 +75,7 @@ const useVisibilityTracker = (config?: Partial<ViewabilityConfig>) => {
         return prevState;
       });
     },
-    [finalConfig]
+    []
   );
 
   // Référence pour le callback (requis par FlatList)

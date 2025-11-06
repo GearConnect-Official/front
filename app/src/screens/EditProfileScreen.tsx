@@ -8,10 +8,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  SafeAreaView,
   Image,
   StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import userService from "../services/userService";
 import styles from "../styles/Profile/editProfileStyles";
@@ -109,8 +109,7 @@ const EditProfileScreen: React.FC = () => {
         if (updateUser) {
           updateUser({
             ...user,
-            profilePicture: cloudinaryUrl,
-            profilePicturePublicId: publicId,
+            photoURL: cloudinaryUrl,
           });
         }
 

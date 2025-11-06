@@ -1,5 +1,3 @@
-import { UserProfile } from '../services/userService';
-
 /**
  * Interface pour un utilisateur suiveur/suivi
  */

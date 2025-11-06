@@ -18,6 +18,9 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+
+// documentDirectory is available but not typed properly in expo-file-system
+const documentDirectory = (FileSystem as any).documentDirectory as string;
 import * as Clipboard from 'expo-clipboard';
 import { homeStyles as styles } from "../styles/screens";
 import theme from "../styles/config/theme";
@@ -638,7 +641,7 @@ const HomeScreen: React.FC = () => {
     // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
     try {
       // Créer un fichier temporaire avec le contenu
-      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
+      const tempFile = `${documentDirectory}temp_share.txt`;
       await FileSystem.writeAsStringAsync(tempFile, content);
       
       await Sharing.shareAsync(tempFile, {

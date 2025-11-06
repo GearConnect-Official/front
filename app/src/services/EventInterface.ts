@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Every commented properties are missing fields from the database
 export interface EventInterface {
   id: string;
@@ -10,7 +12,7 @@ export interface EventInterface {
   // category: string;
   description: string;
   // images: string[];
-  tags: Array<string | {id: string; name: string; createdAt?: string}>;
+  tags: (string | {id: string; name: string; createdAt?: string})[];
   location: string;
   meteo?:
     | {
@@ -45,7 +47,6 @@ export interface EventInterface {
 
 // Ceci est ajouté pour satisfaire les exigences d'Expo Router
 // qui s'attend à un export default d'un composant React pour chaque fichier
-import React from 'react';
 
 /**
  * Ce fichier ne contient que des interfaces TypeScript et n'est pas censé être une route.

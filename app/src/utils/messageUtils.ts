@@ -1,4 +1,4 @@
-import MessageService from '../services/messageService';
+import { MessageService } from '../services/messageService';
 import { MessageType } from '../types/messages';
 
 /**

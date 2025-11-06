@@ -1,9 +1,8 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-expo';
 // Import officiel Clerk pour accéder au token hors composants
-import { getClerkInstance } from '@clerk/clerk-expo';
+import { useAuth, getClerkInstance } from '@clerk/clerk-expo';
 
 // Types d'erreurs identifiables
 export enum ErrorType {

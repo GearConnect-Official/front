@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import theme from './config';
+import theme, { colors, spacing, typography, shadows } from './config';
 
 const styles = StyleSheet.create({
   // Layout and Container Styles
@@ -23,18 +23,18 @@ const styles = StyleSheet.create({
 
   // Header Styles
   topBar: {
-    backgroundColor: theme.colors.background.paper,
-    ...theme.shadows.apply({}, 'topBar'),
-    minHeight: theme.spacing.height.toolbar,
+    backgroundColor: colors.background.paper,
+    ...shadows.apply({}, 'topBar'),
+    minHeight: spacing.height.toolbar,
   },
   titleBar: {
     ...theme.common.spaceBetween,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   title: {
-    fontSize: theme.typography.h4.fontSize,
-    fontWeight: theme.typography.h4.fontWeight,
+    fontSize: typography.h4.fontSize,
+    fontWeight: typography.h4.fontWeight,
   },
   backButton: {
     width: 40,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 
   // Button Styles
   submitButton: {
-    backgroundColor: theme.colors.primary.main,
+    backgroundColor: colors.primary.main,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   disabledButton: {
-    backgroundColor: theme.colors.grey[300],
+    backgroundColor: colors.grey[300],
   },
   deleteButton: {
     padding: 8,
@@ -118,11 +118,11 @@ const styles = StyleSheet.create({
   // Status Styles
   loadingText: {
     fontSize: 16,
-    color: theme.colors.grey[500],
+    color: colors.grey[500],
     marginTop: 10,
   },
   errorText: {
-    color: theme.colors.status.error,
+    color: colors.status.error,
     fontSize: 14,
     marginTop: 10,
     textAlign: 'center',

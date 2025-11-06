@@ -45,8 +45,8 @@ const authStyles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   input: {
-    ...theme.common.input,
-    ...theme.typography.body1,
+    ...(theme.common.input as any),
+    ...(theme.typography.body1 as any),
     color: theme.colors.text.primary,
   },
   inputError: {
@@ -178,6 +178,6 @@ const authStyles = StyleSheet.create({
     marginBottom: 20,
     width: "100%",
   },
-});
+}) as any;
 
 export default authStyles;

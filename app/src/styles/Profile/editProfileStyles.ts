@@ -1,10 +1,10 @@
 import { StyleSheet } from "react-native";
-import theme from "../config";
+import { colors, spacing, borders } from "../config";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.paper,
+    backgroundColor: colors.background.paper,
     paddingTop: 50,
   },
   scrollView: {
@@ -14,58 +14,58 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: theme.colors.background.paper,
+    backgroundColor: colors.background.paper,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.grey[100],
-    backgroundColor: theme.colors.background.paper,
+    borderBottomColor: colors.grey[100],
+    backgroundColor: colors.background.paper,
   },
   backButton: {
-    padding: theme.spacing.sm,
+    padding: spacing.sm,
   },
   backButtonText: {
-    color: theme.colors.primary.main,
+    color: colors.primary.main,
     fontSize: 16,
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
   },
   saveButton: {
-    padding: theme.spacing.sm,
+    padding: spacing.sm,
   },
   saveButtonText: {
-    color: theme.colors.primary.main,
+    color: colors.primary.main,
     fontSize: 16,
     fontWeight: "bold",
   },
   errorContainer: {
-    padding: theme.spacing.md,
+    padding: spacing.md,
     backgroundColor: "#FFEBEE",
-    marginHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.md,
-    borderRadius: theme.borders.radius.sm,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: borders.radius.sm,
   },
   errorText: {
     color: "#D32F2F",
     fontSize: 14,
   },
   form: {
-    padding: theme.spacing.lg,
+    padding: spacing.lg,
     alignItems: "center",
   },
   profilePictureContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: theme.spacing.xl,
+    marginBottom: spacing.xl,
     position: "relative",
   },
   profilePicture: {
@@ -77,24 +77,24 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 60,
-    backgroundColor: theme.colors.grey[100],
+    backgroundColor: colors.grey[100],
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: theme.colors.grey[200],
+    borderColor: colors.grey[200],
   },
   editIconContainer: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: theme.colors.primary.main,
+    backgroundColor: colors.primary.main,
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
-    borderColor: theme.colors.background.paper,
+    borderColor: colors.background.paper,
   },
   inputContainer: {
     width: "100%",
@@ -107,22 +107,22 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xs,
+    color: colors.text.secondary,
+    marginBottom: spacing.xs,
   },
   input: {
     borderWidth: 1,
-    borderColor: theme.colors.grey[200],
-    borderRadius: theme.borders.radius.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    borderColor: colors.grey[200],
+    borderRadius: borders.radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     fontSize: 16,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
   },
   bioInput: {
     height: 120,
     textAlignVertical: "top",
-    paddingTop: theme.spacing.sm,
+    paddingTop: spacing.sm,
   },
 });
 

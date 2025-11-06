@@ -542,4 +542,6 @@ export default StyleSheet.create({
     marginLeft: 12,
     flex: 1,
   },
-}); 
+});
+
+export { colors }; 

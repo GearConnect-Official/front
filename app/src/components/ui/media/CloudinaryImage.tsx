@@ -1,6 +1,6 @@
 import React from "react";
 import { Image, ImageStyle, View } from "react-native";
-import { Video, ResizeMode } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
 
 interface CloudinaryImageProps {
   publicId: string;
@@ -21,14 +21,32 @@ export const CloudinaryAvatar: React.FC<CloudinaryImageProps> = ({
   const videoUrl = `https://res.cloudinary.com/${process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}`;
 
   if (isVideo) {
+    const player = useVideoPlayer(videoUrl, (player) => {
+      player.loop = true;
+      if (!paused) {
+        player.play();
+      } else {
+        player.pause();
+      }
+    });
+
+    React.useEffect(() => {
+      if (paused) {
+        player.pause();
+      } else {
+        player.play();
+      }
+    }, [paused, player]);
+
     return (
       <View style={[{ width: size, height: size }, style]}>
-        <Video
-          source={{ uri: videoUrl }}
+        <VideoView
+          player={player}
           style={{ width: "100%", height: "100%" }}
-          resizeMode={ResizeMode.COVER}
-          isLooping
-          shouldPlay={!paused}
+          contentFit="cover"
+          nativeControls={false}
+          allowsFullscreen={false}
+          allowsPictureInPicture={false}
         />
       </View>
     );

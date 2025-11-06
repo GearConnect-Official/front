@@ -9,9 +9,9 @@ interface CloudinaryMediaProps {
   mediaType?: 'image' | 'video' | 'auto';
   width?: number;
   height?: number;
-  quality?: string;
-  format?: string;
-  crop?: string;
+  quality?: 'auto' | number;
+  format?: 'auto' | 'mp4' | 'webm' | 'mov' | 'webp' | 'jpg' | 'png';
+  crop?: 'fill' | 'fit' | 'limit' | 'scale' | 'crop';
   style?: ViewStyle;
   fallbackUrl?: string;
   // Props spécifiques aux vidéos
@@ -118,7 +118,7 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
         width={width}
         height={height}
         quality={quality}
-        format={format || 'mp4'}
+        format={(format || 'mp4') as 'auto' | 'mp4' | 'webm' | 'mov'}
         crop={crop}
         style={style}
         fallbackUrl={fallbackUrl}
@@ -143,9 +143,9 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
       width={width}
       height={height}
       quality={quality}
-      format={format || 'auto'}
+      format={(format || 'auto') as 'auto' | 'webp' | 'jpg' | 'png'}
       crop={crop}
-      style={style}
+      style={style as any}
       fallbackUrl={fallbackUrl}
     />
   );

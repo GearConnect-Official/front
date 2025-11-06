@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Image } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { CloudinaryAvatar } from '../media/CloudinaryImage';
-import { defaultImages } from '../../config/defaultImages';
 
 export interface CloudinaryProfileAvatarProps {
   publicId?: string;

@@ -2,41 +2,23 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import {
-  RouteProp,
-  useNavigation,
-  useRoute,
-  NavigationProp,
-} from '@react-navigation/native';
+import { router, useLocalSearchParams } from 'expo-router';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from '../styles/reviewStyles';
 import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-
-type RootStackParamList = {
-  CreateReview: {
-    eventId: number;
-  };
-};
-
-type CreateReviewScreenRouteProp = RouteProp<
-  RootStackParamList,
-  'CreateReview'
->;
 
 const CreateReviewScreen: React.FC = () => {
-  const { user } = useAuth();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<CreateReviewScreenRouteProp>();
-  const { eventId } = route.params;
+  const auth = useAuth();
+  const user = auth?.user;
+  const params = useLocalSearchParams<{ eventId: string }>();
+  const eventId = params.eventId ? parseInt(params.eventId) : 0;
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -76,7 +58,7 @@ const CreateReviewScreen: React.FC = () => {
         };
         const createdReview = await eventService.createEventReview(reviewData);
         console.log('Review created successfully:', createdReview);
-        navigation.goBack();
+        router.back();
       } catch (error: any) {
         console.error('Error submitting review:', error);
         setError('Error submitting review. Please try again.');

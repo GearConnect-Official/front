@@ -8,49 +8,28 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import {
-  RouteProp,
-  useNavigation,
-  useRoute,
-  NavigationProp,
-} from '@react-navigation/native';
+import { router, useLocalSearchParams } from 'expo-router';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from '../styles/reviewStyles';
-import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
-import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type RootStackParamList = {
-  ModifyReview: {
-    eventId: number;
-    userId: number;
-  };
-};
-
-type ModifyReviewScreenRouteProp = RouteProp<
-  RootStackParamList,
-  'ModifyReview'
->;
-
 const ModifyReviewScreen: React.FC = () => {
-  const { user } = useAuth();
-  const route = useRoute<ModifyReviewScreenRouteProp>();
-  const { eventId, userId } = route.params;
+  const params = useLocalSearchParams<{ eventId: string; userId: string }>();
+  const eventId = params.eventId ? parseInt(params.eventId) : 0;
+  const userId = params.userId ? parseInt(params.userId) : 0;
 
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [reviewData, setReviewData] = useState<any>(null);
   const maxReviewLength = 190;
 
   useEffect(() => {
     const fetchReviewData = async () => {
       try {
         const review = await eventService.getEventReviewById(eventId, userId);
-        setReviewData(review);
         setReviewText(review.description);
         setRating(review.note);
         setLoading(false);

@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React from 'react';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { useAuth } from '../../context/AuthContext';
 import styles from '../../styles/Profile/userProfileStyles';
 import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
+import { MessageService } from '../../services/messageService';
 
 interface UserProfileProps {
   navigateToHome?: () => void;
@@ -17,8 +16,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onLogout,
   user,
 }) => {
-  const { logout } = useAuth();
-  const { showConfirmation, showError } = useMessage();
+  const { showConfirmation } = useMessage();
 
   const handleLogout = () => {
     showConfirmation({
@@ -29,10 +27,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
         }
       }
     });
-  };
-
-  const handleError = (error: string) => {
-    showError(error);
   };
 
   return (

@@ -88,7 +88,8 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
 
 const SettingsScreen: React.FC = () => {
   const router = useRouter();
-  const { logout } = useAuth();
+  const auth = useAuth();
+  const logout = auth?.logout;
   const { showMessage, showConfirmation } = useMessage();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingUser, setIsFetchingUser] = useState(true);
@@ -140,6 +141,10 @@ const SettingsScreen: React.FC = () => {
     showConfirmation({
       ...MessageService.CONFIRMATIONS.LOGOUT,
       onConfirm: async () => {
+        if (!logout) {
+          showMessage(MessageService.ERROR.LOGOUT_FAILED);
+          return;
+        }
         setIsLoading(true);
         try {
           await logout();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, Alert, View } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import followService from '../services/followService';
 import { FollowStats } from '../types/follow.types';

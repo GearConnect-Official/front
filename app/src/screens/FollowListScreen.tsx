@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  Image,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
@@ -44,15 +43,7 @@ const FollowListScreen: React.FC = () => {
 
   const targetUserId = parseInt(userId as string);
 
-  useEffect(() => {
-    loadData();
-  }, [targetUserId]);
-
-  useEffect(() => {
-    filterUsers();
-  }, [searchQuery, followers, following]);
-
-  const loadData = async (refresh = false) => {
+  const loadData = useCallback(async (refresh = false) => {
     if (refresh) {
       setIsRefreshing(true);
     } else {
@@ -120,9 +111,9 @@ const FollowListScreen: React.FC = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [targetUserId, user]);
 
-  const filterUsers = () => {
+  const filterUsers = useCallback(() => {
     const query = searchQuery.toLowerCase().trim();
     
     if (!query) {
@@ -137,11 +128,20 @@ const FollowListScreen: React.FC = () => {
 
     setFilteredFollowers(followers.filter(filterFn));
     setFilteredFollowing(following.filter(filterFn));
-  };
+  }, [searchQuery, followers, following]);
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetUserId]);
+
+  useEffect(() => {
+    filterUsers();
+  }, [searchQuery, followers, following, filterUsers]);
 
   const onRefresh = useCallback(() => {
     loadData(true);
-  }, [targetUserId]);
+  }, [loadData]);
 
   const navigateToProfile = (user: FollowUser) => {
     router.push({

@@ -106,7 +106,7 @@ const convertApiPostToUiPost = (
     avatar:
       apiPost.user?.imageUrl ||
       `https://randomuser.me/api/portraits/men/${apiPost.userId % 50}.jpg`,
-    images,
+    images: images as string[],
     imagePublicIds,
     mediaTypes,
     title,
@@ -123,7 +123,8 @@ const convertApiPostToUiPost = (
 
 const FavoritesScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
   const [favorites, setFavorites] = useState<UIPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -206,7 +207,8 @@ const FavoritesScreen: React.FC = () => {
     if (!user?.id) return;
 
     try {
-      await favoritesService.removeFavorite(postId, parseInt(user.id));
+      const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+      await favoritesService.toggleFavorite(postId, userId);
       
       // Update UI optimistically
       setFavorites(prevFavorites => 

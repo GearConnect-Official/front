@@ -33,7 +33,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Website</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input] as any}
           placeholder="www.example.com"
           value={website}
           onChangeText={(text) => onInputChange('website', text)}
@@ -45,7 +45,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Sponsors</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input] as any}
           placeholder="Sponsor names separated by commas"
           value={sponsors}
           onChangeText={(text) => onInputChange('sponsors', text)}

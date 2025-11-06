@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Alert, SafeAreaView, StatusBar } from "react-native";
+import { View, Alert, StatusBar } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import styles from "../styles/screens/social/publicationStyles";
 import postService from "../services/postService";
@@ -9,7 +10,6 @@ import FeedbackMessage, {
 import { useAuth } from "../context/AuthContext";
 import { CloudinaryUploadResponse } from "../services/cloudinary.service";
 import { useMessage } from "../context/MessageContext";
-import MessageService from "../services/messageService";
 import { QuickMessages } from "../utils/messageUtils";
 
 import Header from "../components/Publication/Header";
@@ -55,7 +55,7 @@ const PublicationScreen: React.FC = () => {
   const [userAvatar, setUserAvatar] = useState(
     "https://via.placeholder.com/32"
   );
-  const { showMessage, showError, showConfirmation } = useMessage();
+  const { showMessage, showError } = useMessage();
 
   // Mettre à jour les informations utilisateur lorsqu'ils sont disponibles
   useEffect(() => {
@@ -248,6 +248,8 @@ const PublicationScreen: React.FC = () => {
         return imageToShow ? (
           <PublicationForm
             imageUri={imageToShow}
+            username={username}
+            userAvatar={userAvatar}
             title={title}
             description={description}
             tags={tags}

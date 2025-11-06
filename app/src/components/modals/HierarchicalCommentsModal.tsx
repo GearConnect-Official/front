@@ -37,7 +37,8 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   postId,
   onClose,
 }) => {
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
   const [comments, setComments] = useState<HierarchicalComment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -95,10 +96,11 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
 
     try {
       setIsSubmitting(true);
+      const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
 
       const commentData = {
         postId,
-        userId: parseInt(user.id),
+        userId,
         content: newComment.trim(),
         parentId: replyToComment?.commentId,
       };
@@ -171,23 +173,21 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   const handleLike = async (commentId: number) => {
     if (!user?.id) return;
 
+    const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+
     try {
-      await commentService.toggleCommentLike(commentId, parseInt(user.id));
+      await commentService.toggleCommentLike(commentId, userId);
 
       // Mettre à jour l'état local
       setComments((prev) =>
-        updateCommentLike(prev, commentId, parseInt(user.id))
+        updateCommentLike(prev, commentId, userId)
       );
     } catch (error) {
       console.error("Error toggling comment like:", error);
       showError("Unable to like comment");
-      // Revert optimistic update
-      setComments(prevComments => 
-        prevComments.map(comment => 
-          comment.id === commentId 
-            ? { ...comment, liked: !comment.liked, likes: comment.liked ? comment.likes + 1 : comment.likes - 1 }
-            : comment
-        )
+      // Revert optimistic update by toggling again
+      setComments((prev) =>
+        updateCommentLike(prev, commentId, userId)
       );
     }
   };
@@ -226,11 +226,13 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   const handleEdit = async (commentId: number, content: string) => {
     if (!user?.id) return;
 
+    const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+
     try {
       const updatedComment = await commentService.updateComment(
         commentId,
         content,
-        parseInt(user.id)
+        userId
       );
 
       setComments((prev) =>
@@ -245,6 +247,8 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
   const handleDelete = async (commentId: number) => {
     if (!user?.id) return;
 
+    const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+
     showConfirmation({
       title: "Delete Comment",
       message: "Are you sure you want to delete this comment?",
@@ -254,7 +258,7 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
       type: 'danger',
       onConfirm: async () => {
         try {
-          await commentService.deleteComment(commentId, parseInt(user.id));
+          await commentService.deleteComment(commentId, userId);
           setComments((prev) => removeComment(prev, commentId));
         } catch (error) {
           console.error("Error deleting comment:", error);
@@ -344,17 +348,23 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
     Keyboard.dismiss();
   };
 
-  const renderComment = ({ item }: { item: HierarchicalComment }) => (
-    <HierarchicalCommentComponent
-      comment={item}
-      currentUserId={parseInt(user?.id || "0")}
-      onReply={handleReply}
-      onLike={handleLike}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      onLoadMoreReplies={handleLoadMoreReplies}
-    />
-  );
+  const renderComment = ({ item }: { item: HierarchicalComment }) => {
+    const currentUserId = user?.id 
+      ? (typeof user.id === 'string' ? parseInt(user.id) : user.id)
+      : 0;
+    
+    return (
+      <HierarchicalCommentComponent
+        comment={item}
+        currentUserId={currentUserId}
+        onReply={handleReply}
+        onLike={handleLike}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onLoadMoreReplies={handleLoadMoreReplies}
+      />
+    );
+  };
 
   return (
     <Modal

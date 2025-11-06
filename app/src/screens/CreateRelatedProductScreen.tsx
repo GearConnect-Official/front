@@ -1,23 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import { API_URL_RELATEDPRODUCTS } from '../config';
-import theme from '../styles/config/theme';
+import themeImport from '../styles/config/theme';
 
-type RootStackParamList = {
-  CreateRelatedProduct: { eventId: string };
-  EventDetails: { eventId: string };
-};
-
-type CreateRelatedProductScreenRouteProps = RouteProp<RootStackParamList, 'CreateRelatedProduct'>;
+const theme = themeImport as any;
 
 const CreateRelatedProductScreen: React.FC = () => {
-  const route = useRoute<CreateRelatedProductScreenRouteProps>();
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const router = useRouter();
+  const params = useLocalSearchParams<{ eventId: string }>();
   
-  const { eventId } = route.params;
+  const eventId = params.eventId || '';
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -37,7 +31,7 @@ const CreateRelatedProductScreen: React.FC = () => {
     setError('');
     
     try {
-      const response = await axios.post(`${API_URL_RELATEDPRODUCTS}/products`, {
+      await axios.post(`${API_URL_RELATEDPRODUCTS}/products`, {
         name,
         description,
         price: parseFloat(price),
@@ -52,7 +46,7 @@ const CreateRelatedProductScreen: React.FC = () => {
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('EventDetails', { eventId })
+            onPress: () => router.back()
           }
         ]
       );

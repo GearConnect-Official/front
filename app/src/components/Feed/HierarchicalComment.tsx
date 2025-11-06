@@ -63,7 +63,7 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'Modifier',
-          onPress: (text) => {
+          onPress: (text?: string) => {
             if (text && text.trim()) {
               onEdit(comment.id, text.trim());
             }

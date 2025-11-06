@@ -23,7 +23,7 @@ const InputField: React.FC<InputFieldProps> = ({
     <View style={styles.inputContainer}>
       <Text style={styles.inputTitle}>{title}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input] as any}
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}

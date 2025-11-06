@@ -3,7 +3,9 @@ import { useAuth } from './src/context/AuthContext';
 import LoadingScreen from './src/screens/LoadingScreen';
 
 export default function Index() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const auth = useAuth();
+  const isAuthenticated = auth?.isAuthenticated ?? false;
+  const isLoading = auth?.isLoading ?? true;
 
   if (isLoading) {
     return <LoadingScreen />;

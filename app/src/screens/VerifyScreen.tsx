@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import styles from '../styles/auth/verifyStyles';
 
 const VerifyScreen: React.FC = () => {
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
   const router = useRouter();
   
   useEffect(() => {
@@ -15,7 +16,7 @@ const VerifyScreen: React.FC = () => {
     }, 2000);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
   
   return (
     <View style={styles.container}>

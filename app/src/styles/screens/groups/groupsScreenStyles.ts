@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     ...theme.common.input,
-    ...theme.typography.body1,
+    ...(theme.typography.body1 as any),
     color: theme.colors.text.primary,
   },
   textArea: {

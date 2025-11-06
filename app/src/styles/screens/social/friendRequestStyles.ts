@@ -1,5 +1,4 @@
 import { StyleSheet } from "react-native";
-import theme from "./config";
 
 // Racing color palette inspired by automotive and racing world
 const THEME_COLORS = {

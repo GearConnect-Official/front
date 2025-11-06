@@ -4,4 +4,7 @@
 
 export const feedbackMessageStyles = {
   // Styles deprecated - see FeedbackMessage.tsx for new inline styles
-}; 
+};
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

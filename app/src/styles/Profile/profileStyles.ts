@@ -1,5 +1,4 @@
 import { StyleSheet, Dimensions } from "react-native";
-import theme from "../config";
 
 const { width } = Dimensions.get("window");
 const NUM_COLUMNS = 3;

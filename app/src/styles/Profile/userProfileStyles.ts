@@ -1,53 +1,53 @@
 import { StyleSheet } from "react-native";
-import theme from "../config";
+import theme, { colors, spacing, borders, typography } from "../config";
 
 const styles = StyleSheet.create({
   container: {
     ...theme.common.container,
-    backgroundColor: theme.colors.background.paper,
+    backgroundColor: colors.background.paper,
   },
   header: {
     alignItems: "center",
-    paddingVertical: theme.spacing.xl + 6,
+    paddingVertical: spacing.xl + 6,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.grey[100],
+    borderBottomColor: colors.grey[100],
   },
   profileImage: {
     width: 100,
     height: 100,
-    borderRadius: theme.borders.radius.round,
-    marginBottom: theme.spacing.sm + 3,
+    borderRadius: borders.radius.round,
+    marginBottom: spacing.sm + 3,
   },
   username: {
-    ...theme.typography.h2,
-    marginBottom: theme.spacing.xxs + 1,
-    color: theme.colors.text.primary,
+    ...typography.h2,
+    marginBottom: spacing.xxs + 1,
+    color: colors.text.primary,
   },
   email: {
-    ...theme.typography.body1,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xs + 2,
+    ...typography.body1,
+    color: colors.text.secondary,
+    marginBottom: spacing.xs + 2,
   },
   infoContainer: {
-    padding: theme.spacing.lg,
+    padding: spacing.lg,
   },
   infoItem: {
     ...theme.common.row,
-    paddingVertical: theme.spacing.sm + 3,
+    paddingVertical: spacing.sm + 3,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.grey[100],
+    borderBottomColor: colors.grey[100],
   },
   infoText: {
-    ...theme.typography.body1,
-    marginLeft: theme.spacing.sm + 3,
-    color: theme.colors.text.primary,
+    ...typography.body1,
+    marginLeft: spacing.sm + 3,
+    color: colors.text.primary,
   },
   logoutItem: {
-    marginTop: theme.spacing.lg,
+    marginTop: spacing.lg,
     borderBottomWidth: 0,
   },
   logoutText: {
-    color: theme.colors.status.error,
+    color: colors.status.error,
   },
 });
 

@@ -29,4 +29,7 @@ export interface ConfirmationConfig {
   type?: 'success' | 'warning' | 'danger' | 'info';
   onConfirm: () => void;
   onCancel?: () => void;
-} 
+}
+
+// Default export to prevent Expo Router warnings
+export { default } from '../NoRoute'; 

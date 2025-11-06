@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import theme from '../../config/theme';
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   centeredContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -32,3 +32,8 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+export default styles;
+
+// Default export to prevent Expo Router warnings as secondary export
+export { default as NoRoute } from '../../../NoRoute';

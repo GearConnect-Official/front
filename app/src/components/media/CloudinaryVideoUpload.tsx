@@ -224,4 +224,7 @@ export const CloudinaryVideoUpload: React.FC<CloudinaryVideoUploadProps> = ({
       )}
     </View>
   );
-}; 
+};
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute'; 

@@ -179,3 +179,6 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../NoRoute';

@@ -159,4 +159,7 @@ export const jobsScreenStyles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     marginTop: theme.spacing.sm,
   },
-}); 
+});
+
+// Default export to prevent Expo Router warnings
+export { default } from '../../../NoRoute'; 

@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
@@ -14,13 +13,18 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
-import styles from "../styles/auth/registerStyles";
-import componentStyles from "../styles/auth/registerComponentStyles";
+import stylesImport from "../styles/auth/registerStyles";
+import componentStylesImport from "../styles/auth/registerComponentStyles";
 import { useAuth } from "../context/AuthContext"; // Import useAuth hook
+
+const styles = stylesImport as any;
+const componentStyles = componentStylesImport as any;
 
 const RegisterScreen: React.FC = () => {
   const router = useRouter();
-  const { register, isLoading } = useAuth(); // Use auth context
+  const auth = useAuth();
+  const register = auth?.register;
+  const isLoading = auth?.isLoading || false;
 
   // Input states
   const [username, setUsername] = useState("");
@@ -77,6 +81,11 @@ const RegisterScreen: React.FC = () => {
   // Handle registration
   const handleRegister = async () => {
     if (!validateForm()) {
+      return;
+    }
+
+    if (!register) {
+      setErrors({ general: "Authentication service not available" });
       return;
     }
 

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
-  Alert,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
@@ -16,12 +15,16 @@ import {
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
-import authStyles from "../styles/auth/authStyles";
+import authStylesImport from "../styles/auth/authStyles";
 import { AppImages } from "../assets/images";
+
+const authStyles = authStylesImport as any;
 
 const AuthScreen: React.FC = () => {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
+  const auth = useAuth();
+  const login = auth?.login;
+  const isLoading = auth?.isLoading || false;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -55,6 +58,11 @@ const AuthScreen: React.FC = () => {
     setIsDeletedAccount(false);
 
     if (!validateForm()) {
+      return;
+    }
+
+    if (!login) {
+      setErrors({ general: "Authentication service not available" });
       return;
     }
 

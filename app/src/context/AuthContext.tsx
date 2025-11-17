@@ -1,23 +1,18 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { useSignIn, useSignUp, useUser, useClerk } from "@clerk/clerk-expo";
+import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
+import { useSignIn, useUser, useClerk } from "@clerk/clerk-expo";
 import {
   signUp as authSignUp,
   signIn as authSignIn,
   getUserInfo,
 } from "../services/AuthService";
-import { API_URL_AUTH } from "../config";
-import { useRouter } from "expo-router";
-import { Platform } from "react-native";
-import { useAuth as useClerkAuth } from "@clerk/clerk-expo";
-import type { UserResource } from "@clerk/types";
-import axios from "axios";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define types for our context
 interface User {
   id: string | number;
   username: string | null;
   name: string | null;
-  email?: string;
+  email: string;
   photoURL?: string;
   description?: string;
 }
@@ -38,7 +33,7 @@ interface AuthContextType {
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   getCurrentUser: () => Promise<User | null>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -49,6 +44,11 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // Export the hook for using the context
 export const useAuth = () => useContext(AuthContext);
 
+// Constants for storage keys
+const USER_STORAGE_KEY = '@user';
+const AUTH_TOKEN_KEY = '@auth_token';
+const SYNC_INTERVAL = 1000 * 60 * 60; // 1 heure en millisecondes
+
 // The provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -57,81 +57,222 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const { signIn } = useSignIn();
-  const { signUp: clerkSignUp } = useSignUp();
   const { signOut } = useClerk();
   const clerk = useClerk();
   const { user: clerkUser, isLoaded: clerkIsLoaded } = useUser();
-  const router = useRouter();
+
+  // Fonction pour sauvegarder l'utilisateur dans le stockage local
+  const saveUserToStorage = async (userData: User) => {
+    try {
+      const dataToSave = {
+        user: userData,
+        timestamp: Date.now()
+      };
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(dataToSave));
+      console.log('✅ Utilisateur sauvegardé dans le stockage local');
+    } catch (error) {
+      console.error('❌ Erreur lors de la sauvegarde de l\'utilisateur:', error);
+    }
+  };
+
+  // Fonction pour récupérer l'utilisateur du stockage local
+  const getUserFromStorage = async (): Promise<{ user: User | null, needsSync: boolean }> => {
+    try {
+      const userStr = await AsyncStorage.getItem(USER_STORAGE_KEY);
+      if (userStr) {
+        const { user, timestamp } = JSON.parse(userStr);
+        const needsSync = Date.now() - timestamp > SYNC_INTERVAL;
+        console.log('✅ Utilisateur récupéré du stockage local', needsSync ? '(sync nécessaire)' : '(sync non nécessaire)');
+        return { user, needsSync };
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de l\'utilisateur:', error);
+    }
+    return { user: null, needsSync: true };
+  };
+
+  // Fonction pour effacer les données de l'utilisateur du stockage local
+  const clearUserFromStorage = async () => {
+    try {
+      await AsyncStorage.multiRemove([USER_STORAGE_KEY, AUTH_TOKEN_KEY]);
+      console.log('✅ Données utilisateur effacées du stockage local');
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'effacement des données:', error);
+    }
+  };
+
+  // Get current user details from backend
+  const getCurrentUser = useCallback(async (): Promise<User | null> => {
+    try {
+      if (!clerkUser) return null;
+
+      // Get the user's token from the active session
+      let token;
+      try {
+        token = await clerk.session?.getToken();
+      } catch (tokenError) {
+        console.error("Error getting token:", tokenError);
+        return null;
+      }
+
+      if (!token) {
+        console.warn("No token available");
+        return null;
+      }
+
+      try {
+        // Get user details from backend
+        const response = await getUserInfo(token);
+
+        // Vérifier si la réponse indique un succès
+        if (response.success === false) {
+          console.warn("Erreur récupération utilisateur:", response.error);
+
+          // Utiliser les données Clerk comme fallback
+          if (clerkUser) {
+            return {
+              id: clerkUser.id,
+              username: clerkUser.username || null,
+              name: clerkUser.firstName || null,
+              email: clerkUser.primaryEmailAddress?.emailAddress || "",
+              photoURL: clerkUser.imageUrl || "",
+            };
+          }
+          return null;
+        }
+
+        // Si c'est un succès ou si response.user existe
+        if (response.user || response) {
+          const userData = response.user || response;
+          return {
+            id: userData.id || clerkUser.id,
+            username: userData.username || clerkUser.username || null,
+            name: userData.name || clerkUser.firstName || null,
+            email: userData.email || clerkUser.primaryEmailAddress?.emailAddress || "",
+            photoURL: userData.imageUrl || userData.photoURL || clerkUser.imageUrl || "",
+          };
+        }
+      } catch (apiError) {
+        console.error("API Error getting user:", apiError);
+        // Fall back to Clerk user data
+        if (clerkUser) {
+          return {
+            id: clerkUser.id,
+            username: clerkUser.username || null,
+            name: clerkUser.firstName || null,
+            email: clerkUser.primaryEmailAddress?.emailAddress || "",
+            photoURL: clerkUser.imageUrl || "",
+          };
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Get Current User Error:", error);
+      return null;
+    }
+  }, [clerkUser, clerk.session]);
 
   // Check user session on mount
   useEffect(() => {
+    let mounted = true;
+
     const initializeAuth = async () => {
+      if (!mounted) return;
+
       try {
-        if (clerkIsLoaded) {
+        setIsLoading(true);
+        
+        // First, try to get user from local storage
+        const { user: storedUser, needsSync } = await getUserFromStorage();
+        
+        if (storedUser && mounted) {
+          setUser(storedUser);
+          setIsAuthenticated(true);
+          console.log('✅ Session restaurée depuis le stockage local');
+          
+          // Si pas besoin de sync et pas de user Clerk, on peut s'arrêter là
+          if (!needsSync && !clerkUser) {
+            console.log('ℹ️ Pas de synchronisation nécessaire');
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        // Only sync with Clerk if needed
+        if (mounted && clerkIsLoaded && (needsSync || !storedUser)) {
           if (clerkUser) {
-            // If Clerk has a user, try to get user details from our backend
             try {
               const userDetails = await getCurrentUser();
-              if (userDetails) {
-                setUser(userDetails);
+              if (userDetails && mounted) {
+                const validUser: User = {
+                  id: userDetails.id,
+                  username: userDetails.username || null,
+                  name: userDetails.name || null,
+                  email: userDetails.email || '',
+                  photoURL: userDetails.photoURL,
+                  description: userDetails.description,
+                };
+                setUser(validUser);
                 setIsAuthenticated(true);
-                console.log("Utilisateur restauré au démarrage:", userDetails);
-              } else {
-                // Si l'utilisateur n'est pas trouvé dans notre système mais existe dans Clerk
-                console.warn(
-                  "L'utilisateur existe dans Clerk mais pas dans notre système"
-                );
-
-                // On peut décider de garder l'authentification avec les données Clerk
-                // ou de déconnecter l'utilisateur
-
-                // Option 1: Garder l'authentification avec les données minimales de Clerk
-                setUser({
+                await saveUserToStorage(validUser);
+                console.log('✅ Session Clerk synchronisée');
+              } else if (mounted) {
+                // Fallback to Clerk data if backend is not available
+                const clerkUserData: User = {
                   id: clerkUser.id,
-                  username: clerkUser.username || "",
-                  name: clerkUser.firstName || "",
-                  email: clerkUser.primaryEmailAddress?.emailAddress || "",
-                  photoURL: clerkUser.imageUrl || "",
-                });
+                  username: clerkUser.username || null,
+                  name: clerkUser.firstName || null,
+                  email: clerkUser.primaryEmailAddress?.emailAddress || '',
+                  photoURL: clerkUser.imageUrl || undefined,
+                  description: undefined,
+                };
+                setUser(clerkUserData);
                 setIsAuthenticated(true);
-
-                // Option 2: Déconnecter l'utilisateur si le backend ne le reconnaît pas
-                // Cette option est commentée par défaut
-                // setIsAuthenticated(false);
-                // await logout();
+                await saveUserToStorage(clerkUserData);
+                console.log('⚠️ Utilisation des données Clerk par défaut');
               }
             } catch (error: any) {
-              console.error("Error getting user on initialization:", error);
-              // Si l'erreur est liée à un utilisateur non trouvé dans Clerk, déconnecter
+              if (!mounted) return;
+              
+              console.error('❌ Erreur lors de la synchronisation:', error);
               if (error.message?.includes("user not found in Clerk")) {
-                console.warn("User no longer exists in Clerk, logging out...");
-                await logout();
+                if (mounted) {
+                  setUser(null);
+                  setIsAuthenticated(false);
+                  await clearUserFromStorage();
+                }
                 return;
               }
-
-              // Other errors, we can choose to keep Clerk authentication
-              console.warn(
-                "Error syncing with backend but user exists in Clerk:",
-                error
-              );
-              setIsAuthenticated(true);
-              setUser(clerkUser);
+              // Keep stored user if sync fails
+              if (storedUser && mounted) {
+                setUser(storedUser);
+                setIsAuthenticated(true);
+              }
             }
-          } else {
-            // No Clerk user, ensure authenticated is false
+          } else if (!storedUser && mounted) {
+            // No Clerk user and no stored user, clear everything
             setIsAuthenticated(false);
+            await clearUserFromStorage();
           }
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        if (!mounted) return;
+        console.error('❌ Erreur d\'initialisation auth:', error);
         setIsAuthenticated(false);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     initializeAuth();
-  }, [clerkUser, clerkIsLoaded]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [clerkUser, clerkIsLoaded, getCurrentUser]);
 
   // Register a new user
   const register = async (
@@ -226,69 +367,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Login a user
   const login = async (email: string, password: string) => {
+    if (!signIn) {
+      throw new Error("Clerk signIn is not initialized");
+    }
+    
     try {
       setIsLoading(true);
-
-      console.log(
-        `Tentative de connexion avec: {"email": "${email}", "password": "***"}`
-      );
-
-      // Login with backend
+      
+      // Backend authentication
       const backendResponse = await authSignIn(email, password);
-      console.log("Réponse de connexion:", backendResponse);
-
+      
       if (!backendResponse.success) {
-        // Si l'erreur indique que l'utilisateur n'existe pas dans Clerk,
-        // inutile de continuer avec l'authentification Clerk
         return {
           success: false,
           error: backendResponse.error || "Erreur lors de la connexion",
         };
       }
 
-      // On définit l'utilisateur avec les données de la réponse s'il y en a
-      if (backendResponse.user) {
-        const userObj = {
-          id: String(backendResponse.user.id),
-          username: backendResponse.user.username || "",
-          name: backendResponse.user.name || "",
-          email: backendResponse.user.email,
-          photoURL: backendResponse.user.photoURL || "",
-        };
-        setUser(userObj);
-        setIsAuthenticated(true);
-        console.log("Utilisateur défini après connexion:", userObj);
-      }
+      // Clerk authentication
+      const signInAttempt = await signIn.create({
+        identifier: email,
+        password,
+      });
 
-      // Login with Clerk - uniquement si la réponse backend est un succès
-      if (!signIn) {
-        throw new Error("Clerk signIn is undefined");
-      }
-
-      try {
-        await signIn.create({
-          identifier: email,
-          password,
-        });
-
+      if (signInAttempt.status === "complete") {
+        // Get user details after successful login
+        const userDetails = backendResponse.user || await getCurrentUser();
+        if (userDetails) {
+          const validUser: User = {
+            id: userDetails.id,
+            username: userDetails.username || null,
+            name: userDetails.name || null,
+            email: userDetails.email || '',
+            photoURL: userDetails.photoURL,
+            description: userDetails.description,
+          };
+          setUser(validUser);
+          setIsAuthenticated(true);
+          await saveUserToStorage(validUser);
+          console.log('✅ Connexion réussie et données sauvegardées');
+        }
+        
+        return { success: true };
+      } else {
         return {
-          success: true,
-          user: backendResponse.user,
-        };
-      } catch (clerkError: any) {
-        // If the error indicates that the user doesn't exist in Clerk,
-        // but backend validated them, we can still return success
-        console.warn("Clerk error but user authenticated on backend side");
-        return {
-          success: true,
-          user: backendResponse.user,
+          success: false,
+          error: "Erreur lors de la connexion avec Clerk",
         };
       }
     } catch (error: any) {
-      console.error("Login Error:", error);
+      console.error('❌ Erreur de connexion:', error);
       return {
         success: false,
-        error: error.message || "Erreur de connexion",
+        error: error.message || "Une erreur est survenue lors de la connexion",
       };
     } finally {
       setIsLoading(false);
@@ -297,157 +428,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Logout the user
   const logout = async () => {
-    console.log("Starting logout process");
     try {
-      // Try to sign out from Clerk first
-      try {
-        await signOut();
-        console.log("Clerk sign out successful");
-      } catch (clerkError) {
-        console.error("Error during Clerk sign out:", clerkError);
-
-        // On web, we can try to force logout using the clerk object
-        if (Platform.OS === "web") {
-          try {
-            console.log("Attempting alternative logout");
-            // @ts-ignore - clerk is available on web
-            await window.Clerk?.client?.signOut();
-          } catch (manualError) {
-            console.error(
-              "Unable to complete manual session termination:",
-              manualError
-            );
-          }
-        }
-      }
-
-      // Reset local state to ensure logout
+      setIsLoading(true);
+      await signOut();
       setUser(null);
       setIsAuthenticated(false);
-
-      // Redirect to welcome page
-      router.replace("/");
+      await clearUserFromStorage();
+      console.log('✅ Déconnexion réussie');
     } catch (error) {
-      console.error("Error during logout:", error);
-      // Force reset state and redirect anyway
-      setUser(null);
-      setIsAuthenticated(false);
-      router.replace("/");
+      console.error('❌ Erreur lors de la déconnexion:', error);
+    } finally {
+      setIsLoading(false);
     }
-    console.log("Logout process completed");
-  };
-
-  // Get current user details from backend
-  const getCurrentUser = async (): Promise<User | null> => {
-    try {
-      if (!clerkUser) return null;
-
-      // Get the user's token from the active session
-      let token;
-      try {
-        token = await clerk.session?.getToken();
-      } catch (tokenError) {
-        console.error("Error getting token:", tokenError);
-        return null;
-      }
-
-      if (!token) {
-        console.warn("No token available");
-        return null;
-      }
-
-      try {
-        // Get user details from backend
-        const response = await getUserInfo(token);
-
-        // Vérifier si la réponse indique un succès
-        if (response.success === false) {
-          console.warn("Erreur récupération utilisateur:", response.error);
-
-          // Afficher notification ou message à l'utilisateur si nécessaire
-          // Cette partie peut être personnalisée selon les besoins de l'application
-
-          // Utiliser les données Clerk comme fallback
-          if (clerkUser) {
-            return {
-              id: clerkUser.id,
-              username: clerkUser.username || "",
-              name: clerkUser.firstName || "",
-              email: clerkUser.primaryEmailAddress?.emailAddress || "",
-              photoURL: clerkUser.imageUrl || "",
-            };
-          }
-          return null;
-        }
-
-        // Si c'est un succès ou si response.user existe
-        if (response.user || response) {
-          const userData = response.user || response;
-          return {
-            id: userData.id || clerkUser.id,
-            username: userData.username || clerkUser.username || "",
-            name: userData.name || clerkUser.firstName || "",
-            email:
-              userData.email ||
-              clerkUser.primaryEmailAddress?.emailAddress ||
-              "",
-            photoURL:
-              userData.imageUrl ||
-              userData.photoURL ||
-              clerkUser.imageUrl ||
-              "",
-          };
-        }
-      } catch (apiError) {
-        console.error("API Error getting user:", apiError);
-        // Fall back to Clerk user data
-        if (clerkUser) {
-          return {
-            id: clerkUser.id,
-            username: clerkUser.username || "",
-            name: clerkUser.firstName || "",
-            email: clerkUser.primaryEmailAddress?.emailAddress || "",
-            photoURL: clerkUser.imageUrl || "",
-          };
-        }
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Get Current User Error:", error);
-      return null;
-    }
-  };
-
-  const handleClerkUser = async (clerkUser: UserResource | null) => {
-    try {
-      if (!clerkUser) {
-        setIsAuthenticated(false);
-        setUser(null);
-        return;
-      }
-
-      const userData: User = {
-        id: clerkUser.id,
-        username: clerkUser.username,
-        name: clerkUser.firstName || null,
-        email: clerkUser.primaryEmailAddress?.emailAddress || undefined,
-        photoURL: clerkUser.imageUrl || undefined,
-      };
-
-      setUser(userData);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error("Error handling clerk user:", error);
-      setIsAuthenticated(false);
-      setUser(null);
-    }
-  };
-
-  // Add updateUser function
-  const updateUser = (userData: Partial<User>) => {
-    if (!user) return;
-    setUser({ ...user, ...userData });
   };
 
   return (
@@ -460,9 +452,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         register,
         logout,
         getCurrentUser,
-        signIn,
-        signOut,
-        updateUser,
+        signIn: login,
+        signOut: logout,
+        updateUser: (userData) => {
+          if (user) {
+            const updatedUser = { ...user, ...userData };
+            setUser(updatedUser);
+            saveUserToStorage(updatedUser);
+          }
+        },
       }}
     >
       {children}

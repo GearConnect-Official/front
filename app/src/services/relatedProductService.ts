@@ -30,13 +30,26 @@ const relatedProductService = {
       }
       
       const response = await axios.post(API_URL_RELATEDPRODUCTS, productData);
-      return response.data;
+      
+      // Return structured response with success indicator
+      return {
+        success: true,
+        data: response.data,
+        status: response.status
+      };
     } catch (error) {
       if (isAxiosError(error)) {
         const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to create product';
-        throw new Error(errorMessage);
+        return {
+          success: false,
+          error: errorMessage,
+          status: error.response?.status
+        };
       } else {
-        throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error occurred'
+        };
       }
     }
   },

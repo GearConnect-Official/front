@@ -85,6 +85,9 @@ const eventService = {
   },
   // Update an event
   updateEvent: async (id: string, eventData: Partial<Event>) => {
+    console.log('🔄 Updating event with ID:', id);
+    console.log('📝 Event data to update:', eventData);
+    
     try {
       // Format event data for the API
       const formattedEvent = {
@@ -93,17 +96,24 @@ const eventService = {
           ? new Date(eventData.date).toISOString()
           : undefined,
         // Add any other necessary transformations
-      };      try {
+      };
+      
+      console.log('📤 Formatted event data:', formattedEvent);
+      
+      try {
         const response = await axios.patch(
           `${API_URL_EVENTS}/${id}`,
           formattedEvent
         );
-        return response.data;      } catch (axiosError: any) {
-        console.error('Update request failed:', axiosError.message);
+        console.log('✅ Event updated successfully:', response.data);
+        return response.data;
+      } catch (axiosError: any) {
+        console.error('❌ Update request failed:', axiosError.message);
+        console.error('📋 Full axios error:', axiosError.response?.data);
         throw axiosError;
       }
     } catch (error) {
-      // console.error('Error updating event:', error);
+      console.error('❌ Error updating event:', error);
       throw error;
     }
   },

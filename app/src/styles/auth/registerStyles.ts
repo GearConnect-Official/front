@@ -1,11 +1,11 @@
-import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from "react-native";
+import { StyleSheet, ViewStyle, TextStyle, ImageStyle } from "react-native";
 import theme from "../config/theme";
 
 type RegisterStyles = {
   scrollContainer: ViewStyle;
   container: ViewStyle;
   backButton: ViewStyle;
-  backIcon: TextStyle;
+  backIcon: ImageStyle;
   title: TextStyle;
   inputContainer: ViewStyle;
   input: TextStyle;
@@ -49,7 +49,7 @@ const styles = StyleSheet.create<RegisterStyles>({
     height: 24,
   },
   title: {
-    ...theme.typography.h2,
+    ...(theme.typography.h2 as TextStyle),
     color: theme.colors.text.primary,
     textAlign: "center",
     marginTop: theme.spacing.xxxl + 10,
@@ -65,13 +65,13 @@ const styles = StyleSheet.create<RegisterStyles>({
     backgroundColor: theme.colors.background.input,
     ...theme.borders.apply({}, { preset: "input" }),
     paddingHorizontal: theme.spacing.sm + 3,
-    ...theme.typography.body1,
-  },
+    ...(theme.typography.body1 as TextStyle),
+  } as unknown as TextStyle,
   inputError: {
     borderColor: theme.colors.status.error,
   },
   errorText: {
-    ...theme.typography.error,
+    ...(theme.typography.error as TextStyle),
     marginTop: theme.spacing.xxs + 1,
     marginLeft: theme.spacing.xxs + 1,
   },
@@ -84,11 +84,11 @@ const styles = StyleSheet.create<RegisterStyles>({
     marginVertical: theme.spacing.lg,
   },
   registerButtonText: {
-    ...theme.typography.button,
+    ...(theme.typography.button as TextStyle),
     color: theme.colors.common.white,
   },
   orText: {
-    ...theme.typography.subtitle2,
+    ...(theme.typography.subtitle2 as TextStyle),
     color: theme.colors.text.secondary,
     marginBottom: theme.spacing.xs + 2,
   },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create<RegisterStyles>({
     height: 26,
   },
   generalError: {
-    ...theme.typography.error,
+    ...(theme.typography.error as TextStyle),
     textAlign: "center",
     marginBottom: theme.spacing.md,
     width: "100%",

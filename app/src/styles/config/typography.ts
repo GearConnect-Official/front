@@ -8,9 +8,9 @@ import palette from './colors';
 type FontWeight = '300' | '400' | '500' | '600' | '700' | '800' | '900';
 
 interface TypographyStyles {
-  fontFamily: string;
-  fontWeight: FontWeight;
-  fontSize: number;
+  fontFamily?: string;
+  fontWeight?: FontWeight;
+  fontSize?: number;
   lineHeight?: number;
   letterSpacing?: number;
   color?: string;

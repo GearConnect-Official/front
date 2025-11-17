@@ -1,7 +1,26 @@
-import { StyleSheet } from "react-native";
+import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from "react-native";
 import theme from "../config/theme";
 
-const styles = StyleSheet.create({
+type RegisterStyles = {
+  scrollContainer: ViewStyle;
+  container: ViewStyle;
+  backButton: ViewStyle;
+  backIcon: TextStyle;
+  title: TextStyle;
+  inputContainer: ViewStyle;
+  input: TextStyle;
+  inputError: TextStyle;
+  errorText: TextStyle;
+  registerButton: ViewStyle;
+  registerButtonText: TextStyle;
+  orText: TextStyle;
+  socialButtonsContainer: ViewStyle;
+  socialButton: ViewStyle;
+  socialIcon: ImageStyle;
+  generalError: TextStyle;
+};
+
+const styles = StyleSheet.create<RegisterStyles>({
   scrollContainer: {
     flexGrow: 1,
   },

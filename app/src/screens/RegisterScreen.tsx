@@ -20,7 +20,11 @@ import { useAuth } from "../context/AuthContext"; // Import useAuth hook
 
 const RegisterScreen: React.FC = () => {
   const router = useRouter();
-  const { register, isLoading } = useAuth(); // Use auth context
+  const auth = useAuth(); // Use auth context
+
+  // Ensure auth is not null before destructuring
+  const register = auth?.register;
+  const isLoading = auth?.isLoading ?? false;
 
   // Input states
   const [username, setUsername] = useState("");
@@ -80,9 +84,14 @@ const RegisterScreen: React.FC = () => {
       return;
     }
 
+    if (typeof register !== "function") {
+      setErrors({ general: "Registration function not available" });
+      return;
+    }
+
     const result = await register(username, email, password, name);
 
-    if (result.success) {
+    if (result?.success) {
       router.push("/(auth)/login");
     } else {
       // Réinitialiser les erreurs précédentes

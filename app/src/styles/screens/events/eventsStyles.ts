@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
     height: HEADER_HEIGHT,
     marginTop: -STATUSBAR_HEIGHT,
     paddingTop: STATUSBAR_HEIGHT,
+    zIndex: 10,
   },
   headerTitle: {
     fontSize: 18,

@@ -272,188 +272,184 @@ const EventsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Events</Text>
-          <View style={styles.placeholderRight} />
-        </View>
-        <View style={styles.contentContainer}>
-          <ScrollView
-            style={styles.scrollView}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          >
-            {/* Hero section */}
-            <View style={styles.heroSection}>
-              <Text style={styles.heroTitle}>Discover Amazing Events</Text>
-              <Text style={styles.heroSubtitle}>
-                Join the community and share your passions
-              </Text>
-            </View>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Events</Text>
+        <View style={styles.placeholderRight} />
+      </View>
+      <View style={styles.contentContainer}>
+        <ScrollView
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {/* Hero section */}
+          <View style={styles.heroSection}>
+            <Text style={styles.heroTitle}>Discover Amazing Events</Text>
+            <Text style={styles.heroSubtitle}>
+              Join the community and share your passions
+            </Text>
+          </View>
 
-            {/* Featured events carousel */}
-            {featured.length > 0 && (
-              <View style={styles.featuredSection}>
-                <Text style={styles.sectionTitle}>Featured Events</Text>
-                <Animated.FlatList
-                  data={featured}
-                  keyExtractor={(item: Event) =>
-                    item.id?.toString() || Math.random().toString()
+          {/* Featured events carousel */}
+          {featured.length > 0 && (
+            <View style={styles.featuredSection}>
+              <Text style={styles.sectionTitle}>Featured Events</Text>
+              <Animated.FlatList
+                data={featured}
+                keyExtractor={(item: Event) =>
+                  item.id?.toString() || Math.random().toString()
+                }
+                renderItem={renderFeaturedItem}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                pagingEnabled
+                snapToInterval={CARD_WIDTH + 20}
+                decelerationRate="fast"
+                contentContainerStyle={{ paddingHorizontal: 10 }}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                  { useNativeDriver: true }
+                )}
+              />
+            </View>
+          )}
+
+          <View style={styles.searchSection}>
+            <View style={styles.searchBar}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search for an event"
+                value={searchQuery}
+                onChangeText={(text: string) => {
+                  setSearchQuery(text);
+                  if (text === "") {
+                    setFilteredEvents(events);
                   }
-                  renderItem={renderFeaturedItem}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  pagingEnabled
-                  snapToInterval={CARD_WIDTH + 20}
-                  decelerationRate="fast"
-                  contentContainerStyle={{ paddingHorizontal: 10 }}
-                  onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                    { useNativeDriver: true }
-                  )}
-                />
-              </View>
-            )}
-
-            <View style={styles.searchSection}>
-              <View style={styles.searchBar}>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search for an event"
-                  value={searchQuery}
-                  onChangeText={(text: string) => {
-                    setSearchQuery(text);
-                    if (text === "") {
-                      setFilteredEvents(events);
-                    }
-                  }}
-                  onSubmitEditing={handleSearch}
-                />
-                <TouchableOpacity
-                  style={styles.searchButton}
-                  onPress={handleSearch}
-                >
-                  <FontAwesome name="search" size={20} color="white" />
-                </TouchableOpacity>
-              </View>
+                }}
+                onSubmitEditing={handleSearch}
+              />
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={handleSearch}
+              >
+                <FontAwesome name="search" size={20} color="white" />
+              </TouchableOpacity>
             </View>
+          </View>
 
-            <View style={styles.tabGroup}>
-              {tabs.map((tab: TabItem) => (
-                <TouchableOpacity
-                  key={tab.key}
-                  onPress={() => setActiveTab(tab.key)}
+          <View style={styles.tabGroup}>
+            {tabs.map((tab: TabItem) => (
+              <TouchableOpacity
+                key={tab.key}
+                onPress={() => setActiveTab(tab.key)}
+                style={[
+                  styles.tab,
+                  activeTab === tab.key ? styles.activeTab : {},
+                ]}
+              >
+                <FontAwesome
+                  name={tab.icon}
+                  size={20}
+                  color={activeTab === tab.key ? "#FFFFFF" : "#1E232C"}
+                  style={styles.tabIcon}
+                />
+                <Text
                   style={[
-                    styles.tab,
-                    activeTab === tab.key ? styles.activeTab : {},
+                    styles.tabText,
+                    activeTab === tab.key ? styles.activeTabText : {},
                   ]}
                 >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#1E232C" />
+            </View>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              {isNetworkError ? (
+                <>
+                  <FontAwesome name="wifi" size={50} color="#E10600" />
+                  <Text style={styles.errorTitle}>Connection Issue</Text>
+                  <Text style={styles.errorText}>{error}</Text>
+                </>
+              ) : (
+                <>
                   <FontAwesome
-                    name={tab.icon}
-                    size={20}
-                    color={activeTab === tab.key ? "#FFFFFF" : "#1E232C"}
-                    style={styles.tabIcon}
+                    name="exclamation-triangle"
+                    size={50}
+                    color="#E10600"
                   />
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === tab.key ? styles.activeTabText : {},
-                    ]}
-                  >
-                    {tab.label}
-                  </Text>
-                </TouchableOpacity>
+                  <Text style={styles.errorText}>{error}</Text>
+                </>
+              )}
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={fetchEvents}
+              >
+                <Text style={styles.retryButtonText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          ) : filteredEvents[activeTab]?.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <View style={styles.eventsContainer}>
+              <Text style={styles.sectionTitle}>
+                {activeTab === "all" && "All Events"}
+                {activeTab === "upcoming" && "Upcoming Events"}
+                {activeTab === "passed" && "Past Events"}
+              </Text>
+              {filteredEvents[activeTab]?.map((event: Event, index: number) => (
+                <EventItem
+                  key={event.id?.toString() || index.toString()}
+                  title={event.name}
+                  subtitle={`By: ${event.creators}`}
+                  date={new Date(event.date).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "short",
+                  })}
+                  emoji="🎉"
+                  location={event.location}
+                  attendees={Math.floor(Math.random() * 100)}
+                  onPress={() => handleEventPress(event)}
+                />
               ))}
             </View>
+          )}
 
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#1E232C" />
-              </View>
-            ) : error ? (
-              <View style={styles.errorContainer}>
-                {isNetworkError ? (
-                  <>
-                    <FontAwesome name="wifi" size={50} color="#E10600" />
-                    <Text style={styles.errorTitle}>Connection Issue</Text>
-                    <Text style={styles.errorText}>{error}</Text>
-                  </>
-                ) : (
-                  <>
-                    <FontAwesome
-                      name="exclamation-triangle"
-                      size={50}
-                      color="#E10600"
-                    />
-                    <Text style={styles.errorText}>{error}</Text>
-                  </>
-                )}
-                <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={fetchEvents}
-                >
-                  <Text style={styles.retryButtonText}>Try Again</Text>
-                </TouchableOpacity>
-              </View>
-            ) : filteredEvents[activeTab]?.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <View style={styles.eventsContainer}>
-                <Text style={styles.sectionTitle}>
-                  {activeTab === "all" && "All Events"}
-                  {activeTab === "upcoming" && "Upcoming Events"}
-                  {activeTab === "passed" && "Past Events"}
-                </Text>
-                {filteredEvents[activeTab]?.map(
-                  (event: Event, index: number) => (
-                    <EventItem
-                      key={event.id?.toString() || index.toString()}
-                      title={event.name}
-                      subtitle={`By: ${event.creators}`}
-                      date={new Date(event.date).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                      })}
-                      emoji="🎉"
-                      location={event.location}
-                      attendees={Math.floor(Math.random() * 100)}
-                      onPress={() => handleEventPress(event)}
-                    />
-                  )
-                )}
-              </View>
-            )}
-
-            {/* CTA Section */}
-            <View style={styles.ctaSection}>
-              <LinearGradient
-                colors={["#ff3a3a", "#ff5e62"]}
-                style={styles.ctaGradient}
+          {/* CTA Section */}
+          <View style={styles.ctaSection}>
+            <LinearGradient
+              colors={["#ff3a3a", "#ff5e62"]}
+              style={styles.ctaGradient}
+            >
+              <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
+              <Text style={styles.ctaText}>
+                Share your passion and meet new people
+              </Text>
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={handleCreateEvent}
               >
-                <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
-                <Text style={styles.ctaText}>
-                  Share your passion and meet new people
-                </Text>
-                <TouchableOpacity
-                  style={styles.ctaButton}
-                  onPress={handleCreateEvent}
-                >
-                  <Text style={styles.ctaButtonText}>Create Now</Text>
-                  <FontAwesome name="arrow-right" size={16} color="#E53935" />
-                </TouchableOpacity>
-              </LinearGradient>
-            </View>
+                <Text style={styles.ctaButtonText}>Create Now</Text>
+                <FontAwesome name="arrow-right" size={16} color="#E53935" />
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
 
-            <View style={{ height: 60 }} />
-          </ScrollView>
-        </View>
+          <View style={{ height: 60 }} />
+        </ScrollView>
       </View>
     </SafeAreaView>
   );

@@ -1,7 +1,14 @@
 import * as React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StatusBar,
+  SafeAreaView,
+} from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { createEventStyles as styles } from "../../styles/screens";
+import { router } from "expo-router";
 
 interface TopBarProps {
   title: string;
@@ -17,19 +24,19 @@ const TopBar: React.FC<TopBarProps> = ({
   onDeletePress,
 }) => {
   return (
-    <View style={styles.topBar}>
-      <View style={styles.titleBar}>
-        <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-          <FontAwesome name="arrow-left" size={24} color="#1E232C" />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
         </TouchableOpacity>
-        <Text style={styles.title}>{title}</Text>
-        {showDeleteButton && (
-          <TouchableOpacity onPress={onDeletePress} style={styles.deleteButton}>
-            <FontAwesome name="trash" size={24} color="#e74c3c" />
-          </TouchableOpacity>
-        )}
+        <Text style={styles.headerTitle}>Create an Event</Text>
+        <View style={styles.placeholderRight} />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

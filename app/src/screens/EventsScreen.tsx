@@ -434,7 +434,7 @@ const EventsScreen: React.FC = () => {
             {/* CTA Section */}
             <View style={styles.ctaSection}>
               <LinearGradient
-                colors={["#3a86ff", "#5e60ce"]}
+                colors={["#ff3a3a", "#ff5e62"]}
                 style={styles.ctaGradient}
               >
                 <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
@@ -446,7 +446,7 @@ const EventsScreen: React.FC = () => {
                   onPress={handleCreateEvent}
                 >
                   <Text style={styles.ctaButtonText}>Create Now</Text>
-                  <FontAwesome name="arrow-right" size={16} color="#3a86ff" />
+                  <FontAwesome name="arrow-right" size={16} color="#E53935" />
                 </TouchableOpacity>
               </LinearGradient>
             </View>

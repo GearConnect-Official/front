@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,19 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { FontAwesome } from '@expo/vector-icons';
-import { useCloudinary } from '../../hooks/useCloudinary';
-import { CloudinaryUploadResponse, CloudinaryUploadOptions } from '../../services/cloudinary.service';
-import { cloudinaryImageUploadStyles } from '../../styles/components/cloudinaryStyles';
-import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
-import { QuickMessages } from '../../utils/messageUtils';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { FontAwesome } from "@expo/vector-icons";
+import { useCloudinary } from "../../hooks/useCloudinary";
+import {
+  CloudinaryUploadResponse,
+  CloudinaryUploadOptions,
+} from "../../services/cloudinary.service";
+import { cloudinaryImageUploadStyles } from "../../styles/components/cloudinaryStyles";
+import { useMessage } from "../../context/MessageContext";
+import MessageService from "../../services/messageService";
+import { QuickMessages } from "../../utils/messageUtils";
 
 export interface CloudinaryImageUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;
@@ -38,30 +41,39 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
   allowMultiple = false,
   maxImages = 5,
   style,
-  buttonText = 'Ajouter une image',
+  buttonText = "Ajouter une image",
   showPreview = true,
 }) => {
-  const { uploading, error, uploadImage, uploadFromCamera, uploadMultiple, clearError } = useCloudinary();
-  const [uploadedImages, setUploadedImages] = useState<CloudinaryUploadResponse[]>([]);
+  const {
+    uploading,
+    error,
+    uploadImage,
+    uploadFromCamera,
+    uploadMultiple,
+    clearError,
+  } = useCloudinary();
+  const [uploadedImages, setUploadedImages] = useState<
+    CloudinaryUploadResponse[]
+  >([]);
   const [isUploading, setIsUploading] = useState(false);
   const { showError, showMessage } = useMessage();
 
   const handleUploadOption = () => {
     Alert.alert(
-      'Sélectionner une source',
-      'D\'où voulez-vous importer votre image ?',
+      "Sélectionner une source",
+      "D'où voulez-vous importer votre image ?",
       [
         {
-          text: 'Galerie',
+          text: "Galerie",
           onPress: handleGalleryUpload,
         },
         {
-          text: 'Caméra',
+          text: "Caméra",
           onPress: handleCameraUpload,
         },
         {
-          text: 'Annuler',
-          style: 'cancel',
+          text: "Annuler",
+          style: "cancel",
         },
       ]
     );
@@ -70,35 +82,38 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
   const handleGalleryUpload = async () => {
     try {
       clearError();
-      
+
       if (allowMultiple) {
         const results = await uploadMultiple({
           folder,
           tags,
         });
-        
+
         if (results) {
-          const limitedResults = results.slice(0, maxImages - uploadedImages.length);
-          setUploadedImages(prev => [...prev, ...limitedResults]);
-          limitedResults.forEach(result => onUploadComplete?.(result));
+          const limitedResults = results.slice(
+            0,
+            maxImages - uploadedImages.length
+          );
+          setUploadedImages((prev) => [...prev, ...limitedResults]);
+          limitedResults.forEach((result) => onUploadComplete?.(result));
         }
       } else {
         const result = await uploadImage({
           folder,
           tags,
         });
-        
+
         if (result) {
-          setUploadedImages(prev => [...prev, result]);
+          setUploadedImages((prev) => [...prev, result]);
           onUploadComplete?.(result);
         }
       }
     } catch (error: any) {
-      console.error('Error uploading image:', error);
-      const errorMessage = error?.message || 'Failed to upload image';
-      
+      console.error("Error uploading image:", error);
+      const errorMessage = error?.message || "Failed to upload image";
+
       showError(errorMessage);
-      
+
       if (onUploadError) {
         onUploadError(errorMessage);
       }
@@ -108,22 +123,22 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
   const handleCameraUpload = async () => {
     try {
       clearError();
-      
+
       const result = await uploadFromCamera({
         folder,
         tags,
       });
-      
+
       if (result) {
-        setUploadedImages(prev => [...prev, result]);
+        setUploadedImages((prev) => [...prev, result]);
         onUploadComplete?.(result);
       }
     } catch (error: any) {
-      console.error('Error uploading image:', error);
-      const errorMessage = error?.message || 'Failed to upload image';
-      
+      console.error("Error uploading image:", error);
+      const errorMessage = error?.message || "Failed to upload image";
+
       showError(errorMessage);
-      
+
       if (onUploadError) {
         onUploadError(errorMessage);
       }
@@ -131,27 +146,32 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
   };
 
   const removeImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const canAddMore = !allowMultiple ? uploadedImages.length === 0 : uploadedImages.length < maxImages;
+  const canAddMore = !allowMultiple
+    ? uploadedImages.length === 0
+    : uploadedImages.length < maxImages;
 
   return (
     <View style={[cloudinaryImageUploadStyles.container, style]}>
       {/* Bouton d'upload */}
       {canAddMore && (
         <TouchableOpacity
-          style={[cloudinaryImageUploadStyles.uploadButton, uploading && cloudinaryImageUploadStyles.uploadButtonDisabled]}
+          style={[
+            cloudinaryImageUploadStyles.uploadButton,
+            uploading && cloudinaryImageUploadStyles.uploadButtonDisabled,
+          ]}
           onPress={handleUploadOption}
           disabled={uploading}
         >
           {uploading ? (
-            <ActivityIndicator color="#007AFF" size="small" />
+            <ActivityIndicator color="#E53935" size="small" />
           ) : (
-            <Ionicons name="camera" size={24} color="#007AFF" />
+            <Ionicons name="camera" size={24} color="#E53935" />
           )}
           <Text style={cloudinaryImageUploadStyles.uploadButtonText}>
-            {uploading ? 'Upload en cours...' : buttonText}
+            {uploading ? "Upload en cours..." : buttonText}
           </Text>
         </TouchableOpacity>
       )}
@@ -168,9 +188,16 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
 
       {/* Prévisualisation des images */}
       {showPreview && uploadedImages.length > 0 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={cloudinaryImageUploadStyles.previewContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={cloudinaryImageUploadStyles.previewContainer}
+        >
           {uploadedImages.map((image, index) => (
-            <View key={image.public_id} style={cloudinaryImageUploadStyles.imagePreview}>
+            <View
+              key={image.public_id}
+              style={cloudinaryImageUploadStyles.imagePreview}
+            >
               <Image
                 source={{ uri: image.secure_url }}
                 style={cloudinaryImageUploadStyles.previewImage}
@@ -195,4 +222,4 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
       )}
     </View>
   );
-}; 
+};

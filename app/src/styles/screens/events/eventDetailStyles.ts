@@ -1,5 +1,10 @@
-import { StyleSheet } from 'react-native';
-import theme from '../../config/theme';
+import { StyleSheet, Dimensions, Platform, StatusBar } from "react-native";
+import theme from "../../config/theme";
+
+const { width } = Dimensions.get("window");
+const STATUSBAR_HEIGHT =
+  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
+const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 export const styles = StyleSheet.create({
   // Layout containers
@@ -7,41 +12,46 @@ export const styles = StyleSheet.create({
     ...theme.common.container,
     flex: 1,
     maxWidth: 480,
-    width: '100%',
-    marginLeft: 'auto',
-    marginRight: 'auto',
+    width: "100%",
+    marginLeft: "auto",
+    marginRight: "auto",
   },
   centered: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   scrollView: {
     flex: 1,
     margin: theme.spacing.sm,
   },
 
-  // Top navigation
-  topBar: {
-    backgroundColor: theme.colors.background.paper,
-    ...theme.shadows.apply({}, 'topBar'),
-    minHeight: theme.spacing.height.toolbar,
-  },
-  topBarContent: {
-    ...theme.common.spaceBetween,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderBottomWidth: 0,
+    height: HEADER_HEIGHT,
+    marginTop: -STATUSBAR_HEIGHT,
+    paddingTop: STATUSBAR_HEIGHT,
   },
   headerTitle: {
-    ...theme.typography.h4,
-    color: theme.colors.text.primary,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
   },
   backButton: {
+    marginRight: 15,
+    padding: 8,
+    position: "relative",
+    zIndex: 20,
+  },
+  placeholderRight: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
   // Event header and info
@@ -65,12 +75,12 @@ export const styles = StyleSheet.create({
 
   // Images
   mainEventImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: theme.borders.radius.md,
   },
   placeholderMainImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: theme.borders.radius.md,
     ...theme.common.centerContent,
@@ -127,7 +137,7 @@ export const styles = StyleSheet.create({
   noTagsText: {
     fontSize: theme.typography.body1.fontSize,
     color: theme.colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     padding: theme.spacing.sm,
   },
 
@@ -135,7 +145,7 @@ export const styles = StyleSheet.create({
   productCard: {
     padding: theme.spacing.sm,
     marginRight: theme.spacing.sm,
-    ...theme.borders.apply({}, { preset: 'card' }),
+    ...theme.borders.apply({}, { preset: "card" }),
   },
   productImage: {
     width: 80,
@@ -168,7 +178,7 @@ export const styles = StyleSheet.create({
   noProductsText: {
     fontSize: theme.typography.body1.fontSize,
     color: theme.colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     padding: theme.spacing.sm,
   },
 
@@ -180,7 +190,7 @@ export const styles = StyleSheet.create({
   },
   reviewCard: {
     padding: theme.spacing.xs,
-    ...theme.borders.apply({}, { preset: 'card' }),
+    ...theme.borders.apply({}, { preset: "card" }),
     marginRight: theme.spacing.xs,
     width: 220,
     minHeight: 150,
@@ -215,7 +225,7 @@ export const styles = StyleSheet.create({
   },
   showMoreButton: {
     marginTop: theme.spacing.xs,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
   },
   showMoreButtonText: {
     color: theme.colors.text.primary,
@@ -238,7 +248,7 @@ export const styles = StyleSheet.create({
   noReviewsText: {
     fontSize: theme.typography.body1.fontSize,
     color: theme.colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     padding: theme.spacing.sm,
   },
 
@@ -248,8 +258,8 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 6,
     paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   reviewText: {
@@ -258,7 +268,7 @@ export const styles = StyleSheet.create({
   editButton: {
     backgroundColor: theme.colors.common.black,
     padding: theme.spacing.sm,
-    ...theme.borders.apply({}, { preset: 'button' }),
+    ...theme.borders.apply({}, { preset: "button" }),
   },
   createReviewButton: {
     backgroundColor: theme.colors.primary.main,
@@ -266,18 +276,18 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     marginTop: 10,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   createReviewButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 14,
   },
   buyButton: {
     backgroundColor: theme.colors.secondary.main,
     padding: theme.spacing.md,
     ...theme.borders.apply({}, { radius: theme.borders.radius.md }),
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: theme.spacing.sm,
     marginBottom: theme.spacing.sm,
   },
@@ -289,7 +299,7 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.grey[200],
     padding: theme.spacing.md,
     ...theme.borders.apply({}, { radius: theme.borders.radius.md }),
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: theme.spacing.sm,
   },
   addCalendarText: {
@@ -300,7 +310,7 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.grey[200],
     padding: theme.spacing.md,
     ...theme.borders.apply({}, { radius: theme.borders.radius.md }),
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: theme.spacing.sm,
   },
   shareText: {
@@ -324,51 +334,51 @@ export const styles = StyleSheet.create({
   },
   // Styles for editable fields
   fieldContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 10,
   },
   fieldRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
   },
   fieldEditButton: {
     padding: 5,
     borderRadius: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   editFieldContainer: {
-    width: '100%',
+    width: "100%",
   },
   editInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     padding: 8,
     borderRadius: 5,
     fontSize: 16,
     marginBottom: 5,
   },
   editActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 10,
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
     padding: 8,
     borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     width: 36,
     height: 36,
   },
   cancelButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: "#F44336",
     padding: 8,
     borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     width: 36,
     height: 36,
   },

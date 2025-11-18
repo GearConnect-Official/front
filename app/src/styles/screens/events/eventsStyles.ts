@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   // Hero section
   heroSection: {
     padding: theme.spacing.lg,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#f0f2f5",
     marginBottom: theme.spacing.md,
   },
   heroTitle: {

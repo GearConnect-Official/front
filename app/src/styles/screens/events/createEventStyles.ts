@@ -1,9 +1,20 @@
-import { StyleSheet } from 'react-native';
-import theme from '../../config/theme';
+import { StyleSheet, Dimensions, Platform, StatusBar } from "react-native";
+import theme from "../../config/theme";
 
-const styles = StyleSheet.create({  container: {
+const { width } = Dimensions.get("window");
+const STATUSBAR_HEIGHT =
+  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
+const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
+
+const styles = StyleSheet.create({
+  container: {
     ...theme.common.container,
     backgroundColor: theme.colors.background.paper,
+  },
+
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
 
   scrollViewContent: {
@@ -19,7 +30,43 @@ const styles = StyleSheet.create({  container: {
   },
   // TopBar styles
   topBar: {
-    backgroundColor: theme.colors.background.paper,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderBottomWidth: 0,
+    height: HEADER_HEIGHT,
+    marginTop: -STATUSBAR_HEIGHT,
+    paddingTop: STATUSBAR_HEIGHT,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderBottomWidth: 0,
+    height: HEADER_HEIGHT,
+    marginTop: -STATUSBAR_HEIGHT,
+    paddingTop: STATUSBAR_HEIGHT,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+  },
+  backButton: {
+    marginRight: 15,
+    padding: 8,
+    position: "relative",
+    zIndex: 20,
+  },
+  placeholderRight: {
+    width: 40,
+    height: 40,
   },
   statusBar: {
     ...theme.common.spaceBetween,
@@ -42,7 +89,7 @@ const styles = StyleSheet.create({  container: {
     gap: 8,
   },
   deleteButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 15,
     padding: 10,
     borderRadius: 8,
@@ -97,20 +144,20 @@ const styles = StyleSheet.create({  container: {
     borderRadius: theme.borders.radius.md,
     borderWidth: 1,
     borderColor: theme.colors.grey[100],
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     padding: theme.spacing.md,
     ...theme.common.centerContent,
     height: 150,
   },
   imageUploadButtonText: {
-    color: theme.colors.text.primary,
+    color: theme.colors.primary.main,
     marginTop: theme.spacing.xs,
     fontSize: theme.typography.caption.fontSize,
     fontWeight: theme.typography.caption.fontWeight,
   },
   uploadedImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: theme.borders.radius.md,
   },
   // Section styles
@@ -141,7 +188,7 @@ const styles = StyleSheet.create({  container: {
     marginHorizontal: 4,
   },
   activeStep: {
-    backgroundColor: "#3a86ff",
+    backgroundColor: theme.colors.primary.main,
   },
   stepWithLine: {
     marginRight: 20,
@@ -187,9 +234,7 @@ const styles = StyleSheet.create({  container: {
     borderColor: "#e0e0e0",
   },
   // Media section styles
-  mediaSection: {
-    marginBottom: 24,
-  },
+  mediaSection: {},
   imagesRow: {
     marginTop: 8,
     height: 100,
@@ -209,12 +254,12 @@ const styles = StyleSheet.create({  container: {
     width: 80,
     height: 80,
     borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: theme.colors.primary.main,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: theme.colors.primary.main,
     borderStyle: "dashed",
   },
   imagePreview: {
@@ -224,7 +269,7 @@ const styles = StyleSheet.create({  container: {
     marginRight: 8,
   },
   uploadButton: {
-    backgroundColor: "#3a86ff",
+    backgroundColor: theme.colors.primary.main,
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
@@ -245,7 +290,7 @@ const styles = StyleSheet.create({  container: {
     padding: 16,
     alignItems: "center",
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -284,6 +329,7 @@ const styles = StyleSheet.create({  container: {
     paddingVertical: 6,
     borderRadius: 16,
     marginTop: 12,
+    backgroundColor: theme.colors.primary.main,
   },
   previewBadgeText: {
     color: "#fff",
@@ -325,7 +371,7 @@ const styles = StyleSheet.create({  container: {
     flex: 1,
     paddingVertical: theme.spacing.xs + 4,
     borderRadius: theme.borders.radius.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelButton: {
     backgroundColor: theme.colors.grey[200],
@@ -337,11 +383,11 @@ const styles = StyleSheet.create({  container: {
   },
   cancelButtonText: {
     color: theme.colors.grey[800],
-    fontWeight: '500',
+    fontWeight: "500",
   },
   submitButtonText: {
     color: theme.colors.common.white,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   disabledButton: {
     backgroundColor: theme.colors.grey[400],
@@ -360,7 +406,7 @@ const styles = StyleSheet.create({  container: {
   // ScrollView
   scrollView: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   // Nouveaux styles pour l'intégration Cloudinary
   uploadInfoContainer: {
@@ -381,45 +427,34 @@ const styles = StyleSheet.create({  container: {
     fontSize: 12,
     color: "#388e3c",
   },
-  addImageButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderStyle: "dashed",
-  },
   // Loading styles
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 24,
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginTop: 8,
   },
   // Info note styles
   infoNote: {
-    backgroundColor: '#e1f5fe',
+    backgroundColor: "#e1f5fe",
     borderRadius: 8,
     padding: 12,
     marginBottom: 24,
     borderLeftWidth: 4,
-    borderLeftColor: '#29b6f6',
+    borderLeftColor: "#29b6f6",
   },
   infoNoteText: {
     fontSize: 14,
-    color: '#01579b',
+    color: "#01579b",
     lineHeight: 20,
   },
   infoNoteBold: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

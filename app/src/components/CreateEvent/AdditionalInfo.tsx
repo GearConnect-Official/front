@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { View, Text, TextInput, Image } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { createEventStyles as styles } from '../../styles/screens';
-import { Event } from '../../services/eventService';
+import * as React from "react";
+import { View, Text, TextInput, Image } from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { createEventStyles as styles } from "../../styles/screens";
+import { Event } from "../../services/eventService";
 
 interface AdditionalInfoProps {
   logo: string;
@@ -36,7 +36,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           style={styles.input}
           placeholder="www.example.com"
           value={website}
-          onChangeText={(text) => onInputChange('website', text)}
+          onChangeText={(text) => onInputChange("website", text)}
           returnKeyType="next"
           blurOnSubmit={false}
           keyboardType="url"
@@ -48,7 +48,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           style={styles.input}
           placeholder="Sponsor names separated by commas"
           value={sponsors}
-          onChangeText={(text) => onInputChange('sponsors', text)}
+          onChangeText={(text) => onInputChange("sponsors", text)}
           returnKeyType="done"
           blurOnSubmit={true}
         />
@@ -60,26 +60,21 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
             <Image source={{ uri: logo }} style={styles.previewLogo} />
           ) : (
             <View style={styles.previewLogoPlaceholder}>
-              <FontAwesome name="calendar" size={32} color="#3a86ff" />
+              <FontAwesome name="calendar" size={32} color="#E53935" />
             </View>
           )}
-          <Text style={styles.previewTitle}>{name || 'Event Name'}</Text>
+          <Text style={styles.previewTitle}>{name || "Event Name"}</Text>
           <Text style={styles.previewInfo}>
-            <FontAwesome name="map-marker" size={14} color="#666" /> 
-            {location || 'Location'}
+            <FontAwesome name="map-marker" size={14} color="#666" />
+            {location || "Location"}
           </Text>
           <Text style={styles.previewInfo}>
-            <FontAwesome name="calendar" size={14} color="#666" /> 
-            {date.toLocaleDateString('en-US')}
+            <FontAwesome name="calendar" size={14} color="#666" />
+            {date.toLocaleDateString("en-US")}
           </Text>
-          <LinearGradient
-            colors={['#3a86ff', '#5e60ce']}
-            style={styles.previewBadge}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
+          <View style={styles.previewBadge}>
             <Text style={styles.previewBadgeText}>Ready to publish!</Text>
-          </LinearGradient>
+          </View>
         </View>
       </View>
     </View>

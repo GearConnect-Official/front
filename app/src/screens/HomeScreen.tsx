@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,11 +15,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
-import styles from "../styles/screens/user/homeStyles";
+import { homeStyles as styles } from "../styles/screens";
+import theme from "../styles/config/theme";
 import StoryModal from "../components/modals/StoryModal";
 import HierarchicalCommentsModal from "../components/modals/HierarchicalCommentsModal";
 import PostItem, { Comment as PostItemComment, PostTag } from "../components/Feed/PostItem";
@@ -30,6 +31,7 @@ import commentService from '../services/commentService';
 import favoritesService from '../services/favoritesService';
 import { useAuth } from '../context/AuthContext';
 import useVisibilityTracker from '../hooks/useVisibilityTracker';
+// Hooks complexes temporairement désactivés - version simple pour debug
 import { detectMediaType } from '../utils/mediaUtils';
 import { ApiError, ErrorType } from '../services/axiosConfig';
 import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
@@ -70,9 +72,7 @@ const CURRENT_USERNAME = "john_doe";
 
 // Fonction helper pour convertir les posts de l'API au format d'UI
 const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost => {
-  const images = apiPost.cloudinaryUrl ? [apiPost.cloudinaryUrl] : 
-                 apiPost.image ? [(apiPost.image as any).url] : [];
-  
+  const images = apiPost.cloudinaryUrl ? [apiPost.cloudinaryUrl] : [];
   const imagePublicIds = apiPost.cloudinaryPublicId ? [apiPost.cloudinaryPublicId] : [];
   const mediaTypes: ('image' | 'video')[] = apiPost.imageMetadata ? 
     [detectMediaType(apiPost.cloudinaryUrl, apiPost.cloudinaryPublicId, apiPost.imageMetadata)] : 
@@ -133,15 +133,7 @@ const HomeScreen: React.FC = () => {
   const authContext = useAuth();
   const user = authContext?.user;
   const { showError, showInfo } = useMessage();
-  const [refreshing, setRefreshing] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
-  const [posts, setPosts] = useState<UIPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadingError, setLoadingError] = useState<string | null>(null);
-  const [isNetworkError, setIsNetworkError] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMorePosts, setHasMorePosts] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isStoryModalVisible, setIsStoryModalVisible] = useState(false);
   const [currentStoryId, setCurrentStoryId] = useState("");
   const [isCommentsModalVisible, setIsCommentsModalVisible] = useState(false);
@@ -150,6 +142,130 @@ const HomeScreen: React.FC = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const isHeaderVisible = useRef(true);
   const lastScrollY = useRef(0);
+
+  // Version simple et robuste - pas de cache complexe pour l'instant
+  const [posts, setPosts] = useState<UIPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Debounce pour éviter les appels multiples
+  const lastFetchTime = useRef<number>(0);
+  const isCurrentlyFetching = useRef<boolean>(false);
+
+  // Fonction de chargement - seulement pour initial + infinite scroll
+  const loadPosts = useCallback(async (page = 1, append = false) => {
+    // Protection contre les appels multiples
+    if (isCurrentlyFetching.current) {
+      console.log('🚫 POST FETCH BLOCKED - Already fetching');
+      return;
+    }
+    
+    // Debouncing léger seulement pour refresh manual
+    const now = Date.now();
+    if (!append && page === 1 && now - lastFetchTime.current < 1000) {
+      console.log('🚫 POST FETCH BLOCKED - Manual refresh too soon');
+      return;
+    }
+
+    isCurrentlyFetching.current = true;
+    lastFetchTime.current = now;
+    
+    try {
+      console.log('🔄 FETCHING POSTS - Page:', page, 'Append:', append);
+      
+      if (!append) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      
+      setLoadingError(null);
+      
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : null;
+      const response = currentUserId 
+        ? await postService.default.getPosts(page, 10, currentUserId)
+        : await postService.default.getAllPosts();
+      
+      if (Array.isArray(response)) {
+        const sortedPosts = [...response].sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId || 1));
+        
+        if (append) {
+          setPosts(prev => [...prev, ...uiPosts]);
+        } else {
+          setPosts(uiPosts);
+        }
+        
+        setHasMore(uiPosts.length === 10);
+        setCurrentPage(page);
+      }
+      
+    } catch (error) {
+      console.error('❌ ERROR FETCHING POSTS:', error);
+      setLoadingError('Unable to load posts');
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      setRefreshing(false);
+      isCurrentlyFetching.current = false;
+    }
+  }, [user?.id]);
+
+  // Simple handlers without complex cache
+  const handleLike = async (postId: string) => {
+    if (!user?.id) {
+      showError('You must be logged in to like posts');
+      return;
+    }
+
+    try {
+      const currentUserId = parseInt(user.id.toString());
+      console.log('👍 Liking post:', postId);
+      await postService.default.toggleLike(parseInt(postId), currentUserId);
+      
+      // Simple optimistic update
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 }
+          : post
+      ));
+    } catch (error) {
+      console.error('❌ Error liking post:', error);
+      showError('Failed to like post');
+    }
+  };
+
+  const handleSave = async (postId: string) => {
+    if (!user?.id) {
+      showError('You must be logged in to save posts');
+      return;
+    }
+
+    try {
+      const currentUserId = parseInt(user.id.toString());
+      console.log('💾 Saving post:', postId);
+      await favoritesService.toggleFavorite(parseInt(postId), currentUserId);
+      
+      // Simple optimistic update
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, saved: !post.saved }
+          : post
+      ));
+    } catch (error) {
+      console.error('❌ Error saving post:', error);
+      showError('Failed to save post');
+    }
+  };
 
   // Hook de visibilité pour tracker les posts visibles
   const {
@@ -181,49 +297,8 @@ const HomeScreen: React.FC = () => {
     }
   }, [user?.id]);
 
-  // Fonction pour charger les posts depuis l'API
-  const loadPosts = useCallback(async (page = 1, limit = 10) => {
-    try {
-      setLoadingError(null);
-      setIsNetworkError(false);
-      const currentUserId = user?.id ? parseInt(user.id.toString()) : null;
-      
-      // Utiliser la nouvelle méthode getPosts avec userId pour récupérer l'état des favoris
-      const response = currentUserId 
-        ? await postService.default.getPosts(page, limit, currentUserId)
-        : await postService.default.getAllPosts();
-      
-      if (Array.isArray(response)) {
-        // Trier les posts du plus récent au plus ancien
-        const sortedPosts = [...response].sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateB.getTime() - dateA.getTime();
-        });
-        
-        // Transformer les posts API en posts UI en utilisant l'ID utilisateur réel
-        const uiPosts = sortedPosts.map(apiPost => convertApiPostToUiPost(apiPost, currentUserId || 1));
-        
-        setPosts(uiPosts);
-        setHasMorePosts(uiPosts.length === limit);
-      } else {
-        setLoadingError('Unexpected API response format');
-      }
-    } catch (error) {
-      // Check if it's a network error using the ApiError interface
-      const apiError = error as ApiError;
-      if (apiError.type === ErrorType.NETWORK) {
-        setIsNetworkError(true);
-        setLoadingError('Connection issue detected');
-      } else {
-        setLoadingError('Unable to load posts. Please try again later.');
-      }
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
-      setIsLoadingMore(false);
-    }
-  }, [user?.id]);
+  // Vérifier si on a une erreur réseau
+  const isNetworkError = loadingError?.includes('Connection') || loadingError?.includes('Network');
 
   // Simulation du chargement des données des stories (à remplacer par un appel API réel plus tard)
   const loadStories = useCallback(() => {
@@ -287,115 +362,70 @@ const HomeScreen: React.FC = () => {
     setStories(mockStories);
   }, [currentUserData, user]);
 
-  // Charger les données au démarrage
+  // Charger les données une seule fois au montage
   useEffect(() => {
-    loadPosts();
-    loadStories();
-    loadCurrentUserData(); // Charger aussi les données utilisateur
-  }, [loadPosts, loadStories, loadCurrentUserData]);
+    console.log('🚀 HomeScreen mounted - Loading initial data');
+    
+    // Charger les stories (mock data)
+    const loadInitialStories = () => {
+      const mockStories: Story[] = [
+        {
+          id: "1",
+          username: "Your story",
+          avatar: "https://via.placeholder.com/40",
+          viewed: false,
+          content: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+        },
+        {
+          id: "2",
+          username: "John",
+          avatar: "https://randomuser.me/api/portraits/men/41.jpg",
+          viewed: false,
+          content: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+        }
+      ];
+      setStories(mockStories);
+    };
 
-  const handleRefresh = () => {
+    loadInitialStories();
+    
+    // Charger les posts initiaux
+    if (posts.length === 0) {
+      loadPosts(1, false);
+    }
+    
+    // Charger les données utilisateur si on a un user
+    if (user?.id) {
+      loadCurrentUserData();
+    }
+  }, []); // Une seule fois au montage
+
+  // Recharger les posts seulement quand l'utilisateur change
+  useEffect(() => {
+    if (user?.id) {
+      console.log('👤 User changed - Reloading posts');
+      loadPosts(1, false);
+      loadCurrentUserData();
+    }
+  }, [user?.id]);
+
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    setCurrentPage(1);
-    loadPosts(1);
-  };
+    await loadPosts(1, false); // Recharger depuis la page 1
+  }, [loadPosts]);
 
-  const handleLoadMore = () => {
-    if (!isLoadingMore && hasMorePosts) {
-      setIsLoadingMore(true);
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-      loadPosts(nextPage);
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore && !isCurrentlyFetching.current) {
+      console.log('📊 INFINITE SCROLL TRIGGERED - Loading more posts, page:', currentPage + 1);
+      loadPosts(currentPage + 1, true);
+    } else {
+      console.log('🚫 INFINITE SCROLL BLOCKED:', { 
+        isLoadingMore, 
+        hasMore, 
+        isCurrentlyFetching: isCurrentlyFetching.current 
+      });
     }
-  };
-
-  const handleLike = async (postId: string) => {
-    if (!user?.id) {
-      showError('Vous devez être connecté pour liker un post');
-      return;
-    }
-
-    const currentUserId = parseInt(user.id.toString());
-    
-    // Optimistically update UI
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              liked: !post.liked,
-              likes: post.liked ? post.likes - 1 : post.likes + 1,
-            }
-          : post
-      )
-    );
-
-    try {
-      // Utiliser la nouvelle méthode toggleLike
-      await postService.default.toggleLike(parseInt(postId), currentUserId);
-      
-      // Recharger les posts pour synchroniser avec la base de données
-      // On fait ça de manière silencieuse pour éviter les clignotements
-      setTimeout(() => {
-        loadPosts();
-      }, 500);
-      
-    } catch (_error) {
-      // console.error('Erreur lors du toggle du like:', error);
-      
-      // En cas d'erreur, annuler l'optimistic update
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                liked: !post.liked,
-                likes: post.liked ? post.likes + 1 : post.likes - 1,
-              }
-            : post
-        )
-      );
-      showError('Impossible d\'ajouter un like pour le moment.');
-    }
-  };
-
-  const handleSave = async (postId: string) => {
-    if (!user?.id) {
-      showError('Vous devez être connecté pour sauvegarder un post');
-      return;
-    }
-
-    const currentUserId = parseInt(user.id.toString());
-    
-    // Optimistically update UI
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, saved: !post.saved } : post
-      )
-    );
-
-    try {
-      // Utiliser le service des favoris pour persister en base de données
-      await favoritesService.toggleFavorite(parseInt(postId), currentUserId);
-      
-      // Recharger les posts pour synchroniser avec la base de données
-      // On fait ça de manière silencieuse pour éviter les clignotements
-      setTimeout(() => {
-        loadPosts();
-      }, 500);
-      
-    } catch (_error) {
-      // console.error('Erreur lors du toggle des favoris:', error);
-      
-      // En cas d'erreur, annuler l'optimistic update
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId ? { ...post, saved: !post.saved } : post
-        )
-      );
-      showError('Impossible de sauvegarder ce post pour le moment.');
-    }
-  };
+  }, [isLoadingMore, hasMore, currentPage, loadPosts]);
 
   const handleViewStory = (storyId: string) => {
     setCurrentStoryId(storyId);
@@ -422,40 +452,8 @@ const HomeScreen: React.FC = () => {
 
   const handleCloseCommentsModal = async () => {
     setIsCommentsModalVisible(false);
-    
-    // Mettre à jour le nombre de commentaires pour le post actuel
-    if (currentPostId && user?.id) {
-      try {
-        // Récupérer le nombre réel de commentaires depuis l'API des commentaires hiérarchiques
-        const response = await commentService.getCommentsByPost(parseInt(currentPostId), 1, 1);
-        const realCommentsCount = response.pagination.totalItems;
-        
-        // Mettre à jour le post dans le state local avec le nouveau nombre de commentaires
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post.id === currentPostId
-              ? {
-                  ...post,
-                  comments: Array(realCommentsCount).fill(null).map((_, index) => ({
-                    id: `comment-${index}`,
-                    username: 'user',
-                    avatar: '',
-                    text: '',
-                    timeAgo: '',
-                    likes: 0,
-                  })), // Créer un tableau factice de la bonne taille pour le compteur
-                }
-              : post
-          )
-        );
-      } catch (_error) {
-        // console.error('Erreur lors de la mise à jour du compteur de commentaires:', error);
-        // En cas d'erreur, on recharge simplement tous les posts après un délai
-        setTimeout(() => {
-          loadPosts();
-        }, 500);
-      }
-    }
+    // Plus de rechargement automatique - on garde les posts en l'état
+    console.log('💬 Comments modal closed - No automatic reload');
   };
 
   const handleProfilePress = (username: string) => {
@@ -473,10 +471,6 @@ const HomeScreen: React.FC = () => {
 
   const handleNavigateToMessages = () => {
     router.push("/(app)/messages");
-  };
-
-  const handleNavigateToGroups = () => {
-    router.push("/(app)/groups");
   };
 
   const renderSeparator = () => {
@@ -498,7 +492,7 @@ const HomeScreen: React.FC = () => {
       <View
         style={[
           styles.storyRing,
-          { borderColor: item.viewed ? "#8e8e8e" : "#FF5864" },
+          item.viewed ? styles.storyRingViewed : styles.storyRingUnviewed,
         ]}
       >
         <Image source={{ uri: item.avatar }} style={styles.storyAvatar} />
@@ -547,15 +541,13 @@ const HomeScreen: React.FC = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCreatePost = () => {
-    // Rafraîchir la liste des posts avant de naviguer
-    loadPosts();
     // Naviguer vers l'écran de création
     router.push("/publication");
   };
 
   const renderEmptyState = () => (
     <View style={styles.emptyStateContainer}>
-      <FontAwesome name="camera" size={60} color="#CCCCCC" />
+      <FontAwesome name="camera" size={60} color={theme.colors.grey[300]} />
       <Text style={styles.emptyStateTitle}>No posts yet</Text>
       <Text style={styles.emptyStateDescription}>
         Be the first to share your passion for cars!
@@ -564,19 +556,14 @@ const HomeScreen: React.FC = () => {
         style={styles.createPostButton}
         onPress={() => router.push('/publication')}
       >
-        <FontAwesome name="plus" size={16} color="#FFFFFF" style={styles.createPostIcon} />
+        <FontAwesome name="plus" size={16} color={theme.colors.common.white} style={styles.createPostIcon} />
         <Text style={styles.createPostText}>Create my first post</Text>
       </TouchableOpacity>
     </View>
   );
 
-  // Rafraîchir la liste des posts lorsque l'écran est focus
-  useFocusEffect(
-    React.useCallback(() => {
-      loadPosts();
-      loadCurrentUserData(); // Rafraîchir aussi les données utilisateur
-    }, [loadPosts, loadCurrentUserData])
-  );
+  // Plus de rechargement automatique sur focus - comme Instagram
+  // Si on veut refresh, on fait pull-to-refresh manuellement
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -607,7 +594,7 @@ const HomeScreen: React.FC = () => {
       // Vérifier si le partage est disponible sur l'appareil
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
-        showError('Le partage n\'est pas disponible sur cet appareil');
+        showError('Sharing is not available on this device');
         return;
       }
 
@@ -633,7 +620,7 @@ const HomeScreen: React.FC = () => {
         await shareTextContent(shareContent);
       }
       
-    } catch (_error) {
+    } catch {
       // console.error('❌ Error sharing post:', error);
       showError('Impossible de partager ce post');
     }
@@ -655,7 +642,7 @@ const HomeScreen: React.FC = () => {
       await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
       console.log('⚠️ Text file sharing failed:', error);
-      showInfo('Contenu copié dans le presse-papiers');
+      showInfo('Content copied to clipboard');
       // Fallback: copier dans le presse-papiers
       Clipboard.setStringAsync(content);
     }
@@ -682,42 +669,14 @@ const HomeScreen: React.FC = () => {
       likes: 0,
     };
 
-    // Optimistic update
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              comments: [...post.comments, newComment],
-            }
-          : post
-      )
-    );
-
     try {
       // Utiliser la nouvelle méthode addComment
       await postService.default.addComment(parseInt(postId), currentUserId, text);
+      console.log('💬 Comment added successfully - No automatic reload');
       
-      // Recharger les posts après un délai pour synchroniser
-      setTimeout(() => {
-        loadPosts();
-      }, 500);
-      
-    } catch (_error) {
-      // console.error('Erreur lors de l\'ajout du commentaire:', error);
-      
-      // En cas d'erreur, annuler l'optimistic update
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                comments: post.comments.filter((c) => c.id !== newComment.id),
-              }
-            : post
-        )
-      );
-      showError('Impossible d\'ajouter un commentaire pour le moment.');
+    } catch {
+      // console.error('Error when adding comment:', error);
+      showError('Unable to add a comment at the moment.');
     }
   };
 
@@ -743,12 +702,12 @@ const HomeScreen: React.FC = () => {
 
   const renderNetworkErrorState = () => (
     <View style={styles.networkErrorContainer}>
-      <FontAwesome name="wifi" size={60} color="#E10600" />
+      <FontAwesome name="wifi" style={styles.networkErrorIcon} />
       <Text style={styles.networkErrorTitle}>Connection Issue</Text>
       <Text style={styles.networkErrorDescription}>
         Your WiFi connection might not be working properly. Please check your internet connection and try again.
       </Text>
-      <TouchableOpacity style={styles.reloadButton} onPress={() => loadPosts()}>
+      <TouchableOpacity style={styles.reloadButton} onPress={handleRefresh}>
         <Text style={styles.reloadButtonText}>Try Again</Text>
       </TouchableOpacity>
     </View>
@@ -757,7 +716,7 @@ const HomeScreen: React.FC = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF5864" />
+        <ActivityIndicator size="large" color={theme.colors.primary.main} />
       </View>
     );
   }
@@ -765,7 +724,7 @@ const HomeScreen: React.FC = () => {
   if (isNetworkError) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background.paper} />
 
         {/* Header */}
         <View style={styles.header}>
@@ -774,20 +733,18 @@ const HomeScreen: React.FC = () => {
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity
-              style={[styles.headerIconBtn, { position: 'relative' }]}
+              style={styles.headerIconBtn}
+              onPress={() => router.push('/userSearch')}
+            >
+              <FontAwesome name="search" size={22} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.headerIconBtn, styles.notificationButton]}
               onPress={handleNavigateToMessages}
             >
-              <FontAwesome name="comments" size={22} color="#6A707C" />
+              <FontAwesome name="comments" size={22} color={theme.colors.text.secondary} />
               {/* Badge pour futures notifications */}
-              {/* <View style={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: '#E10600'
-              }} /> */}
+              {/* <View style={styles.notificationBadge} /> */}
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -828,9 +785,9 @@ const HomeScreen: React.FC = () => {
   if (loadingError) {
     return (
       <View style={styles.errorContainer}>
-        <FontAwesome name="warning" size={50} color="#FF5864" />
+        <FontAwesome name="warning" style={styles.warningIcon} />
         <Text style={styles.errorText}>{loadingError}</Text>
-        <TouchableOpacity style={styles.reloadButton} onPress={() => loadPosts()}>
+        <TouchableOpacity style={styles.reloadButton} onPress={handleRefresh}>
           <Text style={styles.reloadButtonText}>Try Again</Text>
         </TouchableOpacity>
       </View>
@@ -838,7 +795,7 @@ const HomeScreen: React.FC = () => {
   }
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background.paper} translucent={true} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -847,20 +804,18 @@ const HomeScreen: React.FC = () => {
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity
-            style={[styles.headerIconBtn, { position: 'relative' }]}
+            style={styles.headerIconBtn}
+            onPress={() => router.push('/userSearch')}
+          >
+            <FontAwesome name="search" size={22} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.headerIconBtn, styles.notificationButton]}
             onPress={handleNavigateToMessages}
           >
-            <FontAwesome name="comments" size={22} color="#6A707C" />
+            <FontAwesome name="comments" size={22} color={theme.colors.text.secondary} />
             {/* Badge pour futures notifications */}
-            {/* <View style={{
-              position: 'absolute',
-              top: 6,
-              right: 6,
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: '#E10600'
-            }} /> */}
+            {/* <View style={styles.notificationBadge} /> */}
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerIconBtn}
@@ -917,11 +872,11 @@ const HomeScreen: React.FC = () => {
         }
         ListEmptyComponent={renderEmptyState}
         onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
+        onEndReachedThreshold={0.05}
         ListFooterComponent={
           isLoadingMore ? (
             <View style={styles.footerLoader}>
-              <ActivityIndicator size="small" color="#FF5864" />
+              <ActivityIndicator size="small" color={theme.colors.primary.main} />
             </View>
           ) : null
         }

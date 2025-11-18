@@ -41,9 +41,9 @@ const palette = {
   
   // Couleurs de fond
   background: {
-    default: 'rgba(251, 248, 249, 1)',
+    default: '#FFFFFF',
     paper: '#FFF',
-    input: 'rgba(247, 248, 249, 1)',
+    input: '#FFFFFF',
   },
   
   // Couleurs d'état

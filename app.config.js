@@ -7,7 +7,8 @@ export default {
     version: "1.0.0",
     orientation: "portrait",
     icon: "./app/assets/images/icon.png",
-    userInterfaceStyle: "light",
+    userInterfaceStyle: "automatic",
+    newArchEnabled: true,
     splash: {
       image: "./app/assets/images/splash-icon.png",
       resizeMode: "contain",
@@ -28,6 +29,8 @@ export default {
       package: "com.gearconnect.app"
     },
     web: {
+      bundler: "metro",
+      output: "static",
       favicon: "./app/assets/images/favicon.png"
     },
     extra: {
@@ -46,8 +49,20 @@ export default {
     scheme: "gearconnect",
     plugins: [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          image: "./app/assets/images/splash-icon.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#ffffff"
+        }
+      ],
       "expo-font",
       "expo-web-browser"
-    ]
+    ],
+    experiments: {
+      typedRoutes: true
+    }
   }
 }; 

@@ -146,13 +146,13 @@ export class MessageAnimations {
         Animated.timing(scaleValue, {
           toValue: 1.05,
           duration: 1000,
-          easing: Easing.inOut(Easing.sine),
+          easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
         Animated.timing(scaleValue, {
           toValue: 1,
           duration: 1000,
-          easing: Easing.inOut(Easing.sine),
+          easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
       ])

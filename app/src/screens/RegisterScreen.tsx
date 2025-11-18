@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
@@ -20,7 +19,9 @@ import { useAuth } from "../context/AuthContext"; // Import useAuth hook
 
 const RegisterScreen: React.FC = () => {
   const router = useRouter();
-  const { register, isLoading } = useAuth(); // Use auth context
+  const auth = useAuth();
+  const register = auth?.register;
+  const isLoading = auth?.isLoading ?? false;
 
   // Input states
   const [username, setUsername] = useState("");
@@ -77,6 +78,11 @@ const RegisterScreen: React.FC = () => {
   // Handle registration
   const handleRegister = async () => {
     if (!validateForm()) {
+      return;
+    }
+
+    if (!register) {
+      setErrors({ general: "Registration function not available" });
       return;
     }
 
@@ -139,6 +145,7 @@ const RegisterScreen: React.FC = () => {
                   errors.username ? styles.inputError : null,
                 ]}
                 placeholder="Username"
+                placeholderTextColor="#8391A1"
                 value={username}
                 onChangeText={(text) => {
                   setUsername(text);
@@ -156,6 +163,7 @@ const RegisterScreen: React.FC = () => {
               <TextInput
                 style={[styles.input, errors.name ? styles.inputError : null]}
                 placeholder="Name"
+                placeholderTextColor="#8391A1"
                 value={name}
                 onChangeText={(text) => {
                   setName(text);
@@ -173,6 +181,7 @@ const RegisterScreen: React.FC = () => {
               <TextInput
                 style={[styles.input, errors.email ? styles.inputError : null]}
                 placeholder="Email"
+                placeholderTextColor="#8391A1"
                 keyboardType="email-address"
                 value={email}
                 onChangeText={(text) => {
@@ -194,6 +203,7 @@ const RegisterScreen: React.FC = () => {
                   errors.password ? styles.inputError : null,
                 ]}
                 placeholder="Password"
+                placeholderTextColor="#8391A1"
                 secureTextEntry
                 value={password}
                 onChangeText={(text) => {
@@ -215,6 +225,7 @@ const RegisterScreen: React.FC = () => {
                   errors.confirmPassword ? styles.inputError : null,
                 ]}
                 placeholder="Confirm password"
+                placeholderTextColor="#8391A1"
                 secureTextEntry
                 value={confirmPassword}
                 onChangeText={(text) => {

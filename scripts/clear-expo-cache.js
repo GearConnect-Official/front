@@ -18,7 +18,7 @@ if (fs.existsSync(sharedPath)) {
 try {
   console.log('Vidage du cache Expo...');
   execSync('npx expo start --clear', { stdio: 'inherit' });
-} catch (error) {
+} catch (_error) {
   console.log('Le cache a été nettoyé, mais nous avons terminé prématurément le processus Expo.');
 }
 

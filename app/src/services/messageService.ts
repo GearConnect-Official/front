@@ -269,7 +269,7 @@ export class MessageService {
 
     DELETE_ACCOUNT: {
       title: "Supprimer le compte",
-      message: "Cette action est irréversible. Votre compte et toutes vos données seront définitivement supprimés.",
+      message: "Cette action est irréversible. Votre compte sera définitivement supprimé.",
       confirmText: "Supprimer",
       cancelText: "Annuler",
       destructive: true,

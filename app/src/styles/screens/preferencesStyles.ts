@@ -15,6 +15,10 @@ const colors = {
   success: theme.colors.status.success,
   overlay: 'rgba(0, 0, 0, 0.5)',
   ripple: 'rgba(0, 0, 0, 0.1)',
+  // Couleurs supplémentaires pour les gradients et effets
+  gradientStart: theme.colors.primary.main,
+  gradientEnd: theme.colors.primary.dark || theme.colors.primary.main,
+  secondary: theme.colors.grey?.[400] || theme.colors.text.secondary,
 };
 
 export default StyleSheet.create({
@@ -542,4 +546,7 @@ export default StyleSheet.create({
     marginLeft: 12,
     flex: 1,
   },
-}); 
+});
+
+// Export colors for use in components
+export { colors }; 

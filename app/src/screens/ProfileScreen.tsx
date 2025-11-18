@@ -140,7 +140,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           username: response.data.username,
           hasProfilePicture: !!response.data.profilePicture,
           hasProfilePicturePublicId: !!response.data.profilePicturePublicId,
+          isDeleted: response.data.isDeleted,
         });
+        
+        // Vérifier si le compte est supprimé
+        if (response.data.isDeleted) {
+          console.warn('⚠️ ProfileScreen: This account has been deleted');
+        }
+        
         setUserData(response.data);
       } else {
         console.error("❌ ProfileScreen: Failed to fetch user data:", response.error);
@@ -900,10 +907,63 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </View>
         </View>
 
-        {/* Profile section with avatar and statistics */}
-        <View style={styles.profileContainer}>
-          <View style={styles.profileSection}>
-            <View style={styles.profileHeader}>
+        {/* Message si le compte est supprimé */}
+        {userData?.isDeleted ? (
+          <View style={{ paddingTop: 40, paddingHorizontal: 16, backgroundColor: '#FFFFFF' }}>
+            <View style={[styles.performanceCard, { 
+              backgroundColor: '#FFF3CD', 
+              borderWidth: 2, 
+              borderColor: '#FFE69C',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 3,
+            }]}>
+              <View style={[styles.performanceGradient, { backgroundColor: 'transparent', alignItems: 'center', padding: 30 }]}>
+                <FontAwesome name="exclamation-triangle" size={64} color="#856404" />
+                <Text style={{ 
+                  color: '#856404', 
+                  marginTop: 20,
+                  fontSize: 22,
+                  fontWeight: 'bold',
+                  textAlign: 'center'
+                }}>
+                  Compte Supprimé
+                </Text>
+                <Text style={{ 
+                  color: '#856404', 
+                  textAlign: 'center',
+                  marginTop: 12,
+                  fontSize: 16,
+                  lineHeight: 24
+                }}>
+                  {userData.message || "Ce compte a été supprimé par son propriétaire."}
+                </Text>
+                {userData.deletedAt && (
+                  <Text style={{ 
+                    color: '#856404', 
+                    fontSize: 14, 
+                    marginTop: 16,
+                    fontStyle: 'italic',
+                    textAlign: 'center'
+                  }}>
+                    Supprimé le {new Date(userData.deletedAt).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        ) : (
+          <>
+            {/* Profile section with avatar and statistics */}
+            <View style={styles.profileContainer}>
+              <View style={styles.profileSection}>
+                <View style={styles.profileHeader}>
               {/* Photo de profil optimisée avec Cloudinary */}
               {userData?.profilePicturePublicId ? (
                 <CloudinaryAvatar
@@ -1202,17 +1262,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </TouchableOpacity>
         </View>
 
-        <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-          {activeTab === "posts"
-            ? renderPostsGrid()
-            : activeTab === "liked"
-            ? renderLikedPostsGrid()
-            : activeTab === "favorites"
-            ? renderFavoritesGrid()
-            : activeTab === "reels"
-            ? renderReelsGrid()
-            : renderEmptyComponent()}
-        </View>
+            <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+              {activeTab === "posts"
+                ? renderPostsGrid()
+                : activeTab === "liked"
+                ? renderLikedPostsGrid()
+                : activeTab === "favorites"
+                ? renderFavoritesGrid()
+                : activeTab === "reels"
+                ? renderReelsGrid()
+                : renderEmptyComponent()}
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <ProfileMenu

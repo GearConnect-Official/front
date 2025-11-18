@@ -9,6 +9,9 @@ export interface UserProfile {
   description?: string;
   profilePicture?: string;
   profilePicturePublicId?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  message?: string;
 }
 
 export interface UpdateUserProfileData {

@@ -15,6 +15,8 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { useMessage } from '../context/MessageContext';
 import MessageService from '../services/messageService';
+import { deleteAccount } from '../services/AuthService';
+import { MessageType } from '../types/messages';
 import styles, { colors } from '../styles/screens/user/settingsStyles';
 
 
@@ -88,9 +90,9 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
 
 const SettingsScreen: React.FC = () => {
   const router = useRouter();
-  const { logout } = useAuth();
+  const auth = useAuth();
   const { showMessage, showConfirmation } = useMessage();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isFetchingUser, setIsFetchingUser] = useState(true);
   const [appVersion] = useState('1.0.0');
   
@@ -112,44 +114,56 @@ const SettingsScreen: React.FC = () => {
   }, []);
 
   const handlePrivacySettings = () => {
-    showMessage(MessageService.INFO.COMING_SOON);
+    router.push('/privacySettings');
   };
   
   const handleSecuritySettings = () => {
-    showMessage(MessageService.INFO.COMING_SOON);
+    router.push('/securitySettings');
   };
 
   const handleAccountSettings = () => {
-    // router.push('/editProfile');
-    showMessage(MessageService.INFO.COMING_SOON);
+    router.push('/editProfile');
   };
 
   const handlePreferences = () => {
     router.push('/preferences');
   };
 
-  const handleHelpCenter = () => {
-    Linking.openURL('https://gearconnect-landing.vercel.app/faq');
+  const handleHelpCenter = async () => {
+    try {
+      const url = 'https://gearconnect-landing.vercel.app/faq';
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        showMessage({
+          type: MessageType.ERROR,
+          message: 'Unable to open the help center link'
+        });
+      }
+    } catch (error) {
+      // L'erreur peut survenir même si l'URL s'ouvre correctement
+      // On ne l'affiche pas à l'utilisateur car l'action a probablement réussi
+      console.log('Help center link opened (error can be ignored):', error);
+    }
   };
 
   const handleTermsAndConditions = () => {
-    showMessage(MessageService.INFO.TERMS_CONDITIONS);
+    router.push('/termsAndConditions');
   };
 
   const handleLogout = async () => {
     showConfirmation({
       ...MessageService.CONFIRMATIONS.LOGOUT,
       onConfirm: async () => {
-        setIsLoading(true);
         try {
-          await logout();
-          // await fetch(API_URL_AUTH + '/logout');
-          router.replace("/(auth)");
+          if (auth?.logout) {
+            await auth.logout();
+            router.replace("/(auth)");
+          }
         } catch (error) {
           console.error("Error during logout:", error);
           showMessage(MessageService.ERROR.LOGOUT_FAILED);
-        } finally {
-          setIsLoading(false);
         }
       }
     });
@@ -158,8 +172,53 @@ const SettingsScreen: React.FC = () => {
   const handleDeleteAccount = () => {
     showConfirmation({
       ...MessageService.CONFIRMATIONS.DELETE_ACCOUNT,
-      onConfirm: () => {
-        showMessage(MessageService.INFO.COMING_SOON);
+      onConfirm: async () => {
+        setIsDeletingAccount(true);
+        try {
+          // Vérifier qu'on a bien un utilisateur
+          if (!auth?.user?.email) {
+            showMessage({
+              type: MessageType.ERROR,
+              message: 'User information not available. Please try logging out and back in.'
+            });
+            setIsDeletingAccount(false);
+            return;
+          }
+
+          console.log(`🗑️ Starting account deletion for: ${auth.user.email}`);
+          
+          // Appeler deleteAccount avec l'email - EXACTEMENT comme signUp
+          const result = await deleteAccount(auth.user.email);
+          
+          if (result.success) {
+            console.log("✅ Account marked as deleted, logging out...");
+            
+            // Logout et redirection
+            if (auth?.logout) {
+              await auth.logout();
+            }
+            router.replace("/(auth)");
+            
+            showMessage({
+              type: MessageType.SUCCESS,
+              message: 'Account deleted successfully'
+            });
+          } else {
+            console.error("❌ Account deletion failed:", result.error);
+            showMessage({
+              type: MessageType.ERROR,
+              message: result.error || 'Failed to delete account'
+            });
+          }
+        } catch (error) {
+          console.error("❌ Error during account deletion:", error);
+          showMessage({
+            type: MessageType.ERROR,
+            message: 'An unexpected error occurred while deleting your account'
+          });
+        } finally {
+          setIsDeletingAccount(false);
+        }
       }
     });
   };
@@ -252,17 +311,17 @@ const SettingsScreen: React.FC = () => {
             icon="sign-out"
             title="Logout"
             subtitle="Sign out of your account"
-            onPress={isLoading ? undefined : handleLogout}            
-            rightElement={isLoading ? (
-              <ActivityIndicator size="small" color={colors.activityIndicator} />
-            ) : undefined}
+            onPress={handleLogout}
           />
           <SettingsItem
             icon="trash-o"
             title="Delete Account"
             subtitle="Permanently delete your account and data"
-            onPress={handleDeleteAccount}
+            onPress={isDeletingAccount ? undefined : handleDeleteAccount}
             isDestructive
+            rightElement={isDeletingAccount ? (
+              <ActivityIndicator size="small" color={colors.activityIndicator} />
+            ) : undefined}
           />
         </SettingsSection>
         

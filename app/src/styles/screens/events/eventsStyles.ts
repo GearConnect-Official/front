@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     height: HEADER_HEIGHT,
-    marginTop: -STATUSBAR_HEIGHT,
+    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
     paddingTop: STATUSBAR_HEIGHT,
     zIndex: 10,
   },

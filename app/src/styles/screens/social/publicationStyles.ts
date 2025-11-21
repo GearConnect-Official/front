@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
     borderBottomWidth: 0,
     height: HEADER_HEIGHT,
-    marginTop: -STATUSBAR_HEIGHT,
+    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
     paddingTop: STATUSBAR_HEIGHT,
   },
   headerLeft: {

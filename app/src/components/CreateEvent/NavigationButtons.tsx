@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { createEventStyles as styles } from '../../styles/screens';
+import * as React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import { createEventStyles as styles } from "../../styles/screens";
 
 interface NavigationButtonsProps {
   currentStep: number;
@@ -33,13 +33,13 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
 
       {isLastStep ? (
         <TouchableOpacity
-          style={[styles.nextButton, { backgroundColor: '#28a745' }]}
+          style={[styles.nextButton, { backgroundColor: "#28a745" }]}
           onPress={onSubmit}
           disabled={loading}
         >
           {loading ? (
             <Text style={styles.nextButtonText}>
-              {isEditing ? 'Saving...' : 'Publishing...'}
+              {isEditing ? "Saving..." : "Publishing..."}
             </Text>
           ) : (
             <>

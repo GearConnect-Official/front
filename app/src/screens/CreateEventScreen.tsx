@@ -18,7 +18,6 @@ const CreateEventScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <TopBar title="Create Event" onBackPress={handleCancel} />
       <ScrollView style={styles.contentContainer}>
         <CreateEventForm onCancel={handleCancel} onSuccess={handleSuccess} />
         <View style={styles.spacer} />

@@ -1,9 +1,10 @@
 import { StyleSheet, Dimensions, Platform, StatusBar } from "react-native";
 import theme from "../../config/theme";
+import { THEME_COLORS } from "../user/performanceStyles";
 
 const { width } = Dimensions.get("window");
 const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
+  Platform.OS === "ios" ? 28 : StatusBar.currentHeight || 0;
 const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 const styles = StyleSheet.create({
@@ -22,25 +23,13 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.lg * 2,
     flexGrow: 1,
   },
-  contentContainer: {
-    padding: theme.spacing.md,
-  },
+  // contentContainer: {
+  //   padding: theme.spacing.md,
+  // },
   spacer: {
     height: theme.spacing.xl,
   },
   // TopBar styles
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
-    borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: -STATUSBAR_HEIGHT,
-    paddingTop: STATUSBAR_HEIGHT,
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -50,7 +39,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderBottomWidth: 0,
     height: HEADER_HEIGHT,
-    marginTop: -STATUSBAR_HEIGHT,
+    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
     paddingTop: STATUSBAR_HEIGHT,
   },
   headerTitle: {
@@ -173,12 +162,23 @@ const styles = StyleSheet.create({
   // Step indicator styles
   stepsContainer: {
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    height: HEADER_HEIGHT,
+    marginTop: Platform.OS === "ios" ? STATUSBAR_HEIGHT : 0,
+    paddingTop: STATUSBAR_HEIGHT,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+  },
+  stepDotContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 16,
+    backgroundColor: "#fff",
   },
   stepDot: {
     width: 12,
@@ -198,6 +198,15 @@ const styles = StyleSheet.create({
   stepContainer: {
     padding: 20,
     minHeight: 400,
+    // flexDirection: "row",
+    // justifyContent: "space-between",
+    // alignItems: "center",
+    // paddingHorizontal: 15,
+    // paddingVertical: 10,
+    // backgroundColor: THEME_COLORS.BACKGROUND,
+    // borderBottomWidth: 0,
+    // marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
+    // paddingTop: STATUSBAR_HEIGHT,
   },
   stepTitle: {
     fontSize: 22,

@@ -16,15 +16,15 @@ import styles from "../styles/screens/social/friendRequestStyles";
 
 // Racing color palette inspired by automotive and racing world
 const THEME_COLORS = {
-  primary: '#E10600', // Racing Red
-  secondary: '#1E1E1E', // Racing Black
-  tertiary: '#2D9CDB', // Accent Blue
-  background: '#FFFFFF',
-  card: '#F2F2F2',
-  cardLight: '#F8F8F8',
-  textPrimary: '#1E1E1E',
-  textSecondary: '#6E6E6E',
-  border: '#E0E0E0',
+  primary: "#E10600", // Racing Red
+  secondary: "#1E1E1E", // Racing Black
+  tertiary: "#2D9CDB", // Accent Blue
+  background: "#FFFFFF",
+  card: "#F2F2F2",
+  cardLight: "#F8F8F8",
+  textPrimary: "#1E1E1E",
+  textSecondary: "#6E6E6E",
+  border: "#E0E0E0",
 };
 
 const FriendsScreen: React.FC = () => {
@@ -59,11 +59,20 @@ const FriendsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Fixed header */}
-      <View style={[styles.header, { backgroundColor: THEME_COLORS.background }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.secondary} />
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <FontAwesome
+            name="arrow-left"
+            size={20}
+            color={THEME_COLORS.secondary}
+          />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: THEME_COLORS.secondary }]}>Friends</Text>
+        <Text style={[styles.headerTitle, { color: THEME_COLORS.secondary }]}>
+          Friends
+        </Text>
         <View style={styles.placeholderRight}></View>
       </View>
 
@@ -71,41 +80,67 @@ const FriendsScreen: React.FC = () => {
         style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={THEME_COLORS.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={THEME_COLORS.primary}
+          />
         }
       >
         {/* Tabs navigation section */}
         <View style={styles.tabsContainer}>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'friends' && styles.activeTab]} 
-            onPress={() => setActiveTab('friends')}
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "friends" && styles.activeTab]}
+            onPress={() => setActiveTab("friends")}
           >
-            <FontAwesome 
-              name="users" 
-              size={22} 
-              color={activeTab === 'friends' ? THEME_COLORS.primary : THEME_COLORS.textSecondary} 
+            <FontAwesome
+              name="users"
+              size={22}
+              color={
+                activeTab === "friends"
+                  ? THEME_COLORS.primary
+                  : THEME_COLORS.textSecondary
+              }
             />
-            <Text style={[
-              styles.tabText, 
-              { color: activeTab === 'friends' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
-            ]}>
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    activeTab === "friends"
+                      ? THEME_COLORS.primary
+                      : THEME_COLORS.textSecondary,
+                },
+              ]}
+            >
               My friends
             </Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'requests' && styles.activeTab]} 
-            onPress={() => setActiveTab('requests')}
+
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "requests" && styles.activeTab]}
+            onPress={() => setActiveTab("requests")}
           >
-            <FontAwesome 
-              name="user-plus" 
-              size={22} 
-              color={activeTab === 'requests' ? THEME_COLORS.primary : THEME_COLORS.textSecondary} 
+            <FontAwesome
+              name="user-plus"
+              size={22}
+              color={
+                activeTab === "requests"
+                  ? THEME_COLORS.primary
+                  : THEME_COLORS.textSecondary
+              }
             />
-            <Text style={[
-              styles.tabText, 
-              { color: activeTab === 'requests' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
-            ]}>
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    activeTab === "requests"
+                      ? THEME_COLORS.primary
+                      : THEME_COLORS.textSecondary,
+                },
+              ]}
+            >
               Received
             </Text>
             {/* Badge for new requests */}
@@ -113,20 +148,31 @@ const FriendsScreen: React.FC = () => {
               <Text style={styles.badgeText}>2</Text>
             </View>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'sent' && styles.activeTab]} 
-            onPress={() => setActiveTab('sent')}
+
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "sent" && styles.activeTab]}
+            onPress={() => setActiveTab("sent")}
           >
-            <FontAwesome 
-              name="paper-plane" 
-              size={22} 
-              color={activeTab === 'sent' ? THEME_COLORS.primary : THEME_COLORS.textSecondary} 
+            <FontAwesome
+              name="paper-plane"
+              size={22}
+              color={
+                activeTab === "sent"
+                  ? THEME_COLORS.primary
+                  : THEME_COLORS.textSecondary
+              }
             />
-            <Text style={[
-              styles.tabText, 
-              { color: activeTab === 'sent' ? THEME_COLORS.primary : THEME_COLORS.textSecondary }
-            ]}>
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    activeTab === "sent"
+                      ? THEME_COLORS.primary
+                      : THEME_COLORS.textSecondary,
+                },
+              ]}
+            >
               Sent
             </Text>
           </TouchableOpacity>
@@ -138,33 +184,49 @@ const FriendsScreen: React.FC = () => {
           {activeTab === "friends" && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>My friends • 12</Text>
-              
+
               {/* Friends list */}
               <View style={styles.friendCard}>
                 <Image
-                  source={{ uri: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg" }}
+                  source={{
+                    uri: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg",
+                  }}
                   style={styles.avatarImage}
                 />
                 <View style={styles.friendInfo}>
                   <Text style={styles.friendName}>Marc Dubois</Text>
-                  <Text style={styles.friendStatus}>🏁 GT3 Driver • Online</Text>
+                  <Text style={styles.friendStatus}>
+                    🏁 GT3 Driver • Online
+                  </Text>
                 </View>
                 <TouchableOpacity style={styles.messageButton}>
-                  <FontAwesome name="comment" size={18} color={THEME_COLORS.primary} />
+                  <FontAwesome
+                    name="comment"
+                    size={18}
+                    color={THEME_COLORS.primary}
+                  />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.friendCard}>
                 <Image
-                  source={{ uri: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg" }}
+                  source={{
+                    uri: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg",
+                  }}
                   style={styles.avatarImage}
                 />
                 <View style={styles.friendInfo}>
                   <Text style={styles.friendName}>Sophie Martin</Text>
-                  <Text style={styles.friendStatus}>🏎️ Formula 4 • Offline</Text>
+                  <Text style={styles.friendStatus}>
+                    🏎️ Formula 4 • Offline
+                  </Text>
                 </View>
                 <TouchableOpacity style={styles.messageButton}>
-                  <FontAwesome name="comment" size={18} color={THEME_COLORS.textSecondary} />
+                  <FontAwesome
+                    name="comment"
+                    size={18}
+                    color={THEME_COLORS.textSecondary}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -176,14 +238,21 @@ const FriendsScreen: React.FC = () => {
               <Text style={styles.sectionTitle}>Friend requests</Text>
               <View style={styles.requestCard}>
                 <Image
-                  source={{ uri: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg" }}
+                  source={{
+                    uri: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg",
+                  }}
                   style={styles.avatarImage}
                 />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName}>John Doe</Text>
-                  <Text style={styles.requestMutual}>🏁 5 mutual friends • Amateur driver</Text>
+                  <Text style={styles.requestMutual}>
+                    🏁 5 mutual friends • Amateur driver
+                  </Text>
                   <View style={styles.requestActions}>
-                    <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptRequest}>
+                    <TouchableOpacity
+                      style={styles.acceptButton}
+                      onPress={handleAcceptRequest}
+                    >
                       <Text style={styles.acceptButtonText}>Accept</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.declineButton}>
@@ -192,17 +261,24 @@ const FriendsScreen: React.FC = () => {
                   </View>
                 </View>
               </View>
-              
+
               <View style={styles.requestCard}>
                 <Image
-                  source={{ uri: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg" }}
+                  source={{
+                    uri: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg",
+                  }}
                   style={styles.avatarImage}
                 />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName}>Jane Smith</Text>
-                  <Text style={styles.requestMutual}>🏎️ 2 mutual friends • Karting</Text>
+                  <Text style={styles.requestMutual}>
+                    🏎️ 2 mutual friends • Karting
+                  </Text>
                   <View style={styles.requestActions}>
-                    <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptRequest}>
+                    <TouchableOpacity
+                      style={styles.acceptButton}
+                      onPress={handleAcceptRequest}
+                    >
                       <Text style={styles.acceptButtonText}>Accept</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.declineButton}>
@@ -218,15 +294,19 @@ const FriendsScreen: React.FC = () => {
           {activeTab === "sent" && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Sent requests</Text>
-              
+
               <View style={styles.sentCard}>
                 <Image
-                  source={{ uri: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg" }}
+                  source={{
+                    uri: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg",
+                  }}
                   style={styles.avatarImage}
                 />
                 <View style={styles.sentInfo}>
                   <Text style={styles.sentName}>Alex Rodriguez</Text>
-                  <Text style={styles.sentStatus}>🏁 Request sent 2 days ago</Text>
+                  <Text style={styles.sentStatus}>
+                    🏁 Request sent 2 days ago
+                  </Text>
                 </View>
                 <TouchableOpacity style={styles.cancelButton}>
                   <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -235,12 +315,16 @@ const FriendsScreen: React.FC = () => {
 
               <View style={styles.sentCard}>
                 <Image
-                  source={{ uri: "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg" }}
+                  source={{
+                    uri: "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg",
+                  }}
                   style={styles.avatarImage}
                 />
                 <View style={styles.sentInfo}>
                   <Text style={styles.sentName}>Lisa Chen</Text>
-                  <Text style={styles.sentStatus}>🏎️ Request sent 5 days ago</Text>
+                  <Text style={styles.sentStatus}>
+                    🏎️ Request sent 5 days ago
+                  </Text>
                 </View>
                 <TouchableOpacity style={styles.cancelButton}>
                   <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -258,7 +342,7 @@ const FriendsScreen: React.FC = () => {
       >
         <FontAwesome name="user-plus" size={24} color="#FFFFFF" />
       </TouchableOpacity>
-      
+
       <AddFriendModal
         visible={isAddFriendModalVisible}
         onClose={() => setIsAddFriendModalVisible(false)}
@@ -269,4 +353,3 @@ const FriendsScreen: React.FC = () => {
 };
 
 export default FriendsScreen;
-

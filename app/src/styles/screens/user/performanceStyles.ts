@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StatusBar, StyleSheet } from "react-native";
 // Racing theme colors
 export const THEME_COLORS = {
   // Primary racing colors
@@ -15,7 +15,7 @@ export const THEME_COLORS = {
 
   // UI colors
   PRIMARY: "#E10600",
-  BACKGROUND: "#F8F9FA",
+  BACKGROUND: "#FFFFFFF",
   CARD_BACKGROUND: "#FFFFFF",
   BORDER: "#E1E8ED",
   TEXT_PRIMARY: "#14171A",
@@ -34,6 +34,9 @@ export const THEME_COLORS = {
   RACING_GRADIENT_START: "#FF6B1A",
   RACING_GRADIENT_END: "#E10600",
 };
+const STATUSBAR_HEIGHT =
+  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
+const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 // Animation and layout constants
 export const LAYOUT = {
@@ -99,14 +102,12 @@ export const performanceStyles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: LAYOUT.SPACING_MD,
     paddingVertical: LAYOUT.SPACING_MD,
-    backgroundColor: THEME_COLORS.CARD_BACKGROUND,
-    borderBottomWidth: 1,
+    backgroundColor: THEME_COLORS.BACKGROUND,
+    borderBottomWidth: 0,
     borderBottomColor: THEME_COLORS.BORDER,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    height: HEADER_HEIGHT,
+    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
+    paddingTop: STATUSBAR_HEIGHT,
   },
   headerTitle: {
     fontSize: TYPOGRAPHY.SECTION_TITLE,

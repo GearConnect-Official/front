@@ -1,20 +1,24 @@
-import { StyleSheet } from "react-native";
+import { Platform, StatusBar, StyleSheet } from "react-native";
 import theme from "./config";
 
 // Racing color palette inspired by automotive and racing world
 const THEME_COLORS = {
-  primary: '#E10600', // Racing Red
-  secondary: '#1E1E1E', // Racing Black
-  tertiary: '#2D9CDB', // Accent Blue
-  quaternary: '#F0C419', // Accent Yellow
-  background: '#FFFFFF',
-  card: '#F2F2F2',
-  cardLight: '#F8F8F8',
-  textPrimary: '#1E1E1E',
-  textSecondary: '#6E6E6E',
-  border: '#E0E0E0',
-  success: '#27AE60', // Green for positive badges
+  primary: "#E10600", // Racing Red
+  secondary: "#1E1E1E", // Racing Black
+  tertiary: "#2D9CDB", // Accent Blue
+  quaternary: "#F0C419", // Accent Yellow
+  background: "#FFFFFF",
+  card: "#F2F2F2",
+  cardLight: "#F8F8F8",
+  textPrimary: "#1E1E1E",
+  textSecondary: "#6E6E6E",
+  border: "#E0E0E0",
+  success: "#27AE60", // Green for positive badges
 };
+
+const STATUSBAR_HEIGHT =
+  Platform.OS === "ios" ? 28 : StatusBar.currentHeight || 0;
+const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 const styles = StyleSheet.create({
   container: {
@@ -22,25 +26,28 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: THEME_COLORS.background,
+    backgroundColor: "#fff",
     borderBottomWidth: 0,
+    height: HEADER_HEIGHT,
+    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
+    paddingTop: STATUSBAR_HEIGHT,
   },
   backButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    justifyContent: "center",
+    alignItems: "flex-start",
   },
   menuButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+    justifyContent: "center",
+    alignItems: "flex-end",
   },
   placeholderRight: {
     width: 40,
@@ -48,7 +55,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: THEME_COLORS.secondary,
   },
   content: {
@@ -59,8 +66,8 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
   },
   tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     backgroundColor: THEME_COLORS.background,
     borderBottomWidth: 1,
     borderBottomColor: THEME_COLORS.border,
@@ -68,9 +75,9 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 10,
-    position: 'relative',
+    position: "relative",
   },
   activeTab: {
     borderBottomWidth: 2,
@@ -78,36 +85,36 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     marginTop: 4,
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: 5,
-    right: '25%',
+    right: "25%",
     backgroundColor: THEME_COLORS.primary,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   badgeText: {
     color: THEME_COLORS.background,
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   section: {
     padding: 15,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: THEME_COLORS.textPrimary,
     marginBottom: 15,
   },
   requestCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: THEME_COLORS.cardLight,
     borderRadius: 10,
     padding: 15,
@@ -129,7 +136,7 @@ const styles = StyleSheet.create({
   },
   requestName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: THEME_COLORS.textPrimary,
     marginBottom: 4,
   },
@@ -139,8 +146,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   requestActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "flex-start",
   },
   acceptButton: {
     backgroundColor: THEME_COLORS.primary,
@@ -151,7 +158,7 @@ const styles = StyleSheet.create({
   },
   acceptButtonText: {
     color: THEME_COLORS.background,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 14,
   },
   declineButton: {
@@ -162,17 +169,17 @@ const styles = StyleSheet.create({
   },
   declineButtonText: {
     color: THEME_COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 14,
   },
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 40,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: THEME_COLORS.textPrimary,
     marginTop: 15,
     marginBottom: 5,
@@ -180,29 +187,29 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     fontSize: 14,
     color: THEME_COLORS.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: 20,
   },
   addButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     right: 20,
     backgroundColor: THEME_COLORS.primary,
     width: 60,
     height: 60,
     borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
   // Styles pour les amis
   friendCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: THEME_COLORS.cardLight,
     borderRadius: 10,
     padding: 15,
@@ -219,7 +226,7 @@ const styles = StyleSheet.create({
   },
   friendName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: THEME_COLORS.textPrimary,
     marginBottom: 4,
   },
@@ -234,8 +241,8 @@ const styles = StyleSheet.create({
   },
   // Styles pour les demandes envoyées
   sentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: THEME_COLORS.cardLight,
     borderRadius: 10,
     padding: 15,
@@ -252,7 +259,7 @@ const styles = StyleSheet.create({
   },
   sentName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: THEME_COLORS.textPrimary,
     marginBottom: 4,
   },
@@ -268,7 +275,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: THEME_COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 14,
   },
 });

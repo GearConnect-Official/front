@@ -1,5 +1,6 @@
 import { StyleSheet, Dimensions, Platform, StatusBar } from "react-native";
 import theme from "../../config/theme";
+import { THEME_COLORS } from "../user/performanceStyles";
 
 const { width } = Dimensions.get("window");
 const STATUSBAR_HEIGHT =
@@ -16,14 +17,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    ...theme.common.spaceBetween,
-    paddingHorizontal: theme.spacing.sm + 3,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: THEME_COLORS.BACKGROUND,
+    borderBottomWidth: 0,
     height: HEADER_HEIGHT,
     marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
     paddingTop: STATUSBAR_HEIGHT,
-    zIndex: 10,
   },
   headerTitle: {
     fontSize: 18,

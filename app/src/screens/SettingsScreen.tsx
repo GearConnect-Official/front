@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Switch,
   StatusBar,
   ActivityIndicator,
   Linking
@@ -15,7 +14,6 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { useMessage } from '../context/MessageContext';
 import MessageService from '../services/messageService';
-import { deleteAccount } from '../services/AuthService';
 import { MessageType } from '../types/messages';
 import styles, { colors } from '../styles/screens/user/settingsStyles';
 
@@ -92,7 +90,6 @@ const SettingsScreen: React.FC = () => {
   const router = useRouter();
   const auth = useAuth();
   const { showMessage, showConfirmation } = useMessage();
-  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isFetchingUser, setIsFetchingUser] = useState(true);
   const [appVersion] = useState('1.0.0');
   
@@ -116,17 +113,9 @@ const SettingsScreen: React.FC = () => {
   const handlePrivacySettings = () => {
     router.push('/privacySettings');
   };
-  
-  const handleSecuritySettings = () => {
-    router.push('/securitySettings');
-  };
 
   const handleAccountSettings = () => {
     router.push('/editProfile');
-  };
-
-  const handlePreferences = () => {
-    router.push('/preferences');
   };
 
   const handleHelpCenter = async () => {
@@ -164,60 +153,6 @@ const SettingsScreen: React.FC = () => {
         } catch (error) {
           console.error("Error during logout:", error);
           showMessage(MessageService.ERROR.LOGOUT_FAILED);
-        }
-      }
-    });
-  };
-
-  const handleDeleteAccount = () => {
-    showConfirmation({
-      ...MessageService.CONFIRMATIONS.DELETE_ACCOUNT,
-      onConfirm: async () => {
-        setIsDeletingAccount(true);
-        try {
-          // Vérifier qu'on a bien un utilisateur
-          if (!auth?.user?.email) {
-            showMessage({
-              type: MessageType.ERROR,
-              message: 'User information not available. Please try logging out and back in.'
-            });
-            setIsDeletingAccount(false);
-            return;
-          }
-
-          console.log(`🗑️ Starting account deletion for: ${auth.user.email}`);
-          
-          // Appeler deleteAccount avec l'email - EXACTEMENT comme signUp
-          const result = await deleteAccount(auth.user.email);
-          
-          if (result.success) {
-            console.log("✅ Account marked as deleted, logging out...");
-            
-            // Logout et redirection
-            if (auth?.logout) {
-              await auth.logout();
-            }
-            router.replace("/(auth)");
-            
-            showMessage({
-              type: MessageType.SUCCESS,
-              message: 'Account deleted successfully'
-            });
-          } else {
-            console.error("❌ Account deletion failed:", result.error);
-            showMessage({
-              type: MessageType.ERROR,
-              message: result.error || 'Failed to delete account'
-            });
-          }
-        } catch (error) {
-          console.error("❌ Error during account deletion:", error);
-          showMessage({
-            type: MessageType.ERROR,
-            message: 'An unexpected error occurred while deleting your account'
-          });
-        } finally {
-          setIsDeletingAccount(false);
         }
       }
     });
@@ -263,22 +198,6 @@ const SettingsScreen: React.FC = () => {
             subtitle="Control your privacy preferences"
             onPress={handlePrivacySettings}
           />
-          <SettingsItem
-            icon="shield"
-            title="Security Settings"
-            subtitle="Protect your account"
-            onPress={handleSecuritySettings}
-          />
-        </SettingsSection>
-        
-        {/* App Preferences Section */}
-        <SettingsSection title="App Preferences">
-          <SettingsItem
-            icon="cog"
-            title="Preferences"
-            subtitle="Customize your app experience"
-            onPress={handlePreferences}
-          />
         </SettingsSection>
         
         {/* Support Section */}
@@ -312,16 +231,6 @@ const SettingsScreen: React.FC = () => {
             title="Logout"
             subtitle="Sign out of your account"
             onPress={handleLogout}
-          />
-          <SettingsItem
-            icon="trash-o"
-            title="Delete Account"
-            subtitle="Permanently delete your account and data"
-            onPress={isDeletingAccount ? undefined : handleDeleteAccount}
-            isDestructive
-            rightElement={isDeletingAccount ? (
-              <ActivityIndicator size="small" color={colors.activityIndicator} />
-            ) : undefined}
           />
         </SettingsSection>
         

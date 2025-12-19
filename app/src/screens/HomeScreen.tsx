@@ -483,25 +483,25 @@ const HomeScreen: React.FC = () => {
     );
   };
 
-  const renderStoryItem = ({ item }: { item: Story }) => (
-    <TouchableOpacity
-      style={styles.storyItem}
-      onPress={() => handleViewStory(item.id)}
-      activeOpacity={0.7}
-    >
-      <View
-        style={[
-          styles.storyRing,
-          item.viewed ? styles.storyRingViewed : styles.storyRingUnviewed,
-        ]}
-      >
-        <Image source={{ uri: item.avatar }} style={styles.storyAvatar} />
-      </View>
-      <Text style={styles.storyUsername}>
-        {item.username === CURRENT_USERNAME ? "Your story" : item.username}
-      </Text>
-    </TouchableOpacity>
-  );
+//  const renderStoryItem = ({ item }: { item: Story }) => (
+//    <TouchableOpacity
+//      style={styles.storyItem}
+//      onPress={() => handleViewStory(item.id)}
+//      activeOpacity={0.7}
+//    >
+//      <View
+//        style={[
+//          styles.storyRing,
+//          item.viewed ? styles.storyRingViewed : styles.storyRingUnviewed,
+//        ]}
+//      >
+//        <Image source={{ uri: item.avatar }} style={styles.storyAvatar} />
+//      </View>
+//      <Text style={styles.storyUsername}>
+//        {item.username === CURRENT_USERNAME ? "Your story" : item.username}
+//      </Text>
+//    </TouchableOpacity>
+//  );
 
   // Fonction de rendu des posts avec gestion des séparateurs de date
   const renderPost = ({ item, index }: { item: UIPost; index: number }) => {
@@ -858,18 +858,17 @@ const HomeScreen: React.FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
         viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-        ListHeaderComponent={
-          <View style={styles.storiesContainer}>
-            <FlatList
-              data={stories}
-              renderItem={renderStoryItem}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.storiesList}
-            />
-          </View>
-        }
+//        ListHeaderComponent={
+//          <View style={styles.storiesContainer}>
+//            <FlatList
+//              renderItem={renderStoryItem}
+//              keyExtractor={(item) => item.id}
+//              horizontal
+//              showsHorizontalScrollIndicator={false}
+//              contentContainerStyle={styles.storiesList}
+//            />
+//          </View>
+//        }
         ListEmptyComponent={renderEmptyState}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.05}

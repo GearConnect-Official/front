@@ -321,6 +321,8 @@ const EventsScreen: React.FC = () => {
             </View>
           )}
 
+          
+
           <View style={styles.searchSection}>
             <View style={styles.searchBar}>
               <TextInput
@@ -372,6 +374,25 @@ const EventsScreen: React.FC = () => {
             ))}
           </View>
 
+          {/* CTA Section */}
+          <View style={styles.ctaSection}>
+            <LinearGradient
+              colors={["#ff3a3a", "#ff5e62"]}
+              style={styles.ctaGradient}
+            >
+              <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
+              <Text style={styles.ctaText}>
+                Share your passion and meet new people
+              </Text>
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={handleCreateEvent}
+              >
+                <Text style={styles.ctaButtonText}>Create Now</Text>
+                <FontAwesome name="arrow-right" size={16} color="#E53935" />
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#1E232C" />
@@ -428,25 +449,7 @@ const EventsScreen: React.FC = () => {
             </View>
           )}
 
-          {/* CTA Section */}
-          <View style={styles.ctaSection}>
-            <LinearGradient
-              colors={["#ff3a3a", "#ff5e62"]}
-              style={styles.ctaGradient}
-            >
-              <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
-              <Text style={styles.ctaText}>
-                Share your passion and meet new people
-              </Text>
-              <TouchableOpacity
-                style={styles.ctaButton}
-                onPress={handleCreateEvent}
-              >
-                <Text style={styles.ctaButtonText}>Create Now</Text>
-                <FontAwesome name="arrow-right" size={16} color="#E53935" />
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
+
 
           <View style={{ height: 60 }} />
         </ScrollView>

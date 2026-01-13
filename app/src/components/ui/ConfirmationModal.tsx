@@ -71,8 +71,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       default: // info
         return {
           iconName: 'information-circle' as const,
-          iconColor: '#3B82F6',
-          buttonColor: '#3B82F6',
+          iconColor: "#E10600",
+          buttonColor: "#E10600",
         };
     }
   };

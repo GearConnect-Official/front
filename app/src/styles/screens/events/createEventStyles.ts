@@ -40,7 +40,7 @@ export default StyleSheet.create({
     backgroundColor: "#fff",
     borderBottomWidth: 0,
     // laisser un petit top offset pour iOS mais plus discret
-    paddingTop: Platform.OS === "ios" ? Math.round(STATUSBAR_HEIGHT / 4) : 0,
+    paddingTop: Platform.OS === "android" ? STATUSBAR_HEIGHT + 2 : Math.round(STATUSBAR_HEIGHT / 4),
     elevation: 0,
   },
 

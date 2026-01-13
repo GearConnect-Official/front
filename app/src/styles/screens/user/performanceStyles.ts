@@ -21,6 +21,7 @@ export const THEME_COLORS = {
   TEXT_PRIMARY: "#14171A",
   TEXT_SECONDARY: "#657786",
   TEXT_MUTED: "#AAB8C2",
+  TEXT_WHITE: "#FFFFFF",
 
   // Status colors
   SUCCESS: "#10B981",
@@ -234,11 +235,10 @@ export const performanceStyles = StyleSheet.create({
   },
   filterChipActive: {
     backgroundColor: THEME_COLORS.PRIMARY,
-    borderColor: THEME_COLORS.PRIMARY,
   },
   filterChipText: {
     fontSize: TYPOGRAPHY.BODY,
-    color: THEME_COLORS.TEXT_SECONDARY,
+    color: THEME_COLORS.TEXT_WHITE,
     fontWeight: TYPOGRAPHY.WEIGHT_MEDIUM,
   },
   filterChipTextActive: {

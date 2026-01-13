@@ -596,8 +596,8 @@ const PerformancesScreen: React.FC = () => {
               category === "all"
                 ? {
                     label: "All Races",
-                    emoji: "🏁",
                     color: THEME_COLORS.PRIMARY,
+
                   }
                 : RACE_CATEGORIES.find((cat) => cat.value === category);
 
@@ -616,7 +616,7 @@ const PerformancesScreen: React.FC = () => {
                 onPress={() => handleCategoryChange(category)}
               >
                 <Text style={performanceStyles.filterChipText}>
-                  {categoryData.emoji} {categoryData.label}
+                  {categoryData.label}
                 </Text>
               </TouchableOpacity>
             );

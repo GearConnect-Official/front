@@ -45,7 +45,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 1.0, // Qualité maximale pour préserver la résolution originale
       });
 
       if (result.canceled || !result.assets[0]) {
@@ -80,7 +80,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         allowsEditing: true,
-        quality: 0.8,
+        quality: 1.0, // Qualité maximale pour préserver la résolution originale
       });
 
       if (result.canceled || !result.assets[0]) {
@@ -116,7 +116,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 1.0, // Qualité maximale pour préserver la résolution originale
       });
 
       if (result.canceled || !result.assets[0]) {
@@ -154,7 +154,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsMultipleSelection: true,
-        quality: 0.8,
+        quality: 1.0, // Qualité maximale pour préserver la résolution originale
       });
 
       if (result.canceled || !result.assets || result.assets.length === 0) {

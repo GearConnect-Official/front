@@ -1,6 +1,3 @@
-import * as yaml from 'js-yaml';
-import { Asset } from 'expo-asset';
-
 export interface TermsSection {
   title: string;
   content: string;

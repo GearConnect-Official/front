@@ -155,7 +155,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             const result = await ImageManipulator.manipulateAsync(
                 displayedImage,
                 manipulations,
-                { format: ImageManipulator.SaveFormat.JPEG, compress: 0.9 }
+                { format: ImageManipulator.SaveFormat.JPEG, compress: 1.0 } // Qualité maximale pour préserver la résolution
             );
 
             setDisplayedImage(result.uri);

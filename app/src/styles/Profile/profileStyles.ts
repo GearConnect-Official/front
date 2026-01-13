@@ -219,6 +219,17 @@ const styles = StyleSheet.create({  container: {
     fontSize: 14,
     fontWeight: "600",
   },
+  subscriptionButton: {
+    backgroundColor: "#F0C419",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  subscriptionButtonText: {
+    color: "#1E1E1E",
+    fontSize: 14,
+    fontWeight: "700",
+  },
   primaryActionButton: {
     flex: 1,
     height: 44,

@@ -495,6 +495,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     router.push("/friends");
   };
 
+  const handleSubscriptionPress = () => {
+    router.push("/(app)/subscription");
+  };
+
   const handleSendMessage = () => {
     // TODO: Naviguer vers la messagerie pour envoyer un message
     console.log("Navigate to send message - not implemented yet");
@@ -1065,6 +1069,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     onPress={handleEditProfilePress}
                   >
                     <Text style={styles.followButtonText}>Edit Profile</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.subscriptionButton]}
+                    onPress={handleSubscriptionPress}
+                  >
+                    <FontAwesome name="star" size={16} color="#1E1E1E" style={{ marginRight: 8 }} />
+                    <Text style={styles.subscriptionButtonText}>Premium</Text>
                   </TouchableOpacity>
                 </>
               )}

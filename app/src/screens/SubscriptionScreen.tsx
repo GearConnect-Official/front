@@ -2,14 +2,16 @@ import React from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   StatusBar,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import styles from '../styles/screens/subscription/subscriptionStyles';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface FeatureRow {
   feature: string;
@@ -20,14 +22,9 @@ const SubscriptionScreen: React.FC = () => {
   const router = useRouter();
 
   const features: FeatureRow[] = [
-    { feature: 'Accès illimité à toutes les fonctionnalités', included: true },
-    { feature: 'Statistiques de performance détaillées', included: true },
-    { feature: 'Historique complet des courses', included: true },
-    { feature: 'Analyses avancées des temps au tour', included: true },
-    { feature: 'Suivi de progression personnalisé', included: true },
-    { feature: 'Support prioritaire', included: true },
-    { feature: 'Contenu exclusif et événements VIP', included: true },
-    { feature: 'Pas de publicités', included: true },
+    { feature: 'Contacter n\'importe qui de certifié', included: true },
+    { feature: 'Mettre en avant 1 événement par mois', included: true },
+    { feature: 'Mettre en avant 3 posts par mois', included: true },
   ];
 
   const handlePay = () => {
@@ -53,19 +50,15 @@ const SubscriptionScreen: React.FC = () => {
         <View style={styles.placeholderRight} />
       </View>
 
-      <ScrollView 
-        style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <View style={styles.content}>
         {/* Title Section */}
         <View style={styles.titleSection}>
           <View style={styles.iconContainer}>
-            <FontAwesome name="star" size={40} color="#E10600" />
+            <FontAwesome name="star" size={SCREEN_HEIGHT < 700 ? 32 : 36} color="#E10600" />
           </View>
           <Text style={styles.mainTitle}>Passez à Premium</Text>
           <Text style={styles.subtitle}>
-            Débloquez toutes les fonctionnalités et profitez d&apos;une expérience optimale
+            Accédez à des fonctionnalités exclusives pour développer votre réseau et votre visibilité
           </Text>
         </View>
 
@@ -87,9 +80,9 @@ const SubscriptionScreen: React.FC = () => {
               <Text style={styles.featureText}>{row.feature}</Text>
               <View style={styles.checkContainer}>
                 {row.included ? (
-                  <FontAwesome name="check" size={20} color="#27AE60" />
+                  <FontAwesome name="check" size={SCREEN_HEIGHT < 700 ? 16 : 18} color="#27AE60" />
                 ) : (
-                  <FontAwesome name="times" size={20} color="#E10600" />
+                  <FontAwesome name="times" size={SCREEN_HEIGHT < 700 ? 16 : 18} color="#E10600" />
                 )}
               </View>
             </View>
@@ -111,10 +104,7 @@ const SubscriptionScreen: React.FC = () => {
         >
           <Text style={styles.payButtonText}>Payer maintenant</Text>
         </TouchableOpacity>
-
-        {/* Bottom spacing */}
-        <View style={styles.bottomSpace} />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };

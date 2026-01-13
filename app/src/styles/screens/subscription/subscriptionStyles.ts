@@ -1,5 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import theme from '../../config/theme';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const isSmallScreen = SCREEN_HEIGHT < 700;
 
 export default StyleSheet.create({
   container: {
@@ -9,10 +12,11 @@ export default StyleSheet.create({
   header: {
     ...theme.common.spaceBetween,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: isSmallScreen ? theme.spacing.xs : theme.spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.light,
     ...theme.shadows.apply({}, 'xs'),
+    flexShrink: 0,
   },
   backButton: {
     padding: theme.spacing.xs,
@@ -23,65 +27,69 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    ...theme.typography.h4,
+    fontSize: isSmallScreen ? 16 : 18,
     color: theme.colors.text.primary,
+    fontWeight: '600',
   },
   placeholderRight: {
     width: 40,
     height: 40,
   },
-  scrollView: {
+  content: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: theme.spacing.xl,
+    justifyContent: 'space-between',
+    paddingBottom: theme.spacing.md,
   },
   titleSection: {
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: isSmallScreen ? theme.spacing.sm : theme.spacing.md,
+    paddingBottom: isSmallScreen ? theme.spacing.xs : theme.spacing.sm,
+    flexShrink: 1,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: isSmallScreen ? 60 : 70,
+    height: isSmallScreen ? 60 : 70,
+    borderRadius: isSmallScreen ? 30 : 35,
     backgroundColor: `${theme.colors.primary.main}15`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: isSmallScreen ? theme.spacing.xs : theme.spacing.sm,
   },
   mainTitle: {
-    ...theme.typography.h3,
+    fontSize: isSmallScreen ? 20 : 24,
     color: theme.colors.text.primary,
     fontWeight: 'bold',
-    marginBottom: theme.spacing.sm,
+    marginBottom: isSmallScreen ? theme.spacing.xxs : theme.spacing.xs,
     textAlign: 'center',
   },
   subtitle: {
-    ...theme.typography.body1,
+    fontSize: isSmallScreen ? 12 : 14,
     color: theme.colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: isSmallScreen ? 16 : 20,
+    paddingHorizontal: theme.spacing.sm,
   },
   tableContainer: {
     marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.md,
+    marginTop: isSmallScreen ? theme.spacing.xs : theme.spacing.sm,
     backgroundColor: theme.colors.background.input,
     borderRadius: theme.borders.radius.md,
     overflow: 'hidden',
     ...theme.shadows.apply({}, 'sm'),
+    flexShrink: 1,
   },
   tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: theme.spacing.md,
+    paddingVertical: isSmallScreen ? theme.spacing.sm : theme.spacing.md,
     paddingHorizontal: theme.spacing.md,
     backgroundColor: theme.colors.primary.main,
     borderBottomWidth: 2,
     borderBottomColor: theme.colors.primary.dark,
   },
   tableHeaderText: {
-    ...theme.typography.subtitle1,
+    fontSize: isSmallScreen ? 13 : 15,
     color: '#FFFFFF',
     fontWeight: 'bold',
   },
@@ -89,65 +97,66 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: theme.spacing.md,
+    paddingVertical: isSmallScreen ? theme.spacing.sm : theme.spacing.md,
     paddingHorizontal: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.light,
+    minHeight: isSmallScreen ? 44 : 52,
   },
   tableRowEven: {
     backgroundColor: theme.colors.background.paper,
   },
   featureText: {
-    ...theme.typography.body2,
+    fontSize: isSmallScreen ? 12 : 14,
     color: theme.colors.text.primary,
     flex: 1,
     marginRight: theme.spacing.sm,
+    lineHeight: isSmallScreen ? 16 : 20,
   },
   checkContainer: {
-    width: 30,
+    width: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pricingSection: {
     alignItems: 'center',
-    marginTop: theme.spacing.xl,
+    marginTop: isSmallScreen ? theme.spacing.sm : theme.spacing.md,
     marginHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.lg,
+    paddingVertical: isSmallScreen ? theme.spacing.sm : theme.spacing.md,
     backgroundColor: theme.colors.background.input,
     borderRadius: theme.borders.radius.md,
     ...theme.shadows.apply({}, 'sm'),
+    flexShrink: 0,
   },
   priceLabel: {
-    ...theme.typography.body2,
+    fontSize: isSmallScreen ? 12 : 14,
     color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.xxs,
   },
   price: {
-    ...theme.typography.h2,
+    fontSize: isSmallScreen ? 24 : 28,
     color: theme.colors.primary.main,
     fontWeight: 'bold',
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.xxs,
   },
   priceNote: {
-    ...theme.typography.caption,
+    fontSize: isSmallScreen ? 10 : 12,
     color: theme.colors.text.secondary,
   },
   payButton: {
-    marginTop: theme.spacing.xl,
+    marginTop: isSmallScreen ? theme.spacing.sm : theme.spacing.md,
     marginHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: isSmallScreen ? theme.spacing.sm : theme.spacing.md,
     backgroundColor: theme.colors.primary.main,
     borderRadius: theme.borders.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     ...theme.shadows.apply({}, 'md'),
+    flexShrink: 0,
   },
   payButtonText: {
-    ...theme.typography.subtitle1,
+    fontSize: isSmallScreen ? 14 : 16,
     color: '#FFFFFF',
     fontWeight: 'bold',
-  },
-  bottomSpace: {
-    height: theme.spacing.xxxl,
   },
 });

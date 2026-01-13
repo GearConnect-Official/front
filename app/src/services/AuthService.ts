@@ -8,6 +8,7 @@ export interface AuthResponse {
   message?: string;
   success?: boolean;
   error?: string;
+  details?: string;
   user?: {
     id: string | number;
     username?: string;
@@ -18,7 +19,7 @@ export interface AuthResponse {
   };
 }
 
-// Configuration d'Axios
+// Configuration d'Axios pour les endpoints qui nécessitent un token manuel
 const api = axios.create({
   baseURL: API_URL_AUTH,
   headers: {
@@ -216,6 +217,54 @@ export const getUserInfo = async (token: string): Promise<any> => {
       };
     } else {
       // Erreur lors de la configuration de la requête
+      return {
+        success: false,
+        error: "Erreur lors de la configuration de la requête",
+      };
+    }
+  }
+};
+
+/**
+ * Delete user account (soft delete)
+ * EXACTLY like signUp - uses api instance without interceptors
+ * The account is marked as deleted in the database but ALL data is preserved
+ */
+export const deleteAccount = async (
+  email: string
+): Promise<AuthResponse> => {
+  try {
+    console.log("Tentative de suppression de compte pour:", { email });
+
+    // UTILISE `api` - même instance que signUp (SANS interceptors)
+    const response = await api.post<AuthResponse>("/delete", {
+      email,
+    });
+
+    console.log("Réponse de suppression:", response.data);
+    return {
+      ...response.data,
+      success: true,
+    };
+  } catch (error: any) {
+    console.error("Delete Account Error:", error);
+
+    // Gestion détaillée des erreurs (identique à signUp)
+    if (error.response) {
+      console.error("Status:", error.response.status);
+      console.error("Data:", error.response.data);
+      return {
+        success: false,
+        error: error.response.data.error || "Erreur lors de la suppression du compte",
+      };
+    } else if (error.request) {
+      console.error("Request error:", error.request);
+      return {
+        success: false,
+        error: "Impossible de contacter le serveur. Vérifiez votre connexion.",
+      };
+    } else {
+      console.error("Error setting up request:", error.message);
       return {
         success: false,
         error: "Erreur lors de la configuration de la requête",

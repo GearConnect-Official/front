@@ -15,6 +15,7 @@ export enum ApiRoutes {
   USERS = 'users',
   HEALTH = 'health',
   PERFORMANCES = 'performances',
+  PRIVACYSETTINGS = 'privacy-settings',
 }
 
 /**

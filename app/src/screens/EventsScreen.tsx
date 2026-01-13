@@ -19,6 +19,8 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS, API_URL_USERS } from '../config';
+import { useAuth } from "../context/AuthContext";
+import userService from "../services/userService";
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.8;
@@ -43,8 +45,11 @@ const EventsScreen: React.FC = () => {
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [featured, setFeatured] = useState<Event[]>([]);
+  const [joinedEventIds, setJoinedEventIds] = useState<Set<number>>(new Set());
   const scrollX = React.useRef(new Animated.Value(0)).current;
   const router = useRouter();
+  const auth = useAuth();
+  const currentUserId = auth?.user?.id ? Number(auth.user.id) : undefined;
 
   interface TabItem {
     key: string;
@@ -58,11 +63,33 @@ const EventsScreen: React.FC = () => {
     { key: 'passed', label: 'Passed Events', icon: 'history' },
   ];
 
+  // Charger les événements rejoints par l'utilisateur
+  const fetchJoinedEvents = async () => {
+    if (!currentUserId) return;
+    
+    try {
+      const response = await userService.getJoinedEvents(currentUserId, 1, 100);
+      if (response.success && response.data) {
+        const joinedIds = new Set(
+          response.data.events.map((event: any) => event.id)
+        );
+        setJoinedEventIds(joinedIds);
+      }
+    } catch (error) {
+      console.error("Error fetching joined events:", error);
+    }
+  };
+
   const fetchEvents = async () => {
     setLoading(true);
     setError(null);
     setIsNetworkError(false);
     try {
+      // Charger les événements rejoints en parallèle
+      if (currentUserId) {
+        fetchJoinedEvents();
+      }
+
       const response = await fetch(API_URL_EVENTS);
       if (!response.ok) {
         throw new Error(
@@ -136,7 +163,8 @@ const EventsScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       fetchEvents();
-    }, [])
+      fetchJoinedEvents();
+    }, [currentUserId])
   );
 
   const handleSearch = () => {
@@ -161,9 +189,12 @@ const EventsScreen: React.FC = () => {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await fetchEvents();
+    await Promise.all([
+      fetchEvents(),
+      fetchJoinedEvents(),
+    ]);
     setRefreshing(false);
-  }, []);
+  }, [currentUserId]);
 
   const handleEventPress = (event: Event) => {
     router.push({
@@ -408,21 +439,40 @@ const EventsScreen: React.FC = () => {
               {activeTab === 'upcoming' && 'Upcoming Events'}
               {activeTab === 'passed' && 'Past Events'}
             </Text>
-            {filteredEvents[activeTab]?.map((event: Event, index: number) => (
-              <EventItem
-                key={event.id?.toString() || index.toString()}
-                title={event.name}
-                subtitle={`By: ${event.creators}`}
-                date={new Date(event.date).toLocaleDateString('en-US', {
-                  day: 'numeric',
-                  month: 'short',
-                })}
-                emoji="🎉"
-                location={event.location}
-                attendees={Math.floor(Math.random() * 100)}
-                onPress={() => handleEventPress(event)}
-              />
-            ))}
+            {filteredEvents[activeTab]?.map((event: Event, index: number) => {
+              const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+              const isJoined = eventId ? joinedEventIds.has(eventId) : false;
+              // Utiliser le nombre réel de participants depuis l'API
+              const participantsCount = event.participantsCount || 0;
+              
+              return (
+                <EventItem
+                  key={event.id?.toString() || index.toString()}
+                  title={event.name}
+                  subtitle={`By: ${event.creators}`}
+                  date={new Date(event.date).toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                  })}
+                  emoji="🎉"
+                  location={event.location}
+                  attendees={participantsCount}
+                  onPress={() => handleEventPress(event)}
+                  eventId={eventId}
+                  creatorId={event.creatorId}
+                  currentUserId={currentUserId}
+                  isJoined={isJoined}
+                  onJoinSuccess={() => {
+                    // Recharger les événements rejoints après un join réussi
+                    if (currentUserId && eventId) {
+                      fetchJoinedEvents();
+                      // Recharger aussi les événements pour mettre à jour le nombre de participants
+                      fetchEvents();
+                    }
+                  }}
+                />
+              );
+            })}
           </View>
         )}
 

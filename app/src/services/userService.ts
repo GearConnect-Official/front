@@ -181,6 +181,46 @@ const userService = {
       };
     }
   },
+
+  /**
+   * Récupère les événements rejoints par un utilisateur
+   */
+  getJoinedEvents: async (
+    userId: number,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<ApiResponse<{
+    events: any[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }>> => {
+    try {
+      const response = await axios.get(
+        `${API_URL_USERS}/${userId}/joined-events`,
+        {
+          params: { page, limit },
+        }
+      );
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error: any) {
+      console.error("Error fetching joined events:", error);
+      if (error.response) {
+        console.error("Status:", error.response.status);
+        console.error("Data:", JSON.stringify(error.response.data, null, 2));
+      }
+      return {
+        success: false,
+        error: error.response?.data?.error || "Failed to fetch joined events",
+      };
+    }
+  },
 };
 
 export default userService;

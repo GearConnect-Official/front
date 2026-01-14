@@ -4,18 +4,19 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Switch,
   StatusBar,
   ActivityIndicator,
-  Linking,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { useRouter } from "expo-router";
-import { useAuth } from "../context/AuthContext";
-import { useMessage } from "../context/MessageContext";
-import MessageService from "../services/messageService";
-import styles, { colors } from "../styles/screens/user/settingsStyles";
+  Linking
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
+import { useMessage } from '../context/MessageContext';
+import MessageService from '../services/messageService';
+import { MessageType } from '../types/messages';
+import styles, { colors } from '../styles/screens/user/settingsStyles';
+
 
 interface SettingsSectionProps {
   title: string;
@@ -97,9 +98,8 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
 
 const SettingsScreen: React.FC = () => {
   const router = useRouter();
-  const { logout } = useAuth();
+  const auth = useAuth();
   const { showMessage, showConfirmation } = useMessage();
-  const [isLoading, setIsLoading] = useState(false);
   const [isFetchingUser, setIsFetchingUser] = useState(true);
   const [appVersion] = useState("1.0.0");
 
@@ -121,54 +121,49 @@ const SettingsScreen: React.FC = () => {
   }, []);
 
   const handlePrivacySettings = () => {
-    showMessage(MessageService.INFO.COMING_SOON);
-  };
-
-  const handleSecuritySettings = () => {
-    showMessage(MessageService.INFO.COMING_SOON);
+    router.push('/privacySettings');
   };
 
   const handleAccountSettings = () => {
-    // router.push('/editProfile');
-    showMessage(MessageService.INFO.COMING_SOON);
+    router.push('/editProfile');
   };
 
-  const handlePreferences = () => {
-    router.push("/preferences");
-  };
-
-  const handleHelpCenter = () => {
-    Linking.openURL("https://gearconnect-landing.vercel.app/faq");
+  const handleHelpCenter = async () => {
+    try {
+      const url = 'https://gearconnect-landing.vercel.app/faq';
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        showMessage({
+          type: MessageType.ERROR,
+          message: 'Unable to open the help center link'
+        });
+      }
+    } catch (error) {
+      // L'erreur peut survenir même si l'URL s'ouvre correctement
+      // On ne l'affiche pas à l'utilisateur car l'action a probablement réussi
+      console.log('Help center link opened (error can be ignored):', error);
+    }
   };
 
   const handleTermsAndConditions = () => {
-    showMessage(MessageService.INFO.TERMS_CONDITIONS);
+    router.push('/termsAndConditions');
   };
 
   const handleLogout = async () => {
     showConfirmation({
       ...MessageService.CONFIRMATIONS.LOGOUT,
       onConfirm: async () => {
-        setIsLoading(true);
         try {
-          await logout();
-          // await fetch(API_URL_AUTH + '/logout');
-          router.replace("/(auth)");
+          if (auth?.logout) {
+            await auth.logout();
+            router.replace("/(auth)");
+          }
         } catch (error) {
           console.error("Error during logout:", error);
           showMessage(MessageService.ERROR.LOGOUT_FAILED);
-        } finally {
-          setIsLoading(false);
         }
-      },
-    });
-  };
-
-  const handleDeleteAccount = () => {
-    showConfirmation({
-      ...MessageService.CONFIRMATIONS.DELETE_ACCOUNT,
-      onConfirm: () => {
-        showMessage(MessageService.INFO.COMING_SOON);
       },
     });
   };
@@ -190,110 +185,75 @@ const SettingsScreen: React.FC = () => {
     );
   }
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Settings</Text>
-          <View style={styles.placeholderRight} />
-        </View>
-        <View style={styles.contentContainer}>
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Account Section */}
-            <SettingsSection title="Account">
-              <SettingsItem
-                icon="user"
-                title="Account Settings"
-                subtitle="Manage your profile information"
-                onPress={handleAccountSettings}
-              />
-              <SettingsItem
-                icon="lock"
-                title="Privacy Settings"
-                subtitle="Control your privacy preferences"
-                onPress={handlePrivacySettings}
-              />
-              <SettingsItem
-                icon="shield"
-                title="Security Settings"
-                subtitle="Protect your account"
-                onPress={handleSecuritySettings}
-              />
-            </SettingsSection>
-
-            {/* App Preferences Section */}
-            <SettingsSection title="App Preferences">
-              <SettingsItem
-                icon="cog"
-                title="Preferences"
-                subtitle="Customize your app experience"
-                onPress={handlePreferences}
-              />
-            </SettingsSection>
-
-            {/* Support Section */}
-            <SettingsSection title="Support">
-              <SettingsItem
-                icon="question-circle"
-                title="Help Center"
-                subtitle="Get assistance and answers to your questions"
-                onPress={handleHelpCenter}
-              />
-              <SettingsItem
-                icon="file-text-o"
-                title="Terms & Conditions"
-                subtitle="Review our terms of service"
-                onPress={handleTermsAndConditions}
-              />
-              <SettingsItem
-                icon="info-circle"
-                title="App Version"
-                subtitle="Current version of the application"
-                rightElement={
-                  <Text style={styles.settingsItemValue}>{appVersion}</Text>
-                }
-              />
-            </SettingsSection>
-
-            {/* Actions Section */}
-            <SettingsSection title="Actions">
-              <SettingsItem
-                icon="sign-out"
-                title="Logout"
-                subtitle="Sign out of your account"
-                onPress={isLoading ? undefined : handleLogout}
-                rightElement={
-                  isLoading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.activityIndicator}
-                    />
-                  ) : undefined
-                }
-              />
-              <SettingsItem
-                icon="trash-o"
-                title="Delete Account"
-                subtitle="Permanently delete your account and data"
-                onPress={handleDeleteAccount}
-                isDestructive
-              />
-            </SettingsSection>
-
-            {/* Bottom spacing */}
-            <View style={styles.bottomSpace} />
-          </ScrollView>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.statusBarBackground} />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <FontAwesome name="arrow-left" size={20} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Settings</Text>
+        <View style={styles.placeholderRight} />
       </View>
+      
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Account Section */}
+        <SettingsSection title="Account">
+          <SettingsItem
+            icon="user"
+            title="Account Settings"
+            subtitle="Manage your profile information"
+            onPress={handleAccountSettings}
+          />
+          <SettingsItem
+            icon="lock"
+            title="Privacy Settings"
+            subtitle="Control your privacy preferences"
+            onPress={handlePrivacySettings}
+          />
+        </SettingsSection>
+        
+        {/* Support Section */}
+        <SettingsSection title="Support">
+          <SettingsItem
+            icon="question-circle"
+            title="Help Center"
+            subtitle="Get assistance and answers to your questions"
+            onPress={handleHelpCenter}
+          />
+          <SettingsItem
+            icon="file-text-o"
+            title="Terms & Conditions"
+            subtitle="Review our terms of service"
+            onPress={handleTermsAndConditions}
+          />
+          <SettingsItem
+            icon="info-circle"
+            title="App Version"
+            subtitle="Current version of the application"
+            rightElement={
+              <Text style={styles.settingsItemValue}>{appVersion}</Text>
+            }
+          />
+        </SettingsSection>
+        
+        {/* Actions Section */}
+        <SettingsSection title="Actions">
+          <SettingsItem
+            icon="sign-out"
+            title="Logout"
+            subtitle="Sign out of your account"
+            onPress={handleLogout}
+          />
+        </SettingsSection>
+        
+        {/* Bottom spacing */}
+        <View style={styles.bottomSpace} />
+      </ScrollView>
     </SafeAreaView>
   );
 };

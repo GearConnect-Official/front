@@ -50,6 +50,7 @@ interface Story {
 
 interface UIPost {
   id: string;
+  userId: number;  // ID de l'utilisateur qui a créé le post
   username: string;
   avatar: string;
   profilePicturePublicId?: string; // Nouveau : pour CloudinaryAvatar
@@ -108,6 +109,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
 
   return {
     id: apiPost.id?.toString() || '',
+    userId: apiPost.userId,  // Inclure le userId pour la navigation vers le profil
     username: apiPost.user?.username || `user_${apiPost.userId}`,
     avatar: userAvatar,
     profilePicturePublicId: (apiPost.user as any)?.profilePicturePublicId,
@@ -456,12 +458,19 @@ const HomeScreen: React.FC = () => {
     console.log('💬 Comments modal closed - No automatic reload');
   };
 
-  const handleProfilePress = (username: string) => {
+  const handleProfilePress = (username: string, userId?: number) => {
     if (username === CURRENT_USERNAME) {
       handleNavigateToProfile();
     } else {
-      // Pourrait naviguer vers le profil d'un autre utilisateur
-      console.log("Navigate to profile:", username);
+      // Naviguer vers le profil d'un autre utilisateur
+      if (userId) {
+        router.push({
+          pathname: '/userProfile',
+          params: { userId: userId.toString() },
+        });
+      } else {
+        console.log("Navigate to profile: username provided but no userId:", username);
+      }
     }
   };
 

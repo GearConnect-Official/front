@@ -70,7 +70,7 @@ export default StyleSheet.create({
   },
   sectionTitle: {
     ...theme.typography.subtitle1,
-    color: theme.colors.primary.main,
+    color: theme.colors.text.primary,
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.sm,
     paddingLeft: theme.spacing.md,

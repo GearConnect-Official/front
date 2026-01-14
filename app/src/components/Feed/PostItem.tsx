@@ -52,7 +52,7 @@ interface PostItemProps {
   onSave: (postId: string) => void;
   onComment: (postId: string) => void;
   onShare: (postId: string) => void;
-  onProfilePress: (username: string) => void;
+  onProfilePress: (username: string, userId?: number) => void;
   currentUsername?: string;
   isVisible?: boolean;
   isCurrentlyVisible?: boolean;
@@ -201,7 +201,7 @@ const PostItem: React.FC<PostItemProps> = ({
         username={post.username}
         avatar={post.avatar}
         profilePicturePublicId={post.profilePicturePublicId}
-        onProfilePress={() => onProfilePress(post.username)}
+        onProfilePress={() => onProfilePress(post.username, post.userId)}
         currentUsername={currentUsername}
       />
 
@@ -234,7 +234,7 @@ const PostItem: React.FC<PostItemProps> = ({
         commentsCount={post.comments.length}
         timeAgo={post.timeAgo}
         onViewComments={() => onComment(post.id)}
-        onProfilePress={() => onProfilePress(post.username)}
+        onProfilePress={() => onProfilePress(post.username, post.userId)}
       />
     </View>
   );

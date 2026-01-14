@@ -171,36 +171,90 @@ const EventsScreen: React.FC = () => {
       }
       const allEvents = await response.json();
 
-      // fetch user name from API_URL_USERS by userId with event creatorId
-      const eventsWithCreators = await Promise.all(
+      // Fetch organizers for each event (non-blocking, with error handling)
+      // On charge d'abord les événements de base, puis on enrichit avec les organisateurs
+      const eventsWithOrganizers = await Promise.all(
         allEvents.map(async (event: Event) => {
           try {
-            const userResponse = await fetch(
-              `${API_URL_USERS}/${event.creatorId}`
-            );
-            if (!userResponse.ok) {
-              console.error(
-                `Failed to fetch user for event ${event.id}: ${userResponse.status}`
-              );
-              return { ...event, creators: 'Unknown' };
+            const organizers = (event as any).organizers || [];
+            const organizersWithDetails: { userId: number | null; name: string }[] = [];
+            
+            // Si pas d'organisateurs dans le tableau, inclure au moins le créateur
+            if (organizers.length === 0 && event.creatorId) {
+              try {
+                const userResponse = await fetch(`${API_URL_USERS}/${event.creatorId}`);
+                if (userResponse.ok) {
+                  const user = await userResponse.json();
+                  organizersWithDetails.push({
+                    userId: event.creatorId,
+                    name: user.username || user.name || 'Unknown',
+                  });
+                } else {
+                  organizersWithDetails.push({
+                    userId: event.creatorId,
+                    name: 'Unknown',
+                  });
+                }
+              } catch (error) {
+                // En cas d'erreur, on utilise juste le nom par défaut
+                organizersWithDetails.push({
+                  userId: event.creatorId,
+                  name: 'Unknown',
+                });
+              }
+            } else if (organizers.length > 0) {
+              // Récupérer les détails de chaque organisateur
+              for (const org of organizers) {
+                if (org.userId) {
+                  try {
+                    const userResponse = await fetch(`${API_URL_USERS}/${org.userId}`);
+                    if (userResponse.ok) {
+                      const user = await userResponse.json();
+                      organizersWithDetails.push({
+                        userId: org.userId,
+                        name: user.username || user.name || org.name,
+                      });
+                    } else {
+                      organizersWithDetails.push({
+                        userId: org.userId,
+                        name: org.name,
+                      });
+                    }
+                  } catch (error) {
+                    // En cas d'erreur, on utilise le nom de base
+                    organizersWithDetails.push({
+                      userId: org.userId,
+                      name: org.name,
+                    });
+                  }
+                } else {
+                  // Organisateur externe
+                  organizersWithDetails.push({
+                    userId: null,
+                    name: org.name,
+                  });
+                }
+              }
             }
-            const user = await userResponse.json();
-            return { ...event, creators: user.name };
+            
+            return { ...event, organizers: organizersWithDetails };
           } catch (error) {
-            console.error(
-              `Error fetching creator for event ${event.id}:`,
-              error
-            );
-            return { ...event, creators: 'Unknown' };
+            // En cas d'erreur globale, retourner l'événement avec les organisateurs de base ou vide
+            const baseOrganizers = (event as any).organizers || [];
+            return { ...event, organizers: baseOrganizers };
           }
         })
-      );
+      ).catch((error) => {
+        // Si Promise.all échoue complètement, utiliser les événements de base sans organisateurs
+        console.error('Error fetching organizers for events:', error);
+        return allEvents.map((event: Event) => ({ ...event, organizers: (event as any).organizers || [] }));
+      });
 
       const now = new Date();
-      const upcomingEvents = eventsWithCreators.filter(
+      const upcomingEvents = eventsWithOrganizers.filter(
         (event: Event) => new Date(event.date) >= now
       );
-      const passedEvents = eventsWithCreators.filter(
+      const passedEvents = eventsWithOrganizers.filter(
         (event: Event) => new Date(event.date) < now
       );
 
@@ -209,19 +263,19 @@ const EventsScreen: React.FC = () => {
 
       setFeatured(featuredEvents);
       setEvents({
-        all: eventsWithCreators,
+        all: eventsWithOrganizers,
         upcoming: upcomingEvents,
         passed: passedEvents,
       });
 
       setFilteredEvents({
-        all: eventsWithCreators,
+        all: eventsWithOrganizers,
         upcoming: upcomingEvents,
         passed: passedEvents,
       });
 
       // Fetch winners for all events
-      await fetchEventWinners(eventsWithCreators);
+      await fetchEventWinners(eventsWithOrganizers);
     } catch (err) {
       // Check if it's a network error (fetch API throws TypeError for network issues)
       if (err instanceof TypeError && (err.message.includes('Network request failed') || err.message.includes('Failed to fetch'))) {
@@ -591,6 +645,7 @@ const EventsScreen: React.FC = () => {
                   finished={event.finished}
                   participationTagText={event.participationTagText}
                   participationTagColor={event.participationTagColor}
+                  organizers={(event as any).organizers || []}
                   onJoinSuccess={() => {
                     // Mettre à jour uniquement l'état local pour le statut join
                     if (currentUserId && eventId) {

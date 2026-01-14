@@ -35,6 +35,7 @@ interface EventItemProps {
   finished?: boolean;
   participationTagText?: string;
   participationTagColor?: string;
+  organizers?: { userId: number | null; name: string }[];
 }
 
 const EventItem: React.FC<EventItemProps> = ({
@@ -58,6 +59,7 @@ const EventItem: React.FC<EventItemProps> = ({
   finished = false,
   participationTagText,
   participationTagColor,
+  organizers = [],
 }) => {
   // Vérifier si l'événement est terminé : soit finished = true, soit la date est passée
   const eventDateObj = eventDate ? (typeof eventDate === 'string' ? new Date(eventDate) : eventDate) : null;
@@ -184,7 +186,19 @@ const EventItem: React.FC<EventItemProps> = ({
                 />
               )}
             </View>
-            <Text style={itemStyles.subtitleText} numberOfLines={1}>{subtitle}</Text>
+            {/* Afficher les organisateurs si disponibles, sinon le subtitle par défaut */}
+            {organizers.length > 0 ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                <Text style={[itemStyles.subtitleText, { marginRight: 4 }]}>Organized by:</Text>
+                {organizers.map((org, index) => (
+                  <Text key={index} style={itemStyles.subtitleText}>
+                    {org.name}{index < organizers.length - 1 ? ', ' : ''}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text style={itemStyles.subtitleText} numberOfLines={1}>{subtitle}</Text>
+            )}
           </View>
           {missingInfo?.hasMissingInfo && (
             <View style={itemStyles.missingInfoBadge}>

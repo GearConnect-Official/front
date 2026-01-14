@@ -70,27 +70,76 @@ const SelectEventScreen: React.FC = () => {
           return event.finished === true || isDatePassed;
         });
         
-        // Fetch creator names for each event
-        const eventsWithCreators = await Promise.all(
+        // Fetch organizers for each event
+        const eventsWithOrganizers = await Promise.all(
           finishedEvents.map(async (event: any) => {
-            try {
-              const userResponse = await fetch(
-                `${API_URL_USERS}/${event.creatorId}`
-              );
-              if (!userResponse.ok) {
-                return { ...event, creators: 'Unknown' };
+            const organizers = event.organizers || [];
+            const organizersWithDetails: { userId: number | null; name: string }[] = [];
+            
+            // Si pas d'organisateurs dans le tableau, inclure au moins le créateur
+            if (organizers.length === 0 && event.creatorId) {
+              try {
+                const userResponse = await fetch(`${API_URL_USERS}/${event.creatorId}`);
+                if (userResponse.ok) {
+                  const user = await userResponse.json();
+                  organizersWithDetails.push({
+                    userId: event.creatorId,
+                    name: user.username || user.name || 'Unknown',
+                  });
+                } else {
+                  organizersWithDetails.push({
+                    userId: event.creatorId,
+                    name: 'Unknown',
+                  });
+                }
+              } catch (error) {
+                console.error(`Error fetching creator for event ${event.id}:`, error);
+                organizersWithDetails.push({
+                  userId: event.creatorId,
+                  name: 'Unknown',
+                });
               }
-              const user = await userResponse.json();
-              return { ...event, creators: user.name || user.username || 'Unknown' };
-            } catch (error) {
-              console.error(`Error fetching creator for event ${event.id}:`, error);
-              return { ...event, creators: 'Unknown' };
+            } else {
+              // Récupérer les détails de chaque organisateur
+              for (const org of organizers) {
+                if (org.userId) {
+                  try {
+                    const userResponse = await fetch(`${API_URL_USERS}/${org.userId}`);
+                    if (userResponse.ok) {
+                      const user = await userResponse.json();
+                      organizersWithDetails.push({
+                        userId: org.userId,
+                        name: user.username || user.name || org.name,
+                      });
+                    } else {
+                      organizersWithDetails.push({
+                        userId: org.userId,
+                        name: org.name,
+                      });
+                    }
+                  } catch (error) {
+                    console.error(`Error fetching organizer ${org.userId} for event ${event.id}:`, error);
+                    organizersWithDetails.push({
+                      userId: org.userId,
+                      name: org.name,
+                    });
+                  }
+                } else {
+                  // Organisateur externe
+                  organizersWithDetails.push({
+                    userId: null,
+                    name: org.name,
+                  });
+                }
+              }
             }
+            
+            return { ...event, organizers: organizersWithDetails };
           })
         );
 
-        setJoinedEvents(eventsWithCreators);
-        applyFilters(eventsWithCreators, activeTab, searchQuery);
+        setJoinedEvents(eventsWithOrganizers);
+        applyFilters(eventsWithOrganizers, activeTab, searchQuery);
       } else {
         setError(response.error || "Failed to load events");
         setJoinedEvents([]);
@@ -327,6 +376,7 @@ const SelectEventScreen: React.FC = () => {
                     finished={event.finished}
                     participationTagText={event.participationTagText}
                     participationTagColor={event.participationTagColor}
+                    organizers={(event as any).organizers || []}
                   />
                 </TouchableOpacity>
               );

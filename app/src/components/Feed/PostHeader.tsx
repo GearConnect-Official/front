@@ -4,6 +4,7 @@ import styles from "../../styles/feed/postHeaderStyles";
 import PostOptionsButton from "./PostOptionsButton";
 import { CloudinaryAvatar } from "../media/CloudinaryImage";
 import { defaultImages } from "../../config/defaultImages";
+import UsernameWithTag from "../UsernameWithTag";
 
 interface PostHeaderProps {
   postId: string;
@@ -12,6 +13,7 @@ interface PostHeaderProps {
   profilePicturePublicId?: string;
   onProfilePress: () => void;
   currentUsername: string;
+  userId?: number;
 }
 
 const PostHeader: React.FC<PostHeaderProps> = ({
@@ -21,6 +23,7 @@ const PostHeader: React.FC<PostHeaderProps> = ({
   profilePicturePublicId,
   onProfilePress,
   currentUsername,
+  userId,
 }) => {
   return (
     <View style={styles.container}>
@@ -49,7 +52,11 @@ const PostHeader: React.FC<PostHeaderProps> = ({
             style={styles.avatar} 
           />
         )}
-        <Text style={styles.username}>{username}</Text>
+        <UsernameWithTag
+          username={username}
+          userId={userId}
+          usernameStyle={styles.username}
+        />
       </TouchableOpacity>
 
       <PostOptionsButton

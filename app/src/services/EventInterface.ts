@@ -27,6 +27,8 @@ export interface EventInterface {
   urlTIcket: string;
   finished: boolean;
   createdAt: string;
+  participationTagText?: string;
+  participationTagColor?: string;
   // details: {
   //   location: string;
   //   date: string;

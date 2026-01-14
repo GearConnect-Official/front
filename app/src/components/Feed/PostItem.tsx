@@ -32,6 +32,7 @@ export interface Post {
   username: string;
   avatar: string;
   profilePicturePublicId?: string;
+  userId?: number;
   images: string[];
   imagePublicIds?: string[]; // Public IDs Cloudinary pour l'optimisation
   mediaTypes?: ('image' | 'video')[]; // Types de médias pour chaque élément
@@ -203,6 +204,7 @@ const PostItem: React.FC<PostItemProps> = ({
         profilePicturePublicId={post.profilePicturePublicId}
         onProfilePress={() => onProfilePress(post.username, post.userId)}
         currentUsername={currentUsername}
+        userId={post.userId}
       />
 
       <TouchableOpacity

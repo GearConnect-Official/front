@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import { eventDetailStyles as styles } from '../styles/screens';
 import { EventInterface } from '../services/EventInterface';
 
@@ -30,10 +30,20 @@ const ReviewItem: React.FC<{
   item: EventInterface['reviews'][0];
   isCurrentUserReview?: boolean;
 }> = ({ item, isCurrentUserReview = false }) => {
+  const router = useRouter();
   const [showFullText, setShowFullText] = useState(false);
   const [textExceedsLimit, setTextExceedsLimit] = useState(false);
   const maxLines = 3;
   const description = item.description || '';
+
+  const handleProfilePress = () => {
+    if (item.userId) {
+      router.push({
+        pathname: '/userProfile',
+        params: { userId: item.userId.toString() },
+      });
+    }
+  };
 
   React.useEffect(() => {
     if (description.length > 120) {
@@ -55,16 +65,20 @@ const ReviewItem: React.FC<{
   return (
     <View style={cardStyle}>
       <View style={styles.reviewHeader}>
-        <Image
-          source={
-            item.avatar
-              ? { uri: item.avatar }
-              : require('../../assets/images/logo-rounded.png')
-          }
-          style={styles.reviewAvatar}
-        />
+        <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
+          <Image
+            source={
+              item.avatar
+                ? { uri: item.avatar }
+                : require('../../assets/images/logo-rounded.png')
+            }
+            style={styles.reviewAvatar}
+          />
+        </TouchableOpacity>
         <View style={styles.reviewUserInfo}>
-          <Text style={styles.reviewUser}>{item.username}</Text>
+          <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
+            <Text style={styles.reviewUser}>{item.username}</Text>
+          </TouchableOpacity>
           <StarRating rating={item.note} />
         </View>
       </View>
@@ -95,7 +109,7 @@ interface EventDetailReviewProps {
   reviews: EventInterface['reviews'];
   userReview: EventInterface['reviews'][0] | null;
   user: any;
-  isCreator: boolean;
+  isOrganizer: boolean;
 }
 
 const EventDetailReview: React.FC<EventDetailReviewProps> = ({
@@ -103,7 +117,7 @@ const EventDetailReview: React.FC<EventDetailReviewProps> = ({
   reviews,
   userReview,
   user,
-  isCreator,
+  isOrganizer,
 }) => {
   const hasReviews = reviews && reviews.length > 0;
   
@@ -131,11 +145,11 @@ const EventDetailReview: React.FC<EventDetailReviewProps> = ({
       {!hasReviews ? (
         <View style={styles.noReviewsContainer}>
           <Text style={styles.noReviewsText}>
-            {isCreator
+            {isOrganizer
               ? 'No users have reviewed your event yet.'
               : 'No reviews yet. Be the first to leave a review!'}
           </Text>
-          {!isCreator && (
+          {!isOrganizer && (
             <TouchableOpacity
               style={styles.createReviewButton}
               onPress={handleReviewPress}

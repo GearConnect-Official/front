@@ -18,6 +18,8 @@ interface AdditionalInfoProps {
     circuitName?: string;
     expectedParticipants?: number;
   };
+  participationTagText?: string;
+  participationTagColor?: string;
   onInputChange: (field: keyof Event, value: any) => void;
 }
 
@@ -29,9 +31,32 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
   website,
   sponsors,
   meteo,
+  participationTagText,
+  participationTagColor,
   onInputChange,
 }) => {
   const [showTrackConditionModal, setShowTrackConditionModal] = React.useState(false);
+  const [showColorModal, setShowColorModal] = React.useState(false);
+
+  // Predefined color palette
+  const colorPalette = [
+    '#E10600', // Red (theme color)
+    '#000000', // Black
+    '#FFFFFF', // White
+    '#3B82F6', // Blue
+    '#10B981', // Green
+    '#F59E0B', // Amber
+    '#8B5CF6', // Purple
+    '#EC4899', // Pink
+    '#06B6D4', // Cyan
+    '#F97316', // Orange
+    '#84CC16', // Lime
+    '#6366F1', // Indigo
+    '#EF4444', // Red (lighter)
+    '#14B8A6', // Teal
+    '#A855F7', // Violet
+    '#F43F5E', // Rose
+  ];
 
   // Vérifier si l'événement est passé
   const isPastEvent = new Date(date) < new Date();
@@ -79,6 +104,57 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           returnKeyType="next"
           blurOnSubmit={false}
         />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Participation Tag</Text>
+        <Text style={[styles.label, { fontSize: 12, color: '#666', marginBottom: 4 }]}>
+          This tag will appear next to participants&apos; usernames on their profiles
+        </Text>
+        <TextInput
+          style={styles.input as TextStyle}
+          placeholder="e.g., Karting Champion 2025"
+          value={participationTagText || ''}
+          onChangeText={(text) => onInputChange('participationTagText' as keyof Event, text)}
+          returnKeyType="next"
+          blurOnSubmit={false}
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Tag Color</Text>
+        <Text style={[styles.label, { fontSize: 12, color: '#666', marginBottom: 4 }]}>
+          Color of the participation tag
+        </Text>
+        <TouchableOpacity
+          style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 } as ViewStyle, styles.input as ViewStyle]}
+          onPress={() => setShowColorModal(true)}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+            {participationTagColor && /^#[0-9A-Fa-f]{6}$/.test(participationTagColor) ? (
+              <>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    backgroundColor: participationTagColor,
+                    borderWidth: 1,
+                    borderColor: '#ddd',
+                  }}
+                />
+                <Text style={{ color: '#000', fontSize: 16, flex: 1 }}>
+                  {participationTagColor}
+                </Text>
+              </>
+            ) : (
+              <Text style={{ color: '#999', fontSize: 16 }}>
+                Select a color
+              </Text>
+            )}
+          </View>
+          <FontAwesome name="chevron-down" size={14} color="#666" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.inputGroup}>
@@ -166,6 +242,101 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           </LinearGradient>
         </View>
       </View>
+
+      {/* Color Selection Modal */}
+      <Modal
+        visible={showColorModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowColorModal(false)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}
+          activeOpacity={1}
+          onPress={() => setShowColorModal(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{ backgroundColor: '#fff', borderRadius: 16, width: '85%', maxWidth: 400, padding: 20 }}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: '#333' }}>Select Tag Color</Text>
+            </View>
+            
+            {/* Color Palette Grid */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+              {colorPalette.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 12,
+                    backgroundColor: color,
+                    borderWidth: participationTagColor === color ? 3 : 1,
+                    borderColor: participationTagColor === color ? '#E10600' : '#ddd',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onPress={() => {
+                    onInputChange('participationTagColor' as keyof Event, color);
+                    setShowColorModal(false);
+                  }}
+                >
+                  {participationTagColor === color && (
+                    <FontAwesome name="check" size={20} color={color === '#FFFFFF' ? '#000' : '#fff'} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Custom Color Input */}
+            <View style={{ marginTop: 8 }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 8 }}>
+                Or enter custom color (hex):
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <TextInput
+                  style={[styles.input as TextStyle, { flex: 1 }]}
+                  placeholder="#E10600"
+                  value={participationTagColor || ''}
+                  onChangeText={(text) => {
+                    // Validate hex color format - allow partial input while typing
+                    if (text === '' || (text.startsWith('#') && /^#[0-9A-Fa-f]{0,6}$/.test(text))) {
+                      onInputChange('participationTagColor' as keyof Event, text);
+                    }
+                  }}
+                  returnKeyType="done"
+                  maxLength={7}
+                />
+                {participationTagColor && /^#[0-9A-Fa-f]{6}$/.test(participationTagColor) && (
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 8,
+                      backgroundColor: participationTagColor,
+                      borderWidth: 1,
+                      borderColor: '#ddd',
+                    }}
+                  />
+                )}
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={{ padding: 16, borderTopWidth: 1, borderTopColor: '#f0f0f0', marginTop: 16 }}
+              onPress={() => {
+                onInputChange('participationTagColor' as keyof Event, '');
+                setShowColorModal(false);
+              }}
+            >
+              <Text style={{ fontSize: 16, color: '#999', textAlign: 'center' }}>Clear</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Track Condition Modal - Simple and clean design */}
       <Modal

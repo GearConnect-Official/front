@@ -31,6 +31,11 @@ export interface Event {
   };
   // Whether the event is finished
   finished?: boolean;
+  // Participation tag information
+  participationTagText?: string;
+  participationTagColor?: string; // Hex color format: #RRGGBB
+  // Organizers information
+  organizers?: Array<{ userId: number | null; name: string }>;
 }
 
 const eventService = {

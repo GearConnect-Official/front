@@ -4,6 +4,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import eventService from "../../services/eventService";
 import { checkMissingEventInfo } from "../../utils/eventMissingInfo";
 import { eventItemStyles } from "../../styles/components/items";
+import EventTag from "../EventTag";
 
 const itemStyles = eventItemStyles;
 
@@ -32,6 +33,8 @@ interface EventItemProps {
     [key: string]: any;
   };
   finished?: boolean;
+  participationTagText?: string;
+  participationTagColor?: string;
 }
 
 const EventItem: React.FC<EventItemProps> = ({
@@ -53,6 +56,8 @@ const EventItem: React.FC<EventItemProps> = ({
   eventDate,
   meteo,
   finished = false,
+  participationTagText,
+  participationTagColor,
 }) => {
   // Vérifier si l'événement est terminé : soit finished = true, soit la date est passée
   const eventDateObj = eventDate ? (typeof eventDate === 'string' ? new Date(eventDate) : eventDate) : null;
@@ -63,21 +68,21 @@ const EventItem: React.FC<EventItemProps> = ({
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
-  // Vérifier si des infos manquent (seulement pour le créateur)
-  const isCreator = creatorId && currentUserId && creatorId === currentUserId;
-  const missingInfo = isCreator && eventDate ? checkMissingEventInfo({
+  // Vérifier si des infos manquent (seulement pour les organisateurs)
+  const isOrganizer = creatorId && currentUserId && creatorId === currentUserId;
+  const missingInfo = isOrganizer && eventDate ? checkMissingEventInfo({
     date: typeof eventDate === 'string' ? new Date(eventDate) : eventDate,
     meteo: meteo || {},
   } as any) : null;
 
   // Synchroniser l'état local avec les props
   useEffect(() => {
-    const isCreator = creatorId && currentUserId && creatorId === currentUserId;
+    const isOrganizer = creatorId && currentUserId && creatorId === currentUserId;
     // Un événement est "joined" seulement s'il n'est pas terminé
     const eventDateObj = eventDate ? (typeof eventDate === 'string' ? new Date(eventDate) : eventDate) : null;
     const isDatePassed = eventDateObj ? new Date(eventDateObj) < new Date() : false;
     const isEventFinished = finished === true || isDatePassed;
-    setIsJoined(!isEventFinished && (initialIsJoined || isCreator));
+    setIsJoined(!isEventFinished && (initialIsJoined || isOrganizer));
   }, [initialIsJoined, creatorId, currentUserId, finished, eventDate]);
 
   const handleJoin = async () => {
@@ -145,7 +150,7 @@ const EventItem: React.FC<EventItemProps> = ({
   // Si l'événement est terminé (finished = true OU date passée), toujours afficher "End"
   // Sinon, afficher "Joined" si l'utilisateur a rejoint ou est le créateur
   const showFinished = isEventFinished;
-  const showJoined = !showFinished && (isJoined || isCreator);
+  const showJoined = !showFinished && (isJoined || isOrganizer);
 
   return (
     <TouchableOpacity style={itemStyles.container} onPress={onPress}>
@@ -170,7 +175,15 @@ const EventItem: React.FC<EventItemProps> = ({
       <View style={itemStyles.contentContainer}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View style={{ flex: 1 }}>
-            <Text style={itemStyles.titleText} numberOfLines={2}>{title}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
+              <Text style={itemStyles.titleText} numberOfLines={2}>{title}</Text>
+              {participationTagText && participationTagColor && (
+                <EventTag
+                  text={participationTagText}
+                  color={participationTagColor}
+                />
+              )}
+            </View>
             <Text style={itemStyles.subtitleText} numberOfLines={1}>{subtitle}</Text>
           </View>
           {missingInfo?.hasMissingInfo && (
@@ -214,8 +227,8 @@ const EventItem: React.FC<EventItemProps> = ({
         ) : showJoined ? (
           <TouchableOpacity 
             style={itemStyles.joinedBadge}
-            onPress={isCreator ? undefined : handleLeave}
-            disabled={isCreator || isLeaving}
+            onPress={isOrganizer ? undefined : handleLeave}
+            disabled={isOrganizer || isLeaving}
           >
             {isLeaving ? (
               <ActivityIndicator size="small" color="#10b981" />

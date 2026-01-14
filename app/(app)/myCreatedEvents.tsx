@@ -203,6 +203,8 @@ const MyCreatedEventsScreen: React.FC = () => {
                     eventDate={event.date}
                     meteo={event.meteo}
                     finished={event.finished}
+                    participationTagText={event.participationTagText}
+                    participationTagColor={event.participationTagColor}
                   />
                 );
               })}

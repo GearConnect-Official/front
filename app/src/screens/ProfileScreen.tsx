@@ -129,6 +129,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [createdEvents, setCreatedEvents] = useState<any[]>([]);
   const [isLoadingCreatedEvents, setIsLoadingCreatedEvents] = useState(false);
   const [missingInfoCount, setMissingInfoCount] = useState(0);
+  const [nextEventTag, setNextEventTag] = useState<{ text: string; color: string; isOrganizer?: boolean; eventId?: number } | null>(null);
 
   // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
@@ -202,16 +203,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }, [effectiveUserId])
   );
 
+  // Function to fetch next event tag
+  const fetchNextEventTag = async () => {
+    if (!effectiveUserId) return;
+    
+    try {
+      const response = await userService.getNextEventTag(effectiveUserId);
+      if (response.success && response.data?.tag && response.data?.event) {
+        setNextEventTag({
+          ...response.data.tag,
+          eventId: response.data.event.id,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching next event tag:", error);
+    }
+  };
+
   // Load all data when component mounts or user changes
   useEffect(() => {
     if (!effectiveUserId) return;
 
     const loadAllData = async () => {
       try {
-        // Load user data and follow stats
+        // Load user data, follow stats, and next event tag
         await Promise.all([
           fetchUserData(),
           fetchFollowStats(),
+          fetchNextEventTag(),
         ]);
 
         // Load user posts
@@ -1357,9 +1376,44 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 />
               )}
               <View style={styles.profileInfo}>
-                <Text style={styles.username}>
-                  {userData?.username || user?.username || "User"}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                  <Text style={styles.username}>
+                    {userData?.username || user?.username || "User"}
+                  </Text>
+                  {nextEventTag && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (nextEventTag.eventId) {
+                          router.push({
+                            pathname: '/(app)/eventDetail',
+                            params: { eventId: nextEventTag.eventId.toString() },
+                          });
+                        }
+                      }}
+                      activeOpacity={0.7}
+                      disabled={!nextEventTag.eventId}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: nextEventTag.color,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 12,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: '#fff',
+                            fontSize: 12,
+                            fontWeight: '600',
+                          }}
+                        >
+                          {nextEventTag.isOrganizer ? `Organizer of ${nextEventTag.text}` : nextEventTag.text}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </View>
                 <View style={styles.statsContainer}>
                   <View style={styles.statItem}>
                     <Text style={styles.statNumber}>{stats.posts}</Text>

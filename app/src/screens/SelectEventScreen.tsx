@@ -325,6 +325,8 @@ const SelectEventScreen: React.FC = () => {
                     currentUserId={currentUserId}
                     isJoined={true}
                     finished={event.finished}
+                    participationTagText={event.participationTagText}
+                    participationTagColor={event.participationTagColor}
                   />
                 </TouchableOpacity>
               );

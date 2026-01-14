@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { getPositionColor, Performance } from '../../types/performance.types';
 import { eventResultsGridStyles } from '../../styles/components/EventResults';
 
@@ -17,8 +18,18 @@ interface PerformanceWithUser extends Performance {
 }
 
 const EventResultsGrid: React.FC<EventResultsGridProps> = ({ performances, loading = false }) => {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const handleProfilePress = (userId?: number) => {
+    if (userId) {
+      router.push({
+        pathname: '/userProfile',
+        params: { userId: userId.toString() },
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -66,7 +77,12 @@ const EventResultsGrid: React.FC<EventResultsGridProps> = ({ performances, loadi
     return (
       <View style={styles.podiumItem} key={position}>
         {/* Avatar above the podium */}
-        <View style={styles.podiumAvatarContainer}>
+        <TouchableOpacity
+          style={styles.podiumAvatarContainer}
+          onPress={() => !isPlaceholder && handleProfilePress(performance.userId)}
+          disabled={isPlaceholder}
+          activeOpacity={0.7}
+        >
           <View style={styles.podiumAvatar}>
             {isPlaceholder ? (
               <FontAwesome name="user" size={24} color="rgba(0, 0, 0, 0.3)" />
@@ -79,7 +95,7 @@ const EventResultsGrid: React.FC<EventResultsGridProps> = ({ performances, loadi
               <FontAwesome name="user" size={24} color="#666" />
             )}
           </View>
-        </View>
+        </TouchableOpacity>
         
         {/* Podium box with number and name */}
         <View style={[styles.podiumBase, { height, backgroundColor: color }]}>
@@ -138,7 +154,11 @@ const EventResultsGrid: React.FC<EventResultsGridProps> = ({ performances, loadi
                         </Text>
                       </View>
                     </View>
-                    <View style={[styles.tableCell, { flex: 1, flexDirection: 'row', alignItems: 'center' }]}>
+                    <TouchableOpacity
+                      style={[styles.tableCell, { flex: 1, flexDirection: 'row', alignItems: 'center' }]}
+                      onPress={() => handleProfilePress(performance.userId)}
+                      activeOpacity={0.7}
+                    >
                       {perfWithUser.userAvatar ? (
                         <Image 
                           source={{ uri: perfWithUser.userAvatar }} 
@@ -152,7 +172,7 @@ const EventResultsGrid: React.FC<EventResultsGridProps> = ({ performances, loadi
                       <Text style={styles.tableCellText} numberOfLines={1}>
                         {perfWithUser.userName || `User ${performance.userId}`}
                       </Text>
-                    </View>
+                    </TouchableOpacity>
                     <Text style={[styles.tableCell, { width: 100, fontFamily: 'monospace' }]}>
                       {performance.lapTime}
                     </Text>

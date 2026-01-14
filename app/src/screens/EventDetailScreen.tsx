@@ -6,10 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { RouteProp, useFocusEffect } from '@react-navigation/native';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { EventInterface } from '../services/EventInterface';
 import { styles } from '../styles/screens/events/eventDetailStyles';
 import {
@@ -20,7 +20,6 @@ import {
   API_URL_USERS,
 } from '../config';
 import { useAuth } from '../context/AuthContext';
-import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
 import relatedProductService from '../services/relatedProductService';
@@ -28,18 +27,8 @@ import EventDetailReview from '../components/EventDetailReview';
 import EventResultsGrid from '../components/EventResults/EventResultsGrid';
 import PerformanceService from '../services/performanceService';
 import { Performance } from '../types/performance.types';
-
-type RootStackParamList = {
-  EventDetail: { eventId: string };
-  // Add other routes as needed
-};
-
-type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
-
-interface MeteoInfo {
-  condition: string;
-  temperature: number | string;
-}
+import EventTag from '../components/EventTag';
+import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
 
 const EventDetailScreen: React.FC = () => {
   const params = useLocalSearchParams();
@@ -48,14 +37,20 @@ const EventDetailScreen: React.FC = () => {
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user || null;
   const [userReview, setUserReview] = useState<
     EventInterface['reviews'][0] | null
   >(null);
-  const [isReviewCreator, setIsReviewCreator] = useState<boolean>(false);
-  const [isCreator, setIsCreator] = useState<boolean>(false);
+  const [isOrganizer, setIsOrganizer] = useState<boolean>(false);
   const [eventPerformances, setEventPerformances] = useState<Performance[]>([]);
   const [loadingPerformances, setLoadingPerformances] = useState(false);
+  const [organizersWithDetails, setOrganizersWithDetails] = useState<{
+    userId: number | null;
+    name: string;
+    profilePicture?: string;
+    profilePicturePublicId?: string;
+  }[]>([]);
 
   function formatDate(data: string | number | Date) {
     if (!data) return 'Date not available';
@@ -73,31 +68,43 @@ const EventDetailScreen: React.FC = () => {
       return 'Date not available';
     }
   }
-  const checkIfCreator = async (fetchedEvent: EventInterface) => {
+  const checkIfOrganizer = async (fetchedEvent: EventInterface) => {
     try {
       if (!user || !user.id) {
-        setIsCreator(false);
+        setIsOrganizer(false);
         return;
       }
-      // Check if the logged-in user is the creator of the event
+      // Check if the logged-in user is an organizer of the event
       const currentUserId =
         typeof user.id === 'object' && user.id !== null
           ? String(user.id)
           : String(user.id);
-      // Check if fetchedEvent has a creatorId or userId property
-      const eventCreatorId = fetchedEvent.creatorId || null;
-      if (!eventCreatorId) {
-        setIsCreator(false);
-        return;
+      // Check if fetchedEvent has a creatorId (primary organizer) or if user is in organizers array
+      const primaryOrganizerId = fetchedEvent.creatorId || null;
+      const organizers = (fetchedEvent as any).organizers || [];
+      
+      // Check if user is the primary organizer
+      if (primaryOrganizerId) {
+        const primaryOrganizerIdString = String(primaryOrganizerId);
+        if (primaryOrganizerIdString === currentUserId) {
+          setIsOrganizer(true);
+          return;
+        }
       }
-      // Convert to string for comparison
-      const creatorIdString = String(eventCreatorId);
-      // Compare the IDs
-      const isCreator = creatorIdString === currentUserId;
-      setIsCreator(isCreator);
+      
+      // Check if user is in the organizers array
+      if (Array.isArray(organizers)) {
+        const isInOrganizers = organizers.some((org: any) => org.userId === Number(currentUserId));
+        if (isInOrganizers) {
+          setIsOrganizer(true);
+          return;
+        }
+      }
+      
+      setIsOrganizer(false);
     } catch (error) {
-      console.error('Error checking if creator:', error);
-      setIsCreator(false);
+      console.error('Error checking if organizer:', error);
+      setIsOrganizer(false);
     }
   };
 
@@ -105,23 +112,18 @@ const EventDetailScreen: React.FC = () => {
   const checkIfReviewCreator = async (fetchedEvent: EventInterface) => {
     try {
       if (!user || !user.id) {
-        setIsReviewCreator(false);
         return false;
       }
       const response = await fetch(
         `${API_URL_EVENTREVIEWS}/${fetchedEvent.id}/${user.id}`
       );
       if (!response.ok) {
-        setIsReviewCreator(false);
         return false;
       }
       const data = await response.json();
-      const isReviewCreator = Boolean(data && data.id);
-      setIsReviewCreator(isReviewCreator);
-      return isReviewCreator;
+      return Boolean(data && data.id);
     } catch (error) {
-      console.error('Error checking if creator:', error);
-      setIsReviewCreator(false);
+      console.error('Error checking if review creator:', error);
       return false;
     }
   };
@@ -145,7 +147,7 @@ const EventDetailScreen: React.FC = () => {
     return Boolean(existingReview);
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -169,6 +171,12 @@ const EventDetailScreen: React.FC = () => {
 
       const fetchedEvent: EventInterface = await response.json();
 
+      // Log pour debug - vérifier que les champs de tag sont reçus
+      console.log('Fetched event tags:', {
+        participationTagText: (fetchedEvent as any).participationTagText,
+        participationTagColor: (fetchedEvent as any).participationTagColor
+      });
+
       // Process additional data with graceful degradation
       const enhancedEvent = await Promise.all([
         enhanceEventWithTags(fetchedEvent),
@@ -178,12 +186,15 @@ const EventDetailScreen: React.FC = () => {
 
       // User-specific checks
       await checkIfReviewCreator(enhancedEvent);
-      await checkIfCreator(enhancedEvent);
+      await checkIfOrganizer(enhancedEvent);
       if (enhancedEvent.reviews && enhancedEvent.reviews.length > 0) {
         checkIfUserHasReviewed(enhancedEvent.reviews);
       }
 
       setEvent(enhancedEvent);
+
+      // Load organizers with details
+      await loadOrganizersWithDetails(enhancedEvent);
 
       // Load event performances
       await loadEventPerformances(parseInt(eventId));
@@ -207,7 +218,8 @@ const EventDetailScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId, user]);
 
   // Helper functions for retry logic and graceful degradation
   const fetchWithRetry = async (
@@ -349,6 +361,82 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
+  const loadOrganizersWithDetails = async (event: EventInterface) => {
+    try {
+      const organizers = (event as any).organizers;
+      if (!organizers || !Array.isArray(organizers)) {
+        // If no organizers array, just show the primary organizer (creatorId)
+        const primaryOrganizer = (event as any).creator || (typeof event.creatorId === 'object' ? event.creatorId : null);
+        if (primaryOrganizer || event.creatorId) {
+          const primaryOrganizerId = primaryOrganizer?.id || (typeof event.creatorId === 'object' ? event.creatorId?.id : event.creatorId);
+          const primaryOrganizerIdNum = typeof primaryOrganizerId === 'string' ? parseInt(primaryOrganizerId) : primaryOrganizerId;
+          if (primaryOrganizerIdNum) {
+            try {
+              const userResponse = await fetch(`${API_URL_USERS}/${primaryOrganizerIdNum}`);
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                setOrganizersWithDetails([{
+                  userId: primaryOrganizerIdNum,
+                  name: userData.username || userData.name || primaryOrganizer?.name || primaryOrganizer?.username || 'Event Organizer',
+                  profilePicture: userData.profilePicture,
+                  profilePicturePublicId: userData.profilePicturePublicId,
+                }]);
+              } else {
+                setOrganizersWithDetails([{
+                  userId: primaryOrganizerIdNum,
+                  name: primaryOrganizer?.name || primaryOrganizer?.username || 'Event Organizer',
+                  profilePicture: primaryOrganizer?.profilePicture,
+                  profilePicturePublicId: primaryOrganizer?.profilePicturePublicId,
+                }]);
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch primary organizer ${primaryOrganizerIdNum}`, error);
+              setOrganizersWithDetails([{
+                userId: primaryOrganizerIdNum,
+                name: primaryOrganizer?.name || primaryOrganizer?.username || 'Event Organizer',
+                profilePicture: primaryOrganizer?.profilePicture,
+                profilePicturePublicId: primaryOrganizer?.profilePicturePublicId,
+              }]);
+            }
+          }
+        }
+        return;
+      }
+
+      // Fetch details for all organizers
+      const organizersWithDetails = await Promise.all(
+        organizers.map(async (org: { userId: number | null; name: string }) => {
+          if (org.userId) {
+            try {
+              const userResponse = await fetch(`${API_URL_USERS}/${org.userId}`);
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                return {
+                  userId: org.userId,
+                  name: userData.username || userData.name || org.name,
+                  profilePicture: userData.profilePicture,
+                  profilePicturePublicId: userData.profilePicturePublicId,
+                };
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch organizer ${org.userId}`, error);
+            }
+          }
+          // For external organizers (no userId) or if fetch failed
+          return {
+            userId: org.userId,
+            name: org.name,
+          };
+        })
+      );
+
+      setOrganizersWithDetails(organizersWithDetails);
+    } catch (error) {
+      console.error('Error loading organizers:', error);
+      setOrganizersWithDetails([]);
+    }
+  };
+
   const loadEventPerformances = async (eventId: number) => {
     setLoadingPerformances(true);
     try {
@@ -395,7 +483,7 @@ const EventDetailScreen: React.FC = () => {
         setEvent(null);
         setError(null);
       };
-    }, [eventId])
+    }, [eventId, fetchData])
   );
 
   // Keep the initial useEffect for first load
@@ -412,7 +500,7 @@ const EventDetailScreen: React.FC = () => {
     if (params.updated === 'true') {
       console.log('Products updated successfully!');
     }
-  }, [eventId, params.updated]);
+  }, [eventId, params.updated, fetchData]);
 
   if (error) {
     return (
@@ -485,7 +573,7 @@ const EventDetailScreen: React.FC = () => {
               <FontAwesome name="arrow-left" size={24} color="#1E232C" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Event Details</Text>
-            {isCreator ? (
+            {isOrganizer ? (
               <TouchableOpacity
                 style={styles.reviewButton}
                 onPress={() => router.push({
@@ -511,11 +599,150 @@ const EventDetailScreen: React.FC = () => {
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.eventInfo}>
-            <Text style={styles.eventTitle}>
-              {event.name || 'Unnamed Event'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <Text style={styles.eventTitle}>
+                {event.name || 'Unnamed Event'}
+              </Text>
+              {event.participationTagText && event.participationTagColor && (
+                <EventTag
+                  text={event.participationTagText}
+                  color={event.participationTagColor}
+                />
+              )}
+            </View>
             {/* <Text style={styles.eventCategory}>{event.category}</Text> */}
           </View>
+
+          {/* Organizers Section - En haut, séparés par type */}
+          {organizersWithDetails.length > 0 && (
+            <View style={{ paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#fff' }}>
+              {/* Organisateurs avec profil GearConnect */}
+              {organizersWithDetails.filter(org => org.userId !== null).length > 0 && (
+                <View style={{ marginBottom: organizersWithDetails.filter(org => org.userId === null).length > 0 ? 20 : 0 }}>
+                  {organizersWithDetails
+                    .filter(org => org.userId !== null)
+                    .map((org, index) => {
+                      const handleOrganizerPress = () => {
+                        if (org.userId) {
+                          router.push({
+                            pathname: '/userProfile',
+                            params: { userId: org.userId.toString() },
+                          });
+                        }
+                      };
+
+                      return (
+                        <TouchableOpacity
+                          key={`gearconnect-${index}`}
+                          onPress={handleOrganizerPress}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 12,
+                            marginBottom: index < organizersWithDetails.filter(org => org.userId !== null).length - 1 ? 12 : 0,
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          {/* Profile Picture */}
+                          {org.profilePicturePublicId ? (
+                            <CloudinaryAvatar
+                              publicId={org.profilePicturePublicId}
+                              size={48}
+                              style={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: 24,
+                              }}
+                              fallbackUrl={org.profilePicture}
+                            />
+                          ) : org.profilePicture ? (
+                            <Image
+                              source={{ uri: org.profilePicture }}
+                              style={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: 24,
+                              }}
+                            />
+                          ) : (
+                            <View
+                              style={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: 24,
+                                backgroundColor: '#F0F0F0',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <FontAwesome name="user" size={20} color="#999" />
+                            </View>
+                          )}
+                          
+                          {/* Name */}
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 16, fontWeight: '600', color: '#333' }}>
+                              {org.name}
+                            </Text>
+                            <Text style={{ fontSize: 14, color: '#666', marginTop: 2 }}>
+                              Organizer
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                </View>
+              )}
+
+              {/* Organisateurs externes (sans profil GearConnect) */}
+              {organizersWithDetails.filter(org => org.userId === null).length > 0 && (
+                <View style={{ 
+                  paddingTop: organizersWithDetails.filter(org => org.userId !== null).length > 0 ? 16 : 0,
+                  borderTopWidth: organizersWithDetails.filter(org => org.userId !== null).length > 0 ? 1 : 0,
+                  borderTopColor: '#E0E0E0',
+                }}>
+                  {organizersWithDetails
+                    .filter(org => org.userId === null)
+                    .map((org, index) => (
+                      <View
+                        key={`external-${index}`}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 12,
+                          marginBottom: index < organizersWithDetails.filter(org => org.userId === null).length - 1 ? 12 : 0,
+                        }}
+                      >
+                        {/* Placeholder icon for external organizers */}
+                        <View
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 24,
+                            backgroundColor: '#F0F0F0',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <FontAwesome name="user" size={20} color="#999" />
+                        </View>
+                        
+                        {/* Name */}
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 16, fontWeight: '600', color: '#333' }}>
+                            {org.name}
+                          </Text>
+                          <Text style={{ fontSize: 14, color: '#666', marginTop: 2 }}>
+                            Organizer
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                </View>
+              )}
+            </View>
+          )}
+
           <View style={styles.descriptionContainer}>
             {/* {event?.images?.[0] ? (
             <Image
@@ -528,27 +755,25 @@ const EventDetailScreen: React.FC = () => {
              </View>
              )} */}
             <View style={styles.aboutContainer}>
-              <Text style={styles.aboutTitle}>About</Text>
               <View style={styles.tagContainer}>
-                {event?.tags && event.tags.length > 0 ? (
+                {event?.tags && event.tags.length > 0 && (
                   event.tags.map((tag: any, index: number) => (
                     <Text
                       key={`tag-${index}-${
                         typeof tag === 'object' ? tag.id : tag
                       }`}
-                      style={styles.tag}
+                      style={styles.tag as any}
                     >
                       {typeof tag === 'object' && tag !== null ? tag.name : tag}
                     </Text>
                   ))
-                ) : (
-                  <Text style={styles.noTagsText}>No tags available</Text>
                 )}
               </View>
-              <Text style={styles.description}>
-                {event.description ||
-                  'No description available for this event.'}
-              </Text>
+              {event.description && (
+                <Text style={styles.description}>
+                  {event.description}
+                </Text>
+              )}
             </View>
           </View>
 
@@ -587,8 +812,11 @@ const EventDetailScreen: React.FC = () => {
           </View>
            <RelatedProductsSection
           eventId={eventId}
-          products={event.relatedProducts || []}
-          isCreator={isCreator}
+          products={(event.relatedProducts || []).map((product: any) => ({
+            ...product,
+            price: typeof product.price === 'string' ? parseFloat(product.price) || 0 : product.price,
+          }))}
+          isOrganizer={isOrganizer}
           onRefresh={fetchData}
         />
           <EventDetailReview
@@ -596,7 +824,7 @@ const EventDetailScreen: React.FC = () => {
             reviews={event.reviews || []}
             userReview={userReview}
             user={user}
-            isCreator={isCreator}
+            isOrganizer={isOrganizer}
           />
           {/* Results Grid */}
           <EventResultsGrid 

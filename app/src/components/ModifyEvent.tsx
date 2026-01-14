@@ -75,7 +75,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
   const [currentStep, setCurrentStep] = React.useState(1);
   const totalSteps = 3;
   // Initialize form with event data
-  const initialFormData: Event = {
+  const initialFormData: Event & { organizers?: { userId: number | null; name: string }[] } = {
     name: eventData?.name || '',
     creators: eventData?.creators || '',
     location: eventData?.location || '',
@@ -90,6 +90,9 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
     imagePublicIds: eventData?.imagePublicIds || [],
     creatorId: eventData?.creatorId,
     meteo: eventData?.meteo || {},
+    participationTagText: eventData?.participationTagText || '',
+    participationTagColor: eventData?.participationTagColor || '',
+    organizers: (eventData as any)?.organizers || [],
   };
 
   const {
@@ -133,18 +136,42 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
       const formattedDate = new Date(formData.date);
       console.log('📅 Formatted date:', formattedDate);
 
+      // S'assurer que le créateur est toujours dans la liste des organisateurs
+      const organizers = (formData as any).organizers || [];
+      const creatorId = eventData?.creatorId;
+      let finalOrganizers = organizers;
+      
+      if (creatorId) {
+        // Récupérer le nom du créateur depuis eventData ou user
+        const creatorName = (eventData as any)?.creator?.name || 
+                           (eventData as any)?.creator?.username || 
+                           user?.username || 
+                           user?.name || 
+                           'Event Creator';
+        const creatorExists = organizers.some((org: { userId: number | null; name: string }) => org.userId === creatorId);
+        if (!creatorExists) {
+          finalOrganizers = [{ userId: creatorId, name: creatorName }, ...organizers];
+        }
+      }
+
       // Create a clean object with properties that need to be updated
-      const updatedData: Partial<Event> = {
+      // Only include fields that are explicitly provided (allow partial updates)
+      // For tag fields, send empty string if they exist but are empty (backend will convert to null)
+      const updatedData: Partial<Event> & { organizers?: { userId: number | null; name: string }[] } = {
         name: formData.name.trim(),
         location: formData.location.trim(),
-        rankings: formData.rankings.trim(),
-        website: formData.website.trim(),
-        sponsors: formData.sponsors.trim(),
+        rankings: formData.rankings?.trim() || '',
+        website: formData.website?.trim() || '',
+        sponsors: formData.sponsors?.trim() || '',
         date: formattedDate,
         description: formData.description ? formData.description.trim() : '',
         logo: formData.logo || '',
         images: formData.images || [],
         meteo: formData.meteo || {},
+        // Always include tag fields (even if empty) so they can be updated
+        participationTagText: formData.participationTagText || '',
+        participationTagColor: formData.participationTagColor || '',
+        organizers: finalOrganizers,
       };
 
       console.log('📤 Data to be sent for update:', updatedData);
@@ -200,6 +227,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
           <BasicInfo
             name={formData.name}
             creators={formData.creators}
+            organizers={(formData as any).organizers || []}
             location={formData.location}
             date={formData.date}
             onInputChange={handleInputChange}
@@ -228,6 +256,8 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
             website={formData.website}
             sponsors={formData.sponsors}
             meteo={formData.meteo as any}
+            participationTagText={formData.participationTagText}
+            participationTagColor={formData.participationTagColor}
             onInputChange={handleInputChange}
           />
         );

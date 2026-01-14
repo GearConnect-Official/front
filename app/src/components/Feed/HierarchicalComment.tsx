@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { HierarchicalComment as CommentType } from '../../services/commentService';
 import { formatPostDate } from '../../utils/dateUtils';
 import { hierarchicalCommentStyles as styles } from '../../styles/components/hierarchicalCommentStyles';
@@ -37,8 +38,18 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
   level = 0,
   maxLevel = 3,
 }) => {
+  const router = useRouter();
   const [showReplies, setShowReplies] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+
+  const handleProfilePress = () => {
+    if (comment.userId) {
+      router.push({
+        pathname: '/userProfile',
+        params: { userId: comment.userId.toString() },
+      });
+    }
+  };
 
   const isOwnComment = comment.userId === currentUserId;
   const hasLiked = comment.likes.some(like => like.userId === currentUserId);
@@ -63,7 +74,7 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'Modifier',
-          onPress: (text) => {
+          onPress: (text: string | undefined) => {
             if (text && text.trim()) {
               onEdit(comment.id, text.trim());
             }
@@ -108,7 +119,11 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
     <View style={[styles.container, { marginLeft }]}>
       {/* Main comment */}
       <View style={styles.commentContainer}>
-        <View style={styles.avatarContainer}>
+        <TouchableOpacity
+          style={styles.avatarContainer}
+          onPress={handleProfilePress}
+          activeOpacity={0.7}
+        >
           {comment.user.profilePicturePublicId ? (
             <CloudinaryAvatar
               publicId={comment.user.profilePicturePublicId}
@@ -132,7 +147,7 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
             />
           )}
           {level > 0 && <View style={styles.threadLine} />}
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.contentContainer}>
           <View style={styles.header}>

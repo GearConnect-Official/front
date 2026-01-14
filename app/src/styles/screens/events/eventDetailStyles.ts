@@ -123,7 +123,7 @@ export const styles = StyleSheet.create({
     padding: theme.spacing.xs,
     ...theme.borders.apply({}, { radius: theme.borders.radius.sm }),
     marginRight: theme.spacing.xs,
-  },
+  } as any,
   noTagsText: {
     fontSize: theme.typography.body1.fontSize,
     color: theme.colors.text.secondary,

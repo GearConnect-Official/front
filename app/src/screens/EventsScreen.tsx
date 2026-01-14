@@ -276,9 +276,9 @@ const EventsScreen: React.FC = () => {
   const handleEventPress = (event: Event) => {
     // Vérifier si c'est le créateur avec des infos manquantes
     const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
-    const isCreator = event.creatorId && currentUserId && event.creatorId === currentUserId;
-    
-    if (isCreator && eventId) {
+    const isOrganizer = event.creatorId && currentUserId && event.creatorId === currentUserId;
+
+    if (isOrganizer && eventId) {
       const { checkMissingEventInfo } = require('../utils/eventMissingInfo');
       const missingInfo = checkMissingEventInfo(event);
       
@@ -589,6 +589,8 @@ const EventsScreen: React.FC = () => {
                   eventDate={event.date}
                   meteo={event.meteo}
                   finished={event.finished}
+                  participationTagText={event.participationTagText}
+                  participationTagColor={event.participationTagColor}
                   onJoinSuccess={() => {
                     // Mettre à jour uniquement l'état local pour le statut join
                     if (currentUserId && eventId) {

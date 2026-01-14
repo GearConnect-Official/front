@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import eventService from "../../services/eventService";
+import { checkMissingEventInfo } from "../../utils/eventMissingInfo";
 
 interface EventItemProps {
   title: string;
@@ -17,6 +18,17 @@ interface EventItemProps {
   currentUserId?: number;
   isJoined?: boolean;
   onJoinSuccess?: () => void;
+  onLeaveSuccess?: () => void;
+  winner?: {
+    userName: string;
+    lapTime: string;
+  } | null;
+  eventDate?: Date | string;
+  meteo?: {
+    trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+    [key: string]: any;
+  };
+  finished?: boolean;
 }
 
 const EventItem: React.FC<EventItemProps> = ({
@@ -33,12 +45,41 @@ const EventItem: React.FC<EventItemProps> = ({
   currentUserId,
   isJoined: initialIsJoined = false,
   onJoinSuccess,
+  onLeaveSuccess,
+  winner,
+  eventDate,
+  meteo,
+  finished = false,
 }) => {
-  const [isJoined, setIsJoined] = useState(initialIsJoined || (creatorId && currentUserId && creatorId === currentUserId));
+  // Vérifier si l'événement est terminé : soit finished = true, soit la date est passée
+  const eventDateObj = eventDate ? (typeof eventDate === 'string' ? new Date(eventDate) : eventDate) : null;
+  const isDatePassed = eventDateObj ? new Date(eventDateObj) < new Date() : false;
+  const isEventFinished = finished === true || isDatePassed;
+  
+  const [isJoined, setIsJoined] = useState(!isEventFinished && (initialIsJoined || (creatorId && currentUserId && creatorId === currentUserId)));
   const [isJoining, setIsJoining] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  // Vérifier si des infos manquent (seulement pour le créateur)
+  const isCreator = creatorId && currentUserId && creatorId === currentUserId;
+  const missingInfo = isCreator && eventDate ? checkMissingEventInfo({
+    date: typeof eventDate === 'string' ? new Date(eventDate) : eventDate,
+    meteo: meteo || {},
+  } as any) : null;
+
+  // Synchroniser l'état local avec les props
+  useEffect(() => {
+    const isCreator = creatorId && currentUserId && creatorId === currentUserId;
+    // Un événement est "joined" seulement s'il n'est pas terminé
+    const eventDateObj = eventDate ? (typeof eventDate === 'string' ? new Date(eventDate) : eventDate) : null;
+    const isDatePassed = eventDateObj ? new Date(eventDateObj) < new Date() : false;
+    const isEventFinished = finished === true || isDatePassed;
+    setIsJoined(!isEventFinished && (initialIsJoined || isCreator));
+  }, [initialIsJoined, creatorId, currentUserId, finished, eventDate]);
 
   const handleJoin = async () => {
-    if (!eventId || !currentUserId || isJoined || isJoining) {
+    // Ne pas permettre de rejoindre un événement terminé
+    if (!eventId || !currentUserId || isJoined || isJoining || isEventFinished) {
       return;
     }
 
@@ -57,8 +98,51 @@ const EventItem: React.FC<EventItemProps> = ({
     }
   };
 
-  // Si c'est le créateur, toujours afficher "Rejoint"
-  const showJoined = isJoined || (creatorId && currentUserId && creatorId === currentUserId);
+  const handleLeave = () => {
+    if (!eventId || !currentUserId || !isJoined || isLeaving) {
+      return;
+    }
+
+    // Ne pas permettre au créateur de quitter son propre événement
+    if (creatorId && currentUserId && creatorId === currentUserId) {
+      return;
+    }
+
+    Alert.alert(
+      "Leave Event",
+      "Are you sure you want to leave this event?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Leave",
+          style: "destructive",
+          onPress: async () => {
+            setIsLeaving(true);
+            try {
+              await eventService.leaveEvent(eventId, currentUserId);
+              setIsJoined(false);
+              if (onLeaveSuccess) {
+                onLeaveSuccess();
+              }
+            } catch (error: any) {
+              console.error("Error leaving event:", error);
+              Alert.alert("Error", "Failed to leave the event. Please try again.");
+            } finally {
+              setIsLeaving(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Si l'événement est terminé (finished = true OU date passée), toujours afficher "End"
+  // Sinon, afficher "Joined" si l'utilisateur a rejoint ou est le créateur
+  const showFinished = isEventFinished;
+  const showJoined = !showFinished && (isJoined || isCreator);
 
   return (
     <TouchableOpacity style={itemStyles.container} onPress={onPress}>
@@ -81,8 +165,18 @@ const EventItem: React.FC<EventItemProps> = ({
       </View>
 
       <View style={itemStyles.contentContainer}>
-        <Text style={itemStyles.titleText} numberOfLines={2}>{title}</Text>
-        <Text style={itemStyles.subtitleText} numberOfLines={1}>{subtitle}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <View style={{ flex: 1 }}>
+            <Text style={itemStyles.titleText} numberOfLines={2}>{title}</Text>
+            <Text style={itemStyles.subtitleText} numberOfLines={1}>{subtitle}</Text>
+          </View>
+          {missingInfo?.hasMissingInfo && (
+            <View style={itemStyles.missingInfoBadge}>
+              <FontAwesome name="exclamation-triangle" size={14} color="#F59E0B" />
+              <Text style={itemStyles.missingInfoText}>{missingInfo.missingCount}</Text>
+            </View>
+          )}
+        </View>
         
         {location && (
           <View style={itemStyles.locationRow}>
@@ -90,6 +184,16 @@ const EventItem: React.FC<EventItemProps> = ({
             <Text style={itemStyles.locationText}>{location}</Text>
           </View>
         )}
+
+        {winner && (
+          <View style={itemStyles.winnerContainer}>
+            <FontAwesome name="trophy" size={14} color="#FFD700" />
+            <Text style={itemStyles.winnerText}>
+              Winner: {winner.userName} ({winner.lapTime})
+            </Text>
+          </View>
+        )}
+
       </View>
 
       <View style={itemStyles.footer}>
@@ -98,16 +202,32 @@ const EventItem: React.FC<EventItemProps> = ({
           <Text style={itemStyles.attendeesText}>{attendees} participants</Text>
         </View>
         
-        {showJoined ? (
-          <View style={itemStyles.joinedBadge}>
-            <FontAwesome name="check-circle" size={14} color="#10b981" />
-            <Text style={itemStyles.joinedBadgeText}>Rejoint</Text>
+        {/* Priorité : afficher "End" si l'événement est terminé, sinon "Joined" si rejoint */}
+        {isEventFinished ? (
+          <View style={itemStyles.finishedBadge}>
+            <FontAwesome name="flag-checkered" size={14} color="#E10600" />
+            <Text style={itemStyles.finishedBadgeText}>End</Text>
           </View>
+        ) : showJoined ? (
+          <TouchableOpacity 
+            style={itemStyles.joinedBadge}
+            onPress={isCreator ? undefined : handleLeave}
+            disabled={isCreator || isLeaving}
+          >
+            {isLeaving ? (
+              <ActivityIndicator size="small" color="#10b981" />
+            ) : (
+              <>
+                <FontAwesome name="check-circle" size={14} color="#10b981" />
+                <Text style={itemStyles.joinedBadgeText}>Joined</Text>
+              </>
+            )}
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity 
             style={[itemStyles.joinButton, isJoining && itemStyles.joinButtonDisabled]} 
             onPress={handleJoin}
-            disabled={isJoining || !eventId || !currentUserId}
+            disabled={isJoining || !eventId || !currentUserId || isEventFinished}
           >
             {isJoining ? (
               <ActivityIndicator size="small" color="#fff" />
@@ -241,6 +361,22 @@ const itemStyles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  finishedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#E10600',
+  },
+  finishedBadgeText: {
+    color: '#E10600',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   shimmer: {
     position: 'absolute',
     top: 0,
@@ -249,7 +385,48 @@ const itemStyles = StyleSheet.create({
     height: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     transform: [{ skewX: '-20deg' }],
-  }
+  },
+  winnerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+    backgroundColor: '#FFF9E6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  winnerText: {
+    fontSize: 12,
+    color: '#B8860B',
+    fontWeight: '600',
+  },
+  missingInfoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+    gap: 4,
+  },
+  missingInfoText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#F59E0B',
+  },
+  missingInfoContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 8,
+  },
+  missingInfoLabel: {
+    fontSize: 12,
+    color: '#92400E',
+    fontWeight: '500',
+  },
 });
 
 export default EventItem;

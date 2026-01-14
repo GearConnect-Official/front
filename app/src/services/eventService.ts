@@ -20,6 +20,17 @@ export interface Event {
   imagePublicIds?: string[];
   // Number of participants who joined the event
   participantsCount?: number;
+  // Track condition information
+  meteo?: {
+    trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+    circuitName?: string;
+    expectedParticipants?: number;
+    eventResultsLink?: string;
+    seasonResultsLink?: string;
+    [key: string]: any;
+  };
+  // Whether the event is finished
+  finished?: boolean;
 }
 
 const eventService = {
@@ -207,6 +218,30 @@ const eventService = {
       return response.data;
     } catch (error: any) {
       console.error('Error joining event:', error);
+      throw error;
+    }
+  },
+  // Leave an event
+  leaveEvent: async (eventId: number, userId: number) => {
+    try {
+      const response = await axios.post(`${API_URL_EVENTS}/${eventId}/leave`, {
+        userId: userId,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error leaving event:', error);
+      throw error;
+    }
+  },
+  // Get events by user ID (created events)
+  getEventsByUserId: async (userId: string, page: number = 1, limit: number = 100) => {
+    try {
+      const response = await axios.get(`${API_URL_EVENTS}/user/${userId}`, {
+        params: { page, limit },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching events by user ID:', error);
       throw error;
     }
   },

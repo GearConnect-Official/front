@@ -5,6 +5,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -24,6 +25,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
 import relatedProductService from '../services/relatedProductService';
 import EventDetailReview from '../components/EventDetailReview';
+import EventResultsGrid from '../components/EventResults/EventResultsGrid';
+import PerformanceService from '../services/performanceService';
+import { Performance } from '../types/performance.types';
 
 type RootStackParamList = {
   EventDetail: { eventId: string };
@@ -50,6 +54,8 @@ const EventDetailScreen: React.FC = () => {
   >(null);
   const [isReviewCreator, setIsReviewCreator] = useState<boolean>(false);
   const [isCreator, setIsCreator] = useState<boolean>(false);
+  const [eventPerformances, setEventPerformances] = useState<Performance[]>([]);
+  const [loadingPerformances, setLoadingPerformances] = useState(false);
 
   function formatDate(data: string | number | Date) {
     if (!data) return 'Date not available';
@@ -178,6 +184,9 @@ const EventDetailScreen: React.FC = () => {
       }
 
       setEvent(enhancedEvent);
+
+      // Load event performances
+      await loadEventPerformances(parseInt(eventId));
     } catch (error: any) {
       console.error('Error in fetchData:', error);
 
@@ -340,6 +349,43 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
+  const loadEventPerformances = async (eventId: number) => {
+    setLoadingPerformances(true);
+    try {
+      const response = await PerformanceService.getEventPerformances(eventId);
+      if (response.success && response.data) {
+        // Fetch user information for each performance
+        const performancesWithUsers = await Promise.all(
+          response.data.map(async (perf) => {
+            try {
+              const userResponse = await fetch(`${API_URL_USERS}/${perf.userId}`);
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                return {
+                  ...perf,
+                  userName: userData.username || userData.name || `User ${perf.userId}`,
+                  userAvatar: userData.profilePicture || userData.additionalData?.avatar,
+                };
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch user ${perf.userId}`, error);
+            }
+            return {
+              ...perf,
+              userName: `User ${perf.userId}`,
+            };
+          })
+        );
+        setEventPerformances(performancesWithUsers);
+      }
+    } catch (error) {
+      console.error('Error loading event performances:', error);
+      setEventPerformances([]);
+    } finally {
+      setLoadingPerformances(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (eventId) {
@@ -379,24 +425,36 @@ const EventDetailScreen: React.FC = () => {
     );
   }
   if (event !== null) {
-    const meteoInfo = event.meteo as MeteoInfo | string | undefined;
+    const meteoInfo = event.meteo as any;
 
-    // Helper function to safely get weather information
-    const getWeatherInfo = () => {
-      if (!meteoInfo) return 'Weather info unavailable';
-
-      if (typeof meteoInfo === 'object' && meteoInfo !== null) {
-        const condition = meteoInfo.condition || 'No condition available';
-        const temperature =
-          meteoInfo.temperature !== undefined
-            ? `${meteoInfo.temperature}°`
-            : '';
-        return `${condition}${temperature ? ', ' + temperature : ''}`;
+    // Helper function to safely get track condition information
+    const getTrackConditionInfo = () => {
+      if (!meteoInfo || typeof meteoInfo !== 'object') {
+        return 'Track condition unavailable';
       }
 
-      return typeof meteoInfo === 'string' && meteoInfo.trim()
-        ? meteoInfo
-        : 'Weather info unavailable';
+      // Track condition
+      if (meteoInfo.trackCondition) {
+        const trackConditions: { [key: string]: string } = {
+          'dry': '☀️ Dry',
+          'damp': '💧 Damp',
+          'wet': '🌧️ Wet',
+          'mixed': '🌦️ Mixed',
+          'slippery': '⚠️ Slippery',
+          'drying': '🌤️ Drying'
+        };
+        return trackConditions[meteoInfo.trackCondition] || meteoInfo.trackCondition;
+      }
+
+      // Fallback to old format for backward compatibility
+      if (meteoInfo.condition) {
+        return meteoInfo.condition;
+      }
+      if (meteoInfo.temperature !== undefined) {
+        return `${meteoInfo.temperature}°`;
+      }
+
+      return 'Track condition unavailable';
     };
 
     function handleReviewPress(): void {
@@ -520,12 +578,12 @@ const EventDetailScreen: React.FC = () => {
             <Ionicons name="calendar-outline" size={20} color="gray" />
             <Text style={styles.detailText}>{formatDate(event.date)}</Text>
             <Ionicons
-              name="cloud-outline"
+              name="flag-outline"
               size={20}
               color="gray"
               style={{ marginLeft: 10 }}
             />
-            <Text style={styles.detailText}>{getWeatherInfo()}</Text>
+            <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
           </View>
            <RelatedProductsSection
           eventId={eventId}
@@ -540,6 +598,76 @@ const EventDetailScreen: React.FC = () => {
             user={user}
             isCreator={isCreator}
           />
+          {/* Results Grid */}
+          <EventResultsGrid 
+            performances={eventPerformances} 
+            loading={loadingPerformances}
+          />
+          
+          {/* Results Links */}
+          {(event.meteo as any)?.eventResultsLink || (event.meteo as any)?.seasonResultsLink ? (
+            <View style={{ marginVertical: 16, paddingHorizontal: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 12 }}>
+                Official Results
+              </Text>
+              {(event.meteo as any)?.eventResultsLink && (
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: 12,
+                    backgroundColor: '#FFF5F5',
+                    borderRadius: 8,
+                    marginBottom: 8,
+                    borderWidth: 1,
+                    borderColor: '#E10600',
+                  }}
+                  onPress={() => {
+                    const url = (event.meteo as any).eventResultsLink;
+                    if (url) {
+                      Linking.openURL(url.startsWith('http') ? url : `https://${url}`).catch(err =>
+                        console.error('Failed to open URL:', err)
+                      );
+                    }
+                  }}
+                >
+                  <FontAwesome name="external-link" size={16} color="#E10600" style={{ marginRight: 8 }} />
+                  <Text style={{ fontSize: 14, color: '#E10600', flex: 1, fontWeight: '600' }}>
+                    Event Results
+                  </Text>
+                  <FontAwesome name="chevron-right" size={14} color="#E10600" />
+                </TouchableOpacity>
+              )}
+              {(event.meteo as any)?.seasonResultsLink && (
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: 12,
+                    backgroundColor: '#FFF5F5',
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#E10600',
+                  }}
+                  onPress={() => {
+                    const url = (event.meteo as any).seasonResultsLink;
+                    if (url) {
+                      Linking.openURL(url.startsWith('http') ? url : `https://${url}`).catch(err =>
+                        console.error('Failed to open URL:', err)
+                      );
+                    }
+                  }}
+                >
+                  <FontAwesome name="external-link" size={16} color="#E10600" style={{ marginRight: 8 }} />
+                  <Text style={{ fontSize: 14, color: '#E10600', flex: 1, fontWeight: '600' }}>
+                    Season Standings
+                  </Text>
+                  <FontAwesome name="chevron-right" size={14} color="#E10600" />
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : null}
+          
           {/* Buttons */}
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareText}>Share</Text>

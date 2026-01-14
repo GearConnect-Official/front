@@ -21,6 +21,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS, API_URL_USERS } from '../config';
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
+import PerformanceService from "../services/performanceService";
+import eventService from "../services/eventService";
+import { countEventsWithMissingInfo } from "../utils/eventMissingInfo";
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.8;
@@ -46,6 +49,9 @@ const EventsScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [joinedEventIds, setJoinedEventIds] = useState<Set<number>>(new Set());
+  const [eventWinners, setEventWinners] = useState<Map<number, { userName: string; lapTime: string }>>(new Map());
+  const [createdEvents, setCreatedEvents] = useState<Event[]>([]);
+  const [missingInfoCount, setMissingInfoCount] = useState(0);
   const scrollX = React.useRef(new Animated.Value(0)).current;
   const router = useRouter();
   const auth = useAuth();
@@ -80,14 +86,81 @@ const EventsScreen: React.FC = () => {
     }
   };
 
+  // Charger les événements créés par l'utilisateur pour vérifier les infos manquantes
+  const fetchCreatedEvents = async () => {
+    if (!currentUserId) return;
+    
+    try {
+      const response = await eventService.getEventsByUserId(currentUserId.toString());
+      if (response && response.events) {
+        setCreatedEvents(response.events);
+        const missingCount = countEventsWithMissingInfo(response.events);
+        setMissingInfoCount(missingCount);
+      }
+    } catch (error) {
+      console.error("Error fetching created events:", error);
+    }
+  };
+
+  // Fetch winners for events
+  const fetchEventWinners = async (events: Event[]) => {
+    const winnersMap = new Map<number, { userName: string; lapTime: string }>();
+    
+    await Promise.all(
+      events.map(async (event) => {
+        const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+        if (!eventId) return;
+
+        try {
+          const response = await PerformanceService.getEventPerformances(eventId);
+          if (response.success && response.data && response.data.length > 0) {
+            // Sort by race position and get the winner (position 1)
+            const sorted = [...response.data].sort((a, b) => a.racePosition - b.racePosition);
+            const winner = sorted[0];
+            
+            if (winner && winner.racePosition === 1) {
+              // Fetch user info for winner
+              try {
+                const userResponse = await fetch(`${API_URL_USERS}/${winner.userId}`);
+                if (userResponse.ok) {
+                  const userData = await userResponse.json();
+                  winnersMap.set(eventId, {
+                    userName: userData.username || userData.name || `User ${winner.userId}`,
+                    lapTime: winner.lapTime,
+                  });
+                } else {
+                  winnersMap.set(eventId, {
+                    userName: `User ${winner.userId}`,
+                    lapTime: winner.lapTime,
+                  });
+                }
+              } catch (error) {
+                winnersMap.set(eventId, {
+                  userName: `User ${winner.userId}`,
+                  lapTime: winner.lapTime,
+                });
+              }
+            }
+          }
+        } catch (error) {
+          // Silently fail - not all events may have performances
+          console.debug(`No performances found for event ${eventId}`);
+        }
+      })
+    );
+
+    setEventWinners(winnersMap);
+  };
+
   const fetchEvents = async () => {
     setLoading(true);
     setError(null);
     setIsNetworkError(false);
     try {
-      // Charger les événements rejoints en parallèle
+      // Charger les événements rejoints et créés en parallèle
       if (currentUserId) {
         fetchJoinedEvents();
+        fetchCreatedEvents();
       }
 
       const response = await fetch(API_URL_EVENTS);
@@ -146,6 +219,9 @@ const EventsScreen: React.FC = () => {
         upcoming: upcomingEvents,
         passed: passedEvents,
       });
+
+      // Fetch winners for all events
+      await fetchEventWinners(eventsWithCreators);
     } catch (err) {
       // Check if it's a network error (fetch API throws TypeError for network issues)
       if (err instanceof TypeError && (err.message.includes('Network request failed') || err.message.includes('Failed to fetch'))) {
@@ -164,6 +240,7 @@ const EventsScreen: React.FC = () => {
     useCallback(() => {
       fetchEvents();
       fetchJoinedEvents();
+      fetchCreatedEvents();
     }, [currentUserId])
   );
 
@@ -197,6 +274,25 @@ const EventsScreen: React.FC = () => {
   }, [currentUserId]);
 
   const handleEventPress = (event: Event) => {
+    // Vérifier si c'est le créateur avec des infos manquantes
+    const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+    const isCreator = event.creatorId && currentUserId && event.creatorId === currentUserId;
+    
+    if (isCreator && eventId) {
+      const { checkMissingEventInfo } = require('../utils/eventMissingInfo');
+      const missingInfo = checkMissingEventInfo(event);
+      
+      if (missingInfo.hasMissingInfo) {
+        // Naviguer vers le formulaire post-event
+        router.push({
+          pathname: '/(app)/postEventInfo',
+          params: { eventId: eventId.toString() },
+        });
+        return;
+      }
+    }
+    
+    // Sinon, aller à la page de détail normale
     router.push({
       pathname: '/(app)/eventDetail',
       params: { eventId: event.id },
@@ -312,8 +408,33 @@ const EventsScreen: React.FC = () => {
               <FontAwesome name="plus" size={20} color="#fff" />
               <Text style={styles.createButtonText}>Create</Text>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/myCreatedEvents')}
+              style={{ position: 'relative' }}
+            >
               <FontAwesome name="bell" size={24} color="#1E232C" />
+              {missingInfoCount > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -4,
+                  backgroundColor: '#EF4444',
+                  borderRadius: 10,
+                  minWidth: 20,
+                  height: 20,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingHorizontal: 4,
+                }}>
+                  <Text style={{
+                    color: '#fff',
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                  }}>
+                    {missingInfoCount > 9 ? '9+' : missingInfoCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -445,6 +566,8 @@ const EventsScreen: React.FC = () => {
               // Utiliser le nombre réel de participants depuis l'API
               const participantsCount = event.participantsCount || 0;
               
+              const winner = eventId ? eventWinners.get(eventId) : null;
+              
               return (
                 <EventItem
                   key={event.id?.toString() || index.toString()}
@@ -462,11 +585,27 @@ const EventsScreen: React.FC = () => {
                   creatorId={event.creatorId}
                   currentUserId={currentUserId}
                   isJoined={isJoined}
+                  winner={winner || undefined}
+                  eventDate={event.date}
+                  meteo={event.meteo}
+                  finished={event.finished}
                   onJoinSuccess={() => {
-                    // Recharger les événements rejoints après un join réussi
+                    // Mettre à jour uniquement l'état local pour le statut join
                     if (currentUserId && eventId) {
-                      fetchJoinedEvents();
-                      // Recharger aussi les événements pour mettre à jour le nombre de participants
+                      setJoinedEventIds((prev) => new Set(prev).add(eventId));
+                      // Recharger les événements pour avoir le nombre de participants à jour depuis la DB
+                      fetchEvents();
+                    }
+                  }}
+                  onLeaveSuccess={() => {
+                    // Mettre à jour uniquement l'état local pour le statut join
+                    if (currentUserId && eventId) {
+                      setJoinedEventIds((prev) => {
+                        const newSet = new Set(prev);
+                        newSet.delete(eventId);
+                        return newSet;
+                      });
+                      // Recharger les événements pour avoir le nombre de participants à jour depuis la DB
                       fetchEvents();
                     }
                   }}

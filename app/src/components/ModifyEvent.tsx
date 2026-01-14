@@ -89,6 +89,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
     logoPublicId: eventData?.logoPublicId || '',
     imagePublicIds: eventData?.imagePublicIds || [],
     creatorId: eventData?.creatorId,
+    meteo: eventData?.meteo || {},
   };
 
   const {
@@ -143,6 +144,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
         description: formData.description ? formData.description.trim() : '',
         logo: formData.logo || '',
         images: formData.images || [],
+        meteo: formData.meteo || {},
       };
 
       console.log('📤 Data to be sent for update:', updatedData);
@@ -225,6 +227,7 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
             date={formData.date}
             website={formData.website}
             sponsors={formData.sponsors}
+            meteo={formData.meteo as any}
             onInputChange={handleInputChange}
           />
         );

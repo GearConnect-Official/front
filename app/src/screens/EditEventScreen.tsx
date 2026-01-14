@@ -42,7 +42,8 @@ const useEventData = (eventId: string) => {
             images: event.images || [],
             description: event.description || "",
             logoPublicId: event.logoPublicId || "",
-            imagePublicIds: event.imagePublicIds || []
+            imagePublicIds: event.imagePublicIds || [],
+            meteo: event.meteo || {}
           };
           
           setEventData(processedEventData);

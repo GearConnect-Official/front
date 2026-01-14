@@ -429,19 +429,19 @@ const HomeScreen: React.FC = () => {
     }
   }, [isLoadingMore, hasMore, currentPage, loadPosts]);
 
-  const handleViewStory = (storyId: string) => {
-    setCurrentStoryId(storyId);
-    setIsStoryModalVisible(true);
-  };
+ // const handleViewStory = (storyId: string) => {
+ //   setCurrentStoryId(storyId);
+ //   setIsStoryModalVisible(true);
+ // };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleStoryComplete = (storyId: string) => {
-    setStories((prevStories) =>
-      prevStories.map((story) =>
-        story.id === storyId ? { ...story, viewed: true } : story
-      )
-    );
-  };
+  //const handleStoryComplete = (storyId: string) => {
+  //  setStories((prevStories) =>
+  //    prevStories.map((story) =>
+  //      story.id === storyId ? { ...story, viewed: true } : story
+  //    )
+  //  );
+  //};
 
   const handleCloseStoryModal = () => {
     setIsStoryModalVisible(false);

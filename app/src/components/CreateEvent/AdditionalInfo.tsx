@@ -110,7 +110,6 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           onChangeText={(text) => {
             const numValue = text.trim() === '' ? undefined : parseInt(text);
             if (text.trim() === '' || (!isNaN(numValue!) && numValue! > 0)) {
-              const currentMeteo = meteo || {};
               handleMeteoChange('expectedParticipants' as any, numValue);
             }
           }}

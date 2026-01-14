@@ -107,7 +107,7 @@ const EventItem: React.FC<EventItemProps> = ({
     }
 
     // Ne pas permettre au créateur de quitter son propre événement
-    if (creatorId && currentUserId && creatorId === currentUserId) {
+    if (creatorId && creatorId === currentUserId) {
       return;
     }
 

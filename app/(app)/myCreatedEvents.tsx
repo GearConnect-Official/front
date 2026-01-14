@@ -182,7 +182,6 @@ const MyCreatedEventsScreen: React.FC = () => {
               })
               .map((event: any, index: number) => {
                 const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
-                const missingInfo = checkMissingEventInfo(event);
                 
                 return (
                   <EventItem

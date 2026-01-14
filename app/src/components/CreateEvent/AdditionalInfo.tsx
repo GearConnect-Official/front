@@ -1,7 +1,6 @@
 import * as React from "react";
 import { View, Text, TextInput, Image } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { createEventStyles as styles } from "../../styles/screens";
 import { Event } from "../../services/eventService";
 

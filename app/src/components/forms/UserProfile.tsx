@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   Image,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
+
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";

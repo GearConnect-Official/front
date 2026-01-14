@@ -9,17 +9,12 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import { FontAwesome } from "@expo/vector-icons";
 import { useCloudinary } from "../../hooks/useCloudinary";
 import {
   CloudinaryUploadResponse,
-  CloudinaryUploadOptions,
 } from "../../services/cloudinary.service";
 import { cloudinaryImageUploadStyles } from "../../styles/components/cloudinaryStyles";
 import { useMessage } from "../../context/MessageContext";
-import MessageService from "../../services/messageService";
-import { QuickMessages } from "../../utils/messageUtils";
 
 export interface CloudinaryImageUploadProps {
   onUploadComplete?: (response: CloudinaryUploadResponse) => void;

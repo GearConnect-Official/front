@@ -1,6 +1,5 @@
 import * as React from "react";
 import { View, ScrollView } from "react-native";
-import TopBar from "../components/CreateEvent/TopBar";
 import CreateEventForm from "../components/CreateEventForm";
 import { createEventStyles as styles } from "../styles/screens";
 import { useRouter } from "expo-router";

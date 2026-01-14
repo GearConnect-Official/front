@@ -11,7 +11,6 @@ import {
   Animated,
   Switch,
   Vibration,
-  StatusBar,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -33,11 +32,10 @@ import {
   THEME_COLORS,
   LAYOUT,
 } from "../styles/screens/user/performanceStyles";
-import styles from "../styles/screens/events/eventsStyles";
 
 const PerformancesScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAuth() || {};
 
   // State management
   const [performances, setPerformances] = useState<Performance[]>([]);

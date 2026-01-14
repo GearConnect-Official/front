@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { RouteProp, useFocusEffect } from "@react-navigation/native";
+import {  useFocusEffect } from "@react-navigation/native";
 import { EventInterface } from "../services/EventInterface";
 import { styles } from "../styles/screens/events/eventDetailStyles";
 import {

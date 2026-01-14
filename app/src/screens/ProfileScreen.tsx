@@ -121,6 +121,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     isFollowedBy: false,
   });
   const [isLoadingFollowStats, setIsLoadingFollowStats] = useState(false);
+  const [joinedEvents, setJoinedEvents] = useState<any[]>([]);
+  const [isLoadingJoinedEvents, setIsLoadingJoinedEvents] = useState(false);
 
   // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
@@ -348,12 +350,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           }
         };
 
+        // Load joined events
+        const loadJoinedEventsAsync = async () => {
+          setIsLoadingJoinedEvents(true);
+          try {
+            const response = await userService.getJoinedEvents(
+              effectiveUserId,
+              1,
+              20
+            );
+
+            if (response.success && response.data) {
+              setJoinedEvents(response.data.events || []);
+            } else {
+              console.error("Failed to load joined events:", response.error);
+            }
+          } catch (error) {
+            console.error("Error loading joined events:", error);
+          } finally {
+            setIsLoadingJoinedEvents(false);
+          }
+        };
+
         // Execute all data loading in parallel
         await Promise.all([
           loadUserPostsAsync(),
           loadFavoritesAsync(),
           loadLikedPostsAsync(),
           loadDriverStatsAsync(),
+          loadJoinedEventsAsync(),
         ]);
       } catch (error) {
         console.error("Error loading profile data:", error);
@@ -372,6 +397,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       ]);
       
       // Recharger les données selon l'onglet actif
+      if (activeTab === "events" && effectiveUserId) {
+        setIsLoadingJoinedEvents(true);
+        const response = await userService.getJoinedEvents(effectiveUserId, 1, 20);
+        if (response.success && response.data) {
+          setJoinedEvents(response.data.events || []);
+        }
+        setIsLoadingJoinedEvents(false);
+      }
       if (activeTab === "favorites" && effectiveUserId) {
         setIsLoadingFavorites(true);
         const response = await favoritesService.getUserFavorites(
@@ -572,6 +605,84 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }
 
     return <View style={styles.postsContainer}>{postRows}</View>;
+  };
+
+  const renderJoinedEventsGrid = () => {
+    if (isLoadingJoinedEvents) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E10600" />
+        </View>
+      );
+    }
+
+    if (joinedEvents.length === 0) {
+      return (
+        <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
+          <FontAwesome name="calendar" size={60} color="#CCCCCC" />
+          <Text style={styles.emptyTitle}>No Joined Events</Text>
+          <Text style={styles.emptySubtitle}>
+            Events you join will appear here.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingVertical: 16 }}
+      >
+        {joinedEvents.map((event: any) => (
+          <TouchableOpacity
+            key={event.id}
+            style={{
+              marginHorizontal: 16,
+              marginBottom: 16,
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 16,
+              elevation: 2,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+            }}
+            onPress={() => handleEventPress(event.id.toString())}
+          >
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333', flex: 1 }}>
+                {event.name}
+              </Text>
+              <View style={{ backgroundColor: '#f0f7ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#3a86ff' }}>
+                  {new Date(event.date).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'short',
+                  })}
+                </Text>
+              </View>
+            </View>
+            {event.location && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                <FontAwesome name="map-marker" size={14} color="#666" />
+                <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
+                  {event.location}
+                </Text>
+              </View>
+            )}
+            {event.creator && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                <FontAwesome name="user" size={14} color="#666" />
+                <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
+                  {event.creator.name || event.creator.username}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
   };
 
   const renderReelsGrid = () => {
@@ -841,6 +952,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareButtonText}>Add a Video</Text>
           </TouchableOpacity>
+        </>
+      ) : activeTab === "events" ? (
+        <>
+          <FontAwesome name="calendar" size={60} color="#CCCCCC" />
+          <Text style={styles.emptyTitle}>No Joined Events</Text>
+          <Text style={styles.emptySubtitle}>
+            Events you join will appear here.
+          </Text>
         </>
       ) : (
         <>
@@ -1260,6 +1379,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               color={activeTab === "reels" ? "#E10600" : "#666666"}
             />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "events" && styles.activeTabButton,
+            ]}
+            onPress={() => setActiveTab("events")}
+          >
+            <FontAwesome
+              name="calendar"
+              size={24}
+              color={activeTab === "events" ? "#E10600" : "#666666"}
+            />
+          </TouchableOpacity>
         </View>
 
             <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -1271,6 +1403,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 ? renderFavoritesGrid()
                 : activeTab === "reels"
                 ? renderReelsGrid()
+                : activeTab === "events"
+                ? renderJoinedEventsGrid()
                 : renderEmptyComponent()}
             </View>
           </>

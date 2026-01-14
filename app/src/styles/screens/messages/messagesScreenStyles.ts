@@ -2,7 +2,6 @@ import { Dimensions, Platform, StatusBar, StyleSheet } from "react-native";
 import theme from "../../config/theme";
 import { THEME_COLORS } from "../user/performanceStyles";
 
-const { width } = Dimensions.get("window");
 const STATUSBAR_HEIGHT =
   Platform.OS === "ios" ? 26 : StatusBar.currentHeight || 0;
 const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;

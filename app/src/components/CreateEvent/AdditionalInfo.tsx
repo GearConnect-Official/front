@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, TextInput, Image, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, TextInput, Image, TouchableOpacity, Modal, TextStyle, ViewStyle } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { createEventStyles as styles } from '../../styles/screens';
@@ -60,7 +60,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Website</Text>
         <TextInput
-          style={styles.input}
+          style={styles.input as TextStyle}
           placeholder="www.example.com"
           value={website}
           onChangeText={(text) => onInputChange('website', text)}
@@ -72,7 +72,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Sponsors</Text>
         <TextInput
-          style={styles.input}
+          style={styles.input as TextStyle}
           placeholder="Sponsor names separated by commas"
           value={sponsors}
           onChangeText={(text) => onInputChange('sponsors', text)}
@@ -87,11 +87,10 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           Name of the circuit/track (will pre-fill for participants)
         </Text>
         <TextInput
-          style={styles.input}
+          style={styles.input as TextStyle}
           placeholder="e.g., Circuit de Spa-Francorchamps"
           value={meteo?.circuitName || ''}
           onChangeText={(text) => {
-            const currentMeteo = meteo || {};
             handleMeteoChange('circuitName' as any, text);
           }}
           returnKeyType="next"
@@ -105,7 +104,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
           Expected number of participants (will pre-fill for participants)
         </Text>
         <TextInput
-          style={styles.input}
+          style={styles.input as TextStyle}
           placeholder="e.g., 30"
           value={meteo?.expectedParticipants?.toString() || ''}
           onChangeText={(text) => {
@@ -129,7 +128,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
             Fill this to help participants pre-fill their performance forms
           </Text>
             <TouchableOpacity
-              style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }]}
+              style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 } as ViewStyle, styles.input as ViewStyle]}
               onPress={() => setShowTrackConditionModal(true)}
             >
               <Text style={{ color: meteo?.trackCondition ? '#000' : '#999', fontSize: 16 }}>

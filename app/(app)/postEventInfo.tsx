@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,20 +8,18 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Alert,
-  Linking,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useAuth } from '../src/context/AuthContext';
-import eventService from '../src/services/eventService';
-import { Event } from '../src/services/eventService';
+import eventService, { Event } from '../src/services/eventService';
 import { TRACK_CONDITIONS } from '../src/types/performance.types';
-import { styles } from '../src/styles/screens/events/eventDetailStyles';
+import postEventInfoStyles from '../src/styles/screens/events/postEventInfoStyles';
+
+const styles = postEventInfoStyles;
 
 const PostEventInfoScreen: React.FC = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
   const eventId = params.eventId as string;
   
   const [event, setEvent] = useState<Event | null>(null);
@@ -119,85 +117,69 @@ const PostEventInfoScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#E10600" />
-        <Text style={{ marginTop: 16, color: '#666' }}>Loading event...</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E10600" />
+          <Text style={styles.loadingText}>Loading event...</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   if (error || !event) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <FontAwesome name="exclamation-triangle" size={48} color="#EF4444" />
-        <Text style={{ marginTop: 16, fontSize: 16, color: '#333', textAlign: 'center' }}>
-          {error || 'Event not found'}
-        </Text>
-        <TouchableOpacity
-          style={{
-            marginTop: 20,
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            backgroundColor: '#E10600',
-            borderRadius: 8,
-          }}
-          onPress={() => router.back()}
-        >
-          <Text style={{ color: '#fff', fontWeight: '600' }}>Go Back</Text>
-        </TouchableOpacity>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.errorContainer}>
+          <FontAwesome name="exclamation-triangle" size={48} color="#EF4444" />
+          <Text style={styles.errorText}>
+            {error || 'Event not found'}
+          </Text>
+          <TouchableOpacity
+            style={styles.errorButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.errorButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-      }}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <FontAwesome name="arrow-left" size={24} color="#1E232C" />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: '#1E232C' }}>
+        <Text style={styles.headerTitle}>
           Post-Event Information
         </Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 8 }}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.eventInfoContainer}>
+          <Text style={styles.eventName}>
             {event.name}
           </Text>
-          <Text style={{ fontSize: 14, color: '#666' }}>
+          <Text style={styles.eventDescription}>
             Please fill in the post-event information to help participants complete their performance forms.
           </Text>
         </View>
 
         {/* Track Condition Selection */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 8 }}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>
             Track Condition *
           </Text>
           <TouchableOpacity
-            style={{
-              borderWidth: 1,
-              borderColor: '#ddd',
-              borderRadius: 8,
-              padding: 12,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: '#fff',
-            }}
+            style={styles.selectButton}
             onPress={() => setShowTrackConditionModal(true)}
           >
-            <Text style={{ color: trackCondition ? '#000' : '#999', fontSize: 16 }}>
+            <Text style={[
+              styles.selectButtonText,
+              trackCondition ? styles.selectButtonTextFilled : styles.selectButtonTextPlaceholder
+            ]}>
               {getTrackConditionDisplay()}
             </Text>
             <FontAwesome name="chevron-down" size={14} color="#666" />
@@ -205,19 +187,12 @@ const PostEventInfoScreen: React.FC = () => {
         </View>
 
         {/* Event Results Link */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 8 }}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>
             Event Results Link
           </Text>
           <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: '#ddd',
-              borderRadius: 8,
-              padding: 12,
-              fontSize: 16,
-              backgroundColor: '#fff',
-            }}
+            style={styles.textInput}
             placeholder="https://example.com/results"
             value={eventResultsLink}
             onChangeText={setEventResultsLink}
@@ -225,25 +200,18 @@ const PostEventInfoScreen: React.FC = () => {
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+          <Text style={styles.inputHint}>
             Link to the official results of this event
           </Text>
         </View>
 
         {/* Season Results Link */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 8 }}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>
             Season Results Link
           </Text>
           <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: '#ddd',
-              borderRadius: 8,
-              padding: 12,
-              fontSize: 16,
-              backgroundColor: '#fff',
-            }}
+            style={styles.textInput}
             placeholder="https://example.com/season-results"
             value={seasonResultsLink}
             onChangeText={setSeasonResultsLink}
@@ -251,27 +219,20 @@ const PostEventInfoScreen: React.FC = () => {
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+          <Text style={styles.inputHint}>
             Link to the overall season standings
           </Text>
         </View>
 
         <TouchableOpacity
-          style={{
-            backgroundColor: '#E10600',
-            borderRadius: 8,
-            padding: 16,
-            alignItems: 'center',
-            marginTop: 8,
-            opacity: saving ? 0.6 : 1,
-          }}
+          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={saving}
         >
           {saving ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
+            <Text style={styles.saveButtonText}>
               Save Information
             </Text>
           )}
@@ -279,76 +240,52 @@ const PostEventInfoScreen: React.FC = () => {
       </ScrollView>
 
       {/* Track Condition Modal */}
-      <View style={{
-        display: showTrackConditionModal ? 'flex' : 'none',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
+      <View style={showTrackConditionModal ? styles.modalOverlay : styles.modalOverlayHidden}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          style={styles.modalBackdrop}
           activeOpacity={1}
           onPress={() => setShowTrackConditionModal(false)}
         />
-        <View style={{
-          backgroundColor: '#fff',
-          borderRadius: 16,
-          width: '85%',
-          maxWidth: 400,
-        }}>
-          <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#333' }}>Select Track Condition</Text>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Track Condition</Text>
           </View>
-            <View>
-              {TRACK_CONDITIONS.map((condition) => (
-                <TouchableOpacity
-                  key={condition.value}
-                  style={{
-                    padding: 16,
-                    borderBottomWidth: condition.value !== TRACK_CONDITIONS[TRACK_CONDITIONS.length - 1].value ? 1 : 0,
-                    borderBottomColor: '#f0f0f0',
-                    backgroundColor: trackCondition === condition.value ? '#FFF5F5' : 'transparent',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                  onPress={() => {
-                    setTrackCondition(condition.value);
-                    setShowTrackConditionModal(false);
-                  }}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                    <Text style={{ fontSize: 24, marginRight: 12 }}>{condition.emoji}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{
-                        fontSize: 16,
-                        color: trackCondition === condition.value ? '#E10600' : '#1E232C',
-                        fontWeight: trackCondition === condition.value ? '600' : '400',
-                      }}>
-                        {condition.label}
+          <View>
+            {TRACK_CONDITIONS.map((condition) => (
+              <TouchableOpacity
+                key={condition.value}
+                style={[
+                  styles.modalItem,
+                  condition.value === TRACK_CONDITIONS[TRACK_CONDITIONS.length - 1].value && styles.modalItemLast,
+                  trackCondition === condition.value && styles.modalItemSelected,
+                ]}
+                onPress={() => {
+                  setTrackCondition(condition.value);
+                  setShowTrackConditionModal(false);
+                }}
+              >
+                <View style={styles.modalItemContent}>
+                  <Text style={styles.modalItemEmoji}>{condition.emoji}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[
+                      styles.modalItemText,
+                      trackCondition === condition.value && styles.modalItemTextSelected,
+                    ]}>
+                      {condition.label}
+                    </Text>
+                    {condition.description && (
+                      <Text style={styles.modalItemDescription}>
+                        {condition.description}
                       </Text>
-                      {condition.description && (
-                        <Text style={{
-                          fontSize: 12,
-                          color: '#666',
-                          marginTop: 2,
-                        }}>
-                          {condition.description}
-                        </Text>
-                      )}
-                    </View>
+                    )}
                   </View>
-                  {trackCondition === condition.value && (
-                    <FontAwesome name="check" size={18} color="#E10600" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
+                </View>
+                {trackCondition === condition.value && (
+                  <FontAwesome name="check" size={18} color="#E10600" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       </View>
     </SafeAreaView>

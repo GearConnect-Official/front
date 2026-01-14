@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions, Platform, StatusBar } from "react-native";
+import { StyleSheet, Platform, StatusBar } from "react-native";
 import theme from "../../config/theme";
 import { THEME_COLORS } from "../user/performanceStyles";
 

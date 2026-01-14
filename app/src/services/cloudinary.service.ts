@@ -58,6 +58,11 @@ class CloudinaryService {
       
       formData.append('upload_preset', this.uploadPreset);
       
+      // Paramètres pour garantir une haute qualité lors de l'upload
+      // Ces paramètres peuvent être surchargés par le preset, mais on les spécifie explicitement
+      formData.append('quality', 'auto:best'); // Qualité maximale pour les posts
+      formData.append('fetch_format', 'auto'); // Format optimal selon le navigateur
+      
       if (options.folder) {
         formData.append('folder', options.folder);
       }
@@ -153,7 +158,7 @@ class CloudinaryService {
       width?: number;
       height?: number;
       crop?: 'fill' | 'fit' | 'limit' | 'scale' | 'crop';
-      quality?: 'auto' | number;
+      quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number;
       format?: 'auto' | 'webp' | 'jpg' | 'png' | 'mp4' | 'webm';
       resource_type?: 'image' | 'video';
     } = {}
@@ -162,7 +167,7 @@ class CloudinaryService {
       width,
       height,
       crop = 'fill',
-      quality = 'auto',
+      quality = 'auto:best', // Qualité optimale par défaut pour préserver la résolution
       format = 'auto',
       resource_type = 'image',
     } = options;

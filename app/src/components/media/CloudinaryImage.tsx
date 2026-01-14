@@ -9,7 +9,7 @@ export interface CloudinaryImageProps extends Omit<ImageProps, 'source'> {
   width?: number;
   height?: number;
   crop?: 'fill' | 'fit' | 'limit' | 'scale' | 'crop';
-  quality?: 'auto' | number;
+  quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number;
   format?: 'auto' | 'webp' | 'jpg' | 'png';
   fallbackUrl?: string;
   transformation?: string;
@@ -20,7 +20,7 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
   width,
   height,
   crop = 'fill',
-  quality = 'auto',
+  quality = 'auto:best', // Qualité optimale par défaut pour préserver la résolution
   format = 'auto',
   fallbackUrl,
   transformation,

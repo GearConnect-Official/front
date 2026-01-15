@@ -14,13 +14,21 @@ export interface EventInterface {
   location: string;
   meteo?:
     | {
-        condition: string;
-        temperature: number | string;
+        condition?: string;
+        temperature?: number | string;
+        trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+        circuitName?: string;
+        expectedParticipants?: number;
+        eventResultsLink?: string;
+        seasonResultsLink?: string;
+        [key: string]: any;
       }
     | string;
   urlTIcket: string;
   finished: boolean;
   createdAt: string;
+  participationTagText?: string;
+  participationTagColor?: string;
   // details: {
   //   location: string;
   //   date: string;

@@ -33,7 +33,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
   const authContext = useAuth();
   const user = authContext?.user;
 
-  const [formData, setFormData] = React.useState<Event>({
+  const [formData, setFormData] = React.useState<Event & { organizers?: Array<{ userId: number | null; name: string }> }>({
     name: initialData.name || '',
     creatorId: user?.id ? Number(user.id) : 0,
     creators: initialData.creators || '',
@@ -45,6 +45,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
     logo: initialData.logo || '',
     images: initialData.images || [],
     description: initialData.description || '',
+    organizers: [],
   });
 
   const [loading, setLoading] = React.useState(false);
@@ -91,12 +92,21 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       // Format date properly
       const formattedDate = new Date(formData.date);
 
+      // S'assurer que le créateur est toujours dans la liste des organisateurs
+      const organizers = (formData as any).organizers || [];
+      const creatorId = Number(user.id);
+      const creatorName = user.username || user.name || 'You';
+      const creatorExists = organizers.some((org: { userId: number | null; name: string }) => org.userId === creatorId);
+      const finalOrganizers = creatorExists 
+        ? organizers 
+        : [{ userId: creatorId, name: creatorName }, ...organizers];
+
       // Create a clean object with all required properties
-      const eventData: Event = {
+      const eventData: Event & { organizers?: Array<{ userId: number | null; name: string }> } = {
         name: formData.name.trim(),
         location: formData.location.trim(),
         // Utiliser l'ID utilisateur comme creatorId et creators
-        creatorId: Number(user.id),
+        creatorId: creatorId,
         creators: String(user.id),
         rankings: formData.rankings.trim(),
         website: formData.website.trim(),
@@ -106,6 +116,9 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
         // Les images sont traitées par eventService
         logo: formData.logo || '',
         images: formData.images || [],
+        participationTagText: formData.participationTagText?.trim() || undefined,
+        participationTagColor: formData.participationTagColor?.trim() || undefined,
+        organizers: finalOrganizers,
       };
 
       // Afficher toutes les données envoyées pour débogage
@@ -182,6 +195,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
           <BasicInfo
             name={formData.name}
             creators={formData.creators}
+            organizers={(formData as any).organizers || []}
             location={formData.location}
             date={formData.date}
             onInputChange={handleInputChange}
@@ -207,6 +221,8 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
             date={formData.date}
             website={formData.website}
             sponsors={formData.sponsors}
+            participationTagText={formData.participationTagText}
+            participationTagColor={formData.participationTagColor}
             onInputChange={handleInputChange}
           />
         );

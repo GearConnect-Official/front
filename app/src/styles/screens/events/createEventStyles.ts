@@ -76,7 +76,7 @@ const styles = StyleSheet.create({  container: {
     marginBottom: theme.spacing.xxs,
     backgroundColor: "#f5f5f5",
     borderColor: "#e0e0e0",
-  },
+  } as any, // Type assertion pour éviter les conflits avec userSelect
   inputInfo: {
     fontSize: theme.typography.caption.fontSize,
     fontWeight: theme.typography.caption.fontWeight,

@@ -18,6 +18,7 @@ import { useAuth } from "../context/AuthContext";
 import ProfilePost from "../components/Feed/ProfilePost";
 import favoritesService from "../services/favoritesService";
 import postService from "../services/postService";
+import { API_URL_USERS } from "../config";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from "../components/media";
 import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
@@ -28,6 +29,8 @@ import userService from "../services/userService";
 import followService from "../services/followService";
 import FollowButton from "../components/FollowButton";
 import { FollowStats } from "../types/follow.types";
+import eventService from "../services/eventService";
+import { countEventsWithMissingInfo, checkMissingEventInfo } from "../utils/eventMissingInfo";
 import { trackSocial, trackScreenView } from "../utils/mixpanelTracking";
 
 // Screen width to calculate grid image dimensions
@@ -124,6 +127,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [isLoadingFollowStats, setIsLoadingFollowStats] = useState(false);
   const [joinedEvents, setJoinedEvents] = useState<any[]>([]);
   const [isLoadingJoinedEvents, setIsLoadingJoinedEvents] = useState(false);
+  const [createdEvents, setCreatedEvents] = useState<any[]>([]);
+  const [isLoadingCreatedEvents, setIsLoadingCreatedEvents] = useState(false);
+  const [missingInfoCount, setMissingInfoCount] = useState(0);
+  const [nextEventTag, setNextEventTag] = useState<{ text: string; color: string; isOrganizer?: boolean; eventId?: number } | null>(null);
 
   // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
@@ -204,16 +211,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }, [effectiveUserId, auth?.user?.id])
   );
 
+  // Function to fetch next event tag
+  const fetchNextEventTag = async () => {
+    if (!effectiveUserId) return;
+    
+    try {
+      const response = await userService.getNextEventTag(effectiveUserId);
+      if (response.success && response.data?.tag && response.data?.event) {
+        setNextEventTag({
+          ...response.data.tag,
+          eventId: response.data.event.id,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching next event tag:", error);
+    }
+  };
+
   // Load all data when component mounts or user changes
   useEffect(() => {
     if (!effectiveUserId) return;
 
     const loadAllData = async () => {
       try {
-        // Load user data and follow stats
+        // Load user data, follow stats, and next event tag
         await Promise.all([
           fetchUserData(),
           fetchFollowStats(),
+          fetchNextEventTag(),
         ]);
 
         // Load user posts
@@ -380,6 +405,47 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           }
         };
 
+        const loadCreatedEventsAsync = async () => {
+          // Only load if viewing own profile
+          if (!effectiveUserId || !user?.id || effectiveUserId !== Number(user.id)) {
+            return;
+          }
+          setIsLoadingCreatedEvents(true);
+          try {
+            const response = await eventService.getEventsByUserId(effectiveUserId.toString(), 1, 100);
+            if (response && response.events) {
+              // Fetch creator names for each event
+              const eventsWithCreatorInfo = await Promise.all(
+                response.events.map(async (event: any) => {
+                  try {
+                    const userResponse = await fetch(`${API_URL_USERS}/${event.creatorId}`);
+                    if (userResponse.ok) {
+                      const userData = await userResponse.json();
+                      return {
+                        ...event,
+                        creators: userData.name || userData.username || 'Unknown',
+                      };
+                    }
+                  } catch (error) {
+                    console.error(`Error fetching creator for event ${event.id}:`, error);
+                  }
+                  return {
+                    ...event,
+                    creators: 'Unknown',
+                  };
+                })
+              );
+              setCreatedEvents(eventsWithCreatorInfo);
+              const missingCount = countEventsWithMissingInfo(response.events);
+              setMissingInfoCount(missingCount);
+            }
+          } catch (error) {
+            console.error("Error loading created events:", error);
+          } finally {
+            setIsLoadingCreatedEvents(false);
+          }
+        };
+
         // Execute all data loading in parallel
         await Promise.all([
           loadUserPostsAsync(),
@@ -387,6 +453,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           loadLikedPostsAsync(),
           loadDriverStatsAsync(),
           loadJoinedEventsAsync(),
+          loadCreatedEventsAsync(),
         ]);
       } catch (error) {
         console.error("Error loading profile data:", error);
@@ -412,6 +479,41 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           setJoinedEvents(response.data.events || []);
         }
         setIsLoadingJoinedEvents(false);
+      }
+      if (activeTab === "createdEvents" && effectiveUserId && user?.id && effectiveUserId === Number(user.id)) {
+        setIsLoadingCreatedEvents(true);
+        try {
+          const response = await eventService.getEventsByUserId(effectiveUserId.toString(), 1, 100);
+          if (response && response.events) {
+            const eventsWithCreatorInfo = await Promise.all(
+              response.events.map(async (event: any) => {
+                try {
+                  const userResponse = await fetch(`${API_URL_USERS}/${event.creatorId}`);
+                  if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    return {
+                      ...event,
+                      creators: userData.name || userData.username || 'Unknown',
+                    };
+                  }
+                } catch (error) {
+                  console.error(`Error fetching creator for event ${event.id}:`, error);
+                }
+                return {
+                  ...event,
+                  creators: 'Unknown',
+                };
+              })
+            );
+            setCreatedEvents(eventsWithCreatorInfo);
+            const missingCount = countEventsWithMissingInfo(response.events);
+            setMissingInfoCount(missingCount);
+          }
+        } catch (error) {
+          console.error("Error loading created events:", error);
+        } finally {
+          setIsLoadingCreatedEvents(false);
+        }
       }
       if (activeTab === "favorites" && effectiveUserId) {
         setIsLoadingFavorites(true);
@@ -689,6 +791,176 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             )}
           </TouchableOpacity>
         ))}
+      </ScrollView>
+    );
+  };
+
+  const renderCreatedEventsGrid = () => {
+    const isOwnProfile = effectiveUserId && user?.id && effectiveUserId === Number(user.id);
+    
+    if (!isOwnProfile) {
+      return (
+        <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
+          <Text style={styles.emptyTitle}>Access Denied</Text>
+          <Text style={styles.emptySubtitle}>
+            You can only view your own created events.
+          </Text>
+        </View>
+      );
+    }
+
+    if (isLoadingCreatedEvents) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E10600" />
+        </View>
+      );
+    }
+
+    if (createdEvents.length === 0) {
+      return (
+        <View style={[styles.emptyContainer, { flex: 1, minHeight: 300 }]}>
+          <FontAwesome name="calendar-o" size={60} color="#CCCCCC" />
+          <Text style={styles.emptyTitle}>No Created Events</Text>
+          <Text style={styles.emptySubtitle}>
+            Events you create will appear here.
+          </Text>
+          <TouchableOpacity
+            style={{
+              marginTop: 16,
+              padding: 12,
+              backgroundColor: '#3a86ff',
+              borderRadius: 8,
+            }}
+            onPress={() => router.push('/(app)/createEvent')}
+          >
+            <Text style={{ color: '#fff', fontWeight: '600' }}>
+              Create Your First Event
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingVertical: 16 }}
+      >
+        {missingInfoCount > 0 && (
+          <View style={{
+            marginHorizontal: 16,
+            marginBottom: 16,
+            padding: 12,
+            backgroundColor: '#FEF3C7',
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: '#F59E0B',
+          }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#92400E' }}>
+              ⚠️ {missingInfoCount} event{missingInfoCount > 1 ? 's' : ''} with missing information
+            </Text>
+            <Text style={{ fontSize: 12, color: '#92400E', marginTop: 4 }}>
+              Please fill in track condition and results links for past events
+            </Text>
+          </View>
+        )}
+        {createdEvents.map((event: any) => {
+          const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+          const missingInfo = checkMissingEventInfo(event);
+          
+          return (
+            <TouchableOpacity
+              key={event.id}
+              style={{
+                marginHorizontal: 16,
+                marginBottom: 16,
+                backgroundColor: '#fff',
+                borderRadius: 12,
+                padding: 16,
+                elevation: 2,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                borderWidth: missingInfo.hasMissingInfo ? 2 : 0,
+                borderColor: missingInfo.hasMissingInfo ? '#F59E0B' : 'transparent',
+              }}
+              onPress={() => {
+                // Si des infos manquent, aller au formulaire post-event
+                if (missingInfo.hasMissingInfo && eventId) {
+                  router.push({
+                    pathname: '/(app)/postEventInfo',
+                    params: { eventId: eventId.toString() },
+                  });
+                } else {
+                  router.push({
+                    pathname: '/(app)/eventDetail',
+                    params: { eventId: event.id },
+                  });
+                }
+              }}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>
+                    {event.name}
+                  </Text>
+                </View>
+                {missingInfo.hasMissingInfo && (
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#FEF3C7',
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 12,
+                    marginLeft: 8,
+                  }}>
+                    <FontAwesome name="exclamation-triangle" size={12} color="#F59E0B" />
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#F59E0B', marginLeft: 4 }}>
+                      {missingInfo.missingCount}
+                    </Text>
+                  </View>
+                )}
+                <View style={{ backgroundColor: '#f0f7ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginLeft: 8 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#3a86ff' }}>
+                    {new Date(event.date).toLocaleDateString('en-US', {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </Text>
+                </View>
+              </View>
+              {event.location && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                  <FontAwesome name="map-marker" size={14} color="#666" />
+                  <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
+                    {event.location}
+                  </Text>
+                </View>
+              )}
+              {missingInfo.hasMissingInfo && (
+                <View style={{
+                  marginTop: 8,
+                  padding: 8,
+                  backgroundColor: '#FEF3C7',
+                  borderRadius: 8,
+                }}>
+                  <Text style={{ fontSize: 12, color: '#92400E', fontWeight: '500' }}>
+                    ⚠️ Missing: {
+                      [
+                        missingInfo.trackCondition && 'Track condition',
+                        missingInfo.eventResultsLink && 'Event results link',
+                        missingInfo.seasonResultsLink && 'Season results link',
+                      ].filter(Boolean).join(' • ')
+                    }
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     );
   };
@@ -1112,9 +1384,44 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 />
               )}
               <View style={styles.profileInfo}>
-                <Text style={styles.username}>
-                  {userData?.username || user?.username || "User"}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                  <Text style={styles.username}>
+                    {userData?.username || user?.username || "User"}
+                  </Text>
+                  {nextEventTag && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (nextEventTag.eventId) {
+                          router.push({
+                            pathname: '/(app)/eventDetail',
+                            params: { eventId: nextEventTag.eventId.toString() },
+                          });
+                        }
+                      }}
+                      activeOpacity={0.7}
+                      disabled={!nextEventTag.eventId}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: nextEventTag.color,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 12,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: '#fff',
+                            fontSize: 12,
+                            fontWeight: '600',
+                          }}
+                        >
+                          {nextEventTag.isOrganizer ? `Organizer of ${nextEventTag.text}` : nextEventTag.text}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </View>
                 <View style={styles.statsContainer}>
                   <View style={styles.statItem}>
                     <Text style={styles.statNumber}>{stats.posts}</Text>
@@ -1400,6 +1707,46 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               color={activeTab === "events" ? "#E10600" : "#666666"}
             />
           </TouchableOpacity>
+          {/* Show "Created Events" tab only for own profile */}
+          {effectiveUserId && user?.id && effectiveUserId === Number(user.id) && (
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === "createdEvents" && styles.activeTabButton,
+              ]}
+              onPress={() => setActiveTab("createdEvents")}
+            >
+              <View style={{ position: 'relative' }}>
+                <FontAwesome
+                  name="calendar-check-o"
+                  size={24}
+                  color={activeTab === "createdEvents" ? "#E10600" : "#666666"}
+                />
+                {missingInfoCount > 0 && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    backgroundColor: '#EF4444',
+                    borderRadius: 8,
+                    minWidth: 16,
+                    height: 16,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingHorizontal: 4,
+                  }}>
+                    <Text style={{
+                      color: '#fff',
+                      fontSize: 9,
+                      fontWeight: 'bold',
+                    }}>
+                      {missingInfoCount > 9 ? '9+' : missingInfoCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
 
             <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -1413,6 +1760,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 ? renderReelsGrid()
                 : activeTab === "events"
                 ? renderJoinedEventsGrid()
+                : activeTab === "createdEvents"
+                ? renderCreatedEventsGrid()
                 : renderEmptyComponent()}
             </View>
           </>

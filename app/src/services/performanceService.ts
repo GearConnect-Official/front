@@ -60,8 +60,8 @@ class PerformanceService {
         category: data.category,
         date: data.date,
         notes: data.notes,
-        weather: data.weather,
         trackCondition: data.trackCondition,
+        eventId: data.eventId,
       };
 
       const response = await api.post<ApiResponse<Performance>>('/', payload);
@@ -143,6 +143,9 @@ class PerformanceService {
       if (filters?.dateTo) {
         params.append('dateTo', filters.dateTo);
       }
+      if (filters?.eventId) {
+        params.append('eventId', filters.eventId.toString());
+      }
       if (filters?.limit) {
         params.append('limit', filters.limit.toString());
       }
@@ -183,6 +186,32 @@ class PerformanceService {
       return {
         success: false,
         error: error.response?.data?.error || 'Failed to fetch statistics'
+      };
+    }
+  }
+
+  /**
+   * Get performances by event ID
+   */
+  static async getEventPerformances(
+    eventId: number
+  ): Promise<ApiResponse<Performance[]>> {
+    try {
+      const params = new URLSearchParams();
+      params.append('eventId', eventId.toString());
+      params.append('limit', '100'); // Get all performances for the event
+
+      const response = await api.get<ApiResponse<Performance[]>>(
+        `?${params.toString()}`
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching event performances:', error);
+      
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to fetch event performances'
       };
     }
   }

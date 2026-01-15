@@ -221,6 +221,42 @@ const userService = {
       };
     }
   },
+
+  /**
+   * Récupère le tag du prochain événement rejoint par un utilisateur
+   */
+  getNextEventTag: async (userId: number): Promise<ApiResponse<{
+    event: {
+      id: number;
+      name: string;
+      date: string;
+    } | null;
+    tag: {
+      text: string;
+      color: string;
+      isOrganizer?: boolean;
+    } | null;
+  }>> => {
+    try {
+      const response = await axios.get(
+        `${API_URL_USERS}/${userId}/next-event-tag`
+      );
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error: any) {
+      console.error("Error fetching next event tag:", error);
+      if (error.response) {
+        console.error("Status:", error.response.status);
+        console.error("Data:", JSON.stringify(error.response.data, null, 2));
+      }
+      return {
+        success: false,
+        error: error.response?.data?.error || "Failed to fetch next event tag",
+      };
+    }
+  },
 };
 
 export default userService;

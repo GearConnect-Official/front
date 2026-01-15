@@ -26,7 +26,7 @@ export const useInfiniteScroll = (
   } = config;
 
   // Refs pour le debouncing et la prévention des appels multiples
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCallTime = useRef<number>(0);
   const isExecuting = useRef<boolean>(false);
 
@@ -55,7 +55,7 @@ export const useInfiniteScroll = (
       clearTimeout(debounceRef.current);
     }
 
-    debounceRef.current = setTimeout(async () => {
+    debounceRef.current = setTimeout(async (): Promise<void> => {
       if (!hasMore || isLoading || isExecuting.current) return;
 
       console.log('📊 InfiniteScroll: Loading more posts...');
@@ -100,7 +100,7 @@ export const useInfiniteScroll = (
 export const useScrollState = () => {
   const scrollPositionRef = useRef<number>(0);
   const isScrollingRef = useRef<boolean>(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateScrollPosition = useCallback((position: number) => {
     scrollPositionRef.current = position;
@@ -111,7 +111,7 @@ export const useScrollState = () => {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    scrollTimeoutRef.current = setTimeout(() => {
+    scrollTimeoutRef.current = setTimeout((): void => {
       isScrollingRef.current = false;
     }, 150);
   }, []);

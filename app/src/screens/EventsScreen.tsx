@@ -21,6 +21,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS, API_URL_USERS } from '../config';
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
+import PerformanceService from "../services/performanceService";
+import eventService from "../services/eventService";
+import { countEventsWithMissingInfo } from "../utils/eventMissingInfo";
 import { trackScreenView } from "../utils/mixpanelTracking";
 
 const { width } = Dimensions.get('window');
@@ -47,6 +50,9 @@ const EventsScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [joinedEventIds, setJoinedEventIds] = useState<Set<number>>(new Set());
+  const [eventWinners, setEventWinners] = useState<Map<number, { userName: string; lapTime: string }>>(new Map());
+  const [createdEvents, setCreatedEvents] = useState<Event[]>([]);
+  const [missingInfoCount, setMissingInfoCount] = useState(0);
   const scrollX = React.useRef(new Animated.Value(0)).current;
   const router = useRouter();
   const auth = useAuth();
@@ -81,14 +87,81 @@ const EventsScreen: React.FC = () => {
     }
   };
 
+  // Charger les événements créés par l'utilisateur pour vérifier les infos manquantes
+  const fetchCreatedEvents = async () => {
+    if (!currentUserId) return;
+    
+    try {
+      const response = await eventService.getEventsByUserId(currentUserId.toString());
+      if (response && response.events) {
+        setCreatedEvents(response.events);
+        const missingCount = countEventsWithMissingInfo(response.events);
+        setMissingInfoCount(missingCount);
+      }
+    } catch (error) {
+      console.error("Error fetching created events:", error);
+    }
+  };
+
+  // Fetch winners for events
+  const fetchEventWinners = async (events: Event[]) => {
+    const winnersMap = new Map<number, { userName: string; lapTime: string }>();
+    
+    await Promise.all(
+      events.map(async (event) => {
+        const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+        if (!eventId) return;
+
+        try {
+          const response = await PerformanceService.getEventPerformances(eventId);
+          if (response.success && response.data && response.data.length > 0) {
+            // Sort by race position and get the winner (position 1)
+            const sorted = [...response.data].sort((a, b) => a.racePosition - b.racePosition);
+            const winner = sorted[0];
+            
+            if (winner && winner.racePosition === 1) {
+              // Fetch user info for winner
+              try {
+                const userResponse = await fetch(`${API_URL_USERS}/${winner.userId}`);
+                if (userResponse.ok) {
+                  const userData = await userResponse.json();
+                  winnersMap.set(eventId, {
+                    userName: userData.username || userData.name || `User ${winner.userId}`,
+                    lapTime: winner.lapTime,
+                  });
+                } else {
+                  winnersMap.set(eventId, {
+                    userName: `User ${winner.userId}`,
+                    lapTime: winner.lapTime,
+                  });
+                }
+              } catch (error) {
+                winnersMap.set(eventId, {
+                  userName: `User ${winner.userId}`,
+                  lapTime: winner.lapTime,
+                });
+              }
+            }
+          }
+        } catch (error) {
+          // Silently fail - not all events may have performances
+          console.debug(`No performances found for event ${eventId}`);
+        }
+      })
+    );
+
+    setEventWinners(winnersMap);
+  };
+
   const fetchEvents = async () => {
     setLoading(true);
     setError(null);
     setIsNetworkError(false);
     try {
-      // Charger les événements rejoints en parallèle
+      // Charger les événements rejoints et créés en parallèle
       if (currentUserId) {
         fetchJoinedEvents();
+        fetchCreatedEvents();
       }
 
       const response = await fetch(API_URL_EVENTS);
@@ -99,36 +172,90 @@ const EventsScreen: React.FC = () => {
       }
       const allEvents = await response.json();
 
-      // fetch user name from API_URL_USERS by userId with event creatorId
-      const eventsWithCreators = await Promise.all(
+      // Fetch organizers for each event (non-blocking, with error handling)
+      // On charge d'abord les événements de base, puis on enrichit avec les organisateurs
+      const eventsWithOrganizers = await Promise.all(
         allEvents.map(async (event: Event) => {
           try {
-            const userResponse = await fetch(
-              `${API_URL_USERS}/${event.creatorId}`
-            );
-            if (!userResponse.ok) {
-              console.error(
-                `Failed to fetch user for event ${event.id}: ${userResponse.status}`
-              );
-              return { ...event, creators: 'Unknown' };
+            const organizers = (event as any).organizers || [];
+            const organizersWithDetails: { userId: number | null; name: string }[] = [];
+            
+            // Si pas d'organisateurs dans le tableau, inclure au moins le créateur
+            if (organizers.length === 0 && event.creatorId) {
+              try {
+                const userResponse = await fetch(`${API_URL_USERS}/${event.creatorId}`);
+                if (userResponse.ok) {
+                  const user = await userResponse.json();
+                  organizersWithDetails.push({
+                    userId: event.creatorId,
+                    name: user.username || user.name || 'Unknown',
+                  });
+                } else {
+                  organizersWithDetails.push({
+                    userId: event.creatorId,
+                    name: 'Unknown',
+                  });
+                }
+              } catch (error) {
+                // En cas d'erreur, on utilise juste le nom par défaut
+                organizersWithDetails.push({
+                  userId: event.creatorId,
+                  name: 'Unknown',
+                });
+              }
+            } else if (organizers.length > 0) {
+              // Récupérer les détails de chaque organisateur
+              for (const org of organizers) {
+                if (org.userId) {
+                  try {
+                    const userResponse = await fetch(`${API_URL_USERS}/${org.userId}`);
+                    if (userResponse.ok) {
+                      const user = await userResponse.json();
+                      organizersWithDetails.push({
+                        userId: org.userId,
+                        name: user.username || user.name || org.name,
+                      });
+                    } else {
+                      organizersWithDetails.push({
+                        userId: org.userId,
+                        name: org.name,
+                      });
+                    }
+                  } catch (error) {
+                    // En cas d'erreur, on utilise le nom de base
+                    organizersWithDetails.push({
+                      userId: org.userId,
+                      name: org.name,
+                    });
+                  }
+                } else {
+                  // Organisateur externe
+                  organizersWithDetails.push({
+                    userId: null,
+                    name: org.name,
+                  });
+                }
+              }
             }
-            const user = await userResponse.json();
-            return { ...event, creators: user.name };
+            
+            return { ...event, organizers: organizersWithDetails };
           } catch (error) {
-            console.error(
-              `Error fetching creator for event ${event.id}:`,
-              error
-            );
-            return { ...event, creators: 'Unknown' };
+            // En cas d'erreur globale, retourner l'événement avec les organisateurs de base ou vide
+            const baseOrganizers = (event as any).organizers || [];
+            return { ...event, organizers: baseOrganizers };
           }
         })
-      );
+      ).catch((error) => {
+        // Si Promise.all échoue complètement, utiliser les événements de base sans organisateurs
+        console.error('Error fetching organizers for events:', error);
+        return allEvents.map((event: Event) => ({ ...event, organizers: (event as any).organizers || [] }));
+      });
 
       const now = new Date();
-      const upcomingEvents = eventsWithCreators.filter(
+      const upcomingEvents = eventsWithOrganizers.filter(
         (event: Event) => new Date(event.date) >= now
       );
-      const passedEvents = eventsWithCreators.filter(
+      const passedEvents = eventsWithOrganizers.filter(
         (event: Event) => new Date(event.date) < now
       );
 
@@ -137,16 +264,19 @@ const EventsScreen: React.FC = () => {
 
       setFeatured(featuredEvents);
       setEvents({
-        all: eventsWithCreators,
+        all: eventsWithOrganizers,
         upcoming: upcomingEvents,
         passed: passedEvents,
       });
 
       setFilteredEvents({
-        all: eventsWithCreators,
+        all: eventsWithOrganizers,
         upcoming: upcomingEvents,
         passed: passedEvents,
       });
+
+      // Fetch winners for all events
+      await fetchEventWinners(eventsWithOrganizers);
     } catch (err) {
       // Check if it's a network error (fetch API throws TypeError for network issues)
       if (err instanceof TypeError && (err.message.includes('Network request failed') || err.message.includes('Failed to fetch'))) {
@@ -166,6 +296,7 @@ const EventsScreen: React.FC = () => {
       trackScreenView('Events');
       fetchEvents();
       fetchJoinedEvents();
+      fetchCreatedEvents();
     }, [currentUserId])
   );
 
@@ -199,6 +330,25 @@ const EventsScreen: React.FC = () => {
   }, [currentUserId]);
 
   const handleEventPress = (event: Event) => {
+    // Vérifier si c'est le créateur avec des infos manquantes
+    const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+    const isOrganizer = event.creatorId && currentUserId && event.creatorId === currentUserId;
+
+    if (isOrganizer && eventId) {
+      const { checkMissingEventInfo } = require('../utils/eventMissingInfo');
+      const missingInfo = checkMissingEventInfo(event);
+      
+      if (missingInfo.hasMissingInfo) {
+        // Naviguer vers le formulaire post-event
+        router.push({
+          pathname: '/(app)/postEventInfo',
+          params: { eventId: eventId.toString() },
+        });
+        return;
+      }
+    }
+    
+    // Sinon, aller à la page de détail normale
     router.push({
       pathname: '/(app)/eventDetail',
       params: { eventId: event.id },
@@ -314,8 +464,33 @@ const EventsScreen: React.FC = () => {
               <FontAwesome name="plus" size={20} color="#fff" />
               <Text style={styles.createButtonText}>Create</Text>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/myCreatedEvents')}
+              style={{ position: 'relative' }}
+            >
               <FontAwesome name="bell" size={24} color="#1E232C" />
+              {missingInfoCount > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -4,
+                  backgroundColor: '#EF4444',
+                  borderRadius: 10,
+                  minWidth: 20,
+                  height: 20,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingHorizontal: 4,
+                }}>
+                  <Text style={{
+                    color: '#fff',
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                  }}>
+                    {missingInfoCount > 9 ? '9+' : missingInfoCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -447,6 +622,8 @@ const EventsScreen: React.FC = () => {
               // Utiliser le nombre réel de participants depuis l'API
               const participantsCount = event.participantsCount || 0;
               
+              const winner = eventId ? eventWinners.get(eventId) : null;
+              
               return (
                 <EventItem
                   key={event.id?.toString() || index.toString()}
@@ -464,11 +641,30 @@ const EventsScreen: React.FC = () => {
                   creatorId={event.creatorId}
                   currentUserId={currentUserId}
                   isJoined={isJoined}
+                  winner={winner || undefined}
+                  eventDate={event.date}
+                  meteo={event.meteo}
+                  finished={event.finished}
+                  participationTagText={event.participationTagText}
+                  participationTagColor={event.participationTagColor}
+                  organizers={(event as any).organizers || []}
                   onJoinSuccess={() => {
-                    // Recharger les événements rejoints après un join réussi
+                    // Mettre à jour uniquement l'état local pour le statut join
                     if (currentUserId && eventId) {
-                      fetchJoinedEvents();
-                      // Recharger aussi les événements pour mettre à jour le nombre de participants
+                      setJoinedEventIds((prev) => new Set(prev).add(eventId));
+                      // Recharger les événements pour avoir le nombre de participants à jour depuis la DB
+                      fetchEvents();
+                    }
+                  }}
+                  onLeaveSuccess={() => {
+                    // Mettre à jour uniquement l'état local pour le statut join
+                    if (currentUserId && eventId) {
+                      setJoinedEventIds((prev) => {
+                        const newSet = new Set(prev);
+                        newSet.delete(eventId);
+                        return newSet;
+                      });
+                      // Recharger les événements pour avoir le nombre de participants à jour depuis la DB
                       fetchEvents();
                     }
                   }}

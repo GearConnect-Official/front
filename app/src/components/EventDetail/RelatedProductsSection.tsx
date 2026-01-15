@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
@@ -17,7 +16,6 @@ import relatedProductService, {
 } from '../../services/relatedProductService';
 import { styles } from '../../styles/components/relatedProductsSectionStyles';
 import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
 import { QuickMessages } from '../../utils/messageUtils';
 
 // Define a type that can handle both the related product structure formats
@@ -35,14 +33,14 @@ type ProductType = {
 interface RelatedProductsSectionProps {
   eventId: string;
   products: ProductType[];
-  isCreator: boolean;
+  isOrganizer: boolean;
   onRefresh: () => void;
 }
 
 const RelatedProductsSection: React.FC<RelatedProductsSectionProps> = ({
   eventId,
   products,
-  isCreator,
+  isOrganizer,
   onRefresh,
 }) => {
   const router = useRouter();
@@ -146,7 +144,7 @@ const RelatedProductsSection: React.FC<RelatedProductsSectionProps> = ({
             </TouchableOpacity>
           )}
 
-          {isCreator && (
+          {isOrganizer && (
             <TouchableOpacity
               style={styles.editButton}
               onPress={handleAddProductModal}
@@ -188,7 +186,7 @@ const RelatedProductsSection: React.FC<RelatedProductsSectionProps> = ({
       ) : (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No products available</Text>
-          {isCreator && (
+          {isOrganizer && (
             <TouchableOpacity
               style={styles.addButton}
               onPress={handleAddProductModal}

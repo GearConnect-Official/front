@@ -150,6 +150,8 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 mediaType={mediaType || "auto"}
                 width={SCREEN_WIDTH}
                 height={SCREEN_WIDTH}
+                quality="auto:best"
+                crop="fill"
                 style={styles.formImagePreview}
                 fallbackUrl={imageUri}
                 shouldPlay={mediaType === "video"}
@@ -219,6 +221,8 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               mediaType={mediaType || "auto"}
               width={SCREEN_WIDTH}
               height={SCREEN_WIDTH}
+              quality="auto:best"
+              crop="fill"
               style={styles.formImagePreview}
               fallbackUrl={imageUri}
               shouldPlay={mediaType === "video"}

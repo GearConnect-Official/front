@@ -43,7 +43,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
         mediaTypes: ImagePicker.MediaTypeOptions.All, // Support images ET vidéos
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 1.0, // Qualité maximale pour préserver la résolution originale
       });
 
       if (result.canceled || !result.assets[0]) {

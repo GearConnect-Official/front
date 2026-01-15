@@ -19,7 +19,10 @@ import EventItem from "../components/items/EventItem";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Event } from "../services/eventService";
 import { LinearGradient } from "expo-linear-gradient";
-import { API_URL_EVENTS, API_URL_USERS } from "../config";
+import { API_URL_EVENTS, API_URL_USERS } from '../config';
+import { useAuth } from "../context/AuthContext";
+import userService from "../services/userService";
+import { trackScreenView } from "../utils/mixpanelTracking";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.8;
@@ -44,8 +47,11 @@ const EventsScreen: React.FC = () => {
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [featured, setFeatured] = useState<Event[]>([]);
+  const [joinedEventIds, setJoinedEventIds] = useState<Set<number>>(new Set());
   const scrollX = React.useRef(new Animated.Value(0)).current;
   const router = useRouter();
+  const auth = useAuth();
+  const currentUserId = auth?.user?.id ? Number(auth.user.id) : undefined;
 
   interface TabItem {
     key: string;
@@ -59,11 +65,33 @@ const EventsScreen: React.FC = () => {
     { key: "passed", label: "Passed Events", icon: "history" },
   ];
 
+  // Charger les événements rejoints par l'utilisateur
+  const fetchJoinedEvents = async () => {
+    if (!currentUserId) return;
+    
+    try {
+      const response = await userService.getJoinedEvents(currentUserId, 1, 100);
+      if (response.success && response.data) {
+        const joinedIds = new Set(
+          response.data.events.map((event: any) => event.id)
+        );
+        setJoinedEventIds(joinedIds);
+      }
+    } catch (error) {
+      console.error("Error fetching joined events:", error);
+    }
+  };
+
   const fetchEvents = async () => {
     setLoading(true);
     setError(null);
     setIsNetworkError(false);
     try {
+      // Charger les événements rejoints en parallèle
+      if (currentUserId) {
+        fetchJoinedEvents();
+      }
+
       const response = await fetch(API_URL_EVENTS);
       if (!response.ok) {
         throw new Error(
@@ -142,8 +170,10 @@ const EventsScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      trackScreenView('Events');
       fetchEvents();
-    }, [])
+      fetchJoinedEvents();
+    }, [currentUserId])
   );
 
   const handleSearch = () => {
@@ -168,9 +198,12 @@ const EventsScreen: React.FC = () => {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await fetchEvents();
+    await Promise.all([
+      fetchEvents(),
+      fetchJoinedEvents(),
+    ]);
     setRefreshing(false);
-  }, []);
+  }, [currentUserId]);
 
   const handleEventPress = (event: Event) => {
     router.push({
@@ -374,80 +407,73 @@ const EventsScreen: React.FC = () => {
             ))}
           </View>
 
-          {/* CTA Section */}
-          <View style={styles.ctaSection}>
-            <LinearGradient
-              colors={["#ff3a3a", "#ff5e62"]}
-              style={styles.ctaGradient}
-            >
-              <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
-              <Text style={styles.ctaText}>
-                Share your passion and meet new people
-              </Text>
-              <TouchableOpacity
-                style={styles.ctaButton}
-                onPress={handleCreateEvent}
-              >
-                <Text style={styles.ctaButtonText}>Create Now</Text>
-                <FontAwesome name="arrow-right" size={16} color="#E53935" />
-              </TouchableOpacity>
-            </LinearGradient>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1E232C" />
           </View>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#1E232C" />
-            </View>
-          ) : error ? (
-            <View style={styles.errorContainer}>
-              {isNetworkError ? (
-                <>
-                  <FontAwesome name="wifi" size={50} color="#E10600" />
-                  <Text style={styles.errorTitle}>Connection Issue</Text>
-                  <Text style={styles.errorText}>{error}</Text>
-                </>
-              ) : (
-                <>
-                  <FontAwesome
-                    name="exclamation-triangle"
-                    size={50}
-                    color="#E10600"
-                  />
-                  <Text style={styles.errorText}>{error}</Text>
-                </>
-              )}
-              <TouchableOpacity
-                style={styles.retryButton}
-                onPress={fetchEvents}
-              >
-                <Text style={styles.retryButtonText}>Try Again</Text>
-              </TouchableOpacity>
-            </View>
-          ) : filteredEvents[activeTab]?.length === 0 ? (
-            renderEmptyState()
-          ) : (
-            <View style={styles.eventsContainer}>
-              <Text style={styles.sectionTitle}>
-                {activeTab === "all" && "All Events"}
-                {activeTab === "upcoming" && "Upcoming Events"}
-                {activeTab === "passed" && "Past Events"}
-              </Text>
-              {filteredEvents[activeTab]?.map((event: Event, index: number) => (
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            {isNetworkError ? (
+              <>
+                <FontAwesome name="wifi" size={50} color="#E10600" />
+                <Text style={styles.errorTitle}>Connection Issue</Text>
+                <Text style={styles.errorText}>{error}</Text>
+              </>
+            ) : (
+              <>
+                <FontAwesome name="exclamation-triangle" size={50} color="#E10600" />
+                <Text style={styles.errorText}>{error}</Text>
+              </>
+            )}
+            <TouchableOpacity style={styles.retryButton} onPress={fetchEvents}>
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : filteredEvents[activeTab]?.length === 0 ? (
+          renderEmptyState()
+        ) : (
+          <View style={styles.eventsContainer}>
+            <Text style={styles.sectionTitle}>
+              {activeTab === 'all' && 'All Events'}
+              {activeTab === 'upcoming' && 'Upcoming Events'}
+              {activeTab === 'passed' && 'Past Events'}
+            </Text>
+            {filteredEvents[activeTab]?.map((event: Event, index: number) => {
+              const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+              const isJoined = eventId ? joinedEventIds.has(eventId) : false;
+              // Utiliser le nombre réel de participants depuis l'API
+              const participantsCount = event.participantsCount || 0;
+              
+              return (
                 <EventItem
                   key={event.id?.toString() || index.toString()}
                   title={event.name}
                   subtitle={`By: ${event.creators}`}
-                  date={new Date(event.date).toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "short",
+                  date={new Date(event.date).toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
                   })}
                   emoji="🎉"
                   location={event.location}
-                  attendees={Math.floor(Math.random() * 100)}
+                  attendees={participantsCount}
                   onPress={() => handleEventPress(event)}
+                  eventId={eventId}
+                  creatorId={event.creatorId}
+                  currentUserId={currentUserId}
+                  isJoined={isJoined}
+                  onJoinSuccess={() => {
+                    // Recharger les événements rejoints après un join réussi
+                    if (currentUserId && eventId) {
+                      fetchJoinedEvents();
+                      // Recharger aussi les événements pour mettre à jour le nombre de participants
+                      fetchEvents();
+                    }
+                  }}
                 />
-              ))}
-            </View>
-          )}
+              );
+            })}
+          </View>
+        )}
 
 
 

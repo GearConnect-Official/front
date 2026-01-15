@@ -3,9 +3,15 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
 import styles from "../styles/screens/user/welcomeStyles";
 import { AppImages } from "../assets/images";
+import { trackScreenView } from "../utils/mixpanelTracking";
 
 const WelcomeScreen: React.FC = () => {
   const router = useRouter();
+
+  // Track screen view
+  React.useEffect(() => {
+    trackScreenView('Welcome');
+  }, []);
 
   return (
     <View style={styles.container}>

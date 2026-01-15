@@ -9,7 +9,7 @@ interface CloudinaryMediaProps {
   mediaType?: 'image' | 'video' | 'auto';
   width?: number;
   height?: number;
-  quality?: string;
+  quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | string | number;
   format?: string;
   crop?: string;
   style?: ViewStyle;
@@ -26,7 +26,7 @@ const CloudinaryMedia: React.FC<CloudinaryMediaProps> = ({
   mediaType = 'auto',
   width = 300,
   height = 300,
-  quality = 'auto',
+  quality = 'auto:best', // Qualité optimale par défaut pour préserver la résolution
   format,
   crop = 'fill',
   style,

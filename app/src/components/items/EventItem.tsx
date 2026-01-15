@@ -1,7 +1,9 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import theme from "../../styles/config";
+import eventService from "../../services/eventService";
+import { trackEvent } from "../../utils/mixpanelTracking";
 
 interface EventItemProps {
   title: string;
@@ -12,6 +14,11 @@ interface EventItemProps {
   location?: string;
   attendees?: number;
   onPress?: () => void;
+  eventId?: number;
+  creatorId?: number;
+  currentUserId?: number;
+  isJoined?: boolean;
+  onJoinSuccess?: () => void;
 }
 
 const EventItem: React.FC<EventItemProps> = ({
@@ -23,7 +30,42 @@ const EventItem: React.FC<EventItemProps> = ({
   location,
   attendees = 0,
   onPress,
+  eventId,
+  creatorId,
+  currentUserId,
+  isJoined: initialIsJoined = false,
+  onJoinSuccess,
 }) => {
+  const [isJoined, setIsJoined] = useState(initialIsJoined || (creatorId && currentUserId && creatorId === currentUserId));
+  const [isJoining, setIsJoining] = useState(false);
+
+  const handleJoin = async () => {
+    if (!eventId || !currentUserId || isJoined || isJoining) {
+      return;
+    }
+
+    setIsJoining(true);
+    try {
+      await eventService.joinEvent(eventId, currentUserId);
+      setIsJoined(true);
+      
+      // Track event join
+      trackEvent.joined(String(eventId), title);
+      
+      if (onJoinSuccess) {
+        onJoinSuccess();
+      }
+    } catch (error: any) {
+      console.error("Error joining event:", error);
+      // On pourrait afficher un message d'erreur ici
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  // Si c'est le créateur, toujours afficher "Rejoint"
+  const showJoined = isJoined || (creatorId && currentUserId && creatorId === currentUserId);
+
   return (
     <TouchableOpacity style={itemStyles.container} onPress={onPress}>
       <View style={itemStyles.headerRow}>
@@ -65,10 +107,25 @@ const EventItem: React.FC<EventItemProps> = ({
           <FontAwesome name="users" size={14} color="#666" />
           <Text style={itemStyles.attendeesText}>{attendees} participants</Text>
         </View>
-
-        <TouchableOpacity style={itemStyles.joinButton}>
-          <Text style={itemStyles.joinButtonText}>Join</Text>
-        </TouchableOpacity>
+        
+        {showJoined ? (
+          <View style={itemStyles.joinedBadge}>
+            <FontAwesome name="check-circle" size={14} color="#10b981" />
+            <Text style={itemStyles.joinedBadgeText}>Rejoint</Text>
+          </View>
+        ) : (
+          <TouchableOpacity 
+            style={[itemStyles.joinButton, isJoining && itemStyles.joinButtonDisabled]} 
+            onPress={handleJoin}
+            disabled={isJoining || !eventId || !currentUserId}
+          >
+            {isJoining ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={itemStyles.joinButtonText}>Join</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={itemStyles.shimmer} />
@@ -172,10 +229,22 @@ const itemStyles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
+  joinButtonDisabled: {
+    opacity: 0.6,
+  },
   joinButtonText: {
-    color: "#fff",
-    fontWeight: "600",
+    color: '#fff',
+    fontWeight: '600',
     fontSize: 14,
+  },
+    joinedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#d1fae5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
   },
   shimmer: {
     position: "absolute",

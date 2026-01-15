@@ -24,6 +24,7 @@ import { hierarchicalCommentsStyles } from "../../styles/modals/hierarchicalComm
 import { useMessage } from '../../context/MessageContext';
 import MessageService from '../../services/messageService';
 import { QuickMessages } from '../../utils/messageUtils';
+import { trackPost } from '../../utils/mixpanelTracking';
 
 // Modal pour affichage des commentaires hiérarchiques
 interface HierarchicalCommentsModalProps {
@@ -103,6 +104,9 @@ const HierarchicalCommentsModal: React.FC<HierarchicalCommentsModalProps> = ({
         parentId: replyToComment?.commentId,
       };
 
+      // Track comment before creating
+      trackPost.commented(String(postId), newComment.trim().length);
+      
       const newCommentResponse = await commentService.createComment(
         commentData
       );

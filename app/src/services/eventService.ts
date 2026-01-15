@@ -18,6 +18,8 @@ export interface Event {
   // Additional fields for image metadata
   logoPublicId?: string;
   imagePublicIds?: string[];
+  // Number of participants who joined the event
+  participantsCount?: number;
 }
 
 const eventService = {
@@ -193,6 +195,18 @@ const eventService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching related products:', error);
+      throw error;
+    }
+  },
+  // Join an event
+  joinEvent: async (eventId: number, userId: number) => {
+    try {
+      const response = await axios.post(`${API_URL_EVENTS}/${eventId}/join`, {
+        userId: userId,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error joining event:', error);
       throw error;
     }
   },

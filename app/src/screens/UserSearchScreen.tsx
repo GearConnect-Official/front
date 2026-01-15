@@ -17,6 +17,7 @@ import followService from '../services/followService';
 import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
 import { useAuth } from '../context/AuthContext';
 import theme from '../styles/config/theme';
+import { trackSearch, trackScreenView } from '../utils/mixpanelTracking';
 
 // Type pour les résultats de recherche (adapté à la réponse API)
 interface SearchUser {
@@ -43,6 +44,11 @@ const UserSearchScreen: React.FC = () => {
     totalPages: 0,
     hasMore: false,
   });
+
+  // Track screen view
+  React.useEffect(() => {
+    trackScreenView('User Search');
+  }, []);
 
   const searchUsers = async (query: string, page: number = 1) => {
     if (!query.trim() || query.trim().length < 2) {
@@ -97,6 +103,9 @@ const UserSearchScreen: React.FC = () => {
         }
         
         setPagination(response.data.pagination);
+        
+        // Track search
+        trackSearch.performed(query.trim(), response.data.pagination.totalCount, 'users');
       } else {
         if (page === 1) {
           setSearchResults([]);

@@ -45,12 +45,17 @@ const EventDetailScreen: React.FC = () => {
   const [event, setEvent] = useState<EventInterface | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user } = useAuth() || {};
   const [userReview, setUserReview] = useState<
     EventInterface["reviews"][0] | null
   >(null);
   const [isReviewCreator, setIsReviewCreator] = useState<boolean>(false);
   const [isCreator, setIsCreator] = useState<boolean>(false);
+  const currentUserId = useMemo(
+  () => (user?.id != null ? String(user.id) : null),
+  [user?.id]
+);
+
 
   function formatDate(data: string | number | Date) {
     if (!data) return "Date not available";
@@ -74,12 +79,6 @@ const EventDetailScreen: React.FC = () => {
         setIsCreator(false);
         return;
       }
-      // Check if the logged-in user is the creator of the event
-      const currentUserId =
-        typeof user.id === "object" && user.id !== null
-          ? String(user.id)
-          : String(user.id);
-      // Check if fetchedEvent has a creatorId or userId property
       const eventCreatorId = fetchedEvent.creatorId || null;
       if (!eventCreatorId) {
         setIsCreator(false);
@@ -125,10 +124,6 @@ const EventDetailScreen: React.FC = () => {
       setUserReview(null);
       return false;
     }
-    const currentUserId =
-      typeof user.id === "object" && user.id !== null
-        ? String(user.id)
-        : String(user.id);
     const existingReview = reviews.find((review) => {
       if (!review.userId) return false;
       const reviewUserId = String(review.userId);

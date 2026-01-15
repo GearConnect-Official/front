@@ -193,7 +193,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       console.log('👁️ ProfileScreen: Screen focused, refreshing user data...');
       fetchUserData();
       fetchFollowStats();
-    }, [effectiveUserId])
+      
+      // Track profile view
+      if (effectiveUserId) {
+        const isOwnProfile = effectiveUserId === Number(auth?.user?.id);
+        trackSocial.profileViewed(String(effectiveUserId), isOwnProfile);
+        trackScreenView('Profile', { user_id: effectiveUserId, is_own_profile: isOwnProfile });
+      }
+    }, [effectiveUserId, auth?.user?.id])
   );
 
   // Load all data when component mounts or user changes

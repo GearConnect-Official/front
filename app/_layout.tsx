@@ -10,6 +10,9 @@ import ErrorBoundary from './src/components/ui/ErrorBoundary';
 import { MessageProvider } from './src/context/MessageContext';
 import MessageDisplay from './src/components/ui/MessageProvider';
 
+// Mixpanel
+import { MixpanelProvider } from './src/context/MixpanelContext';
+
 import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';
 import Constants from 'expo-constants';
@@ -43,18 +46,20 @@ export default function RootLayout() {
           <ThemeProvider>
             <AxiosConfigProvider>
               <AuthProvider>
-                {/* NOUVEAU: MessageProvider remplace FeedbackManager */}
-                <MessageProvider>
-                  <MessageDisplay>
-                    <ConnectivityManager>
-                      <Stack screenOptions={{ headerShown: false }}>
-                        <Stack.Screen name="index" />
-                        <Stack.Screen name="(auth)" />
-                        <Stack.Screen name="(app)" />
-                      </Stack>
-                    </ConnectivityManager>
-                  </MessageDisplay>
-                </MessageProvider>
+                <MixpanelProvider>
+                  {/* NOUVEAU: MessageProvider remplace FeedbackManager */}
+                  <MessageProvider>
+                    <MessageDisplay>
+                      <ConnectivityManager>
+                        <Stack screenOptions={{ headerShown: false }}>
+                          <Stack.Screen name="index" />
+                          <Stack.Screen name="(auth)" />
+                          <Stack.Screen name="(app)" />
+                        </Stack>
+                      </ConnectivityManager>
+                    </MessageDisplay>
+                  </MessageProvider>
+                </MixpanelProvider>
               </AuthProvider>
             </AxiosConfigProvider>
           </ThemeProvider>

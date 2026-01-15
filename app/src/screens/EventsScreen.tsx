@@ -21,6 +21,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS, API_URL_USERS } from '../config';
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
+import { trackScreenView } from "../utils/mixpanelTracking";
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.8;
@@ -162,6 +163,7 @@ const EventsScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      trackScreenView('Events');
       fetchEvents();
       fetchJoinedEvents();
     }, [currentUserId])

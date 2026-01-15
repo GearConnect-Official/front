@@ -21,6 +21,7 @@ import { useAuth } from "../context/AuthContext";
 import { useMessage } from "../context/MessageContext";
 import MessageService from "../services/messageService";
 import ProfilePictureUpload from "../components/Profile/ProfilePictureUpload";
+import { trackProfile, trackScreenView } from "../utils/mixpanelTracking";
 
 interface FormData {
   username: string;
@@ -46,6 +47,8 @@ const EditProfileScreen: React.FC = () => {
   });
 
   useEffect(() => {
+    trackScreenView('Edit Profile');
+    
     if (!user?.id) {
       showError("You must be logged in to edit your profile");
       router.back();
@@ -96,6 +99,11 @@ const EditProfileScreen: React.FC = () => {
       );
 
       console.log('📸 EditProfileScreen: Profile picture update response:', response);
+      
+      // Track profile picture update
+      if (response.success && response.data) {
+        trackProfile.pictureUpdated();
+      }
 
       if (response.success && response.data) {
         // Mettre à jour le formData local
@@ -185,6 +193,15 @@ const EditProfileScreen: React.FC = () => {
       setIsLoading(false);
 
       if (updateResponse.success) {
+        // Track profile edit - determine which fields changed
+        const changedFields: string[] = [];
+        if (formData.username) changedFields.push('username');
+        if (formData.name) changedFields.push('name');
+        if (formData.description) changedFields.push('description');
+        if (changedFields.length > 0) {
+          trackProfile.edited(changedFields);
+        }
+        
         if (updateUser) {
           updateUser({
             username: formData.username || null,

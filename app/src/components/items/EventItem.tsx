@@ -5,6 +5,7 @@ import eventService from "../../services/eventService";
 import { checkMissingEventInfo } from "../../utils/eventMissingInfo";
 import { eventItemStyles } from "../../styles/components/items";
 import EventTag from "../EventTag";
+import { trackEvent } from "../../utils/mixpanelTracking";
 
 const itemStyles = eventItemStyles;
 
@@ -97,6 +98,10 @@ const EventItem: React.FC<EventItemProps> = ({
     try {
       await eventService.joinEvent(eventId, currentUserId);
       setIsJoined(true);
+      
+      // Track event join
+      trackEvent.joined(String(eventId), title);
+      
       if (onJoinSuccess) {
         onJoinSuccess();
       }

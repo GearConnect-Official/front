@@ -13,12 +13,18 @@ import styles from "../styles/screens/jobs/jobsStyles";
 import { jobsScreenStyles, RACING_COLORS } from "../styles/screens/jobs/jobsScreenStyles";
 import JobItem from "../components/items/JobItem";
 import { useRouter } from "expo-router";
+import { trackScreenView } from "../utils/mixpanelTracking";
 
 const JobsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("suggested");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Track screen view
+  React.useEffect(() => {
+    trackScreenView('Jobs');
+  }, []);
 
   interface TabItem {
     key: string;

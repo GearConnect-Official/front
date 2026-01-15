@@ -6,6 +6,7 @@ import { FollowStats } from '../types/follow.types';
 import { useAuth } from '../context/AuthContext';
 import theme from '../styles/config/theme';
 import styles from '../styles/components/followButtonStyles';
+import { trackSocial } from '../utils/mixpanelTracking';
 
 interface FollowButtonProps {
   targetUserId: number;
@@ -58,6 +59,13 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       if (response.success && response.data) {
         const newFollowState = response.data.isFollowing;
         setIsFollowing(newFollowState);
+        
+        // Track follow/unfollow action
+        if (newFollowState) {
+          trackSocial.followed(String(targetUserId));
+        } else {
+          trackSocial.unfollowed(String(targetUserId));
+        }
         
         if (onFollowStateChange) {
           onFollowStateChange(newFollowState, {

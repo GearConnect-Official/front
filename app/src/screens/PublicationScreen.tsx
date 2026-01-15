@@ -11,6 +11,7 @@ import { CloudinaryUploadResponse } from "../services/cloudinary.service";
 import { useMessage } from "../context/MessageContext";
 import MessageService from "../services/messageService";
 import { QuickMessages } from "../utils/messageUtils";
+import { trackPost, trackScreenView } from "../utils/mixpanelTracking";
 
 import Header from "../components/Publication/Header";
 import MediaSection from "../components/Publication/MediaSection";
@@ -56,6 +57,11 @@ const PublicationScreen: React.FC = () => {
     "https://via.placeholder.com/32"
   );
   const { showMessage, showError, showConfirmation } = useMessage();
+
+  // Track screen view
+  useEffect(() => {
+    trackScreenView('Create Post');
+  }, []);
 
   // Mettre à jour les informations utilisateur lorsqu'ils sont disponibles
   useEffect(() => {
@@ -136,7 +142,13 @@ const PublicationScreen: React.FC = () => {
       console.log("With tags:", tags);
 
       // Appeler l'API pour créer le post avec les tags
-      await postService.createPostWithTags(newPost, tags);
+      const createdPost = await postService.createPostWithTags(newPost, tags);
+      
+      // Track post creation
+      const postId = createdPost?.id?.toString() || 'unknown';
+      const hasImage = resourceType === 'image';
+      const hasVideo = resourceType === 'video';
+      trackPost.created(postId, hasImage, hasVideo, tags.length);
 
       // Réinitialiser le formulaire
       setSelectedImage(null);

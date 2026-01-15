@@ -24,6 +24,7 @@ import userService from "../services/userService";
 import PerformanceService from "../services/performanceService";
 import eventService from "../services/eventService";
 import { countEventsWithMissingInfo } from "../utils/eventMissingInfo";
+import { trackScreenView } from "../utils/mixpanelTracking";
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.8;
@@ -292,6 +293,7 @@ const EventsScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      trackScreenView('Events');
       fetchEvents();
       fetchJoinedEvents();
       fetchCreatedEvents();

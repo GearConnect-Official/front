@@ -18,6 +18,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import authStyles from "../styles/auth/authStyles";
 import { AppImages } from "../assets/images";
+import { trackAuth, trackScreenView } from "../utils/mixpanelTracking";
 
 const AuthScreen: React.FC = () => {
   const router = useRouter();
@@ -31,6 +32,11 @@ const AuthScreen: React.FC = () => {
     general?: string;
   }>({});
   const [isDeletedAccount, setIsDeletedAccount] = useState(false);
+
+  // Track screen view
+  React.useEffect(() => {
+    trackScreenView('Login');
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: { email?: string; password?: string } = {};
@@ -59,7 +65,9 @@ const AuthScreen: React.FC = () => {
     }
 
     const result = await login(email, password);
-    if (!result.success) {
+    if (result.success) {
+      trackAuth.login('email');
+    } else {
       if (result.error === "Your account has been deleted or desactivated") {
         setIsDeletedAccount(true);
         setErrors({

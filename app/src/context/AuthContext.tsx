@@ -6,6 +6,7 @@ import {
   getUserInfo,
 } from "../services/AuthService";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { trackAuth } from "../utils/mixpanelTracking";
 
 // Define types for our context
 interface User {
@@ -430,6 +431,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     try {
       setIsLoading(true);
+      trackAuth.logout();
       await signOut();
       setUser(null);
       setIsAuthenticated(false);

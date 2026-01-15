@@ -29,6 +29,19 @@ import PerformanceService from '../services/performanceService';
 import { Performance } from '../types/performance.types';
 import EventTag from '../components/EventTag';
 import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
+import { trackEvent, trackScreenView } from '../utils/mixpanelTracking';
+
+type RootStackParamList = {
+  EventDetail: { eventId: string };
+  // Add other routes as needed
+};
+
+type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
+
+interface MeteoInfo {
+  condition: string;
+  temperature: number | string;
+}
 
 const EventDetailScreen: React.FC = () => {
   const params = useLocalSearchParams();
@@ -198,6 +211,9 @@ const EventDetailScreen: React.FC = () => {
 
       // Load event performances
       await loadEventPerformances(parseInt(eventId));
+      
+      // Track event view
+      trackEvent.viewed(eventId, enhancedEvent.name);
     } catch (error: any) {
       console.error('Error in fetchData:', error);
 
@@ -478,6 +494,8 @@ const EventDetailScreen: React.FC = () => {
     useCallback(() => {
       if (eventId) {
         fetchData();
+        // Track screen view
+        trackScreenView('Event Detail', { event_id: eventId });
       }
       return () => {
         setEvent(null);

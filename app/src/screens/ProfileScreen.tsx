@@ -31,6 +31,7 @@ import FollowButton from "../components/FollowButton";
 import { FollowStats } from "../types/follow.types";
 import eventService from "../services/eventService";
 import { countEventsWithMissingInfo, checkMissingEventInfo } from "../utils/eventMissingInfo";
+import { trackSocial, trackScreenView } from "../utils/mixpanelTracking";
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -200,7 +201,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       console.log('👁️ ProfileScreen: Screen focused, refreshing user data...');
       fetchUserData();
       fetchFollowStats();
-    }, [effectiveUserId])
+      
+      // Track profile view
+      if (effectiveUserId) {
+        const isOwnProfile = effectiveUserId === Number(auth?.user?.id);
+        trackSocial.profileViewed(String(effectiveUserId), isOwnProfile);
+        trackScreenView('Profile', { user_id: effectiveUserId, is_own_profile: isOwnProfile });
+      }
+    }, [effectiveUserId, auth?.user?.id])
   );
 
   // Function to fetch next event tag

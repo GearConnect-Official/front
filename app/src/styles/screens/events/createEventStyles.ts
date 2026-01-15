@@ -32,26 +32,76 @@ export default StyleSheet.create({
   stepsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
-    // réduire l'épaisseur de la nav bar : pas de height fixe, paddings plus petits
-    paddingVertical: Platform.OS === "ios" ? 8 : 6,
-    backgroundColor: "#fff",
-    borderBottomWidth: 0,
-    // laisser un petit top offset pour iOS mais plus discret
-    paddingTop: Platform.OS === "android" ? STATUSBAR_HEIGHT + 2 : Math.round(STATUSBAR_HEIGHT / 4),
-    elevation: 0,
+    padding: 10,
+    borderRadius: 8,
+    gap: 8,
   },
-
-  // bouton retour large centralisé (utilisé par StepIndicator)
-  backButtonLarge: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
+  deleteButton: {
+    position: 'absolute',
+    right: 15,
+    padding: 10,
+    borderRadius: 8,
+  },
+  title: {
+    fontSize: theme.typography.h4.fontSize,
+    fontWeight: theme.typography.h4.fontWeight,
+  },
+  // InputField styles
+  inputContainer: {
+    marginBottom: theme.spacing.xl,
+  },
+  inputTitle: {
+    fontSize: theme.typography.h5.fontSize,
+    fontWeight: theme.typography.h5.fontWeight,
+    marginBottom: theme.spacing.xxs,
+  },
+  input: {
+    ...theme.borders.apply(
+      {},
+      {
+        width: 1,
+        color: theme.colors.grey[300],
+        radius: "md",
+      }
+    ),
+    paddingHorizontal: theme.spacing.xs + 4,
+    paddingVertical: theme.spacing.xs,
+    fontSize: theme.typography.body1.fontSize,
+    fontWeight: theme.typography.body1.fontWeight,
+    marginBottom: theme.spacing.xxs,
+    backgroundColor: "#f5f5f5",
+    borderColor: "#e0e0e0",
+  } as any, // Type assertion pour éviter les conflits avec userSelect
+  inputInfo: {
+    fontSize: theme.typography.caption.fontSize,
+    fontWeight: theme.typography.caption.fontWeight,
+    color: theme.colors.grey[600],
+  },
+  // ImageUpload styles
+  imageUploadContainer: {
+    marginBottom: theme.spacing.md,
+  },
+  imageUploadTitle: {
+    fontSize: theme.typography.subtitle1.fontSize,
+    fontWeight: theme.typography.subtitle1.fontWeight,
+    marginBottom: theme.spacing.xs,
+    color: theme.colors.text.primary,
+  },
+  imageUploadButton: {
+    backgroundColor: theme.colors.background.input,
+    borderRadius: theme.borders.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.grey[100],
+    borderStyle: 'dashed',
+    padding: theme.spacing.md,
+    ...theme.common.centerContent,
+    height: 150,
+  },
+  imageUploadButtonText: {
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.xs,
+    fontSize: theme.typography.caption.fontSize,
+    fontWeight: theme.typography.caption.fontWeight,
   },
 
   placeholderRight: {

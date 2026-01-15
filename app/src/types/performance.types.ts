@@ -47,8 +47,8 @@ export interface CreatePerformanceData {
   category: RaceCategory;
   date: string; // ISO date string
   notes?: string;
-  weather?: string;
-  trackCondition?: 'dry' | 'wet' | 'mixed';
+  trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+  eventId?: number;
 }
 
 /**
@@ -62,8 +62,7 @@ export interface UpdatePerformanceData {
   category?: RaceCategory;
   date?: string;
   notes?: string;
-  weather?: string;
-  trackCondition?: 'dry' | 'wet' | 'mixed';
+  trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
 }
 
 /**
@@ -79,8 +78,8 @@ export interface Performance {
   category: RaceCategory;
   date: string;
   notes?: string;
-  weather?: string;
-  trackCondition?: 'dry' | 'wet' | 'mixed';
+  trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+  eventId?: number;
   createdAt: string;
   updatedAt?: string;
 }
@@ -115,8 +114,8 @@ export interface PerformanceFormData {
   category: RaceCategory;
   date: Date;
   notes: string;
-  weather: string;
-  trackCondition: 'dry' | 'wet' | 'mixed';
+  trackCondition: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+  eventId?: number;
 }
 
 /**
@@ -130,8 +129,8 @@ export interface PerformanceFormErrors {
   category?: string;
   date?: string;
   notes?: string;
-  weather?: string;
   trackCondition?: string;
+  eventId?: string;
 }
 
 /**
@@ -144,6 +143,7 @@ export interface PerformanceFilters {
   dateFrom?: string;
   dateTo?: string;
   racePosition?: 'wins' | 'podiums' | 'all';
+  eventId?: number;
   limit?: number;
   offset?: number;
 }
@@ -217,27 +217,16 @@ export const PERFORMANCE_ACHIEVEMENTS: PerformanceAchievement[] = [
 ];
 
 /**
- * Track conditions with weather support
+ * Track conditions with professional racing terminology
  */
 export const TRACK_CONDITIONS = [
-  { value: 'dry', label: 'Dry', emoji: '☀️', color: '#F59E0B' },
-  { value: 'wet', label: 'Wet', emoji: '🌧️', color: '#3B82F6' },
-  { value: 'mixed', label: 'Mixed', emoji: '⛅', color: '#6B7280' },
+  { value: 'dry', label: 'Dry', emoji: '☀️', color: '#F59E0B', description: 'Optimal grip, no moisture' },
+  { value: 'damp', label: 'Damp', emoji: '💧', color: '#60A5FA', description: 'Slight moisture, reduced grip' },
+  { value: 'wet', label: 'Wet', emoji: '🌧️', color: '#3B82F6', description: 'Significant water, wet tires required' },
+  { value: 'mixed', label: 'Mixed', emoji: '🌦️', color: '#6B7280', description: 'Changing conditions, dry and wet sections' },
+  { value: 'slippery', label: 'Slippery', emoji: '⚠️', color: '#EF4444', description: 'Low grip, oil or debris on track' },
+  { value: 'drying', label: 'Drying', emoji: '🌤️', color: '#84CC16', description: 'Track drying after rain, improving conditions' },
 ] as const;
-
-/**
- * Common weather conditions for racing
- */
-export const WEATHER_CONDITIONS = [
-  'Sunny ☀️',
-  'Cloudy ☁️', 
-  'Rainy 🌧️',
-  'Overcast 🌫️',
-  'Windy 💨',
-  'Hot 🔥',
-  'Cold ❄️',
-  'Perfect 🌟',
-];
 
 /**
  * Performance metrics for analysis
@@ -303,7 +292,6 @@ export const compareLapTimes = (time1: string, time2: string): number => {
 const performanceTypes = {
   RACE_CATEGORIES,
   TRACK_CONDITIONS,
-  WEATHER_CONDITIONS,
   PERFORMANCE_ACHIEVEMENTS,
   getPositionColor,
   getPositionEmoji,

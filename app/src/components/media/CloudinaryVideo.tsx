@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { cloudinaryService } from '../../services/cloudinary.service';
+import keepAwakeService from '../../services/keepAwakeService';
 
 interface CloudinaryVideoProps {
   publicId: string;
@@ -34,15 +35,36 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
 }) => {
   const videoRef = useRef<Video>(null);
 
+  // Ensure keep-awake is activated before video playback
+  useEffect(() => {
+    if (shouldPlay) {
+      keepAwakeService.activate().catch(() => {
+        // Non-critical, ignore
+      });
+    }
+  }, [shouldPlay]);
+
   // Force video to play when shouldPlay changes
   useEffect(() => {
     const controlVideoPlayback = async () => {
       if (videoRef.current && shouldPlay) {
         try {
+          // Ensure keep-awake is activated before playing
+          await keepAwakeService.activate();
           console.log('📹 Attempting to play video...');
           await videoRef.current.playAsync();
-        } catch (error) {
-          console.error('📹 Error playing video:', error);
+        } catch (error: any) {
+          // Silently ignore "keep awake" errors
+          if (error?.message?.includes('keep awake')) {
+            // Non-critical error, continue with playback
+            try {
+              await videoRef.current.playAsync();
+            } catch (playError) {
+              console.error('📹 Error playing video:', playError);
+            }
+          } else {
+            console.error('📹 Error playing video:', error);
+          }
         }
       } else if (videoRef.current && !shouldPlay) {
         try {
@@ -184,10 +206,22 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
         }
         if (shouldPlay && videoRef.current) {
           try {
+            // Ensure keep-awake is activated before playing
+            await keepAwakeService.activate();
             console.log('📹 Starting video playback after load...');
             await videoRef.current.playAsync();
-          } catch (error) {
-            console.error('📹 Error starting playback after load:', error);
+          } catch (error: any) {
+            // Silently ignore "keep awake" errors
+            if (error?.message?.includes('keep awake')) {
+              // Non-critical error, try to play anyway
+              try {
+                await videoRef.current?.playAsync();
+              } catch (playError) {
+                console.error('📹 Error starting playback after load:', playError);
+              }
+            } else {
+              console.error('📹 Error starting playback after load:', error);
+            }
           }
         }
       }}

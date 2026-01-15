@@ -28,6 +28,7 @@ import userService from "../services/userService";
 import followService from "../services/followService";
 import FollowButton from "../components/FollowButton";
 import { FollowStats } from "../types/follow.types";
+import { trackSocial, trackScreenView } from "../utils/mixpanelTracking";
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import mixpanelService from '../services/mixpanelService';
+import { mixpanelService } from '../services/mixpanelService';
+import { sessionReplayService } from '../services/sessionReplayService';
 import { useAuth } from './AuthContext';
 
 interface MixpanelContextType {
@@ -16,12 +17,20 @@ interface MixpanelProviderProps {
 }
 
 export const MixpanelProvider: React.FC<MixpanelProviderProps> = ({ children }) => {
-  const { user, isAuthenticated } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
+  const isAuthenticated = auth?.isAuthenticated ?? false;
 
   useEffect(() => {
-    // Initialize Mixpanel on mount
+    // Initialize Mixpanel and Session Replay on mount
     const initMixpanel = async () => {
       await mixpanelService.initialize();
+      
+      // Initialize Session Replay with anonymous ID first
+      // We'll identify the user later when they log in
+      const anonymousId = `anonymous_${Date.now()}`;
+      await sessionReplayService.initialize(anonymousId);
+      
       // Wait a bit to ensure initialization is complete
       setTimeout(() => {
         // Track app launch event to verify connection
@@ -48,31 +57,36 @@ export const MixpanelProvider: React.FC<MixpanelProviderProps> = ({ children }) 
   useEffect(() => {
     // Identify user when authenticated
     if (isAuthenticated && user?.id) {
-      // Identify first
-      mixpanelService.identify(String(user.id));
+      const userId = String(user.id);
       
+      // Identify in Mixpanel
+      mixpanelService.identify(userId);
+      
+      // Identify in Session Replay
+      sessionReplayService.identify(userId);
+
       // Set user properties after a small delay to ensure identify is processed
       setTimeout(() => {
         const userProperties: Record<string, any> = {};
-        
+
         if (user.email) {
           userProperties.$email = user.email; // Use $email for Mixpanel's reserved property
           userProperties.email = user.email; // Also set regular email property
         }
-        
+
         if (user.name) {
           userProperties.$name = user.name; // Use $name for Mixpanel's reserved property
           userProperties.name = user.name;
         }
-        
+
         if (user.username) {
           userProperties.username = user.username;
         }
-        
+
         if (user.id) {
           userProperties.userId = String(user.id);
         }
-        
+
         if (Object.keys(userProperties).length > 0) {
           mixpanelService.setUserProperties(userProperties);
           console.log('👤 [Mixpanel] User properties set:', userProperties);
@@ -81,6 +95,7 @@ export const MixpanelProvider: React.FC<MixpanelProviderProps> = ({ children }) 
     } else if (!isAuthenticated) {
       // Reset on logout
       mixpanelService.reset();
+      // Session Replay will continue with anonymous ID
     }
   }, [isAuthenticated, user]);
 

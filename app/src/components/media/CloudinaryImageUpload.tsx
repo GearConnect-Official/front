@@ -50,8 +50,7 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
   const [uploadedImages, setUploadedImages] = useState<
     CloudinaryUploadResponse[]
   >([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const { showError, showMessage } = useMessage();
+  const { showError } = useMessage();
 
   const handleUploadOption = () => {
     Alert.alert(

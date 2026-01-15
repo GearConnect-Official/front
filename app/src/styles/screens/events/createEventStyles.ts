@@ -1,9 +1,7 @@
-import { StyleSheet, Dimensions, Platform, StatusBar } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
 import theme from "../../config/theme";
 
 const { width } = Dimensions.get("window");
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 28 : StatusBar.currentHeight || 0;
 
 // Hauteur responsive pour la progress bar : proportionnelle à la largeur, clampée
 const progressBarHeight = Math.round(Math.max(6, Math.min(12, width * 0.02)));

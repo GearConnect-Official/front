@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import theme from "../../styles/config";
 import eventService from "../../services/eventService";
 import { checkMissingEventInfo } from "../../utils/eventMissingInfo";
-import { eventItemStyles } from "../../styles/components/items";
 import EventTag from "../EventTag";
 import { trackEvent } from "../../utils/mixpanelTracking";
-import { StyleSheet } from "react-native";
-
-
 
 interface EventItemProps {
   title: string;
@@ -384,7 +380,7 @@ const itemStyles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
-    joinedBadge: {
+  joinedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#d1fae5',
@@ -392,6 +388,50 @@ const itemStyles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     gap: 6,
+  },
+  joinedBadgeText: {
+    color: '#10b981',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  missingInfoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  missingInfoText: {
+    color: '#F59E0B',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  winnerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  winnerText: {
+    fontSize: 14,
+    color: '#FFD700',
+    fontWeight: '600',
+  },
+  finishedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  finishedBadgeText: {
+    color: '#E10600',
+    fontWeight: '600',
+    fontSize: 14,
   },
   shimmer: {
     position: "absolute",

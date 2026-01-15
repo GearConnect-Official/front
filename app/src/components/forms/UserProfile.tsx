@@ -4,13 +4,12 @@ import {
   Text,
   TouchableOpacity,
   Image,
-
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Profile/userProfileStyles";
 import { useMessage } from "../../context/MessageContext";
-import MessageService from "../../services/messageService";
+import { MessageService } from "../../services/messageService";
 
 interface UserProfileProps {
   navigateToHome?: () => void;
@@ -19,12 +18,11 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
-  navigateToHome,
   onLogout,
   user,
 }) => {
   useAuth();
-  const { showConfirmation, showError } = useMessage();
+  const { showConfirmation } = useMessage();
 
   const handleLogout = () => {
     showConfirmation({
@@ -35,10 +33,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
         }
       },
     });
-  };
-
-  const handleError = (error: string) => {
-    showError(error);
   };
 
   return (

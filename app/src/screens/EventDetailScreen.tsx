@@ -913,7 +913,7 @@ const EventDetailScreen: React.FC = () => {
             <Text style={styles.buyButtonText}>Buy a Ticket</Text>
           </TouchableOpacity>
         </ScrollView>
-      </View>
+        </View>
       </SafeAreaView>
 
     );

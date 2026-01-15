@@ -2,8 +2,8 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
-// Get project root using Node.js built-in methods (works in CommonJS)
-const projectRoot = path.dirname(require.main?.filename || process.cwd());
+// Get project root - use process.cwd() which works in all Node.js environments
+const projectRoot = process.cwd();
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(projectRoot, {
@@ -11,9 +11,12 @@ const config = getDefaultConfig(projectRoot, {
   isCSSEnabled: true,
 });
 
-// Fix for module resolution issues
+// Fix for module resolution issues - ensure proper node_modules resolution
 config.resolver = {
   ...config.resolver,
+  nodeModulesPaths: [
+    path.resolve(projectRoot, 'node_modules'),
+  ],
   extraNodeModules: {
     ...config.resolver?.extraNodeModules,
   },

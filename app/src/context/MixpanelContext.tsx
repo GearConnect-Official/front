@@ -1,7 +1,14 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import Constants from 'expo-constants';
 import { mixpanelService } from '../services/mixpanelService';
 import { sessionReplayService } from '../services/sessionReplayService';
 import { useAuth } from './AuthContext';
+
+// Check if running in Expo Go (where Session Replay is not available)
+const isExpoGo = 
+  Constants.appOwnership === 'expo' || 
+  Constants.executionEnvironment === 'storeClient' ||
+  !Constants.isDevice;
 
 interface MixpanelContextType {
   track: (eventName: string, properties?: Record<string, any>) => void;
@@ -26,10 +33,12 @@ export const MixpanelProvider: React.FC<MixpanelProviderProps> = ({ children }) 
     const initMixpanel = async () => {
       await mixpanelService.initialize();
       
-      // Initialize Session Replay with anonymous ID first
-      // We'll identify the user later when they log in
-      const anonymousId = `anonymous_${Date.now()}`;
-      await sessionReplayService.initialize(anonymousId);
+      // Initialize Session Replay only if not in Expo Go
+      // Session Replay requires a development build and is not compatible with Expo Go
+      if (!isExpoGo) {
+        const anonymousId = `anonymous_${Date.now()}`;
+        await sessionReplayService.initialize(anonymousId);
+      }
       
       // Wait a bit to ensure initialization is complete
       setTimeout(() => {
@@ -62,8 +71,10 @@ export const MixpanelProvider: React.FC<MixpanelProviderProps> = ({ children }) 
       // Identify in Mixpanel
       mixpanelService.identify(userId);
       
-      // Identify in Session Replay
-      sessionReplayService.identify(userId);
+      // Identify in Session Replay (only if not in Expo Go)
+      if (!isExpoGo) {
+        sessionReplayService.identify(userId);
+      }
 
       // Set user properties after a small delay to ensure identify is processed
       setTimeout(() => {

@@ -9,11 +9,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams, router } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL_USERS } from '../src/config';
 import { CloudinaryAvatar } from '../src/components/media/CloudinaryImage';
-import { defaultImages } from '../src/config/defaultImages';
 import { useAuth } from '../src/context/AuthContext';
 
 interface Organizer {
@@ -74,12 +73,12 @@ const SelectOrganizersScreen: React.FC = () => {
       const timeout = setTimeout(() => {
         searchUsers(searchQuery);
       }, 500);
-      setSearchTimeout(timeout);
+      setSearchTimeout(timeout as unknown as NodeJS.Timeout);
       return () => clearTimeout(timeout);
     } else {
       setUsers([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, searchTimeout]);
 
   const searchUsers = async (query: string) => {
     if (query.length < 2) {

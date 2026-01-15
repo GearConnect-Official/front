@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Image, TouchableOpacity } from "react-native";
 import styles from "../../styles/feed/postHeaderStyles";
 import PostOptionsButton from "./PostOptionsButton";
 import { CloudinaryAvatar } from "../media/CloudinaryImage";

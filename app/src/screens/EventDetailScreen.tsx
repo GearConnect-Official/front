@@ -744,16 +744,6 @@ const EventDetailScreen: React.FC = () => {
           )}
 
           <View style={styles.descriptionContainer}>
-            {/* {event?.images?.[0] ? (
-            <Image
-               source={{ uri: event.images[0] }}
-               style={styles.eventImage}
-             />
-           ) : (
-             <View style={styles.placeholderImage}>
-             <Text>No Image Available</Text>
-             </View>
-             )} */}
             <View style={styles.aboutContainer}>
               <View style={styles.tagContainer}>
                 {event?.tags && event.tags.length > 0 && (

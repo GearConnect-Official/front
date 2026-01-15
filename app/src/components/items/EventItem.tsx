@@ -7,8 +7,9 @@ import { checkMissingEventInfo } from "../../utils/eventMissingInfo";
 import { eventItemStyles } from "../../styles/components/items";
 import EventTag from "../EventTag";
 import { trackEvent } from "../../utils/mixpanelTracking";
+import { StyleSheet } from "react-native";
 
-const itemStyles = eventItemStyles;
+
 
 interface EventItemProps {
   title: string;

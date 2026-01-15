@@ -913,9 +913,12 @@ const EventDetailScreen: React.FC = () => {
             <Text style={styles.buyButtonText}>Buy a Ticket</Text>
           </TouchableOpacity>
         </ScrollView>
+      </View>
       </SafeAreaView>
+
     );
   }
+
 
   // Add a loading state when event is null but there's no error
   if (loading) {
@@ -937,6 +940,8 @@ const EventDetailScreen: React.FC = () => {
       </TouchableOpacity>
     </View>
   );
+
 };
+
 
 export default EventDetailScreen;

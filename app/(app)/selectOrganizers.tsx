@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -61,24 +61,28 @@ const SelectOrganizersScreen: React.FC = () => {
   const [externalOrganizers, setExternalOrganizers] = useState<string[]>([]);
   const [externalInput, setExternalInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Clear previous timeout if it exists
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
     if (searchQuery.length > 0) {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
       const timeout = setTimeout(() => {
         searchUsers(searchQuery);
       }, 500);
-      setSearchTimeout(timeout as unknown as NodeJS.Timeout);
-      return () => clearTimeout(timeout);
+      searchTimeoutRef.current = timeout;
+      return () => {
+        clearTimeout(timeout);
+        searchTimeoutRef.current = null;
+      };
     } else {
       setUsers([]);
+      searchTimeoutRef.current = null;
     }
-  }, [searchQuery, searchTimeout]);
+  }, [searchQuery]);
 
   const searchUsers = async (query: string) => {
     if (query.length < 2) {

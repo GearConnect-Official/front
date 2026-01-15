@@ -1,17 +1,51 @@
 import Constants from 'expo-constants';
 
+// Check if running in Expo Go (where native modules are not available)
+// Expo Go has Constants.appOwnership === 'expo'
+// Also check if we're in a development environment where native modules might not be linked
+const isExpoGo = 
+  Constants.appOwnership === 'expo' || 
+  Constants.executionEnvironment === 'storeClient' ||
+  !Constants.isDevice;
+
 // Dynamic import for ESM module compatibility
 let MPSessionReplay: any;
 let MPSessionReplayConfig: any;
 let MPSessionReplayMask: any;
+let moduleLoadAttempted: boolean = false;
 
 // Lazy load the module
 const loadSessionReplayModule = async () => {
+  // Skip loading if we're in Expo Go or if we've already attempted to load
+  if (isExpoGo) {
+    return { MPSessionReplay: null, MPSessionReplayConfig: null, MPSessionReplayMask: null };
+  }
+
+  if (moduleLoadAttempted) {
+    return { MPSessionReplay, MPSessionReplayConfig, MPSessionReplayMask };
+  }
+
   if (!MPSessionReplay) {
-    const module = await import('@mixpanel/react-native-session-replay');
-    MPSessionReplay = module.MPSessionReplay;
-    MPSessionReplayConfig = module.MPSessionReplayConfig;
-    MPSessionReplayMask = module.MPSessionReplayMask;
+    moduleLoadAttempted = true;
+    try {
+      // Use a more defensive import approach
+      const module = await Promise.resolve(import('@mixpanel/react-native-session-replay')).catch(() => null);
+      if (module) {
+        MPSessionReplay = module.MPSessionReplay;
+        MPSessionReplayConfig = module.MPSessionReplayConfig;
+        MPSessionReplayMask = module.MPSessionReplayMask;
+      } else {
+        MPSessionReplay = null;
+        MPSessionReplayConfig = null;
+        MPSessionReplayMask = null;
+      }
+    } catch (error: any) {
+      // Module not available (e.g., in Expo Go or not properly linked)
+      // Silently handle the error to avoid console noise
+      MPSessionReplay = null;
+      MPSessionReplayConfig = null;
+      MPSessionReplayMask = null;
+    }
   }
   return { MPSessionReplay, MPSessionReplayConfig, MPSessionReplayMask };
 };
@@ -29,6 +63,12 @@ class SessionReplayService {
       return;
     }
 
+    // Skip initialization if running in Expo Go
+    if (isExpoGo) {
+      // Silently skip - no need to log as this is expected in Expo Go
+      return;
+    }
+
     // Get Mixpanel token from environment variables
     const mixpanelToken = Constants.expoConfig?.extra?.mixpanelToken || process.env.MIXPANEL_TOKEN;
 
@@ -40,6 +80,12 @@ class SessionReplayService {
     try {
       // Load the module dynamically
       const { MPSessionReplay: MP, MPSessionReplayConfig: Config, MPSessionReplayMask: Mask } = await loadSessionReplayModule();
+
+      // Check if module is available (not compatible with Expo Go)
+      if (!MP || !Config || !Mask) {
+        // Silently skip - module not available (expected in Expo Go or if not properly linked)
+        return;
+      }
 
       // Create configuration according to official documentation
       // https://docs.mixpanel.com/docs/tracking-methods/sdks/react-native/react-native-replay
@@ -82,13 +128,13 @@ class SessionReplayService {
    * Start recording a session
    */
   async startRecording(): Promise<void> {
-    if (!this.isInitialized) {
-      console.warn('⚠️ [Session Replay] Cannot start recording - not initialized');
+    if (!this.isInitialized || isExpoGo) {
       return;
     }
 
     try {
       const { MPSessionReplay: MP } = await loadSessionReplayModule();
+      if (!MP) return;
       await MP.startRecording();
       console.log('🎬 [Session Replay] Recording started');
     } catch (error) {
@@ -100,13 +146,13 @@ class SessionReplayService {
    * Stop recording a session
    */
   async stopRecording(): Promise<void> {
-    if (!this.isInitialized) {
-      console.warn('⚠️ [Session Replay] Cannot stop recording - not initialized');
+    if (!this.isInitialized || isExpoGo) {
       return;
     }
 
     try {
       const { MPSessionReplay: MP } = await loadSessionReplayModule();
+      if (!MP) return;
       await MP.stopRecording();
       console.log('⏹️ [Session Replay] Recording stopped');
     } catch (error) {
@@ -118,12 +164,13 @@ class SessionReplayService {
    * Check if recording is active
    */
   async isRecording(): Promise<boolean> {
-    if (!this.isInitialized) {
+    if (!this.isInitialized || isExpoGo) {
       return false;
     }
 
     try {
       const { MPSessionReplay: MP } = await loadSessionReplayModule();
+      if (!MP) return false;
       const recording = await MP.isRecording();
       return recording;
     } catch (error) {
@@ -136,13 +183,13 @@ class SessionReplayService {
    * Identify user for Session Replay
    */
   async identify(distinctId: string): Promise<void> {
-    if (!this.isInitialized) {
-      console.warn('⚠️ [Session Replay] Cannot identify - not initialized');
+    if (!this.isInitialized || isExpoGo) {
       return;
     }
 
     try {
       const { MPSessionReplay: MP } = await loadSessionReplayModule();
+      if (!MP) return;
       await MP.identify(distinctId);
       this.distinctId = distinctId;
       console.log('👤 [Session Replay] User identified:', distinctId);

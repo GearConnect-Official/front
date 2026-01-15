@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
 import relatedProductService from '../services/relatedProductService';
 import EventDetailReview from '../components/EventDetailReview';
+import { trackEvent, trackScreenView } from '../utils/mixpanelTracking';
 
 type RootStackParamList = {
   EventDetail: { eventId: string };
@@ -178,6 +179,9 @@ const EventDetailScreen: React.FC = () => {
       }
 
       setEvent(enhancedEvent);
+      
+      // Track event view
+      trackEvent.viewed(eventId, enhancedEvent.name);
     } catch (error: any) {
       console.error('Error in fetchData:', error);
 
@@ -344,6 +348,8 @@ const EventDetailScreen: React.FC = () => {
     useCallback(() => {
       if (eventId) {
         fetchData();
+        // Track screen view
+        trackScreenView('Event Detail', { event_id: eventId });
       }
       return () => {
         setEvent(null);

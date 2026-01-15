@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import eventService from "../../services/eventService";
+import { trackEvent } from "../../utils/mixpanelTracking";
 
 interface EventItemProps {
   title: string;
@@ -46,6 +47,10 @@ const EventItem: React.FC<EventItemProps> = ({
     try {
       await eventService.joinEvent(eventId, currentUserId);
       setIsJoined(true);
+      
+      // Track event join
+      trackEvent.joined(String(eventId), title);
+      
       if (onJoinSuccess) {
         onJoinSuccess();
       }

@@ -4,9 +4,15 @@ import TopBar from "../components/CreateEvent/TopBar";
 import CreateEventForm from "../components/CreateEventForm";
 import { createEventStyles as styles } from "../styles/screens";
 import { useRouter } from "expo-router";
+import { trackScreenView } from "../utils/mixpanelTracking";
 
 const CreateEventScreen: React.FC = () => {
   const router = useRouter();
+
+  // Track screen view
+  React.useEffect(() => {
+    trackScreenView('Create Event');
+  }, []);
 
   const handleCancel = () => {
     router.back();

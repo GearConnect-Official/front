@@ -42,6 +42,8 @@ export default {
       cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
       cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
       cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      mixpanelToken: process.env.MIXPANEL_TOKEN,
+      mixpanelServerURL: process.env.MIXPANEL_SERVER_URL || 'https://api-eu.mixpanel.com',
       eas: {
         projectId: "76d9f701-5132-4e95-955c-76578f90d7a6"
       }

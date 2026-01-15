@@ -38,6 +38,7 @@ import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
 import { defaultImages } from "../config/defaultImages";
 import userService from "../services/userService";
 import { useMessage } from '../context/MessageContext';
+import { trackPost, trackScreenView } from '../utils/mixpanelTracking';
 
 // Types
 interface Story {
@@ -145,6 +146,11 @@ const HomeScreen: React.FC = () => {
   const isHeaderVisible = useRef(true);
   const lastScrollY = useRef(0);
 
+  // Track screen view
+  useEffect(() => {
+    trackScreenView('Home');
+  }, []);
+
   // Version simple et robuste - pas de cache complexe pour l'instant
   const [posts, setPosts] = useState<UIPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -232,7 +238,15 @@ const HomeScreen: React.FC = () => {
     try {
       const currentUserId = parseInt(user.id.toString());
       console.log('👍 Liking post:', postId);
+      
+      // Get current post state before toggle
+      const currentPost = posts.find(p => p.id === postId);
+      const wasLiked = currentPost?.liked || false;
+      
       await postService.default.toggleLike(parseInt(postId), currentUserId);
+      
+      // Track the action
+      trackPost.liked(postId, !wasLiked);
       
       // Simple optimistic update
       setPosts(prev => prev.map(post => 
@@ -255,7 +269,15 @@ const HomeScreen: React.FC = () => {
     try {
       const currentUserId = parseInt(user.id.toString());
       console.log('💾 Saving post:', postId);
+      
+      // Get current post state before toggle
+      const currentPost = posts.find(p => p.id === postId);
+      const wasSaved = currentPost?.saved || false;
+      
       await favoritesService.toggleFavorite(parseInt(postId), currentUserId);
+      
+      // Track the action
+      trackPost.saved(postId, !wasSaved);
       
       // Simple optimistic update
       setPosts(prev => prev.map(post => 
@@ -450,6 +472,7 @@ const HomeScreen: React.FC = () => {
   const handleViewComments = (postId: string) => {
     setCurrentPostId(postId);
     setIsCommentsModalVisible(true);
+    // Track that comments modal was opened (we'll track actual comment creation separately)
   };
 
   const handleCloseCommentsModal = async () => {
@@ -592,6 +615,7 @@ const HomeScreen: React.FC = () => {
     
     try {
       console.log('📤 Sharing post:', postId);
+      trackPost.shared(postId, 'native');
       
       // TODO: PRODUCTION - Quand l'app sera déployée en production, modifier cette fonction pour :
       // 1. Partager un lien direct vers le post dans l'app (ex: https://gearconnect.app/post/123)
@@ -662,6 +686,9 @@ const HomeScreen: React.FC = () => {
     if (!text.trim() || !user?.id) return;
 
     const currentUserId = parseInt(user.id.toString());
+    
+    // Track comment
+    trackPost.commented(postId, text.length);
 
     // Utiliser la vraie photo de profil de l'utilisateur connecté
     const userAvatar = currentUserData?.profilePicturePublicId ? 

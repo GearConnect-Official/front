@@ -17,6 +17,7 @@ import eventService, { Event } from '../services/eventService';
 import { useAuth } from '../context/AuthContext';
 import MediaInfo from './CreateEvent/MediaInfo';
 import AdditionalInfo from './CreateEvent/AdditionalInfo';
+import { trackEvent } from '../utils/mixpanelTracking';
 
 interface CreateEventProps {
   onCancel: () => void;
@@ -112,6 +113,13 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
 
       const createdEvent = await eventService.createEvent(eventData);
       console.log('Réponse du serveur:', createdEvent);
+
+      // Track event creation
+      if (createdEvent && createdEvent.id) {
+        const eventId = createdEvent.id.toString();
+        const hasImage = formData.logo ? true : (formData.images && formData.images.length > 0);
+        trackEvent.created(eventId, formData.name, hasImage);
+      }
 
       Alert.alert(
         'Success',

@@ -16,6 +16,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/auth/registerStyles";
 import componentStyles from "../styles/auth/registerComponentStyles";
 import { useAuth } from "../context/AuthContext"; // Import useAuth hook
+import { trackAuth, trackScreenView } from "../utils/mixpanelTracking";
 
 const RegisterScreen: React.FC = () => {
   const router = useRouter();
@@ -30,6 +31,11 @@ const RegisterScreen: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Track screen view
+  React.useEffect(() => {
+    trackScreenView('Register');
+  }, []);
 
   // Validate form
   const validateForm = () => {
@@ -89,6 +95,7 @@ const RegisterScreen: React.FC = () => {
     const result = await register(username, email, password, name);
 
     if (result.success) {
+      trackAuth.register('email');
       router.push("/(auth)/login");
     } else {
       // Réinitialiser les erreurs précédentes

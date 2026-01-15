@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { commentsModalStyles } from '../../styles/modals/commentsModalStyles';
 import { useMessage } from '../../context/MessageContext';
 import MessageService from '../../services/messageService';
 import { QuickMessages } from '../../utils/messageUtils';
+import { trackPost } from '../../utils/mixpanelTracking';
 
 interface CommentsModalProps {
   isVisible: boolean;
@@ -92,6 +93,10 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
     try {
       setIsLoading(true);
       await postService.addComment(postId, parseInt(user.id), newComment.trim());
+      
+      // Track comment
+      trackPost.commented(String(postId), newComment.trim().length);
+      
       setNewComment('');
       // Recharger les commentaires pour avoir l'ordre correct
       loadComments(1);

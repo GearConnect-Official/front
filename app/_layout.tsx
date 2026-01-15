@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Stack } from 'expo-router';
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { ThemeProvider } from './src/context/ThemeContext';
@@ -14,7 +14,7 @@ import MessageDisplay from './src/components/ui/MessageProvider';
 import { MixpanelProvider } from './src/context/MixpanelContext';
 
 // Keep Awake Service (prevents expo-av keep-awake errors)
-import keepAwakeService from './src/services/keepAwakeService';
+import { keepAwakeService } from './src/services/keepAwakeService';
 
 import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';

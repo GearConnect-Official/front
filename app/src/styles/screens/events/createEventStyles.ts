@@ -85,16 +85,6 @@ export default StyleSheet.create({
     marginBottom: theme.spacing.xs,
     color: theme.colors.text.primary,
   },
-  imageUploadButton: {
-    backgroundColor: theme.colors.background.input,
-    borderRadius: theme.borders.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.grey[100],
-    borderStyle: 'dashed',
-    padding: theme.spacing.md,
-    ...theme.common.centerContent,
-    height: 150,
-  },
   imageUploadButtonText: {
     color: theme.colors.text.primary,
     marginTop: theme.spacing.xs,
@@ -166,27 +156,11 @@ export default StyleSheet.create({
     color: "#333",
     marginBottom: 8,
   },
-  input: {
-    backgroundColor: "#FAFAFB",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    borderWidth: 1,
-    borderColor: theme.colors.grey[200],
-    color: "#111",
-  },
   textArea: {
     height: 140,
     textAlignVertical: "top",
   },
-  inputInfo: {
-    fontSize: 12,
-    color: theme.colors.grey[600],
-    marginTop: 6,
-  },
-
-  // Date picker
+    // Date picker
   datePicker: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -198,11 +172,6 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.grey[200],
   },
-
-  // Media
-  imageUploadContainer: {
-    marginBottom: theme.spacing.md,
-  },
   imageUploadButton: {
     backgroundColor: "#F7F8FA",
     borderRadius: 12,
@@ -213,12 +182,6 @@ export default StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     height: 140,
-  },
-  imageUploadButtonText: {
-    color: theme.colors.primary.main,
-    marginTop: theme.spacing.xs,
-    fontSize: 13,
-    fontWeight: "600",
   },
   imagePreview: {
     width: 100,

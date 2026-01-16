@@ -321,7 +321,7 @@ const itemStyles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.primary.main,
+    color: "#E10600",
   },
   contentContainer: {
     padding: 16,

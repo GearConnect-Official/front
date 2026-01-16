@@ -764,8 +764,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333', flex: 1 }}>
                 {event.name}
               </Text>
-              <View style={{ backgroundColor: '#f0f7ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: '#3a86ff' }}>
+              <View style={{ backgroundColor: '#ffeaea', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#E10600' }}>
                   {new Date(event.date).toLocaleDateString('fr-FR', {
                     day: 'numeric',
                     month: 'short',
@@ -923,8 +923,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     </Text>
                   </View>
                 )}
-                <View style={{ backgroundColor: '#f0f7ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginLeft: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#3a86ff' }}>
+                <View style={{ backgroundColor: '#ffeaea', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginLeft: 8 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#E10600' }}>
                     {new Date(event.date).toLocaleDateString('en-US', {
                       day: 'numeric',
                       month: 'short',

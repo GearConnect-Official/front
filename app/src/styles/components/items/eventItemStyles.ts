@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import theme from '../../config/theme';
 
 const eventItemStyles = StyleSheet.create({
   container: {
@@ -45,7 +46,7 @@ const eventItemStyles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#E10600',
+    color: theme.colors.primary.main,
   },
   contentContainer: {
     padding: 16,
@@ -127,10 +128,10 @@ const eventItemStyles = StyleSheet.create({
     borderRadius: 16,
     gap: 6,
     borderWidth: 1,
-    borderColor: '#E10600',
+    borderColor: theme.colors.primary.main,
   },
   finishedBadgeText: {
-    color: '#E10600',
+    color: theme.colors.primary.main,
     fontWeight: '600',
     fontSize: 14,
   },

@@ -238,7 +238,7 @@ const EventItem: React.FC<EventItemProps> = ({
         {/* Priorité : afficher "End" si l'événement est terminé, sinon "Joined" si rejoint */}
         {isEventFinished ? (
           <View style={itemStyles.finishedBadge}>
-            <FontAwesome name="flag-checkered" size={14} color="#E10600" />
+            <FontAwesome name="flag-checkered" size={14} color={theme.colors.primary.main} />
             <Text style={itemStyles.finishedBadgeText}>End</Text>
           </View>
         ) : showJoined ? (
@@ -321,7 +321,7 @@ const itemStyles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#E10600",
+    color: theme.colors.primary.main,
   },
   contentContainer: {
     padding: 16,
@@ -429,7 +429,7 @@ const itemStyles = StyleSheet.create({
     gap: 6,
   },
   finishedBadgeText: {
-    color: '#E10600',
+    color: theme.colors.primary.main,
     fontWeight: '600',
     fontSize: 14,
   },

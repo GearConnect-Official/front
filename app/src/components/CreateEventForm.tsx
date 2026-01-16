@@ -45,6 +45,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
     logo: initialData.logo || '',
     images: initialData.images || [],
     description: initialData.description || '',
+    meteo: initialData.meteo || {},
     organizers: [],
   });
 
@@ -116,6 +117,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
         // Les images sont traitées par eventService
         logo: formData.logo || '',
         images: formData.images || [],
+        meteo: formData.meteo || {},
         participationTagText: formData.participationTagText?.trim() || undefined,
         participationTagColor: formData.participationTagColor?.trim() || undefined,
         organizers: finalOrganizers,
@@ -130,7 +132,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       // Track event creation
       if (createdEvent && createdEvent.id) {
         const eventId = createdEvent.id.toString();
-        const hasImage = formData.logo ? true : (formData.images && formData.images.length > 0);
+        const hasImage: boolean = !!(formData.logo || (formData.images && formData.images.length > 0));
         trackEvent.created(eventId, formData.name, hasImage);
       }
 
@@ -221,6 +223,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
             date={formData.date}
             website={formData.website}
             sponsors={formData.sponsors}
+            meteo={formData.meteo as any}
             participationTagText={formData.participationTagText}
             participationTagColor={formData.participationTagColor}
             onInputChange={handleInputChange}

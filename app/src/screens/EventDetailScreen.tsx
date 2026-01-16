@@ -775,14 +775,61 @@ const EventDetailScreen: React.FC = () => {
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={20} color="gray" />
             <Text style={styles.detailText}>{formatDate(event.date)}</Text>
-            <Ionicons
-              name="flag-outline"
-              size={20}
-              color="gray"
-              style={{ marginLeft: 10 }}
-            />
-            <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
           </View>
+          
+          {/* Weather Information Section */}
+          {meteoInfo && typeof meteoInfo === 'object' && (
+            <View style={{ marginVertical: 12, paddingHorizontal: 16 }}>
+              <Text style={styles.sectionTitle}>Weather & Track Conditions</Text>
+              
+              {/* Track Condition */}
+              {meteoInfo.trackCondition && (
+                <View style={styles.detailRow}>
+                  <Ionicons name="flag-outline" size={20} color="gray" />
+                  <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
+                </View>
+              )}
+              
+              {/* Temperature */}
+              {meteoInfo.temperature !== undefined && meteoInfo.temperature !== null && (
+                <View style={styles.detailRow}>
+                  <Ionicons name="thermometer-outline" size={20} color="gray" />
+                  <Text style={styles.detailText}>
+                    {typeof meteoInfo.temperature === 'number' 
+                      ? `${meteoInfo.temperature}°C` 
+                      : `${meteoInfo.temperature}`}
+                  </Text>
+                </View>
+              )}
+              
+              {/* General Weather Condition */}
+              {meteoInfo.condition && !meteoInfo.trackCondition && (
+                <View style={styles.detailRow}>
+                  <Ionicons name="cloud-outline" size={20} color="gray" />
+                  <Text style={styles.detailText}>{meteoInfo.condition}</Text>
+                </View>
+              )}
+              
+              {/* Circuit Name */}
+              {meteoInfo.circuitName && (
+                <View style={styles.detailRow}>
+                  <Ionicons name="map-outline" size={20} color="gray" />
+                  <Text style={styles.detailText}>{meteoInfo.circuitName}</Text>
+                </View>
+              )}
+              
+              {/* Expected Participants */}
+              {meteoInfo.expectedParticipants !== undefined && meteoInfo.expectedParticipants !== null && (
+                <View style={styles.detailRow}>
+                  <Ionicons name="people-outline" size={20} color="gray" />
+                  <Text style={styles.detailText}>
+                    {meteoInfo.expectedParticipants} expected participant{meteoInfo.expectedParticipants !== 1 ? 's' : ''}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+          
           {/* RelatedProductsSection removed - RelatedProduct no longer linked to events */}
           <EventDetailReview
             eventId={eventId}

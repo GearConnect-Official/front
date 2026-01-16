@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,211 +10,110 @@ import {
   Platform,
   Alert,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CloudinaryAvatar } from '../src/components/media/CloudinaryImage';
 import { groupChannelScreenStyles as styles } from '../src/styles/screens/groups';
+import groupService, { ChannelMessage } from '../src/services/groupService';
+import { useAuth } from '../src/context/AuthContext';
 
-// Types pour les messages du channel
-interface ChannelMessage {
-  id: number;
-  content: string;
-  sender: {
-    id: number;
-    name: string;
-    username: string;
-    profilePicture?: string;
-    profilePicturePublicId?: string;
-    isVerify: boolean;
-  };
-  messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
-  isEdited: boolean;
-  isPinned: boolean;
-  replyTo?: {
-    id: number;
-    content: string;
-    sender: {
-      name: string;
-      username: string;
-    };
-  };
-  reactions: {
-    emoji: string;
-    count: number;
-    users: { id: number; name: string }[];
-  }[];
-  createdAt: string;
-  updatedAt: string;
+// Extend ChannelMessage to include isOwn for UI rendering
+interface UIChannelMessage extends ChannelMessage {
+  isOwn: boolean;
 }
 
 const GroupChannelScreen: React.FC = () => {
   const router = useRouter();
   const { groupId, channelId, channelName, channelType } = useLocalSearchParams();
-  const [messages, setMessages] = useState<ChannelMessage[]>([]);
+  const { user } = useAuth() || {};
+  const [messages, setMessages] = useState<UIChannelMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<ChannelMessage | null>(null);
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<FlatList<UIChannelMessage>>(null);
+  const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
 
-  // Données mockées pour le développement
-  const mockMessages: ChannelMessage[] = [
-    {
-      id: 1,
-      content: 'Salut tout le monde ! Quelqu\'un a vu la course d\'hier ?',
-      sender: {
-        id: 1,
-        name: 'Marc Dubois',
-        username: 'marc.racing',
-        profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-        isVerify: true,
-      },
-      messageType: 'TEXT',
-      isEdited: false,
-      isPinned: false,
-      reactions: [
-        { emoji: '🏎️', count: 3, users: [{ id: 2, name: 'Sarah' }, { id: 3, name: 'Antoine' }] },
-        { emoji: '👍', count: 1, users: [{ id: 4, name: 'Julien' }] }
-      ],
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-01-15T10:30:00Z'
-    },
-    {
-      id: 2,
-      content: 'Oui ! Hamilton a fait une remontée incroyable 🔥',
-      sender: {
-        id: 2,
-        name: 'Sarah Martin',
-        username: 'sarah.speed',
-        profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b0bd?w=150&h=150&fit=crop&crop=face',
-        isVerify: true,
-      },
-      messageType: 'TEXT',
-      isEdited: false,
-      isPinned: false,
-      replyTo: {
-        id: 1,
-        content: 'Salut tout le monde ! Quelqu\'un a vu la course d\'hier ?',
-        sender: {
-          name: 'Marc Dubois',
-          username: 'marc.racing'
-        }
-      },
-      reactions: [
-        { emoji: '🔥', count: 5, users: [] }
-      ],
-      createdAt: '2024-01-15T10:32:00Z',
-      updatedAt: '2024-01-15T10:32:00Z'
-    },
-    {
-      id: 3,
-      content: 'J\'ai hâte de voir le prochain GP ! 🏆',
-      sender: {
-        id: 3,
-        name: 'Antoine Leclerc',
-        username: 'antoine.f1',
-        profilePicture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-        isVerify: true,
-      },
-      messageType: 'TEXT',
-      isEdited: true,
-      isPinned: false,
-      reactions: [],
-      createdAt: '2024-01-15T10:35:00Z',
-      updatedAt: '2024-01-15T10:36:00Z'
-    },
-    {
-      id: 4,
-      content: 'Antoine Leclerc a rejoint le channel',
-      sender: {
-        id: 0,
-        name: 'Système',
-        username: 'system',
-        isVerify: false,
-      },
-      messageType: 'SYSTEM',
-      isEdited: false,
-      isPinned: false,
-      reactions: [],
-      createdAt: '2024-01-15T08:00:00Z',
-      updatedAt: '2024-01-15T08:00:00Z'
-    }
-  ];
-
-  useEffect(() => {
-    loadMessages();
-  }, [channelId]);
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
+    if (!groupId || !channelId) return;
+    
     try {
       setLoading(true);
-      // TODO: Remplacer par l'appel API réel
-      // const response = await fetch(`/api/groups/${groupId}/channels/${channelId}/messages`);
-      // const data = await response.json();
-      // setMessages(data.messages);
-      
-      // Simuler un délai de chargement
-      setTimeout(() => {
-        setMessages(mockMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
-        setLoading(false);
-        // Scroll to bottom after loading
-        setTimeout(() => scrollToBottom(), 100);
-      }, 800);
-    } catch (error) {
+      const groupIdNum = parseInt(groupId as string);
+      const channelIdNum = parseInt(channelId as string);
+      if (isNaN(groupIdNum) || isNaN(channelIdNum)) {
+        Alert.alert('Error', 'Invalid group or channel ID');
+        return;
+      }
+      const fetchedMessages = await groupService.getChannelMessages(
+        groupIdNum,
+        channelIdNum,
+        currentUserId
+      );
+      // Sort by creation date (oldest first) and add isOwn property
+      const sortedMessages = fetchedMessages
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+        .map((msg: ChannelMessage): UIChannelMessage => ({
+          ...msg,
+          isOwn: msg.sender.id === currentUserId,
+        }));
+      setMessages(sortedMessages);
+      // Scroll to bottom after loading
+      setTimeout(() => scrollToBottom(), 100);
+    } catch (error: any) {
       console.error('Error loading messages:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Failed to load messages');
+    } finally {
       setLoading(false);
     }
-  };
+  }, [groupId, channelId, currentUserId]);
+
+  useEffect(() => {
+    if (groupId && channelId && currentUserId) {
+      loadMessages();
+    }
+  }, [groupId, channelId, currentUserId, loadMessages]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !groupId || !channelId) return;
 
     setSending(true);
     try {
       const messageContent = newMessage.trim();
+      const groupIdNum = parseInt(groupId as string);
+      const channelIdNum = parseInt(channelId as string);
+      
+      if (isNaN(groupIdNum) || isNaN(channelIdNum)) {
+        Alert.alert('Error', 'Invalid group or channel ID');
+        return;
+      }
+
+      const sentMessage = await groupService.sendChannelMessage(
+        groupIdNum,
+        channelIdNum,
+        messageContent,
+        currentUserId,
+        replyingTo?.id
+      );
+
+      const newMsg: UIChannelMessage = {
+        ...sentMessage,
+        isOwn: true, // Always true for sent messages
+      };
+      setMessages((prev: UIChannelMessage[]) => [...prev, newMsg]);
       setNewMessage('');
       setReplyingTo(null);
-
-      // TODO: Appel API pour envoyer le message
-      console.log('Sending message:', {
-        content: messageContent,
-        replyToId: replyingTo?.id || null
-      });
-
-      // Simuler l'envoi du message
-      const newMsg: ChannelMessage = {
-        id: messages.length + 1,
-        content: messageContent,
-        sender: {
-          id: 999, // ID de l'utilisateur connecté
-          name: 'Moi',
-          username: 'current_user',
-          isVerify: false,
-        },
-        messageType: 'TEXT',
-        isEdited: false,
-        isPinned: false,
-        replyTo: replyingTo ? {
-          id: replyingTo.id,
-          content: replyingTo.content,
-          sender: replyingTo.sender
-        } : undefined,
-        reactions: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      setMessages(prev => [...prev, newMsg]);
-      setSending(false);
       
       // Scroll to bottom after sending
       setTimeout(() => scrollToBottom(), 100);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Failed to send message');
+    } finally {
       setSending(false);
-      Alert.alert('Erreur', 'Impossible d\'envoyer le message');
     }
   };
 
@@ -259,9 +158,10 @@ const GroupChannelScreen: React.FC = () => {
 
   const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
     });
   };
 
@@ -272,11 +172,11 @@ const GroupChannelScreen: React.FC = () => {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Aujourd\'hui';
+      return 'Today';
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Hier';
+      return 'Yesterday';
     } else {
-      return date.toLocaleDateString('fr-FR', {
+      return date.toLocaleDateString('en-US', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
@@ -295,8 +195,9 @@ const GroupChannelScreen: React.FC = () => {
     }
   };
 
-  const renderMessage = ({ item, index }: { item: ChannelMessage; index: number }) => {
+  const renderMessage = ({ item, index }: { item: UIChannelMessage; index: number }) => {
     const isSystemMessage = item.messageType === 'SYSTEM';
+    const isOwn = item.isOwn ?? false;
     const previousMessage = index > 0 ? messages[index - 1] : null;
     const showDate = !previousMessage || 
       formatDate(item.createdAt) !== formatDate(previousMessage.createdAt);
@@ -324,12 +225,15 @@ const GroupChannelScreen: React.FC = () => {
             </Text>
           </View>
         ) : (
-          <View style={styles.messageContainer}>
+          <View style={[
+            styles.messageContainer,
+            isOwn ? styles.ownMessageContainer : styles.otherMessageContainer
+          ]}>
             {/* Reply preview */}
             {item.replyTo && (
-              <View style={styles.replyContainer}>
+              <View style={[styles.replyContainer, isOwn && styles.ownReplyContainer]}>
                 <View style={styles.replyLine} />
-                <Text style={styles.replyText}>
+                <Text style={[styles.replyText, isOwn && styles.ownReplyText]}>
                   <Text style={styles.replyAuthor}>
                     {item.replyTo.sender.name}
                   </Text>
@@ -341,8 +245,20 @@ const GroupChannelScreen: React.FC = () => {
               </View>
             )}
 
-            <View style={styles.messageContent}>
-              <View style={styles.messageAvatar}>
+            {/* Avatar for own messages (left side) */}
+            {isOwn && (
+              <TouchableOpacity
+                style={styles.messageAvatar}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
                 {item.sender.profilePicturePublicId ? (
                   <CloudinaryAvatar
                     publicId={item.sender.profilePicturePublicId}
@@ -356,72 +272,102 @@ const GroupChannelScreen: React.FC = () => {
                     <FontAwesome name="user" size={14} color="#6A707C" />
                   </View>
                 )}
-              </View>
+              </TouchableOpacity>
+            )}
 
-              <View style={styles.messageBody}>
-                <View style={styles.messageHeader}>
-                  <Text style={styles.senderName}>
-                    {item.sender.name}
+            <View style={[styles.messageBody, isOwn && styles.ownMessageBody]}>
+              <View style={styles.messageHeader}>
+                <Text style={[styles.senderName, isOwn && styles.ownSenderName]}>
+                  {item.sender.name}
+                </Text>
+                {item.sender.isVerify && (
+                  <FontAwesome name="check-circle" size={12} color={isOwn ? "#FFFFFF" : "#E10600"} />
+                )}
+                <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
+                  {formatTime(item.createdAt)}
+                </Text>
+                {item.isEdited && (
+                  <Text style={[styles.editedLabel, isOwn && styles.ownEditedLabel]}>
+                    (edited)
                   </Text>
-                  {item.sender.isVerify && (
-                    <FontAwesome name="check-circle" size={12} color="#E10600" />
-                  )}
-                  <Text style={styles.messageTime}>
-                    {formatTime(item.createdAt)}
-                  </Text>
-                  {item.isEdited && (
-                    <Text style={styles.editedLabel}>
-                      (modifié)
-                    </Text>
-                  )}
-                  {item.isPinned && (
-                    <FontAwesome name="thumb-tack" size={10} color="#F59E0B" />
-                  )}
-                </View>
-
-                <Pressable
-                  onLongPress={() => replyToMessage(item)}
-                  style={styles.messageTextContainer}
-                >
-                  <Text style={styles.messageText}>
-                    {item.content}
-                  </Text>
-                </Pressable>
-
-                {/* Reactions */}
-                {item.reactions.length > 0 && (
-                  <View style={styles.reactionsContainer}>
-                    {item.reactions.map((reaction, idx) => (
-                      <TouchableOpacity
-                        key={idx}
-                        style={styles.reactionButton}
-                        onPress={() => addReaction(item.id, reaction.emoji)}
-                      >
-                        <Text style={styles.reactionEmoji}>
-                          {reaction.emoji}
-                        </Text>
-                        <Text style={styles.reactionCount}>
-                          {reaction.count}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                    
-                    {/* Add reaction button */}
-                    <TouchableOpacity
-                      style={styles.addReactionButton}
-                      onPress={() => {
-                        // Show emoji picker - for now just add a random emoji
-                        const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡', '🏎️', '🏆', '🔥'];
-                        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-                        addReaction(item.id, randomEmoji);
-                      }}
-                    >
-                      <FontAwesome name="plus" size={12} color="#6A707C" />
-                    </TouchableOpacity>
-                  </View>
+                )}
+                {item.isPinned && (
+                  <FontAwesome name="thumb-tack" size={10} color={isOwn ? "#FFFFFF" : "#F59E0B"} />
                 )}
               </View>
+
+              <Pressable
+                onLongPress={() => replyToMessage(item)}
+                style={[styles.messageTextContainer, isOwn && styles.ownMessageTextContainer]}
+              >
+                <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                  {item.content}
+                </Text>
+              </Pressable>
+
+              {/* Reactions */}
+              {item.reactions.length > 0 && (
+                <View style={styles.reactionsContainer}>
+                  {item.reactions.map((reaction, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      style={styles.reactionButton}
+                      onPress={() => addReaction(item.id, reaction.emoji)}
+                    >
+                      <Text style={styles.reactionEmoji}>
+                        {reaction.emoji}
+                      </Text>
+                      <Text style={styles.reactionCount}>
+                        {reaction.count}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  
+                  {/* Add reaction button */}
+                  <TouchableOpacity
+                    style={styles.addReactionButton}
+                    onPress={() => {
+                      // Show emoji picker - for now just add a random emoji
+                      const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡', '🏎️', '🏆', '🔥'];
+                      const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                      addReaction(item.id, randomEmoji);
+                    }}
+                  >
+                    <FontAwesome name="plus" size={12} color="#6A707C" />
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
+
+            {/* Avatar for other messages (right side) */}
+            {!isOwn && (
+              <TouchableOpacity
+                style={styles.messageAvatar}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                {item.sender.profilePicturePublicId ? (
+                  <CloudinaryAvatar
+                    publicId={item.sender.profilePicturePublicId}
+                    size={36}
+                    style={styles.avatar}
+                  />
+                ) : item.sender.profilePicture ? (
+                  <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
+                ) : (
+                  <View style={[styles.avatar, styles.defaultAvatar]}>
+                    <FontAwesome name="user" size={14} color="#6A707C" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
@@ -432,7 +378,8 @@ const GroupChannelScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Chargement des messages...</Text>
+          <ActivityIndicator size="large" color="#E10600" />
+          <Text style={styles.loadingText}>Loading messages...</Text>
         </View>
       </SafeAreaView>
     );
@@ -499,7 +446,7 @@ const GroupChannelScreen: React.FC = () => {
           <View style={styles.replyPreview}>
             <View style={styles.replyPreviewContent}>
               <Text style={styles.replyPreviewLabel}>
-                Répondre à {replyingTo.sender.name}
+                Replying to {replyingTo.sender.name}
               </Text>
               <Text style={styles.replyPreviewText} numberOfLines={2}>
                 {replyingTo.content}
@@ -515,7 +462,7 @@ const GroupChannelScreen: React.FC = () => {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.messageInput}
-            placeholder={`Écrire dans ${channelName}`}
+            placeholder={`Message ${channelName}`}
             value={newMessage}
             onChangeText={setNewMessage}
             multiline

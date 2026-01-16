@@ -112,6 +112,112 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
+  // Onglets
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.background.paper,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: theme.spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTab: {
+    borderBottomColor: '#E10600',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: theme.colors.text.secondary,
+  },
+  activeTabText: {
+    color: '#E10600',
+    fontWeight: '600',
+  },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: '20%',
+    backgroundColor: '#E10600',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  // Demandes de discussion
+  requestItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.background.paper,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
+  },
+  requestActions: {
+    flexDirection: 'row',
+    marginTop: theme.spacing.sm,
+    gap: theme.spacing.sm,
+  },
+  requestButton: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  acceptButton: {
+    backgroundColor: '#E10600',
+  },
+  acceptButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  rejectButton: {
+    backgroundColor: theme.colors.background.input,
+  },
+  rejectButtonText: {
+    color: theme.colors.text.primary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  commercialIndicator: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#F59E0B',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xl * 2,
+  },
+  emptyText: {
+    marginTop: theme.spacing.md,
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+  },
 });
 
 export default styles; 

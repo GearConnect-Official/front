@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,119 +8,118 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import theme from '../src/styles/config/theme';
 import { conversationScreenStyles as styles } from '../src/styles/screens';
+import chatService, { Message as ApiMessage } from '../src/services/chatService';
+import { useAuth } from '../src/context/AuthContext';
 
-// Types pour les messages
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  profilePicture?: string;
-  isVerify: boolean;
-}
+// Extended Message type with isOwn property for UI
+type Message = ApiMessage & {
+  isOwn?: boolean;
+};
 
-interface Message {
-  id: number;
-  content: string;
-  sender: User;
-  createdAt: string;
-  isOwn: boolean;
-}
-
-// Données mockées pour les messages d'une conversation
-const mockMessages: Message[] = [
-  {
-    id: 1,
-    content: 'Salut ! Prêt pour la course de demain ?',
-    sender: {
-      id: 2,
-      name: 'Marc Dubois',
-      username: 'marc.racing',
-      profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isVerify: true
-    },
-    createdAt: '2024-01-15T10:30:00Z',
-    isOwn: false
-  },
-  {
-    id: 2,
-    content: 'Absolument ! J\'ai fait quelques tours d\'entraînement hier, mes chronos sont plutôt bons 🏁',
-    sender: {
-      id: 1,
-      name: 'Moi',
-      username: 'me',
-      isVerify: false
-    },
-    createdAt: '2024-01-15T10:32:00Z',
-    isOwn: true
-  },
-  {
-    id: 3,
-    content: 'Super ! Quel est ton meilleur temps sur ce circuit ?',
-    sender: {
-      id: 2,
-      name: 'Marc Dubois',
-      username: 'marc.racing',
-      profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isVerify: true
-    },
-    createdAt: '2024-01-15T10:35:00Z',
-    isOwn: false
-  },
-  {
-    id: 4,
-    content: 'J\'ai réussi un 1:24.567 hier ! Mon objectif pour demain c\'est de passer sous les 1:24',
-    sender: {
-      id: 1,
-      name: 'Moi',
-      username: 'me',
-      isVerify: false
-    },
-    createdAt: '2024-01-15T10:37:00Z',
-    isOwn: true
-  },
-  {
-    id: 5,
-    content: 'Excellent temps ! Ça va être serré, moi j\'ai fait 1:24.234 🔥',
-    sender: {
-      id: 2,
-      name: 'Marc Dubois',
-      username: 'marc.racing',
-      profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isVerify: true
-    },
-    createdAt: '2024-01-15T10:40:00Z',
-    isOwn: false
-  },
-  {
-    id: 6,
-    content: 'Wow ! Quel est ton secret ? Tu as modifié quelque chose sur ta voiture ?',
-    sender: {
-      id: 1,
-      name: 'Moi',
-      username: 'me',
-      isVerify: false
-    },
-    createdAt: '2024-01-15T10:42:00Z',
-    isOwn: true
-  }
-];
+type UserStatus = 'Online' | 'Offline' | 'Do not disturb';
 
 export default function ConversationScreen() {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [userStatus, setUserStatus] = useState<UserStatus>('Online'); // TODO: Fetch from API
   const flatListRef = useRef<FlatList>(null);
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { user } = useAuth() || {};
   
+  const conversationId = params.conversationId as string;
   const conversationName = params.conversationName as string || 'Conversation';
+  const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
 
-  // Faire défiler vers le bas quand de nouveaux messages arrivent
+  // Get status color
+  const getStatusColor = (status: UserStatus): string => {
+    switch (status) {
+      case 'Online':
+        return '#25D366'; // WhatsApp green
+      case 'Offline':
+        return '#E10600'; // App red
+      case 'Do not disturb':
+        return '#FF9500'; // Orange
+      default:
+        return theme.colors.text.secondary;
+    }
+  };
+
+  // Get status text
+  const getStatusText = (status: UserStatus): string => {
+    switch (status) {
+      case 'Online':
+        return 'Online';
+      case 'Offline':
+        return 'Offline';
+      case 'Do not disturb':
+        return 'Do not disturb';
+      default:
+        return 'Online';
+    }
+  };
+
+  // Load messages from API
+  const loadMessages = useCallback(async () => {
+    if (!conversationId || !currentUserId) return;
+    
+    try {
+      setLoading(true);
+      const conversationIdNum = parseInt(conversationId);
+      if (isNaN(conversationIdNum)) {
+        Alert.alert('Error', 'Invalid conversation ID');
+        return;
+      }
+      
+      const response = await chatService.getMessages(conversationIdNum, currentUserId);
+      // Backend returns array of messages directly
+      if (response && Array.isArray(response)) {
+        // Map API messages to UI format
+        // isOwn = true if the message sender is the current logged-in user
+        const formattedMessages: Message[] = response.map((msg: ApiMessage) => {
+          const isOwnMessage = msg.sender.id === currentUserId;
+          return {
+            ...msg,
+            isOwn: isOwnMessage,
+          };
+        });
+        setMessages(formattedMessages);
+      } else if (response && Array.isArray(response.messages)) {
+        // Fallback if response is wrapped in an object
+        const formattedMessages: Message[] = response.messages.map((msg: ApiMessage) => {
+          const isOwnMessage = msg.sender.id === currentUserId;
+          return {
+            ...msg,
+            isOwn: isOwnMessage,
+          };
+        });
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      Alert.alert('Error', 'Failed to load messages');
+    } finally {
+      setLoading(false);
+    }
+  }, [conversationId, currentUserId]);
+
+  // Load messages on mount and when conversationId or currentUserId changes
+  useEffect(() => {
+    if (conversationId && currentUserId) {
+      loadMessages();
+    }
+  }, [conversationId, currentUserId, loadMessages]);
+
+  // Scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
@@ -129,97 +128,191 @@ export default function ConversationScreen() {
     }
   }, [messages]);
 
-  // Fonction pour envoyer un message
+  // Send a message
   const sendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !conversationId || !currentUserId) return;
 
     const messageContent = newMessage.trim();
-    setNewMessage('');
+    const conversationIdNum = parseInt(conversationId);
     
-    // Créer un nouveau message mocké
-    const newMsg: Message = {
-      id: Date.now(),
-      content: messageContent,
-      sender: {
-        id: 1,
-        name: 'Moi',
-        username: 'me',
-        isVerify: false
-      },
-      createdAt: new Date().toISOString(),
-      isOwn: true
-    };
+    if (isNaN(conversationIdNum)) {
+      Alert.alert('Error', 'Invalid conversation ID');
+      return;
+    }
 
-    // Ajouter le message à la liste
-    setMessages(prev => [...prev, newMsg]);
-
-    // Simuler une réponse automatique (pour demo)
-    setTimeout(() => {
-      const autoReply: Message = {
-        id: Date.now() + 1,
-        content: 'Message reçu ! 👍',
-        sender: {
-          id: 2,
-          name: 'Marc Dubois',
-          username: 'marc.racing',
-          profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-          isVerify: true
-        },
-        createdAt: new Date().toISOString(),
-        isOwn: false
-      };
-      setMessages(prev => [...prev, autoReply]);
-    }, 2000);
+    setSending(true);
+    try {
+      const sentMessage = await chatService.sendMessage(
+        conversationIdNum,
+        messageContent,
+        currentUserId
+      );
+      
+      if (sentMessage) {
+        // Add sent message to list - always mark as own since current user sent it
+        const newMsg: Message = {
+          ...sentMessage,
+          isOwn: sentMessage.sender.id === currentUserId,
+        };
+        setMessages(prev => [...prev, newMsg]);
+        setNewMessage('');
+      }
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Failed to send message');
+    } finally {
+      setSending(false);
+    }
   };
 
-  // Fonction pour formater l'heure
+  // Format time for display
   const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('fr-FR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true
     });
   };
 
-  // Rendu d'un message
+  // Render a message
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    const isOwn = item.isOwn;
-    const showAvatar = !isOwn && (index === 0 || messages[index - 1]?.sender.id !== item.sender.id);
-    const showTime = index === messages.length - 1 || 
-                    messages[index + 1]?.sender.id !== item.sender.id ||
-                    (new Date(messages[index + 1]?.createdAt).getTime() - new Date(item.createdAt).getTime()) > 300000; // 5 min
+    const isOwn = item.isOwn ?? false;
+    const previousMessage = index > 0 ? messages[index - 1] : null;
+    
+    // Show avatar logic: for own messages (left side) and other messages (right side)
+    const showAvatar = isOwn 
+      ? (index === 0 || 
+         previousMessage?.sender?.id !== item.sender?.id ||
+         (previousMessage && (new Date(item.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) > 300000))
+      : (index === 0 || 
+         previousMessage?.sender?.id !== item.sender?.id ||
+         (previousMessage && (new Date(item.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) > 300000));
+    
+    // Group messages: same user, less than 5 minutes apart
+    const isGrouped = previousMessage?.sender?.id === item.sender?.id &&
+                     (new Date(item.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) < 300000;
+    
+    // Add margin top if it's a new group
+    const isNewGroup = !isGrouped;
 
     return (
-      <View style={[styles.messageContainer, isOwn && styles.ownMessageContainer]}>
-        {/* Avatar pour les messages des autres */}
-        {showAvatar && (
-          <View style={styles.avatarContainer}>
-            {item.sender.profilePicture ? (
-              <Image source={{ uri: item.sender.profilePicture }} style={styles.messageAvatar} />
+      <View style={[
+        styles.messageContainer, 
+        isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
+        isNewGroup && styles.newMessageGroup
+      ]}>
+        {/* Avatar for own messages (left side) */}
+        {isOwn && (
+          <>
+            {showAvatar ? (
+              <TouchableOpacity 
+                style={styles.ownAvatarContainer}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                {item.sender?.profilePicture || item.sender?.profilePicturePublicId ? (
+                  <Image 
+                    source={{ uri: item.sender.profilePicture || item.sender.profilePicturePublicId }} 
+                    style={styles.messageAvatar} 
+                  />
+                ) : (
+                  <View style={[styles.messageAvatar, styles.defaultMessageAvatar]}>
+                    <FontAwesome name="user" size={16} color="#999" />
+                  </View>
+                )}
+              </TouchableOpacity>
             ) : (
-              <View style={[styles.messageAvatar, styles.defaultMessageAvatar]}>
-                <FontAwesome name="user" size={16} color={theme.colors.text.secondary} />
-              </View>
+              <TouchableOpacity 
+                style={styles.ownAvatarSpacer}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                {/* Invisible spacer that's still clickable */}
+              </TouchableOpacity>
             )}
-          </View>
+          </>
         )}
         
         {/* Message */}
         <View style={[
           styles.messageBubble, 
           isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
-          !showAvatar && !isOwn && styles.messageWithoutAvatar
+          isGrouped && styles.groupedMessage
         ]}>
+          {/* Show sender name for ALL messages (including own) for clarity */}
+          <Text style={[styles.senderName, isOwn && styles.ownSenderName]}>
+            {item.sender?.name || item.sender?.username || 'Unknown User'}
+          </Text>
           <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
             {item.content}
           </Text>
+          {/* Timestamp inside bubble */}
+          <View style={styles.messageTimeContainer}>
+            <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
+              {formatTime(item.createdAt)}
+            </Text>
+          </View>
         </View>
 
-        {/* Heure */}
-        {showTime && (
-          <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
-            {formatTime(item.createdAt)}
-          </Text>
+        {/* Avatar for other users' messages (right side) */}
+        {!isOwn && (
+          <>
+            {showAvatar ? (
+              <TouchableOpacity 
+                style={styles.otherAvatarContainer}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                {item.sender?.profilePicture || item.sender?.profilePicturePublicId ? (
+                  <Image 
+                    source={{ uri: item.sender.profilePicture || item.sender.profilePicturePublicId }} 
+                    style={styles.messageAvatar} 
+                  />
+                ) : (
+                  <View style={[styles.messageAvatar, styles.defaultMessageAvatar]}>
+                    <FontAwesome name="user" size={16} color="#999" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={styles.otherAvatarSpacer}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                {/* Invisible spacer that's still clickable */}
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
     );
@@ -236,56 +329,140 @@ export default function ConversationScreen() {
           style={styles.backButton} 
           onPress={() => router.back()}
         >
-          <FontAwesome name="arrow-left" size={20} color="#E10600" />
+          <FontAwesome name="arrow-left" size={20} color={theme.colors.text.primary} />
         </TouchableOpacity>
         
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {conversationName}
           </Text>
-          <Text style={styles.headerSubtitle}>En ligne</Text>
+          <Text style={[styles.headerSubtitle, { color: getStatusColor(userStatus) }]}>
+            {getStatusText(userStatus)}
+          </Text>
         </View>
 
-        <TouchableOpacity style={styles.moreButton}>
-          <FontAwesome name="ellipsis-v" size={16} color={theme.colors.text.secondary} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          {/* Video call button */}
+          <TouchableOpacity 
+            style={styles.headerActionButton}
+            onPress={() => {
+              // TODO: Implement video call
+              console.log('Video call pressed');
+            }}
+            activeOpacity={0.7}
+          >
+            <FontAwesome name="video-camera" size={20} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
+
+          {/* Voice call button */}
+          <TouchableOpacity 
+            style={styles.headerActionButton}
+            onPress={() => {
+              // TODO: Implement voice call
+              console.log('Voice call pressed');
+            }}
+            activeOpacity={0.7}
+          >
+            <FontAwesome name="phone" size={18} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
+
+          {/* More options button */}
+          <TouchableOpacity 
+            style={styles.headerActionButton}
+            onPress={() => {
+              // TODO: Show more options menu
+              console.log('More options pressed');
+            }}
+            activeOpacity={0.7}
+          >
+            <FontAwesome name="ellipsis-v" size={16} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Liste des messages */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.messagesContainer}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-      />
+      {/* Messages list */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E10600" />
+          <Text style={styles.loadingText}>Loading messages...</Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <FontAwesome name="comment" size={40} color={theme.colors.text.secondary} />
+              <Text style={styles.emptyStateText}>No messages yet. Start the conversation!</Text>
+            </View>
+          }
+        />
+      )}
 
-      {/* Zone de saisie */}
+      {/* Input area */}
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
+          {/* Attach button (like WhatsApp) */}
+          <TouchableOpacity 
+            style={styles.attachButton}
+            onPress={() => {
+              // TODO: Implement attach functionality (images, files, etc.)
+              console.log('Attach button pressed');
+            }}
+            activeOpacity={0.7}
+          >
+            <FontAwesome name="plus" size={20} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
+          
           <TextInput
             style={styles.textInput}
             value={newMessage}
             onChangeText={setNewMessage}
-            placeholder="Tapez votre message..."
+            placeholder="Type your message..."
             placeholderTextColor={theme.colors.text.secondary}
             multiline
             maxLength={500}
           />
           
-          <TouchableOpacity
-            style={[styles.sendButton, newMessage.trim() && styles.sendButtonActive]}
-            onPress={sendMessage}
-            disabled={!newMessage.trim() || loading}
-          >
-            <FontAwesome 
-              name="send" 
-              size={16} 
-              color={newMessage.trim() ? 'white' : theme.colors.text.secondary} 
-            />
-          </TouchableOpacity>
+          {/* Send button or microphone button (like WhatsApp) */}
+          {newMessage.trim() ? (
+            <TouchableOpacity
+              style={[styles.sendButton, styles.sendButtonActive]}
+              onPress={sendMessage}
+              disabled={sending || loading}
+              activeOpacity={0.7}
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <FontAwesome 
+                  name="send" 
+                  size={16} 
+                  color="white" 
+                />
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.microphoneButton}
+              onPress={() => {
+                // TODO: Implement voice message recording
+                console.log('Microphone pressed - start recording');
+              }}
+              activeOpacity={0.7}
+            >
+              <FontAwesome 
+                name="microphone" 
+                size={18} 
+                color={theme.colors.text.secondary} 
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </KeyboardAvoidingView>

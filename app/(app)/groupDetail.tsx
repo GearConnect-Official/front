@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -16,82 +16,13 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CloudinaryAvatar } from "../src/components/media/CloudinaryImage";
 import { groupDetailScreenStyles as styles } from "../src/styles/screens/groups";
-
-// Types pour les données du groupe
-interface GroupMember {
-  id: number;
-  user: {
-    id: number;
-    name: string;
-    username: string;
-    profilePicture?: string;
-    profilePicturePublicId?: string;
-    isVerify: boolean;
-  };
-  nickname?: string;
-  joinedAt: string;
-  lastActiveAt: string;
-  roles: {
-    role: {
-      id: number;
-      name: string;
-      color?: string;
-      position: number;
-    };
-  }[];
-}
-
-interface GroupChannel {
-  id: number;
-  name: string;
-  description?: string;
-  type: "TEXT" | "VOICE" | "ANNOUNCEMENT";
-  position: number;
-  isPrivate: boolean;
-  _count: {
-    messages: number;
-  };
-}
-
-interface GroupCategory {
-  id: number;
-  name: string;
-  position: number;
-  channels: GroupChannel[];
-}
-
-interface GroupDetails {
-  id: number;
-  name: string;
-  description?: string;
-  icon?: string;
-  iconPublicId?: string;
-  isPublic: boolean;
-  owner: {
-    id: number;
-    name: string;
-    username: string;
-    profilePicture?: string;
-    profilePicturePublicId?: string;
-  };
-  members: GroupMember[];
-  channels: GroupChannel[];
-  categories: GroupCategory[];
-  roles: {
-    id: number;
-    name: string;
-    color?: string;
-    position: number;
-  }[];
-  _count: {
-    members: number;
-  };
-  createdAt: string;
-}
+import groupService, { GroupDetails, GroupChannel, GroupMember } from "../src/services/groupService";
+import { useAuth } from "../src/context/AuthContext";
 
 const GroupDetailScreen: React.FC = () => {
   const router = useRouter();
-  const { groupId, groupName } = useLocalSearchParams();
+  const { groupId } = useLocalSearchParams();
+  const { user } = useAuth() || {};
   const [group, setGroup] = useState<GroupDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -108,193 +39,32 @@ const GroupDetailScreen: React.FC = () => {
   const [inviteCode, setInviteCode] = useState("");
   const [creating, setCreating] = useState(false);
 
-  // Données mockées pour le développement
-  const mockGroupDetails: GroupDetails = {
-    id: 1,
-    name: "Passionés de F1",
-    description: "Communauté dédiée à la Formule 1 et aux sports automobiles",
-    isPublic: true,
-    owner: {
-      id: 1,
-      name: "Marc Dubois",
-      username: "marc.racing",
-      profilePicture:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    },
-    members: [
-      {
-        id: 1,
-        user: {
-          id: 1,
-          name: "Marc Dubois",
-          username: "marc.racing",
-          profilePicture:
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-          isVerify: true,
-        },
-        joinedAt: "2024-01-05T09:00:00Z",
-        lastActiveAt: "2024-01-15T14:30:00Z",
-        roles: [
-          {
-            role: {
-              id: 1,
-              name: "Owner",
-              color: "#E10600",
-              position: 1000,
-            },
-          },
-        ],
-      },
-      {
-        id: 2,
-        user: {
-          id: 2,
-          name: "Sarah Martin",
-          username: "sarah.speed",
-          profilePicture:
-            "https://images.unsplash.com/photo-1494790108755-2616b612b0bd?w=150&h=150&fit=crop&crop=face",
-          isVerify: true,
-        },
-        joinedAt: "2024-01-10T10:00:00Z",
-        lastActiveAt: "2024-01-15T12:15:00Z",
-        roles: [
-          {
-            role: {
-              id: 2,
-              name: "Admin",
-              color: "#E10600",
-              position: 100,
-            },
-          },
-        ],
-      },
-      {
-        id: 3,
-        user: {
-          id: 3,
-          name: "Antoine Leclerc",
-          username: "antoine.f1",
-          profilePicture:
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-          isVerify: true,
-        },
-        nickname: "Speedy",
-        joinedAt: "2024-01-12T14:30:00Z",
-        lastActiveAt: "2024-01-15T09:45:00Z",
-        roles: [
-          {
-            role: {
-              id: 3,
-              name: "Membre",
-              color: "#6A707C",
-              position: 1,
-            },
-          },
-        ],
-      },
-      {
-        id: 4,
-        user: {
-          id: 4,
-          name: "Julien Moreau",
-          username: "julien.pilot",
-          profilePicture:
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-          isVerify: false,
-        },
-        joinedAt: "2024-01-13T16:20:00Z",
-        lastActiveAt: "2024-01-14T18:30:00Z",
-        roles: [
-          {
-            role: {
-              id: 3,
-              name: "Membre",
-              color: "#6A707C",
-              position: 1,
-            },
-          },
-        ],
-      },
-    ],
-    channels: [
-      {
-        id: 1,
-        name: "général",
-        description: "Discussion générale sur la F1",
-        type: "TEXT",
-        position: 0,
-        isPrivate: false,
-        _count: { messages: 1247 },
-      },
-      {
-        id: 2,
-        name: "résultats-courses",
-        description: "Discussions sur les résultats des courses",
-        type: "TEXT",
-        position: 1,
-        isPrivate: false,
-        _count: { messages: 89 },
-      },
-      {
-        id: 3,
-        name: "analyses-techniques",
-        description: "Analyses techniques des voitures",
-        type: "TEXT",
-        position: 2,
-        isPrivate: false,
-        _count: { messages: 234 },
-      },
-      {
-        id: 4,
-        name: "annonces",
-        description: "Annonces importantes",
-        type: "ANNOUNCEMENT",
-        position: 3,
-        isPrivate: false,
-        _count: { messages: 12 },
-      },
-      {
-        id: 5,
-        name: "discussion-vocale",
-        description: "Channel vocal pour les discussions",
-        type: "VOICE",
-        position: 4,
-        isPrivate: false,
-        _count: { messages: 0 },
-      },
-    ],
-    categories: [],
-    roles: [
-      { id: 1, name: "Owner", color: "#E10600", position: 1000 },
-      { id: 2, name: "Admin", color: "#E10600", position: 100 },
-      { id: 3, name: "Membre", color: "#6A707C", position: 1 },
-    ],
-    _count: { members: 47 },
-    createdAt: "2024-01-05T09:00:00Z",
-  };
-
-  useEffect(() => {
-    loadGroupDetails();
-  }, [groupId]);
-
-  const loadGroupDetails = async () => {
+  const loadGroupDetails = useCallback(async () => {
+    if (!groupId) return;
+    
     try {
       setLoading(true);
-      // TODO: Remplacer par l'appel API réel
-      // const response = await fetch(`/api/groups/${groupId}`);
-      // const data = await response.json();
-      // setGroup(data);
-
-      // Simuler un délai de chargement
-      setTimeout(() => {
-        setGroup(mockGroupDetails);
-        setLoading(false);
-      }, 800);
-    } catch (error) {
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      const groupIdNum = parseInt(groupId as string);
+      if (isNaN(groupIdNum)) {
+        Alert.alert('Error', 'Invalid group ID');
+        return;
+      }
+      const groupData = await groupService.getGroupDetails(groupIdNum, currentUserId);
+      setGroup(groupData);
+    } catch (error: any) {
       console.error("Error loading group details:", error);
+      Alert.alert('Error', error.response?.data?.error || 'Failed to load group details');
+    } finally {
       setLoading(false);
     }
-  };
+  }, [groupId, user?.id]);
+
+  useEffect(() => {
+    if (groupId && user?.id) {
+      loadGroupDetails();
+    }
+  }, [groupId, user?.id, loadGroupDetails]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -315,55 +85,55 @@ const GroupDetailScreen: React.FC = () => {
   };
 
   const createChannel = async () => {
-    if (!newChannelName.trim()) {
-      Alert.alert("Erreur", "Le nom du channel est requis");
+    if (!newChannelName.trim() || !groupId) {
+      Alert.alert("Error", "Channel name is required");
       return;
     }
 
     setCreating(true);
     try {
-      // TODO: Appel API pour créer le channel
-      console.log("Creating channel:", {
-        name: newChannelName,
-        description: newChannelDescription,
-        type: newChannelType,
-      });
-
-      setTimeout(() => {
-        setShowCreateChannelModal(false);
-        setNewChannelName("");
-        setNewChannelDescription("");
-        setNewChannelType("TEXT");
-        setCreating(false);
-        Alert.alert("Succès", "Channel créé avec succès !");
-        loadGroupDetails();
-      }, 1000);
-    } catch (error) {
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      const groupIdNum = parseInt(groupId as string);
+      await groupService.createChannel(
+        groupIdNum,
+        newChannelName.trim(),
+        newChannelDescription.trim() || undefined,
+        newChannelType,
+        currentUserId
+      );
+      setShowCreateChannelModal(false);
+      setNewChannelName("");
+      setNewChannelDescription("");
+      setNewChannelType("TEXT");
+      Alert.alert("Success", "Channel created successfully!");
+      loadGroupDetails();
+    } catch (error: any) {
       console.error("Error creating channel:", error);
-      Alert.alert("Erreur", "Impossible de créer le channel");
+      Alert.alert("Error", error.response?.data?.error || "Failed to create channel");
+    } finally {
       setCreating(false);
     }
   };
 
   const createInvite = async () => {
+    if (!groupId) return;
+    
     try {
-      // TODO: Appel API pour créer l'invitation
-      const mockInviteCode = Math.random()
-        .toString(36)
-        .substring(2, 10)
-        .toUpperCase();
-      setInviteCode(mockInviteCode);
-    } catch (error) {
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      const groupIdNum = parseInt(groupId as string);
+      const invite = await groupService.createInvite(groupIdNum, currentUserId);
+      setInviteCode(invite.code);
+    } catch (error: any) {
       console.error("Error creating invite:", error);
-      Alert.alert("Erreur", "Impossible de créer l'invitation");
+      Alert.alert("Error", error.response?.data?.error || "Failed to create invite");
     }
   };
 
-  const copyInviteCode = () => {
-    // TODO: Copier dans le presse-papiers
+  const copyInviteCode = async () => {
+    // TODO: Use Clipboard API when available
     Alert.alert(
-      "Copié !",
-      "Le code d'invitation a été copié dans le presse-papiers"
+      "Copied!",
+      "Invite code copied to clipboard"
     );
   };
 
@@ -395,10 +165,10 @@ const GroupDetailScreen: React.FC = () => {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return "Aujourd'hui";
-    if (diffDays === 2) return "Hier";
-    if (diffDays <= 7) return `Il y a ${diffDays - 1} jours`;
-    return date.toLocaleDateString("fr-FR");
+    if (diffDays === 1) return "Today";
+    if (diffDays === 2) return "Yesterday";
+    if (diffDays <= 7) return `${diffDays - 1} days ago`;
+    return date.toLocaleDateString("en-US");
   };
 
   const getHighestRole = (member: GroupMember) => {
@@ -487,7 +257,7 @@ const GroupDetailScreen: React.FC = () => {
               </Text>
             )}
             <Text style={styles.memberLastActive}>
-              {formatLastActive(item.lastActiveAt)}
+              {formatLastActive(item.lastActiveAt || item.joinedAt)}
             </Text>
           </View>
         </View>
@@ -514,7 +284,7 @@ const GroupDetailScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Chargement du groupe...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -536,7 +306,7 @@ const GroupDetailScreen: React.FC = () => {
             {group.name}
           </Text>
           <Text style={styles.headerSubtitle}>
-            {group._count.members} membres
+            {group._count.members} members
           </Text>
         </View>
 
@@ -559,14 +329,14 @@ const GroupDetailScreen: React.FC = () => {
             size={16}
             color={selectedTab === "channels" ? "#E10600" : "#6A707C"}
           />
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === "channels" && styles.activeTabText,
-            ]}
-          >
-            Channels
-          </Text>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === "channels" && styles.activeTabText,
+              ]}
+            >
+              Channels
+            </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -584,7 +354,7 @@ const GroupDetailScreen: React.FC = () => {
               selectedTab === "members" && styles.activeTabText,
             ]}
           >
-            Membres
+            Members
           </Text>
         </TouchableOpacity>
       </View>
@@ -616,7 +386,7 @@ const GroupDetailScreen: React.FC = () => {
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              Membres ({group.members.length})
+              Members ({group.members.length})
             </Text>
           </View>
 
@@ -643,7 +413,7 @@ const GroupDetailScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setShowCreateChannelModal(false)}>
               <FontAwesome name="times" size={24} color="#6A707C" />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Créer un channel</Text>
+            <Text style={styles.modalTitle}>Create Channel</Text>
             <TouchableOpacity
               onPress={createChannel}
               disabled={creating || !newChannelName.trim()}
@@ -655,14 +425,14 @@ const GroupDetailScreen: React.FC = () => {
                     styles.modalActionDisabled,
                 ]}
               >
-                {creating ? "Création..." : "Créer"}
+                {creating ? "Creating..." : "Create"}
               </Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.modalContent}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Type de channel</Text>
+              <Text style={styles.inputLabel}>Channel Type</Text>
               <View style={styles.channelTypeContainer}>
                 {["TEXT", "VOICE", "ANNOUNCEMENT"].map((type) => (
                   <TouchableOpacity
@@ -685,10 +455,10 @@ const GroupDetailScreen: React.FC = () => {
                       ]}
                     >
                       {type === "TEXT"
-                        ? "Texte"
+                        ? "Text"
                         : type === "VOICE"
-                        ? "Vocal"
-                        : "Annonces"}
+                        ? "Voice"
+                        : "Announcement"}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -696,10 +466,10 @@ const GroupDetailScreen: React.FC = () => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nom du channel *</Text>
+              <Text style={styles.inputLabel}>Channel Name *</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="nom-du-channel"
+                placeholder="channel-name"
                 value={newChannelName}
                 onChangeText={setNewChannelName}
                 maxLength={100}
@@ -711,7 +481,7 @@ const GroupDetailScreen: React.FC = () => {
               <Text style={styles.inputLabel}>Description</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
-                placeholder="Description du channel (optionnel)"
+                placeholder="Channel description (optional)"
                 value={newChannelDescription}
                 onChangeText={setNewChannelDescription}
                 multiline
@@ -734,7 +504,7 @@ const GroupDetailScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setShowInviteModal(false)}>
               <FontAwesome name="times" size={24} color="#6A707C" />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Inviter des membres</Text>
+            <Text style={styles.modalTitle}>Invite Members</Text>
             <View />
           </View>
 
@@ -743,25 +513,24 @@ const GroupDetailScreen: React.FC = () => {
               <View style={styles.inviteContainer}>
                 <FontAwesome name="user-plus" size={48} color="#E10600" />
                 <Text style={styles.inviteTitle}>
-                  Inviter des personnes à rejoindre {group.name}
+                  Invite people to join {group.name}
                 </Text>
                 <Text style={styles.inviteDescription}>
-                  Créez un lien d&apos;invitation pour permettre à d&apos;autres
-                  utilisateurs de rejoindre ce groupe
+                  Create an invite link to allow other users to join this group
                 </Text>
                 <TouchableOpacity
                   style={styles.createInviteButton}
                   onPress={createInvite}
                 >
                   <Text style={styles.createInviteText}>
-                    Créer une invitation
+                    Create Invite
                   </Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <View style={styles.inviteCodeContainer}>
                 <Text style={styles.inviteCodeTitle}>
-                  Lien d&apos;invitation créé !
+                  Invite link created!
                 </Text>
                 <View style={styles.inviteCodeBox}>
                   <Text style={styles.inviteCodeText}>{inviteCode}</Text>
@@ -773,7 +542,7 @@ const GroupDetailScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.inviteCodeDescription}>
-                  Partagez ce code avec les personnes que vous souhaitez inviter
+                  Share this code with people you want to invite
                 </Text>
               </View>
             )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,70 +10,18 @@ import {
   TextInput,
   Modal,
   Alert,
+  ViewStyle,
+  TextStyle,
+  ImageStyle,
+  StyleProp,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import theme from '../src/styles/config/theme';
 import { CloudinaryAvatar } from '../src/components/media/CloudinaryImage';
 import { groupsScreenStyles as styles } from '../src/styles/screens/groups';
-
-// Types pour les groupes
-interface GroupMember {
-  id: number;
-  user: {
-    id: number;
-    name: string;
-    username: string;
-    profilePicture?: string;
-    profilePicturePublicId?: string;
-    isVerify: boolean;
-  };
-  nickname?: string;
-  joinedAt: string;
-  roles: {
-    role: {
-      id: number;
-      name: string;
-      color?: string;
-      position: number;
-    };
-  }[];
-}
-
-interface GroupChannel {
-  id: number;
-  name: string;
-  description?: string;
-  type: 'TEXT' | 'VOICE' | 'ANNOUNCEMENT';
-  position: number;
-  isPrivate: boolean;
-  _count: {
-    messages: number;
-  };
-}
-
-interface Group {
-  id: number;
-  name: string;
-  description?: string;
-  icon?: string;
-  iconPublicId?: string;
-  isPublic: boolean;
-  owner: {
-    id: number;
-    name: string;
-    username: string;
-    profilePicture?: string;
-    profilePicturePublicId?: string;
-  };
-  members: GroupMember[];
-  channels: GroupChannel[];
-  _count: {
-    members: number;
-  };
-  createdAt: string;
-}
+import groupService, { Group } from '../src/services/groupService';
+import { useAuth } from '../src/context/AuthContext';
 
 const GroupsScreen: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -88,115 +36,25 @@ const GroupsScreen: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState(false);
   const router = useRouter();
+  const { user } = useAuth() || {};
 
-  // Données mockées pour le développement
-  const mockGroups: Group[] = [
-    {
-      id: 1,
-      name: 'Passionés de F1',
-      description: 'Communauté dédiée à la Formule 1 et aux sports automobiles',
-      isPublic: true,
-      owner: {
-        id: 1,
-        name: 'Marc Dubois',
-        username: 'marc.racing',
-        profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      },
-      members: [
-        {
-          id: 1,
-          user: {
-            id: 2,
-            name: 'Sarah Martin',
-            username: 'sarah.speed',
-            profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b0bd?w=150&h=150&fit=crop&crop=face',
-            isVerify: true,
-          },
-          joinedAt: '2024-01-10T10:00:00Z',
-          roles: [
-            {
-              role: {
-                id: 1,
-                name: 'Admin',
-                color: '#E10600',
-                position: 100,
-              }
-            }
-          ]
-        },
-      ],
-      channels: [
-        {
-          id: 1,
-          name: 'général',
-          description: 'Discussion générale',
-          type: 'TEXT',
-          position: 0,
-          isPrivate: false,
-          _count: { messages: 156 }
-        },
-        {
-          id: 2,
-          name: 'résultats-courses',
-          description: 'Discussions sur les résultats',
-          type: 'TEXT',
-          position: 1,
-          isPrivate: false,
-          _count: { messages: 89 }
-        },
-      ],
-      _count: { members: 47 },
-      createdAt: '2024-01-05T09:00:00Z'
-    },
-    {
-      id: 2,
-      name: 'Karting Amateur',
-      description: 'Groupe pour les amateurs de karting',
-      isPublic: false,
-      owner: {
-        id: 3,
-        name: 'Antoine Leclerc',
-        username: 'antoine.f1',
-        profilePicture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-      },
-      members: [],
-      channels: [
-        {
-          id: 3,
-          name: 'général',
-          type: 'TEXT',
-          position: 0,
-          isPrivate: false,
-          _count: { messages: 23 }
-        },
-      ],
-      _count: { members: 12 },
-      createdAt: '2024-01-12T14:30:00Z'
-    },
-  ];
+  const loadGroups = useCallback(async () => {
+    try {
+      setLoading(true);
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      const fetchedGroups = await groupService.getGroups(currentUserId);
+      setGroups(fetchedGroups);
+    } catch (error) {
+      console.error('Error loading groups:', error);
+      Alert.alert('Error', 'Failed to load groups');
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     loadGroups();
-  }, []);
-
-  const loadGroups = async () => {
-    try {
-      setLoading(true);
-      // TODO: Remplacer par l'appel API réel
-      // const response = await fetch('/api/groups');
-      // const data = await response.json();
-      // setGroups(data);
-      
-      // Simuler un délai de chargement
-      setTimeout(() => {
-        setGroups(mockGroups);
-        setLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error('Error loading groups:', error);
-      setLoading(false);
-    }
-  };
+  }, [loadGroups]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -216,74 +74,58 @@ const GroupsScreen: React.FC = () => {
 
   const createGroup = async () => {
     if (!newGroupName.trim()) {
-      Alert.alert('Erreur', 'Le nom du groupe est requis');
+      Alert.alert('Error', 'Group name is required');
       return;
     }
 
     setCreating(true);
     try {
-      // TODO: Appel API pour créer le groupe
-      console.log('Creating group:', {
-        name: newGroupName,
-        description: newGroupDescription,
-        isPublic: newGroupIsPublic
-      });
-      
-      // Simuler la création
-      setTimeout(() => {
-        setShowCreateModal(false);
-        setNewGroupName('');
-        setNewGroupDescription('');
-        setNewGroupIsPublic(false);
-        setCreating(false);
-        Alert.alert('Succès', 'Groupe créé avec succès !');
-        loadGroups();
-      }, 1000);
-    } catch (error) {
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      await groupService.createGroup(
+        newGroupName.trim(),
+        newGroupDescription.trim() || undefined,
+        newGroupIsPublic,
+        currentUserId
+      );
+      setShowCreateModal(false);
+      setNewGroupName('');
+      setNewGroupDescription('');
+      setNewGroupIsPublic(false);
+      Alert.alert('Success', 'Group created successfully!');
+      loadGroups();
+    } catch (error: any) {
       console.error('Error creating group:', error);
-      Alert.alert('Erreur', 'Impossible de créer le groupe');
+      Alert.alert('Error', error.response?.data?.error || 'Failed to create group');
+    } finally {
       setCreating(false);
     }
   };
 
   const joinGroup = async () => {
     if (!inviteCode.trim()) {
-      Alert.alert('Erreur', 'Le code d\'invitation est requis');
+      Alert.alert('Error', 'Invite code is required');
       return;
     }
 
     setJoining(true);
     try {
-      // TODO: Appel API pour rejoindre le groupe
-      console.log('Joining group with code:', inviteCode);
-      
-      // Simuler le join
-      setTimeout(() => {
-        setShowJoinModal(false);
-        setInviteCode('');
-        setJoining(false);
-        Alert.alert('Succès', 'Vous avez rejoint le groupe !');
-        loadGroups();
-      }, 1000);
-    } catch (error) {
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      await groupService.joinGroup(inviteCode.trim().toUpperCase(), currentUserId);
+      setShowJoinModal(false);
+      setInviteCode('');
+      Alert.alert('Success', 'You joined the group!');
+      loadGroups();
+    } catch (error: any) {
       console.error('Error joining group:', error);
-      Alert.alert('Erreur', 'Code d\'invitation invalide ou expiré');
+      Alert.alert('Error', error.response?.data?.error || 'Invalid or expired invite code');
+    } finally {
       setJoining(false);
     }
   };
 
   const formatMemberCount = (count: number): string => {
-    if (count === 1) return '1 membre';
-    return `${count} membres`;
-  };
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    if (count === 1) return '1 member';
+    return `${count} members`;
   };
 
   const getChannelIcon = (type: string) => {
@@ -299,81 +141,81 @@ const GroupsScreen: React.FC = () => {
 
   const renderGroupItem = ({ item }: { item: Group }) => (
     <TouchableOpacity
-      style={styles.groupItem}
+      style={styles.groupItem as StyleProp<ViewStyle>}
       onPress={() => openGroup(item)}
       activeOpacity={0.7}
     >
-      <View style={styles.groupHeader}>
-        <View style={styles.groupIconContainer}>
+      <View style={styles.groupHeader as StyleProp<ViewStyle>}>
+        <View style={styles.groupIconContainer as StyleProp<ViewStyle>}>
           {item.iconPublicId ? (
             <CloudinaryAvatar
               publicId={item.iconPublicId}
               size={50}
-              style={styles.groupIcon}
+              style={styles.groupIcon as StyleProp<ImageStyle>}
             />
           ) : item.icon ? (
-            <Image source={{ uri: item.icon }} style={styles.groupIcon} />
+            <Image source={{ uri: item.icon }} style={styles.groupIcon as StyleProp<ImageStyle>} />
           ) : (
-            <View style={[styles.groupIcon, styles.defaultGroupIcon]}>
+            <View style={[styles.groupIcon as StyleProp<ViewStyle>, styles.defaultGroupIcon as StyleProp<ViewStyle>]}>
               <FontAwesome name="users" size={24} color="#6A707C" />
             </View>
           )}
           {item.isPublic && (
-            <View style={styles.publicBadge}>
+            <View style={styles.publicBadge as StyleProp<ViewStyle>}>
               <FontAwesome name="globe" size={10} color="white" />
             </View>
           )}
         </View>
 
-        <View style={styles.groupInfo}>
-          <Text style={styles.groupName} numberOfLines={1}>
+        <View style={styles.groupInfo as StyleProp<ViewStyle>}>
+          <Text style={styles.groupName as StyleProp<TextStyle>} numberOfLines={1}>
             {item.name}
           </Text>
-          <Text style={styles.groupDescription} numberOfLines={2}>
+          <Text style={styles.groupDescription as StyleProp<TextStyle>} numberOfLines={2}>
             {item.description || 'Aucune description'}
           </Text>
           
-          <View style={styles.groupMeta}>
-            <View style={styles.metaItem}>
+          <View style={styles.groupMeta as StyleProp<ViewStyle>}>
+            <View style={styles.metaItem as StyleProp<ViewStyle>}>
               <FontAwesome name="users" size={12} color="#6A707C" />
-              <Text style={styles.metaText}>
+              <Text style={styles.metaText as StyleProp<TextStyle>}>
                 {formatMemberCount(item._count.members)}
               </Text>
             </View>
-            <View style={styles.metaItem}>
+            <View style={styles.metaItem as StyleProp<ViewStyle>}>
               <FontAwesome name="hashtag" size={12} color="#6A707C" />
-              <Text style={styles.metaText}>
+              <Text style={styles.metaText as StyleProp<TextStyle>}>
                 {item.channels.length} channels
               </Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.groupActions}>
+        <View style={styles.groupActions as StyleProp<ViewStyle>}>
           <FontAwesome name="chevron-right" size={16} color="#6A707C" />
         </View>
       </View>
 
-      <View style={styles.groupChannels}>
+      <View style={styles.groupChannels as StyleProp<ViewStyle>}>
         {item.channels.slice(0, 3).map((channel, index) => (
-          <View key={channel.id} style={styles.channelPreview}>
+          <View key={channel.id} style={styles.channelPreview as StyleProp<ViewStyle>}>
             <FontAwesome 
               name={getChannelIcon(channel.type)} 
               size={12} 
               color="#6A707C" 
             />
-            <Text style={styles.channelName}>
+            <Text style={styles.channelName as StyleProp<TextStyle>}>
               {channel.name}
             </Text>
             {channel._count.messages > 0 && (
-              <Text style={styles.messageCount}>
+              <Text style={styles.messageCount as StyleProp<TextStyle>}>
                 {channel._count.messages}
               </Text>
             )}
           </View>
         ))}
         {item.channels.length > 3 && (
-          <Text style={styles.moreChannels}>
+          <Text style={styles.moreChannels as StyleProp<TextStyle>}>
             +{item.channels.length - 3} autres channels
           </Text>
         )}
@@ -383,36 +225,36 @@ const GroupsScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.container as StyleProp<ViewStyle>}>
+        <View style={styles.loadingContainer as StyleProp<ViewStyle>}>
           <ActivityIndicator size="large" color="#E10600" />
-          <Text style={styles.loadingText}>Chargement des groupes...</Text>
+          <Text style={styles.loadingText as StyleProp<TextStyle>}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container as StyleProp<ViewStyle>}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={styles.header as StyleProp<ViewStyle>}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={styles.backButton as StyleProp<ViewStyle>}
           onPress={() => router.back()}
         >
           <FontAwesome name="arrow-left" size={20} color="#6A707C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Groupes</Text>
-        <View style={styles.headerActions}>
+        <Text style={styles.headerTitle as StyleProp<TextStyle>}>Groups</Text>
+        <View style={styles.headerActions as StyleProp<ViewStyle>}>
           <TouchableOpacity
-            style={styles.headerButton}
+            style={styles.headerButton as StyleProp<ViewStyle>}
             onPress={() => setShowJoinModal(true)}
             activeOpacity={0.7}
           >
             <FontAwesome name="sign-in" size={20} color="#E10600" />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.headerButton}
+            style={styles.headerButton as StyleProp<ViewStyle>}
             onPress={() => setShowCreateModal(true)}
             activeOpacity={0.7}
           >
@@ -421,7 +263,7 @@ const GroupsScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Liste des groupes */}
+      {/* Groups list */}
       <FlatList
         data={groups}
         renderItem={renderGroupItem}
@@ -429,14 +271,14 @@ const GroupsScreen: React.FC = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={styles.listContainer as StyleProp<ViewStyle>}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          <View style={styles.emptyContainer as StyleProp<ViewStyle>}>
             <FontAwesome name="users" size={60} color="#CCCCCC" />
-            <Text style={styles.emptyTitle}>Aucun groupe</Text>
-            <Text style={styles.emptyDescription}>
-              Créez votre premier groupe ou rejoignez un groupe existant
+            <Text style={styles.emptyTitle as StyleProp<TextStyle>}>No groups</Text>
+            <Text style={styles.emptyDescription as StyleProp<TextStyle>}>
+              Create your first group or join an existing one
             </Text>
           </View>
         }
@@ -448,42 +290,42 @@ const GroupsScreen: React.FC = () => {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
+        <SafeAreaView style={styles.modalContainer as StyleProp<ViewStyle>}>
+          <View style={styles.modalHeader as StyleProp<ViewStyle>}>
             <TouchableOpacity onPress={() => setShowCreateModal(false)}>
               <FontAwesome name="times" size={24} color="#6A707C" />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Créer un groupe</Text>
+            <Text style={styles.modalTitle as StyleProp<TextStyle>}>Create Group</Text>
             <TouchableOpacity
               onPress={createGroup}
               disabled={creating || !newGroupName.trim()}
             >
               <Text style={[
-                styles.modalAction,
-                (!newGroupName.trim() || creating) && styles.modalActionDisabled
+                styles.modalAction as StyleProp<TextStyle>,
+                (!newGroupName.trim() || creating) && (styles.modalActionDisabled as StyleProp<TextStyle>)
               ]}>
-                {creating ? 'Création...' : 'Créer'}
+                {creating ? 'Creating...' : 'Create'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.modalContent}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nom du groupe *</Text>
+          <View style={styles.modalContent as StyleProp<ViewStyle>}>
+            <View style={styles.inputGroup as StyleProp<ViewStyle>}>
+              <Text style={styles.inputLabel as StyleProp<TextStyle>}>Group Name *</Text>
               <TextInput
-                style={styles.textInput}
-                placeholder="Nom de votre groupe"
+                style={styles.textInput as StyleProp<TextStyle>}
+                placeholder="Your group name"
                 value={newGroupName}
                 onChangeText={setNewGroupName}
                 maxLength={100}
               />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Description</Text>
+            <View style={styles.inputGroup as StyleProp<ViewStyle>}>
+              <Text style={styles.inputLabel as StyleProp<TextStyle>}>Description</Text>
               <TextInput
-                style={[styles.textInput, styles.textArea]}
-                placeholder="Description du groupe (optionnel)"
+                style={[styles.textInput as StyleProp<TextStyle>, styles.textArea as StyleProp<TextStyle>]}
+                placeholder="Group description (optional)"
                 value={newGroupDescription}
                 onChangeText={setNewGroupDescription}
                 multiline
@@ -493,18 +335,18 @@ const GroupsScreen: React.FC = () => {
             </View>
 
             <TouchableOpacity
-              style={styles.checkboxGroup}
+              style={styles.checkboxGroup as StyleProp<ViewStyle>}
               onPress={() => setNewGroupIsPublic(!newGroupIsPublic)}
             >
-              <View style={[styles.checkbox, newGroupIsPublic && styles.checkboxChecked]}>
+              <View style={[styles.checkbox as StyleProp<ViewStyle>, newGroupIsPublic && (styles.checkboxChecked as StyleProp<ViewStyle>)]}>
                 {newGroupIsPublic && (
                   <FontAwesome name="check" size={12} color="white" />
                 )}
               </View>
-              <View style={styles.checkboxLabel}>
-                <Text style={styles.checkboxText}>Groupe public</Text>
-                <Text style={styles.checkboxDescription}>
-                  Les groupes publics peuvent être découverts par d&apos;autres utilisateurs
+              <View style={styles.checkboxLabel as StyleProp<ViewStyle>}>
+                <Text style={styles.checkboxText as StyleProp<TextStyle>}>Public group</Text>
+                <Text style={styles.checkboxDescription as StyleProp<TextStyle>}>
+                  Public groups can be discovered by other users
                 </Text>
               </View>
             </TouchableOpacity>
@@ -518,38 +360,38 @@ const GroupsScreen: React.FC = () => {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
+        <SafeAreaView style={styles.modalContainer as StyleProp<ViewStyle>}>
+          <View style={styles.modalHeader as StyleProp<ViewStyle>}>
             <TouchableOpacity onPress={() => setShowJoinModal(false)}>
               <FontAwesome name="times" size={24} color="#6A707C" />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Rejoindre un groupe</Text>
+            <Text style={styles.modalTitle as StyleProp<TextStyle>}>Join Group</Text>
             <TouchableOpacity
               onPress={joinGroup}
               disabled={joining || !inviteCode.trim()}
             >
               <Text style={[
-                styles.modalAction,
-                (!inviteCode.trim() || joining) && styles.modalActionDisabled
+                styles.modalAction as StyleProp<TextStyle>,
+                (!inviteCode.trim() || joining) && (styles.modalActionDisabled as StyleProp<TextStyle>)
               ]}>
-                {joining ? 'Connexion...' : 'Rejoindre'}
+                {joining ? 'Joining...' : 'Join'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.modalContent}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Code d&apos;invitation</Text>
+          <View style={styles.modalContent as StyleProp<ViewStyle>}>
+            <View style={styles.inputGroup as StyleProp<ViewStyle>}>
+              <Text style={styles.inputLabel as StyleProp<TextStyle>}>Invite Code</Text>
               <TextInput
-                style={styles.textInput}
-                placeholder="Ex: A1B2C3D4"
+                style={styles.textInput as StyleProp<TextStyle>}
+                placeholder="e.g., A1B2C3D4"
                 value={inviteCode}
                 onChangeText={setInviteCode}
                 maxLength={8}
                 autoCapitalize="characters"
               />
-              <Text style={styles.inputHint}>
-                Demandez le code d&apos;invitation à un membre du groupe
+              <Text style={styles.inputHint as StyleProp<TextStyle>}>
+                Ask a group member for the invite code
               </Text>
             </View>
           </View>

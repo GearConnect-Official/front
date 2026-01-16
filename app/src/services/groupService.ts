@@ -53,6 +53,7 @@ export interface Group {
   icon?: string;
   iconPublicId?: string;
   isPublic: boolean;
+  eventId?: number; // ID of the event this group was created from
   owner: GroupUser;
   members: GroupMember[];
   channels: GroupChannel[];
@@ -132,17 +133,15 @@ const groupService = {
    */
   createGroup: async (
     name: string,
-    description?: string,
-    isPublic: boolean = false,
-    userId?: number
+    userId?: number,
+    memberIds?: number[]
   ): Promise<Group> => {
     const endpoint = `${API_BASE_URL}/groups`;
     try {
       const response = await axios.post(endpoint, {
         name,
-        description,
-        isPublic,
         userId,
+        memberIds,
       });
       return response.data;
     } catch (error) {
@@ -239,6 +238,50 @@ const groupService = {
   },
 
   /**
+   * Get messages for a group
+   */
+  getGroupMessages: async (
+    groupId: number,
+    userId?: number
+  ): Promise<any[]> => {
+    const endpoint = `${API_BASE_URL}/groups/${groupId}/messages`;
+    const params: any = {};
+    if (userId) {
+      params.userId = userId;
+    }
+    try {
+      const response = await axios.get(endpoint, { params });
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error fetching group messages:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Send a message to a group
+   */
+  sendGroupMessage: async (
+    groupId: number,
+    content: string,
+    userId?: number,
+    replyToId?: number
+  ): Promise<any> => {
+    const endpoint = `${API_BASE_URL}/groups/${groupId}/messages`;
+    try {
+      const response = await axios.post(endpoint, {
+        content,
+        userId,
+        replyToId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending group message:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Create an invite for a group
    */
   createInvite: async (
@@ -257,6 +300,60 @@ const groupService = {
       return response.data;
     } catch (error) {
       console.error('Error creating invite:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a group (only owner)
+   */
+  deleteGroup: async (
+    groupId: number,
+    userId?: number
+  ): Promise<void> => {
+    const endpoint = `${API_BASE_URL}/groups/${groupId}`;
+    const params: any = {};
+    if (userId) {
+      params.userId = userId;
+    }
+    try {
+      await axios.delete(endpoint, { params });
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Add members to a group
+   */
+  addMembers: async (groupId: number, memberIds: number[], userId?: number): Promise<any> => {
+    const endpoint = `${API_BASE_URL}/groups/${groupId}/members`;
+    try {
+      const response = await axios.post(endpoint, {
+        memberIds,
+        userId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error adding members:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove a member from a group
+   */
+  removeMember: async (groupId: number, memberId: number, userId?: number): Promise<void> => {
+    const endpoint = `${API_BASE_URL}/groups/${groupId}/members/${memberId}`;
+    try {
+      const params: any = {};
+      if (userId) {
+        params.userId = userId;
+      }
+      await axios.delete(endpoint, { params });
+    } catch (error) {
+      console.error('Error removing member:', error);
       throw error;
     }
   },

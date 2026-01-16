@@ -1,51 +1,65 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   FlatList,
-  ScrollView,
-  Image,
-  Modal,
   TextInput,
+  TouchableOpacity,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
   Alert,
-  RefreshControl,
-} from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { CloudinaryAvatar } from "../src/components/media/CloudinaryImage";
-import { groupDetailScreenStyles as styles } from "../src/styles/screens/groups";
-import groupService, { GroupDetails, GroupChannel, GroupMember } from "../src/services/groupService";
-import { useAuth } from "../src/context/AuthContext";
+  Pressable,
+  Modal,
+} from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import theme from '../src/styles/config/theme';
+import { conversationScreenStyles as styles } from '../src/styles/screens';
+import chatService, { Message as ApiMessage } from '../src/services/chatService';
+import { useAuth } from '../src/context/AuthContext';
+import { CloudinaryAvatar } from '../src/components/media/CloudinaryImage';
+import groupService, { GroupDetails } from '../src/services/groupService';
 
-const GroupDetailScreen: React.FC = () => {
-  const router = useRouter();
-  const { groupId } = useLocalSearchParams();
-  const { user } = useAuth() || {};
-  const [group, setGroup] = useState<GroupDetails | null>(null);
+// Extended Message type with isOwn property for UI
+type Message = ApiMessage & {
+  isOwn?: boolean;
+};
+
+export default function GroupDetailScreen() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<"channels" | "members">(
-    "channels"
-  );
-  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
+  const [group, setGroup] = useState<GroupDetails | null>(null);
+  const [showMembersModal, setShowMembersModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [newChannelName, setNewChannelName] = useState("");
-  const [newChannelDescription, setNewChannelDescription] = useState("");
-  const [newChannelType, setNewChannelType] = useState<
-    "TEXT" | "VOICE" | "ANNOUNCEMENT"
-  >("TEXT");
-  const [inviteCode, setInviteCode] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [showCallMenu, setShowCallMenu] = useState(false);
+  const [inviteCode, setInviteCode] = useState('');
+  const [showAddMembers, setShowAddMembers] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [addingMembers, setAddingMembers] = useState(false);
+  const [removingMember, setRemovingMember] = useState<number | null>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const messageRefs = useRef<{ [key: number]: View | null }>({});
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const { user } = useAuth() || {};
+  
+  const groupId = params.groupId as string;
+  const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
 
+  // Load group details
   const loadGroupDetails = useCallback(async () => {
-    if (!groupId) return;
+    if (!groupId || !currentUserId) return;
     
     try {
-      setLoading(true);
-      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
-      const groupIdNum = parseInt(groupId as string);
+      const groupIdNum = parseInt(groupId);
       if (isNaN(groupIdNum)) {
         Alert.alert('Error', 'Invalid group ID');
         return;
@@ -53,504 +67,945 @@ const GroupDetailScreen: React.FC = () => {
       const groupData = await groupService.getGroupDetails(groupIdNum, currentUserId);
       setGroup(groupData);
     } catch (error: any) {
-      console.error("Error loading group details:", error);
+      console.error('Error loading group details:', error);
       Alert.alert('Error', error.response?.data?.error || 'Failed to load group details');
+    }
+  }, [groupId, currentUserId]);
+
+  // Load messages from API
+  const loadMessages = useCallback(async () => {
+    if (!currentUserId || !group) return;
+
+    try {
+      setLoading(true);
+      const groupIdNum = parseInt(groupId);
+      if (isNaN(groupIdNum)) {
+        Alert.alert('Error', 'Invalid group ID');
+        return;
+      }
+
+      const response = await groupService.getGroupMessages(groupIdNum, currentUserId);
+      if (response && Array.isArray(response)) {
+        const formattedMessages: Message[] = response.map((msg: ApiMessage) => {
+          const isOwnMessage = msg.sender.id === currentUserId;
+          return {
+            ...msg,
+            isOwn: isOwnMessage,
+          };
+        });
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      Alert.alert('Error', 'Failed to load messages');
     } finally {
       setLoading(false);
     }
-  }, [groupId, user?.id]);
+  }, [currentUserId, group, groupId]);
 
   useEffect(() => {
-    if (groupId && user?.id) {
+    if (groupId && currentUserId) {
       loadGroupDetails();
     }
-  }, [groupId, user?.id, loadGroupDetails]);
+  }, [groupId, currentUserId, loadGroupDetails]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadGroupDetails();
-    setRefreshing(false);
-  };
+  useEffect(() => {
+    if (group && currentUserId) {
+      loadMessages();
+    }
+  }, [group, currentUserId, loadMessages]);
 
-  const openChannel = (channel: GroupChannel) => {
-    router.push({
-      pathname: "/(app)/groupChannel",
-      params: {
-        groupId: groupId as string,
-        channelId: channel.id.toString(),
-        channelName: channel.name,
-        channelType: channel.type,
-      },
-    });
-  };
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
 
-  const createChannel = async () => {
-    if (!newChannelName.trim() || !groupId) {
-      Alert.alert("Error", "Channel name is required");
+  // Send a message
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !currentUserId || !group) return;
+
+    const messageContent = newMessage.trim();
+    const groupIdNum = parseInt(groupId);
+
+    if (isNaN(groupIdNum)) {
+      Alert.alert('Error', 'Invalid group ID');
       return;
     }
 
-    setCreating(true);
+    setSending(true);
     try {
-      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
-      const groupIdNum = parseInt(groupId as string);
-      await groupService.createChannel(
+      const sentMessage = await groupService.sendGroupMessage(
         groupIdNum,
-        newChannelName.trim(),
-        newChannelDescription.trim() || undefined,
-        newChannelType,
-        currentUserId
+        messageContent,
+        currentUserId,
+        replyingTo?.id
       );
-      setShowCreateChannelModal(false);
-      setNewChannelName("");
-      setNewChannelDescription("");
-      setNewChannelType("TEXT");
-      Alert.alert("Success", "Channel created successfully!");
-      loadGroupDetails();
+
+      if (sentMessage) {
+        const newMsg: Message = {
+          ...sentMessage,
+          isOwn: sentMessage.sender.id === currentUserId,
+        };
+        setMessages(prev => [...prev, newMsg]);
+        setNewMessage('');
+        setReplyingTo(null);
+      }
     } catch (error: any) {
-      console.error("Error creating channel:", error);
-      Alert.alert("Error", error.response?.data?.error || "Failed to create channel");
+      console.error('Error sending message:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Failed to send message');
     } finally {
-      setCreating(false);
+      setSending(false);
     }
   };
 
+  // Handle long press on message to reply
+  const handleReplyToMessage = (message: Message) => {
+    setReplyingTo(message);
+  };
+
+  // Cancel reply
+  const cancelReply = () => {
+    setReplyingTo(null);
+  };
+
+  // Handle click on reply preview to scroll to original message
+  const handleReplyClick = (replyToId: number) => {
+    const messageIndex = messages.findIndex(msg => msg.id === replyToId);
+
+    if (messageIndex !== -1) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: messageIndex,
+          animated: true,
+          viewPosition: 0.5
+        });
+      }, 100);
+
+      setHighlightedMessageId(replyToId);
+      setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 1000);
+    }
+  };
+
+  // Format time for display
+  const formatTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  // Create invite
   const createInvite = async () => {
     if (!groupId) return;
     
     try {
-      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
-      const groupIdNum = parseInt(groupId as string);
+      const groupIdNum = parseInt(groupId);
       const invite = await groupService.createInvite(groupIdNum, currentUserId);
       setInviteCode(invite.code);
     } catch (error: any) {
-      console.error("Error creating invite:", error);
-      Alert.alert("Error", error.response?.data?.error || "Failed to create invite");
+      console.error('Error creating invite:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Failed to create invite');
     }
   };
 
-  const copyInviteCode = async () => {
-    // TODO: Use Clipboard API when available
+  // Handle delete group
+  const handleDeleteGroup = () => {
+    if (!group) return;
+    
     Alert.alert(
-      "Copied!",
-      "Invite code copied to clipboard"
+      'Delete Group',
+      `Are you sure you want to delete "${group.name}"? This action cannot be undone and all messages will be permanently deleted.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const groupIdNum = parseInt(groupId);
+              if (isNaN(groupIdNum)) {
+                Alert.alert('Error', 'Invalid group ID');
+                return;
+              }
+              await groupService.deleteGroup(groupIdNum, currentUserId);
+              Alert.alert('Success', 'Group deleted successfully', [
+                {
+                  text: 'OK',
+                  onPress: () => router.back(),
+                },
+              ]);
+            } catch (error: any) {
+              console.error('Error deleting group:', error);
+              Alert.alert('Error', error.response?.data?.error || 'Failed to delete group');
+            }
+          },
+        },
+      ]
     );
   };
 
-  const getChannelIcon = (type: string) => {
-    switch (type) {
-      case "VOICE":
-        return "volume-up";
-      case "ANNOUNCEMENT":
-        return "bullhorn";
-      default:
-        return "hashtag";
-    }
-  };
-
-  const getChannelIconColor = (type: string) => {
-    switch (type) {
-      case "VOICE":
-        return "#10B981";
-      case "ANNOUNCEMENT":
-        return "#F59E0B";
-      default:
-        return "#6A707C";
-    }
-  };
-
+  // Format last active
   const formatLastActive = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return "Today";
-    if (diffDays === 2) return "Yesterday";
+    if (diffDays === 1) return 'Today';
+    if (diffDays === 2) return 'Yesterday';
     if (diffDays <= 7) return `${diffDays - 1} days ago`;
-    return date.toLocaleDateString("en-US");
+    return date.toLocaleDateString('en-US');
   };
 
-  const getHighestRole = (member: GroupMember) => {
-    return member.roles.reduce((highest, current) => {
-      return current.role.position > (highest?.role.position || 0)
-        ? current
-        : highest;
-    }, member.roles[0] || null);
-  };
-
-  const renderChannelItem = ({ item }: { item: GroupChannel }) => (
-    <TouchableOpacity
-      style={styles.channelItem}
-      onPress={() => openChannel(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.channelIcon}>
-        <FontAwesome
-          name={getChannelIcon(item.type)}
-          size={18}
-          color={getChannelIconColor(item.type)}
-        />
-      </View>
-      <View style={styles.channelInfo}>
-        <Text style={styles.channelName}>{item.name}</Text>
-        {item.description && (
-          <Text style={styles.channelDescription} numberOfLines={1}>
-            {item.description}
-          </Text>
-        )}
-      </View>
-      <View style={styles.channelMeta}>
-        {item._count.messages > 0 && (
-          <Text style={styles.messageCount}>{item._count.messages}</Text>
-        )}
-        <FontAwesome name="chevron-right" size={12} color="#9CA3AF" />
-      </View>
-    </TouchableOpacity>
+  // Check if user can manage members (owner or admin)
+  const canManageMembers = group && currentUserId && (
+    group.owner?.id === currentUserId ||
+    group.members?.some(m => 
+      m.user.id === currentUserId && 
+      m.roles?.some(mr => {
+        try {
+          const role = mr.role as any;
+          if (role.permissions) {
+            const permissions = JSON.parse(role.permissions);
+            return permissions.manageMembers;
+          }
+          return false;
+        } catch {
+          return false;
+        }
+      })
+    )
   );
 
-  const renderMemberItem = ({ item }: { item: GroupMember }) => {
-    const highestRole = getHighestRole(item);
-    const displayName = item.nickname || item.user.name;
+  // Search for friends to add
+  const searchFriends = async (query: string) => {
+    if (!query.trim() || !currentUserId) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const friends = await chatService.getFriends(currentUserId);
+      const filtered = friends.filter((friend: any) => {
+        const name = friend.name?.toLowerCase() || '';
+        const username = friend.username?.toLowerCase() || '';
+        const search = query.toLowerCase();
+        return (name.includes(search) || username.includes(search)) &&
+               !group?.members?.some(m => m.user.id === friend.id);
+      });
+      setSearchResults(filtered);
+    } catch (error) {
+      console.error('Error searching friends:', error);
+      setSearchResults([]);
+    }
+  };
+
+  // Add members to group
+  const handleAddMembers = async (memberIds: number[]) => {
+    if (!group || !currentUserId || memberIds.length === 0) return;
+
+    setAddingMembers(true);
+    try {
+      await groupService.addMembers(parseInt(groupId), memberIds, currentUserId);
+      await loadGroupDetails();
+      await loadMessages(); // Reload messages to show system messages
+      setShowAddMembers(false);
+      setSearchQuery('');
+      setSearchResults([]);
+      Alert.alert('Success', 'Members added successfully');
+    } catch (error: any) {
+      console.error('Error adding members:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Failed to add members');
+    } finally {
+      setAddingMembers(false);
+    }
+  };
+
+  // Remove member from group
+  const handleRemoveMember = async (memberId: number, memberName: string) => {
+    if (!group || !currentUserId) return;
+
+    Alert.alert(
+      'Remove Member',
+      `Are you sure you want to remove ${memberName} from this group?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            setRemovingMember(memberId);
+            try {
+              await groupService.removeMember(parseInt(groupId), memberId, currentUserId);
+              await loadGroupDetails();
+              await loadMessages(); // Reload messages to show system message
+              Alert.alert('Success', 'Member removed successfully');
+            } catch (error: any) {
+              console.error('Error removing member:', error);
+              Alert.alert('Error', error.response?.data?.error || 'Failed to remove member');
+            } finally {
+              setRemovingMember(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Render a message
+  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
+    const isOwn = item.isOwn ?? false;
+    const previousMessage = index > 0 ? messages[index - 1] : null;
+
+    // Check if this is a system message (from GearConnect)
+    const isSystemMessage = item.content?.startsWith('GearConnect:');
+
+    const showAvatar = isOwn
+      ? (index === 0 ||
+         previousMessage?.sender?.id !== item.sender?.id ||
+         (previousMessage && (new Date(item.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) > 300000))
+      : (index === 0 ||
+         previousMessage?.sender?.id !== item.sender?.id ||
+         (previousMessage && (new Date(item.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) > 300000));
+
+    const isGrouped = previousMessage?.sender?.id === item.sender?.id &&
+                     (new Date(item.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) < 300000;
+
+    const isNewGroup = !isGrouped;
+
+    // Render system message (centered)
+    if (isSystemMessage) {
+      return (
+        <View style={styles.systemMessageContainer}>
+          <Text style={styles.systemMessageText}>
+            {item.content}
+          </Text>
+        </View>
+      );
+    }
 
     return (
-      <View style={styles.memberItem}>
-        <View style={styles.memberAvatar}>
-          {item.user.profilePicturePublicId ? (
-            <CloudinaryAvatar
-              publicId={item.user.profilePicturePublicId}
-              size={40}
-              style={styles.avatar}
-            />
-          ) : item.user.profilePicture ? (
-            <Image
-              source={{ uri: item.user.profilePicture }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={[styles.avatar, styles.defaultAvatar]}>
-              <FontAwesome name="user" size={16} color="#6A707C" />
-            </View>
-          )}
-          {/* Status en ligne (pour futures implémentations) */}
-          <View style={[styles.onlineStatus, { backgroundColor: "#10B981" }]} />
-        </View>
-
-        <View style={styles.memberInfo}>
-          <View style={styles.memberNameRow}>
-            <Text style={styles.memberName} numberOfLines={1}>
-              {displayName}
-            </Text>
-            {item.user.isVerify && (
-              <FontAwesome name="check-circle" size={14} color="#E10600" />
-            )}
-          </View>
-          <View style={styles.memberMetaRow}>
-            {highestRole && (
-              <Text
-                style={[
-                  styles.memberRole,
-                  { color: highestRole.role.color || "#6A707C" },
-                ]}
+      <View style={[
+        styles.messageContainer,
+        isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
+        isNewGroup && styles.newMessageGroup
+      ]}>
+        {isOwn && (
+          <>
+            {showAvatar ? (
+              <TouchableOpacity
+                style={styles.ownAvatarContainer}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
               >
-                {highestRole.role.name}
-              </Text>
+                {item.sender?.profilePicture || item.sender?.profilePicturePublicId ? (
+                  <Image
+                    source={{ uri: item.sender.profilePicture || item.sender.profilePicturePublicId }}
+                    style={styles.messageAvatar}
+                  />
+                ) : (
+                  <View style={[styles.messageAvatar, styles.defaultMessageAvatar]}>
+                    <FontAwesome name="user" size={16} color="#999" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.ownAvatarSpacer}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              />
             )}
-            <Text style={styles.memberLastActive}>
-              {formatLastActive(item.lastActiveAt || item.joinedAt)}
+          </>
+        )}
+
+        <View
+          ref={(ref) => {
+            if (ref) {
+              messageRefs.current[item.id] = ref;
+            }
+          }}
+          style={[
+            styles.messageWrapper,
+            highlightedMessageId === item.id && styles.highlightedMessage
+          ]}
+        >
+          <Pressable
+            style={[
+              styles.messageBubble,
+              isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
+              isGrouped && styles.groupedMessage
+            ]}
+            onLongPress={() => handleReplyToMessage(item)}
+          >
+            {item.replyTo && (
+              <TouchableOpacity
+                style={[styles.replyPreview, isOwn && styles.ownReplyPreview]}
+                onPress={() => {
+                  if (item.replyTo?.id) {
+                    handleReplyClick(item.replyTo.id);
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.replyLine, isOwn && styles.ownReplyLine]} />
+                <View style={styles.replyPreviewContent}>
+                  <Text style={[styles.replyAuthor, isOwn && styles.ownReplyAuthor]}>
+                    {item.replyTo.sender.name || item.replyTo.sender.username}
+                  </Text>
+                  <Text
+                    style={[styles.replyPreviewText, isOwn && styles.ownReplyPreviewText]}
+                    numberOfLines={1}
+                  >
+                    {item.replyTo.content}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            <Text style={[styles.senderName, isOwn && styles.ownSenderName]}>
+              {item.sender?.name || item.sender?.username || 'Unknown User'}
             </Text>
-          </View>
+            <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+              {item.content}
+            </Text>
+            <View style={styles.messageTimeContainer}>
+              <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
+                {formatTime(item.createdAt)}
+              </Text>
+            </View>
+          </Pressable>
         </View>
 
-        <TouchableOpacity
-          style={styles.memberAction}
-          onPress={() =>
-            router.push({
-              pathname: "/(app)/conversation",
-              params: {
-                conversationId: `direct_${item.user.id}`,
-                conversationName: item.user.name,
-              },
-            })
-          }
-        >
-          <FontAwesome name="comment" size={16} color="#6A707C" />
-        </TouchableOpacity>
+        {!isOwn && (
+          <>
+            {showAvatar ? (
+              <TouchableOpacity
+                style={styles.otherAvatarContainer}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                {item.sender?.profilePicture || item.sender?.profilePicturePublicId ? (
+                  <Image
+                    source={{ uri: item.sender.profilePicture || item.sender.profilePicturePublicId }}
+                    style={styles.messageAvatar}
+                  />
+                ) : (
+                  <View style={[styles.messageAvatar, styles.defaultMessageAvatar]}>
+                    <FontAwesome name="user" size={16} color="#999" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.otherAvatarSpacer}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              />
+            )}
+          </>
+        )}
       </View>
     );
   };
 
-  if (loading || !group) {
+  if (loading && !group) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <ActivityIndicator size="large" color="#E10600" />
+          <Text style={styles.loadingText}>Loading group...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!group) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Group not found</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <FontAwesome name="arrow-left" size={20} color="#6A707C" />
+          <FontAwesome name="arrow-left" size={20} color={theme.colors.text.primary} />
         </TouchableOpacity>
 
-        <View style={styles.headerInfo}>
+        <TouchableOpacity
+          style={styles.headerInfo}
+          onPress={() => setShowMembersModal(true)}
+          activeOpacity={0.7}
+        >
           <Text style={styles.headerTitle} numberOfLines={1}>
             {group.name}
           </Text>
           <Text style={styles.headerSubtitle}>
-            {group._count.members} members
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => setShowInviteModal(true)}
-        >
-          <FontAwesome name="user-plus" size={20} color="#E10600" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Tabs */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === "channels" && styles.activeTab]}
-          onPress={() => setSelectedTab("channels")}
-        >
-          <FontAwesome
-            name="hashtag"
-            size={16}
-            color={selectedTab === "channels" ? "#E10600" : "#6A707C"}
-          />
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === "channels" && styles.activeTabText,
-              ]}
-            >
-              Channels
-            </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === "members" && styles.activeTab]}
-          onPress={() => setSelectedTab("members")}
-        >
-          <FontAwesome
-            name="users"
-            size={16}
-            color={selectedTab === "members" ? "#E10600" : "#6A707C"}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === "members" && styles.activeTabText,
-            ]}
-          >
-            Members
+            {group._count?.members || group.members?.length || 0} members
           </Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Content */}
-      {selectedTab === "channels" ? (
-        <View style={styles.content}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Channels</Text>
+        <View style={styles.headerActions}>
+          {/* Delete group button (only for owner) */}
+          {group.owner?.id === currentUserId && (
             <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowCreateChannelModal(true)}
+              style={styles.headerActionButton}
+              onPress={handleDeleteGroup}
+              activeOpacity={0.7}
             >
-              <FontAwesome name="plus" size={16} color="#E10600" />
+              <FontAwesome name="trash" size={18} color="#E10600" />
             </TouchableOpacity>
-          </View>
+          )}
+          
+          {/* Video call button with dropdown */}
+          <TouchableOpacity
+            style={styles.headerActionButton}
+            onPress={() => setShowCallMenu(!showCallMenu)}
+            activeOpacity={0.7}
+          >
+            <FontAwesome name="video-camera" size={20} color={theme.colors.text.secondary} />
+            <FontAwesome name="chevron-down" size={12} color={theme.colors.text.secondary} style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-          <FlatList
-            data={group.channels}
-            renderItem={renderChannelItem}
-            keyExtractor={(item) => item.id.toString()}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            showsVerticalScrollIndicator={false}
-          />
+      {/* Messages list */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E10600" />
+          <Text style={styles.loadingText}>Loading messages...</Text>
         </View>
       ) : (
-        <View style={styles.content}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              Members ({group.members.length})
-            </Text>
-          </View>
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onScrollToIndexFailed={(info) => {
+            const wait = new Promise(resolve => setTimeout(resolve, 500));
+            wait.then(() => {
+              flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
+            });
+          }}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <FontAwesome name="comment" size={40} color={theme.colors.text.secondary} />
+              <Text style={styles.emptyStateText}>No messages yet. Start the conversation!</Text>
+            </View>
+          }
+        />
+      )}
 
-          <FlatList
-            data={group.members}
-            renderItem={renderMemberItem}
-            keyExtractor={(item) => item.id.toString()}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            showsVerticalScrollIndicator={false}
-          />
+      {/* Reply preview */}
+      {replyingTo && (
+        <View style={styles.replyPreviewContainer}>
+          <View style={styles.replyPreviewWrapper}>
+            <View style={styles.replyPreviewLeft}>
+              <View style={styles.replyPreviewLine} />
+              <View style={styles.replyPreviewInfo}>
+                <Text style={styles.replyPreviewName}>
+                  {replyingTo.sender?.name || replyingTo.sender?.username || 'Unknown User'}
+                </Text>
+                <Text style={styles.replyPreviewMessage} numberOfLines={1}>
+                  {replyingTo.content}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.replyPreviewClose}
+              onPress={cancelReply}
+              activeOpacity={0.7}
+            >
+              <FontAwesome name="times" size={16} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
-      {/* Modal création de channel */}
+      {/* Input area */}
+      <View style={styles.inputContainer}>
+        <View style={styles.inputWrapper}>
+          <TouchableOpacity
+            style={styles.attachButton}
+            onPress={() => {
+              // TODO: Implement attach functionality
+              console.log('Attach button pressed');
+            }}
+            activeOpacity={0.7}
+          >
+            <FontAwesome name="plus" size={20} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
+
+          <TextInput
+            style={styles.textInput}
+            value={newMessage}
+            onChangeText={setNewMessage}
+            placeholder="Type your message..."
+            placeholderTextColor={theme.colors.text.secondary}
+            multiline
+            maxLength={500}
+          />
+
+          {newMessage.trim() ? (
+            <TouchableOpacity
+              style={[styles.sendButton, styles.sendButtonActive]}
+              onPress={sendMessage}
+              disabled={sending || loading}
+              activeOpacity={0.7}
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <FontAwesome name="send" size={16} color="white" />
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.microphoneButton}
+              onPress={() => {
+                // TODO: Implement voice message recording
+                console.log('Microphone pressed');
+              }}
+              activeOpacity={0.7}
+            >
+              <FontAwesome name="microphone" size={18} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Members Modal */}
       <Modal
-        visible={showCreateChannelModal}
+        visible={showMembersModal}
         animationType="slide"
         presentationStyle="pageSheet"
+        onRequestClose={() => {
+          setShowMembersModal(false);
+          setShowAddMembers(false);
+          setSearchQuery('');
+          setSearchResults([]);
+        }}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowCreateChannelModal(false)}>
-              <FontAwesome name="times" size={24} color="#6A707C" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Create Channel</Text>
-            <TouchableOpacity
-              onPress={createChannel}
-              disabled={creating || !newChannelName.trim()}
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+          {/* Header */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
+            <TouchableOpacity 
+              onPress={() => {
+                if (showAddMembers) {
+                  setShowAddMembers(false);
+                  setSearchQuery('');
+                  setSearchResults([]);
+                } else {
+                  setShowMembersModal(false);
+                }
+              }}
             >
-              <Text
-                style={[
-                  styles.modalAction,
-                  (!newChannelName.trim() || creating) &&
-                    styles.modalActionDisabled,
-                ]}
-              >
-                {creating ? "Creating..." : "Create"}
-              </Text>
+              <FontAwesome name={showAddMembers ? "arrow-left" : "times"} size={24} color="#6A707C" />
             </TouchableOpacity>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 16, flex: 1 }}>
+              {showAddMembers ? 'Add Members' : 'Members'}
+            </Text>
+            {!showAddMembers && canManageMembers && (
+              <TouchableOpacity
+                onPress={() => setShowAddMembers(true)}
+                style={{ padding: 8 }}
+              >
+                <FontAwesome name="plus" size={20} color="#E10600" />
+              </TouchableOpacity>
+            )}
           </View>
 
-          <ScrollView style={styles.modalContent}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Channel Type</Text>
-              <View style={styles.channelTypeContainer}>
-                {["TEXT", "VOICE", "ANNOUNCEMENT"].map((type) => (
-                  <TouchableOpacity
-                    key={type}
-                    style={[
-                      styles.channelTypeButton,
-                      newChannelType === type && styles.channelTypeButtonActive,
-                    ]}
-                    onPress={() => setNewChannelType(type as any)}
-                  >
-                    <FontAwesome
-                      name={getChannelIcon(type)}
-                      size={16}
-                      color={newChannelType === type ? "#FFFFFF" : "#6A707C"}
-                    />
-                    <Text
-                      style={[
-                        styles.channelTypeText,
-                        newChannelType === type && styles.channelTypeTextActive,
-                      ]}
-                    >
-                      {type === "TEXT"
-                        ? "Text"
-                        : type === "VOICE"
-                        ? "Voice"
-                        : "Announcement"}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+          {showAddMembers ? (
+            /* Add Members View */
+            <View style={{ flex: 1 }}>
+              {/* Search Bar */}
+              <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
+                  <FontAwesome name="search" size={16} color="#6A707C" />
+                  <TextInput
+                    style={{ flex: 1, marginLeft: 8, fontSize: 16, color: '#1F2937' }}
+                    placeholder="Search friends..."
+                    placeholderTextColor="#9CA3AF"
+                    value={searchQuery}
+                    onChangeText={(text) => {
+                      setSearchQuery(text);
+                      searchFriends(text);
+                    }}
+                  />
+                </View>
               </View>
-            </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Channel Name *</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="channel-name"
-                value={newChannelName}
-                onChangeText={setNewChannelName}
-                maxLength={100}
-                autoCapitalize="none"
+              {/* Search Results */}
+              <FlatList
+                data={searchResults}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}
+                    onPress={() => handleAddMembers([item.id])}
+                    disabled={addingMembers}
+                  >
+                    {item.profilePicturePublicId ? (
+                      <CloudinaryAvatar publicId={item.profilePicturePublicId} size={40} />
+                    ) : (
+                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#D9D9D9', justifyContent: 'center', alignItems: 'center' }}>
+                        <FontAwesome name="user" size={16} color="#6A707C" />
+                      </View>
+                    )}
+                    <View style={{ marginLeft: 12, flex: 1 }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600' }}>{item.name}</Text>
+                      <Text style={{ fontSize: 12, color: '#6A707C' }}>@{item.username}</Text>
+                    </View>
+                    {addingMembers ? (
+                      <ActivityIndicator size="small" color="#E10600" />
+                    ) : (
+                      <FontAwesome name="plus-circle" size={24} color="#E10600" />
+                    )}
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <View style={{ padding: 40, alignItems: 'center' }}>
+                    <FontAwesome name="search" size={40} color="#D1D5DB" />
+                    <Text style={{ marginTop: 16, fontSize: 16, color: '#6B7280' }}>
+                      {searchQuery ? 'No friends found' : 'Search for friends to add'}
+                    </Text>
+                  </View>
+                }
               />
             </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Description</Text>
-              <TextInput
-                style={[styles.textInput, styles.textArea]}
-                placeholder="Channel description (optional)"
-                value={newChannelDescription}
-                onChangeText={setNewChannelDescription}
-                multiline
-                numberOfLines={3}
-                maxLength={200}
-              />
-            </View>
-          </ScrollView>
+          ) : (
+            /* Members List */
+            <FlatList
+              data={group.members}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => {
+                const isOwner = item.user.id === group.owner?.id;
+                const canRemove = canManageMembers && !isOwner && item.user.id !== currentUserId;
+                
+                return (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
+                    {item.user.profilePicturePublicId ? (
+                      <CloudinaryAvatar publicId={item.user.profilePicturePublicId} size={40} />
+                    ) : (
+                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#D9D9D9', justifyContent: 'center', alignItems: 'center' }}>
+                        <FontAwesome name="user" size={16} color="#6A707C" />
+                      </View>
+                    )}
+                    <View style={{ marginLeft: 12, flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={{ fontSize: 16, fontWeight: '600' }}>{item.user.name}</Text>
+                        {isOwner && (
+                          <View style={{ backgroundColor: '#E10600', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <Text style={{ fontSize: 10, color: '#FFFFFF', fontWeight: '600' }}>Owner</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={{ fontSize: 12, color: '#6A707C' }}>{formatLastActive(item.lastActiveAt || item.joinedAt)}</Text>
+                    </View>
+                    {canRemove && (
+                      <TouchableOpacity
+                        onPress={() => handleRemoveMember(item.user.id, item.user.name)}
+                        disabled={removingMember === item.user.id}
+                        style={{ padding: 8 }}
+                      >
+                        {removingMember === item.user.id ? (
+                          <ActivityIndicator size="small" color="#E10600" />
+                        ) : (
+                          <FontAwesome name="times-circle" size={24} color="#E10600" />
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              }}
+              ListEmptyComponent={
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <FontAwesome name="users" size={40} color="#D1D5DB" />
+                  <Text style={{ marginTop: 16, fontSize: 16, color: '#6B7280' }}>No members</Text>
+                </View>
+              }
+            />
+          )}
         </SafeAreaView>
       </Modal>
 
-      {/* Modal invitation */}
+      {/* Invite Modal */}
       <Modal
         visible={showInviteModal}
         animationType="slide"
         presentationStyle="pageSheet"
+        onRequestClose={() => setShowInviteModal(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
             <TouchableOpacity onPress={() => setShowInviteModal(false)}>
               <FontAwesome name="times" size={24} color="#6A707C" />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Invite Members</Text>
-            <View />
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 16, flex: 1 }}>Invite Members</Text>
           </View>
-
-          <View style={styles.modalContent}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
             {!inviteCode ? (
-              <View style={styles.inviteContainer}>
+              <>
                 <FontAwesome name="user-plus" size={48} color="#E10600" />
-                <Text style={styles.inviteTitle}>
-                  Invite people to join {group.name}
-                </Text>
-                <Text style={styles.inviteDescription}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginTop: 16, marginBottom: 8 }}>Invite people to join {group.name}</Text>
+                <Text style={{ fontSize: 14, color: '#6A707C', textAlign: 'center', marginBottom: 24 }}>
                   Create an invite link to allow other users to join this group
                 </Text>
                 <TouchableOpacity
-                  style={styles.createInviteButton}
+                  style={{ backgroundColor: '#E10600', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
                   onPress={createInvite}
                 >
-                  <Text style={styles.createInviteText}>
-                    Create Invite
-                  </Text>
+                  <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>Create Invite</Text>
                 </TouchableOpacity>
-              </View>
+              </>
             ) : (
-              <View style={styles.inviteCodeContainer}>
-                <Text style={styles.inviteCodeTitle}>
-                  Invite link created!
-                </Text>
-                <View style={styles.inviteCodeBox}>
-                  <Text style={styles.inviteCodeText}>{inviteCode}</Text>
-                  <TouchableOpacity
-                    style={styles.copyButton}
-                    onPress={copyInviteCode}
-                  >
+              <>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Invite link created!</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', padding: 16, borderRadius: 8, marginBottom: 16, width: '100%' }}>
+                  <Text style={{ flex: 1, fontSize: 16 }}>{inviteCode}</Text>
+                  <TouchableOpacity onPress={() => Alert.alert('Copied!', 'Invite code copied to clipboard')}>
                     <FontAwesome name="copy" size={16} color="#E10600" />
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.inviteCodeDescription}>
+                <Text style={{ fontSize: 14, color: '#6A707C', textAlign: 'center' }}>
                   Share this code with people you want to invite
                 </Text>
-              </View>
+              </>
             )}
           </View>
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
-  );
-};
 
-export default GroupDetailScreen;
+      {/* Call Menu Contextual */}
+      {showCallMenu && (
+        <>
+          <TouchableOpacity
+            style={styles.callMenuOverlay}
+            activeOpacity={1}
+            onPress={() => setShowCallMenu(false)}
+          />
+          <View style={styles.callMenu}>
+            <TouchableOpacity
+              style={styles.callMenuItem}
+              onPress={() => {
+                setShowCallMenu(false);
+                // TODO: Implement voice call
+                console.log('Voice call');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.callMenuText}>Voice call</Text>
+              <FontAwesome name="phone" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.callMenuItem}
+              onPress={() => {
+                setShowCallMenu(false);
+                // TODO: Implement video call
+                console.log('Video call');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.callMenuText}>Video call</Text>
+              <FontAwesome name="video-camera" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.callMenuItem}
+              onPress={() => {
+                setShowCallMenu(false);
+                // TODO: Implement select people
+                console.log('Select people');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.callMenuText}>Select people</Text>
+              <FontAwesome name="check" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.callMenuItem}
+              onPress={() => {
+                setShowCallMenu(false);
+                // TODO: Implement send call link
+                console.log('Send call link');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.callMenuText}>Send call link</Text>
+              <FontAwesome name="link" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.callMenuItem, styles.callMenuItemLast]}
+              onPress={() => {
+                setShowCallMenu(false);
+                // TODO: Implement schedule call
+                console.log('Schedule call');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.callMenuText}>Schedule a call</Text>
+              <FontAwesome name="calendar" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+    </KeyboardAvoidingView>
+  );
+}

@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import theme from '../src/styles/config/theme';
 import { newConversationScreenStyles as styles } from '../src/styles/screens';
 import chatService, { MessageUser } from '../src/services/chatService';
+import groupService from '../src/services/groupService';
 import { useAuth } from '../src/context/AuthContext';
 
 // User types (using MessageUser from service)
@@ -191,7 +192,7 @@ export default function NewConversationScreen() {
   };
 
   // Create a group
-  const createGroup = () => {
+  const createGroup = async () => {
     if (!groupName.trim()) {
       Alert.alert('Error', 'Please give the group a name.');
       return;
@@ -202,15 +203,48 @@ export default function NewConversationScreen() {
       return;
     }
 
-    // Simulate group creation
-    setShowGroupModal(false);
-    router.push({
-      pathname: '/(app)/conversation',
-      params: { 
-        conversationId: `group_${Date.now()}`,
-        conversationName: groupName
-      }
-    });
+    if (!user?.id) {
+      Alert.alert('Error', 'You must be logged in to create a group.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userId = parseInt(user.id.toString());
+      
+      // Extract user IDs from selected users
+      const memberIds = selectedUsers.map(u => u.id);
+      
+      // Create the group via API with selected members
+      const newGroup = await groupService.createGroup(
+        groupName.trim(),
+        userId,
+        memberIds
+      );
+
+      // Close modal and navigate to group detail page
+      setShowGroupModal(false);
+      setGroupName('');
+      setSelectedUsers([]);
+      setIsGroupChat(false);
+      
+      // Navigate to the group detail page
+      router.push({
+        pathname: '/(app)/groupDetail',
+        params: {
+          groupId: newGroup.id.toString(),
+          groupName: newGroup.name,
+        },
+      });
+    } catch (error: any) {
+      console.error('Error creating group:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.error || 'Failed to create group. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Render user in search results
@@ -262,27 +296,6 @@ export default function NewConversationScreen() {
       </TouchableOpacity>
     );
   };
-
-  // Render selected user
-  const renderSelectedUser = ({ item }: { item: User }) => (
-    <TouchableOpacity
-      style={styles.selectedUserChip}
-      onPress={() => {
-        // Remove from selection
-        setSelectedUsers(prev => prev.filter(u => u.id !== item.id));
-      }}
-    >
-      {item.profilePicture ? (
-        <Image source={{ uri: item.profilePicture }} style={styles.chipAvatar} />
-      ) : (
-        <View style={[styles.chipAvatar, styles.defaultChipAvatar]}>
-          <FontAwesome name="user" size={12} color={theme.colors.text.secondary} />
-        </View>
-      )}
-      <Text style={styles.chipName} numberOfLines={1}>{item.name}</Text>
-      <FontAwesome name="times" size={12} color={theme.colors.text.secondary} />
-    </TouchableOpacity>
-  );
 
   return (
     <View style={styles.container}>
@@ -342,23 +355,6 @@ export default function NewConversationScreen() {
           trackColor={{ false: theme.colors.border.light, true: '#E10600' }}
         />
       </View>
-
-      {/* Utilisateurs sélectionnés */}
-      {selectedUsers.length > 0 && (
-        <View style={styles.selectedUsersContainer}>
-          <Text style={styles.selectedUsersTitle}>
-            Selected ({selectedUsers.length})
-          </Text>
-          <FlatList
-            data={selectedUsers}
-            renderItem={renderSelectedUser}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.selectedUsersList}
-          />
-        </View>
-      )}
 
       {/* Liste des résultats de recherche */}
       {loading ? (

@@ -21,7 +21,7 @@ import { groupsScreenStyles as styles } from '../src/styles/screens/groups';
 import groupService, { Group } from '../src/services/groupService';
 import { useAuth } from '../src/context/AuthContext';
 
-const GroupsScreen: React.FC = () => {
+const EventGroupsScreen: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -33,10 +33,12 @@ const GroupsScreen: React.FC = () => {
       setLoading(true);
       const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
       const fetchedGroups = await groupService.getGroups(currentUserId);
-      setGroups(fetchedGroups);
+      // Filter only groups that have an eventId
+      const eventGroups = fetchedGroups.filter(group => group.eventId);
+      setGroups(eventGroups);
     } catch (error) {
-      console.error('Error loading groups:', error);
-      Alert.alert('Error', 'Failed to load groups');
+      console.error('Error loading event groups:', error);
+      Alert.alert('Error', 'Failed to load event groups');
     } finally {
       setLoading(false);
     }
@@ -61,8 +63,6 @@ const GroupsScreen: React.FC = () => {
       }
     });
   };
-
-
 
   const formatMemberCount = (count: number): string => {
     if (count === 1) return '1 member';
@@ -97,9 +97,7 @@ const GroupsScreen: React.FC = () => {
             <Text style={styles.groupName as StyleProp<TextStyle>} numberOfLines={1}>
               {item.name}
             </Text>
-            {item.eventId && (
-              <FontAwesome name="trophy" size={14} color="#FFD700" />
-            )}
+            <FontAwesome name="trophy" size={14} color="#FFD700" />
           </View>
           <View style={styles.groupMeta as StyleProp<ViewStyle>}>
             <View style={styles.metaItem as StyleProp<ViewStyle>}>
@@ -139,15 +137,9 @@ const GroupsScreen: React.FC = () => {
         >
           <FontAwesome name="arrow-left" size={20} color="#6A707C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle as StyleProp<TextStyle>}>Groups</Text>
+        <Text style={styles.headerTitle as StyleProp<TextStyle>}>Event Groups</Text>
         <View style={styles.headerActions as StyleProp<ViewStyle>}>
-          <TouchableOpacity
-            style={styles.headerButton as StyleProp<ViewStyle>}
-            onPress={() => router.push('/(app)/eventGroups')}
-            activeOpacity={0.7}
-          >
-            <FontAwesome name="trophy" size={20} color="#E10600" />
-          </TouchableOpacity>
+          {/* Empty space to balance the header */}
         </View>
       </View>
 
@@ -163,10 +155,10 @@ const GroupsScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer as StyleProp<ViewStyle>}>
-            <FontAwesome name="users" size={60} color="#CCCCCC" />
-            <Text style={styles.emptyTitle as StyleProp<TextStyle>}>No groups</Text>
+            <FontAwesome name="trophy" size={60} color="#CCCCCC" />
+            <Text style={styles.emptyTitle as StyleProp<TextStyle>}>No event groups</Text>
             <Text style={styles.emptyDescription as StyleProp<TextStyle>}>
-              Create your first group or join an existing one
+              Groups created when joining events will appear here
             </Text>
           </View>
         }
@@ -175,4 +167,4 @@ const GroupsScreen: React.FC = () => {
   );
 };
 
-export default GroupsScreen; 
+export default EventGroupsScreen;

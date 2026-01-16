@@ -50,6 +50,44 @@ const styles = StyleSheet.create({
   headerActionButton: {
     padding: theme.spacing.xs,
     marginLeft: theme.spacing.sm,
+    position: 'relative',
+  },
+  callMenuOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+  },
+  callMenu: {
+    position: 'absolute',
+    top: 70,
+    right: theme.spacing.md,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    minWidth: 200,
+    zIndex: 1001,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  callMenuItem: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  callMenuItemLast: {
+    borderBottomWidth: 0,
+  },
+  callMenuText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
   messagesContainer: {
     flex: 1,
@@ -85,6 +123,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xs,
     alignItems: 'flex-end',
     width: '100%',
+  },
+  messageWrapper: {
+    width: '100%',
+  },
+  highlightedMessage: {
+    backgroundColor: 'rgba(225, 6, 0, 0.2)',
+    borderRadius: 8,
+    padding: 4,
+    marginHorizontal: -4,
+    marginVertical: 2,
+    animation: 'fadeOut 1s ease-out',
   },
   ownMessageContainer: {
     justifyContent: 'flex-start', // Own messages on the left
@@ -264,6 +313,134 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Reply preview styles (in input area)
+  replyPreviewContainer: {
+    backgroundColor: theme.colors.grey[100],
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border.light,
+    paddingHorizontal: Math.max(theme.spacing.sm, width * 0.04),
+    paddingVertical: theme.spacing.xs,
+  },
+  replyPreviewWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.background.paper,
+    borderRadius: theme.borders.radius.sm,
+    padding: theme.spacing.xs,
+    borderLeftWidth: 3,
+    borderLeftColor: theme.colors.primary.main,
+    maxWidth: '100%',
+    minWidth: 0, // Allow shrinking
+  },
+  replyPreviewLeft: {
+    flexDirection: 'row',
+    flex: 1,
+    alignItems: 'center',
+    minWidth: 0, // Allow shrinking
+    flexShrink: 1,
+  },
+  replyPreviewLine: {
+    width: 3,
+    height: '100%',
+    backgroundColor: theme.colors.primary.main,
+    marginRight: theme.spacing.xs,
+    borderRadius: 2,
+    flexShrink: 0,
+  },
+  replyPreviewInfo: {
+    flex: 1,
+    minWidth: 0, // Allow shrinking
+    flexShrink: 1,
+  },
+  replyPreviewName: {
+    fontSize: Math.max(12, width * 0.032),
+    fontWeight: '600',
+    color: theme.colors.primary.main,
+    marginBottom: 2,
+    flexShrink: 1,
+  },
+  replyPreviewMessage: {
+    fontSize: Math.max(11, width * 0.03),
+    color: theme.colors.text.secondary,
+    flexShrink: 1,
+  },
+  replyPreviewClose: {
+    padding: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
+    flexShrink: 0,
+  },
+  // Reply preview styles (inside message bubble) - clickable
+  replyPreview: {
+    flexDirection: 'row',
+    marginBottom: theme.spacing.xs,
+    paddingBottom: theme.spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 4,
+    padding: Math.max(theme.spacing.xs, width * 0.02),
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    maxWidth: '100%',
+    minWidth: 0, // Allow shrinking
+    alignSelf: 'flex-start',
+  },
+  ownReplyPreview: {
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  replyLine: {
+    width: Math.max(2, width * 0.008),
+    minHeight: 20,
+    backgroundColor: theme.colors.primary.main,
+    marginRight: Math.max(theme.spacing.xs, width * 0.02),
+    borderRadius: 2,
+    flexShrink: 0,
+  },
+  ownReplyLine: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  replyPreviewContent: {
+    flex: 1,
+    minWidth: 0, // Allow shrinking
+    flexShrink: 1,
+  },
+  replyAuthor: {
+    fontSize: Math.max(11, width * 0.028),
+    fontWeight: '600',
+    color: theme.colors.primary.main,
+    marginBottom: 2,
+    flexShrink: 1,
+  },
+  ownReplyAuthor: {
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  replyPreviewText: {
+    fontSize: Math.max(10, width * 0.026),
+    color: theme.colors.text.secondary,
+    flexShrink: 1,
+  },
+  ownReplyPreviewText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  // System message styles (centered)
+  systemMessageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    marginVertical: theme.spacing.xs,
+  },
+  systemMessageText: {
+    fontSize: Math.max(12, width * 0.03),
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    backgroundColor: theme.colors.grey[100],
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borders.radius.md,
+    overflow: 'hidden',
   },
 });
 

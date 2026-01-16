@@ -19,6 +19,14 @@ export interface Message {
   updatedAt?: string;
   messageType?: 'TEXT' | 'IMAGE' | 'FILE';
   isEdited?: boolean;
+  replyTo?: {
+    id: number;
+    content: string;
+    sender: {
+      name: string;
+      username: string;
+    };
+  };
 }
 
 export interface ConversationParticipant {
@@ -104,7 +112,8 @@ const chatService = {
     conversationId: number,
     content: string,
     userId?: number,
-    messageType: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT'
+    messageType: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT',
+    replyToId?: number
   ) => {
     const endpoint = `${API_URL_MESSAGING}/conversations/${conversationId}/messages`;
     try {
@@ -112,6 +121,7 @@ const chatService = {
         content,
         messageType,
         userId,
+        replyToId,
       });
       return response.data;
     } catch (error) {

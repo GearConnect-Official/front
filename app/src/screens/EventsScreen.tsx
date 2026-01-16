@@ -411,7 +411,6 @@ const EventsScreen: React.FC = () => {
             day: 'numeric',
             month: 'short',
           })}
-          emoji="🎉"
           location={item.location}
           attendees={participantsCount}
           onPress={() => handleEventPress(item)}

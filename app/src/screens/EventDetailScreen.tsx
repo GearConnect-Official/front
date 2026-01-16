@@ -22,8 +22,6 @@ import {
 } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
-import relatedProductService from '../services/relatedProductService';
 import EventDetailReview from '../components/EventDetailReview';
 import EventResultsGrid from '../components/EventResults/EventResultsGrid';
 import PerformanceService from '../services/performanceService';
@@ -31,18 +29,6 @@ import { Performance } from '../types/performance.types';
 import EventTag from '../components/EventTag';
 import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
 import { trackEvent, trackScreenView } from '../utils/mixpanelTracking';
-
-type RootStackParamList = {
-  EventDetail: { eventId: string };
-  // Add other routes as needed
-};
-
-type EventDetailScreenRouteProp = RouteProp<RootStackParamList, "EventDetail">;
-
-interface MeteoInfo {
-  condition: string;
-  temperature: number | string;
-}
 
 const EventDetailScreen: React.FC = () => {
   const params = useLocalSearchParams();
@@ -149,7 +135,7 @@ const EventDetailScreen: React.FC = () => {
     const existingReview = reviews.find((review) => {
       if (!review.userId) return false;
       const reviewUserId = String(review.userId);
-      return reviewUserId === currentUserId;
+      return reviewUserId === String(user.id);
     });
 
     setUserReview(existingReview || null);
@@ -190,7 +176,7 @@ const EventDetailScreen: React.FC = () => {
       const enhancedEvent = await Promise.all([
         enhanceEventWithTags(fetchedEvent),
         enhanceEventWithReviews(fetchedEvent),
-        enhanceEventWithProducts(fetchedEvent),
+        // enhanceEventWithProducts removed - RelatedProduct no longer linked to events
       ]).then(() => fetchedEvent);
 
       // User-specific checks
@@ -353,26 +339,7 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
-  const enhanceEventWithProducts = async (
-    eventData: EventInterface
-  ): Promise<void> => {
-    try {
-      const relatedProducts = await relatedProductService.getProductsByEventId(
-        eventId
-      );
-      eventData.relatedProducts = relatedProducts;
-      if (!Array.isArray(eventData.relatedProducts)) {
-        console.warn("Related products response is not an array");
-        eventData.relatedProducts = [];
-      }
-      if (eventData.relatedProducts.length === 0) {
-        console.warn("No related products found for this event");
-      }
-    } catch (error) {
-      console.error("Error processing related products:", error);
-      eventData.relatedProducts = [];
-    }
-  };
+  // enhanceEventWithProducts removed - RelatedProduct no longer linked to events
 
   const loadOrganizersWithDetails = async (event: EventInterface) => {
     try {
@@ -816,15 +783,7 @@ const EventDetailScreen: React.FC = () => {
             />
             <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
           </View>
-           <RelatedProductsSection
-          eventId={eventId}
-          products={(event.relatedProducts || []).map((product: any) => ({
-            ...product,
-            price: typeof product.price === 'string' ? parseFloat(product.price) || 0 : product.price,
-          }))}
-          isOrganizer={isOrganizer}
-          onRefresh={fetchData}
-        />
+          {/* RelatedProductsSection removed - RelatedProduct no longer linked to events */}
           <EventDetailReview
             eventId={eventId}
             reviews={event.reviews || []}

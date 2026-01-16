@@ -30,6 +30,12 @@ import EventTag from '../components/EventTag';
 import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
 import { trackEvent, trackScreenView } from '../utils/mixpanelTracking';
 
+interface MeteoInfo {
+  trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+  circuitName?: string;
+  expectedParticipants?: number;
+}
+
 const EventDetailScreen: React.FC = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
@@ -495,36 +501,23 @@ const EventDetailScreen: React.FC = () => {
     );
   }
   if (event !== null) {
-    const meteoInfo = event.meteo as any;
+    const meteoInfo = event.meteo as MeteoInfo | undefined;
 
     // Helper function to safely get track condition information
     const getTrackConditionInfo = () => {
-      if (!meteoInfo || typeof meteoInfo !== 'object') {
+      if (!meteoInfo || typeof meteoInfo !== 'object' || !meteoInfo.trackCondition) {
         return 'Track condition unavailable';
       }
 
-      // Track condition
-      if (meteoInfo.trackCondition) {
-        const trackConditions: { [key: string]: string } = {
-          'dry': '☀️ Dry',
-          'damp': '💧 Damp',
-          'wet': '🌧️ Wet',
-          'mixed': '🌦️ Mixed',
-          'slippery': '⚠️ Slippery',
-          'drying': '🌤️ Drying'
-        };
-        return trackConditions[meteoInfo.trackCondition] || meteoInfo.trackCondition;
-      }
-
-      // Fallback to old format for backward compatibility
-      if (meteoInfo.condition) {
-        return meteoInfo.condition;
-      }
-      if (meteoInfo.temperature !== undefined) {
-        return `${meteoInfo.temperature}°`;
-      }
-
-      return 'Track condition unavailable';
+      const trackConditions: { [key: string]: string } = {
+        'dry': '☀️ Dry',
+        'damp': '💧 Damp',
+        'wet': '🌧️ Wet',
+        'mixed': '🌦️ Mixed',
+        'slippery': '⚠️ Slippery',
+        'drying': '🌤️ Drying'
+      };
+      return trackConditions[meteoInfo.trackCondition] || meteoInfo.trackCondition;
     };
 
     function handleReviewPress(): void {
@@ -775,61 +768,30 @@ const EventDetailScreen: React.FC = () => {
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={20} color="gray" />
             <Text style={styles.detailText}>{formatDate(event.date)}</Text>
+            <Ionicons
+              name="flag-outline"
+              size={20}
+              color="gray"
+              style={{ marginLeft: 10 }}
+            />
+            <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
           </View>
-          
-          {/* Weather Information Section */}
-          {meteoInfo && typeof meteoInfo === 'object' && (
-            <View style={{ marginVertical: 12, paddingHorizontal: 16 }}>
-              <Text style={styles.sectionTitle}>Weather & Track Conditions</Text>
-              
-              {/* Track Condition */}
-              {meteoInfo.trackCondition && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="flag-outline" size={20} color="gray" />
-                  <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
-                </View>
-              )}
-              
-              {/* Temperature */}
-              {meteoInfo.temperature !== undefined && meteoInfo.temperature !== null && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="thermometer-outline" size={20} color="gray" />
-                  <Text style={styles.detailText}>
-                    {typeof meteoInfo.temperature === 'number' 
-                      ? `${meteoInfo.temperature}°C` 
-                      : `${meteoInfo.temperature}`}
-                  </Text>
-                </View>
-              )}
-              
-              {/* General Weather Condition */}
-              {meteoInfo.condition && !meteoInfo.trackCondition && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="cloud-outline" size={20} color="gray" />
-                  <Text style={styles.detailText}>{meteoInfo.condition}</Text>
-                </View>
-              )}
-              
-              {/* Circuit Name */}
-              {meteoInfo.circuitName && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="map-outline" size={20} color="gray" />
-                  <Text style={styles.detailText}>{meteoInfo.circuitName}</Text>
-                </View>
-              )}
-              
-              {/* Expected Participants */}
-              {meteoInfo.expectedParticipants !== undefined && meteoInfo.expectedParticipants !== null && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="people-outline" size={20} color="gray" />
-                  <Text style={styles.detailText}>
-                    {meteoInfo.expectedParticipants} expected participant{meteoInfo.expectedParticipants !== 1 ? 's' : ''}
-                  </Text>
-                </View>
-              )}
+          {meteoInfo && typeof meteoInfo === 'object' && meteoInfo.circuitName && (
+            <View style={styles.detailRow}>
+              <Ionicons name="location-outline" size={20} color="gray" />
+              <Text style={styles.detailText}>
+                Circuit: {meteoInfo.circuitName}
+              </Text>
             </View>
           )}
-          
+          {meteoInfo && typeof meteoInfo === 'object' && meteoInfo.expectedParticipants !== undefined && (
+            <View style={styles.detailRow}>
+              <Ionicons name="people-outline" size={20} color="gray" />
+              <Text style={styles.detailText}>
+                Expected Participants: {meteoInfo.expectedParticipants}
+              </Text>
+            </View>
+          )}
           {/* RelatedProductsSection removed - RelatedProduct no longer linked to events */}
           <EventDetailReview
             eventId={eventId}

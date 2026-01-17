@@ -11,6 +11,17 @@ export interface MessageUser {
   isVerify: boolean;
 }
 
+export interface MessageReaction {
+  emoji: string;
+  count: number;
+  users: {
+    id: number;
+    name: string;
+    username?: string;
+  }[];
+  currentUserReacted?: boolean;
+}
+
 export interface Message {
   id: number;
   content: string;
@@ -19,6 +30,7 @@ export interface Message {
   updatedAt?: string;
   messageType?: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO';
   isEdited?: boolean;
+  reactions?: MessageReaction[];
   replyTo?: {
     id: number;
     content: string;
@@ -131,6 +143,63 @@ const chatService = {
       return response.data;
     } catch (error) {
       console.error("Error sending message:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update a message
+   */
+  updateMessage: async (
+    messageId: number,
+    content: string,
+    userId?: number
+  ) => {
+    const endpoint = `${API_URL_MESSAGING}/messages/${messageId}`;
+    try {
+      const response = await axios.put(endpoint, {
+        content,
+        userId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating message:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Add or toggle a reaction on a message
+   */
+  toggleReaction: async (
+    messageId: number,
+    emoji: string,
+    userId?: number
+  ) => {
+    const endpoint = `${API_URL_MESSAGING}/messages/${messageId}/reactions`;
+    try {
+      const response = await axios.post(endpoint, {
+        emoji,
+        userId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error toggling reaction:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get reactions for a message
+   */
+  getMessageReactions: async (messageId: number, userId?: number) => {
+    const endpoint = `${API_URL_MESSAGING}/messages/${messageId}/reactions`;
+    try {
+      const params = userId ? { userId } : {};
+      const response = await axios.get(endpoint, { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting reactions:", error);
       throw error;
     }
   },

@@ -334,7 +334,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     );
   }
 
-  // Recording interface (WhatsApp style)
+  // Recording interface
   return (
     <Animated.View
       style={[

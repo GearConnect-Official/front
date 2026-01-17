@@ -569,7 +569,7 @@ const MediaPickerModal: React.FC<MediaPickerModalProps> = ({ onSend, onCancel })
           <View style={styles.placeholder} />
         </View>
 
-        {/* Selected Media Preview - Compact like WhatsApp */}
+        {/* Selected Media Preview - Compact */}
         {selectedMedia.length > 0 && (
           <View style={styles.selectedMediaContainer}>
             <ScrollView 
@@ -1197,7 +1197,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: '#25D366', // WhatsApp green
+    backgroundColor: '#25D366', // Green color
     borderRadius: 10,
     minWidth: 20,
     height: 20,

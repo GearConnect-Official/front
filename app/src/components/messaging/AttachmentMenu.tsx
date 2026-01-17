@@ -8,6 +8,7 @@ import CameraModal from './CameraModal';
 import { CameraMedia } from './CameraModal';
 import ContactPickerModal from './ContactPickerModal';
 import { ContactData } from './ContactPickerModal';
+import PollCreator, { PollData } from './PollCreator';
 
 // Re-export SelectedMedia for convenience
 export type { SelectedMedia };
@@ -20,7 +21,7 @@ interface AttachmentMenuProps {
   onLocationSelected?: () => void;
   onContactSelected?: (contact: ContactData) => void;
   onDocumentSelected?: () => void;
-  onPollSelected?: () => void;
+  onPollSelected?: (poll: PollData) => void;
   onEventSelected?: () => void;
   conversationId?: string;
   groupId?: string;
@@ -42,6 +43,7 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [showContactPicker, setShowContactPicker] = useState(false);
+  const [showPollCreator, setShowPollCreator] = useState(false);
 
   const handlePhotosPress = () => {
     setShowMediaPicker(true);
@@ -69,6 +71,18 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
     }
   };
 
+  const handlePollPress = () => {
+    setShowPollCreator(true);
+    onClose(); // Close the attachment menu
+  };
+
+  const handlePollSend = (poll: PollData) => {
+    setShowPollCreator(false);
+    if (onPollSelected) {
+      onPollSelected(poll);
+    }
+  };
+
   return (
     <>
       {/* Attachment Menu */}
@@ -86,7 +100,7 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
           onPress={onClose}
           activeOpacity={0.7}
         >
-          <FontAwesome name="keyboard-o" size={24} color="#FFFFFF" />
+          <FontAwesome name="keyboard-o" size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>
 
         {/* Attachment options grid */}
@@ -165,10 +179,7 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
 
             <TouchableOpacity
               style={styles.option}
-              onPress={() => {
-                onClose();
-                if (onPollSelected) onPollSelected();
-              }}
+              onPress={handlePollPress}
               activeOpacity={0.7}
             >
               <View style={[styles.icon, { backgroundColor: '#FF9500' }]}>
@@ -231,6 +242,15 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
           }}
         />
       )}
+
+      {/* Poll Creator Modal - Keep visible even when attachment menu is closed */}
+      <PollCreator
+        visible={showPollCreator}
+        onSend={handlePollSend}
+        onCancel={() => {
+          setShowPollCreator(false);
+        }}
+      />
     </>
   );
 };
@@ -250,7 +270,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#000000',
+    backgroundColor: theme.colors.grey[200],
     paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xl,
     paddingHorizontal: theme.spacing.md,
@@ -284,7 +304,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   label: {
-    color: '#FFFFFF',
+    color: theme.colors.text.primary,
     fontSize: 12,
     textAlign: 'center',
     marginTop: 4,

@@ -30,10 +30,20 @@ export const VerifiedAvatar: React.FC<VerifiedAvatarProps> = ({
 }) => {
   const badgeSize = Math.max(14, size * 0.28); // Badge size proportional to avatar
   const badgePosition = size * 0.15; // Position from bottom right
+  const [imageError, setImageError] = React.useState(false);
 
-  return (
-    <View style={[styles.container, { width: size, height: size }, style]}>
-      {publicId ? (
+  const renderAvatar = () => {
+    // If image failed to load, show placeholder
+    if (imageError) {
+      return (
+        <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' }]}>
+          <FontAwesome name="user" size={size * 0.5} color="#999" />
+        </View>
+      );
+    }
+
+    if (publicId && publicId.trim() !== '') {
+      return (
         <CloudinaryAvatar
           publicId={publicId}
           size={size}
@@ -42,21 +52,44 @@ export const VerifiedAvatar: React.FC<VerifiedAvatarProps> = ({
           style={styles.avatar}
           fallbackUrl={fallbackUrl}
         />
-      ) : fallbackUrl ? (
-        typeof fallbackUrl === 'string' ? (
+      );
+    }
+
+    if (fallbackUrl) {
+      if (typeof fallbackUrl === 'string') {
+        return (
           <Image
             source={{ uri: fallbackUrl }}
             style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}
+            onError={() => {
+              setImageError(true);
+            }}
           />
-        ) : (
+        );
+      } else {
+        return (
           <Image
             source={fallbackUrl}
             style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}
+            onError={() => {
+              setImageError(true);
+            }}
           />
-        )
-      ) : (
-        <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: '#E0E0E0' }]} />
-      )}
+        );
+      }
+    }
+
+    // Default placeholder
+    return (
+      <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' }]}>
+        <FontAwesome name="user" size={size * 0.5} color="#999" />
+      </View>
+    );
+  };
+
+  return (
+    <View style={[styles.container, { width: size, height: size }, style]}>
+      {renderAvatar()}
       
       {isVerify && (
         <View

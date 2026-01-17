@@ -12,6 +12,10 @@ import {
   Alert,
   Pressable,
   Keyboard,
+  Modal,
+  Dimensions,
+  Animated,
+  ScrollView,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -25,6 +29,8 @@ import VoiceRecorder from '../src/components/messaging/VoiceRecorder';
 import AudioMessagePlayer from '../src/components/messaging/AudioMessagePlayer';
 import MediaCarousel from '../src/components/messaging/MediaCarousel';
 import ContactCard, { ContactData } from '../src/components/messaging/ContactCard';
+import PollCard, { PollWithVotes } from '../src/components/messaging/PollCard';
+import PollCreator, { PollData } from '../src/components/messaging/PollCreator';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -32,6 +38,8 @@ type Message = ApiMessage & {
 };
 
 type UserStatus = 'Online' | 'Offline' | 'Do not disturb';
+
+const { width } = Dimensions.get('window');
 
 export default function ConversationScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -48,8 +56,16 @@ export default function ConversationScreen() {
   const [audioPositions, setAudioPositions] = useState<{ [key: number]: number }>({});
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
   const [hasScrolledInitially, setHasScrolledInitially] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [showMessageOptions, setShowMessageOptions] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [editingPoll, setEditingPoll] = useState<PollData | null>(null);
+  const [showPollCreator, setShowPollCreator] = useState(false);
+  const [messagePosition, setMessagePosition] = useState<{ x: number; y: number; width: number; height: number } | undefined>(undefined);
   const flatListRef = useRef<FlatList>(null);
   const messageRefs = useRef<{ [key: number]: View | null }>({});
+  const messageAnimations = useRef<{ [key: number]: Animated.Value }>({});
   const router = useRouter();
   const params = useLocalSearchParams();
   const { user } = useAuth() || {};
@@ -58,11 +74,33 @@ export default function ConversationScreen() {
   const conversationName = params.conversationName as string || 'Conversation';
   const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
 
+  // All emojis for picker (simplified - showing most common ones)
+  const allEmojis = [
+    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙',
+    '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥',
+    '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐',
+    '👋', '🤚', '🖐', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍',
+    '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃',
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟',
+    '🔥', '💯', '✨', '⭐', '🌟', '💫', '⚡', '☄️', '💥', '💢', '💨', '💦', '💤', '🎉', '🎊', '🏆', '🥇', '🥈', '🥉', '🏅',
+    '🎖', '🎗', '🎫', '🎟', '🎪', '🤹', '🎭', '🩹', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻',
+    '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩',
+    '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒',
+    '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞',
+    '🐜', '🦟', '🦗', '🕷', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳',
+    '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🦬', '🐃', '🐂', '🐄', '🐎',
+    '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦',
+    '🥬', '🥒', '🌶', '🌽', '🥕', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🥓', '🥩', '🍗', '🍖',
+    '🦴', '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🌮', '🌯', '🥗', '🥘', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪',
+    '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫',
+    '🍿', '🍩', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '🫖', '☕️', '🍵', '🧃', '🥤', '🧋', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃',
+  ];
+
   // Get status color
   const getStatusColor = (status: UserStatus): string => {
     switch (status) {
       case 'Online':
-        return '#25D366'; // WhatsApp green
+        return '#25D366'; // Green color for online status
       case 'Offline':
         return '#E10600'; // App red
       case 'Do not disturb':
@@ -145,6 +183,22 @@ export default function ConversationScreen() {
       }, 100);
     }
   }, [messages, isScrolledToBottom]);
+
+  // Scroll to selected message when options modal opens
+  useEffect(() => {
+    if (showMessageOptions && selectedMessage) {
+      const messageIndex = messages.findIndex(msg => msg.id === selectedMessage.id);
+      if (messageIndex !== -1) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index: messageIndex,
+            animated: true,
+            viewPosition: 0.5, // Center the message
+          });
+        }, 100);
+      }
+    }
+  }, [showMessageOptions, selectedMessage?.id, messages]);
   
   // Initial scroll to bottom on mount and when messages are loaded
   useEffect(() => {
@@ -161,6 +215,33 @@ export default function ConversationScreen() {
       return () => clearTimeout(timeoutId);
     }
   }, [messages, loading, hasScrolledInitially]);
+
+  // Scroll to selected message when options modal opens
+  useEffect(() => {
+    if (showMessageOptions && selectedMessage) {
+      const messageIndex = messages.findIndex(msg => msg.id === selectedMessage.id);
+      if (messageIndex !== -1) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index: messageIndex,
+            animated: true,
+            viewPosition: 0.3, // Position message in upper part to show reactions bar
+          });
+        }, 100);
+      }
+    } else if (!showMessageOptions && selectedMessage) {
+      // Reset animation when modal closes
+      const anim = messageAnimations.current[selectedMessage.id];
+      if (anim) {
+        Animated.spring(anim, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 100,
+          friction: 8,
+        }).start();
+      }
+    }
+  }, [showMessageOptions, selectedMessage, messages]);
 
   // Scroll to bottom handler
   const scrollToBottom = useCallback(() => {
@@ -197,23 +278,53 @@ export default function ConversationScreen() {
 
     setSending(true);
     try {
-      const sentMessage = await chatService.sendMessage(
-        conversationIdNum,
-        messageContent,
-        currentUserId,
-        'TEXT',
-        replyingTo?.id
-      );
-    
-      if (sentMessage) {
-        // Add sent message to list - always mark as own since current user sent it
-    const newMsg: Message = {
-          ...sentMessage,
-          isOwn: sentMessage.sender.id === currentUserId,
-        };
-        setMessages(prev => [...prev, newMsg]);
-        setNewMessage('');
-        setReplyingTo(null); // Clear reply after sending
+      // If editing a message, update it instead of creating a new one
+      if (editingMessage) {
+        try {
+          const updatedMessage = await chatService.updateMessage(
+            editingMessage.id,
+            messageContent,
+            currentUserId
+          );
+          // Update local state with the updated message
+          setMessages(prev => prev.map(msg => 
+            msg.id === editingMessage.id 
+              ? { 
+                  ...updatedMessage, 
+                  isOwn: updatedMessage.sender.id === currentUserId,
+                  isEdited: true 
+                }
+              : msg
+          ));
+          setNewMessage('');
+          setEditingMessage(null);
+          setSelectedMessage(null);
+          setShowMessageOptions(false);
+          setShowEmojiPicker(false);
+        } catch (error: any) {
+          console.error('Error updating message:', error);
+          Alert.alert('Error', error.response?.data?.error || 'Failed to update message');
+        }
+      } else {
+        // Send new message
+        const sentMessage = await chatService.sendMessage(
+          conversationIdNum,
+          messageContent,
+          currentUserId,
+          'TEXT',
+          replyingTo?.id
+        );
+      
+        if (sentMessage) {
+          // Add sent message to list - always mark as own since current user sent it
+          const newMsg: Message = {
+            ...sentMessage,
+            isOwn: sentMessage.sender.id === currentUserId,
+          };
+          setMessages(prev => [...prev, newMsg]);
+          setNewMessage('');
+          setReplyingTo(null); // Clear reply after sending
+        }
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -221,16 +332,209 @@ export default function ConversationScreen() {
     } finally {
       setSending(false);
     }
-    };
+  };
 
-  // Handle long press on message to reply
-  const handleReplyToMessage = (message: Message) => {
-    setReplyingTo(message);
-    // Optionally scroll to input area
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
-      setIsScrolledToBottom(true);
-    }, 100);
+  // Handle long press on message to show options
+  const handleLongPressMessage = (message: Message, event?: any) => {
+    setSelectedMessage(message);
+    
+    // Initialize animation for this message if not exists
+    if (!messageAnimations.current[message.id]) {
+      messageAnimations.current[message.id] = new Animated.Value(1);
+    }
+    
+    // Animate message bubble to scale up and highlight
+    Animated.sequence([
+      Animated.spring(messageAnimations.current[message.id], {
+        toValue: 1.05,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }),
+      Animated.spring(messageAnimations.current[message.id], {
+        toValue: 1.02,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }),
+    ]).start();
+    
+    // Get message position for menu placement
+    if (event?.nativeEvent) {
+      const { pageX, pageY } = event.nativeEvent;
+      // Try to get message dimensions from ref
+      const messageRef = messageRefs.current[message.id];
+      if (messageRef) {
+        messageRef.measure((x, y, width, height, pageX, pageY) => {
+          setMessagePosition({ x: pageX, y: pageY, width, height });
+          setShowMessageOptions(true);
+        });
+      } else {
+        // Fallback: estimate position
+        setMessagePosition({ x: pageX, y: pageY, width: 200, height: 50 });
+        setShowMessageOptions(true);
+      }
+    } else {
+      setShowMessageOptions(true);
+    }
+  };
+
+  // Handle reply option
+  const handleReply = () => {
+    if (selectedMessage) {
+      setReplyingTo(selectedMessage);
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+        setIsScrolledToBottom(true);
+      }, 100);
+    }
+  };
+
+  // Handle edit option
+  const handleEditMessage = () => {
+    if (selectedMessage) {
+      setEditingMessage(selectedMessage);
+      if (selectedMessage.content.startsWith('POLL:')) {
+        // Handle poll editing
+        try {
+          const pollJson = selectedMessage.content.replace('POLL:', '');
+          const pollData: PollData = JSON.parse(pollJson);
+          setEditingPoll(pollData);
+          setShowPollCreator(true);
+        } catch (e) {
+          console.error('Error parsing poll for edit:', e);
+        }
+      } else {
+        // Handle text message editing
+        setNewMessage(selectedMessage.content);
+        setReplyingTo(null);
+      }
+    }
+  };
+
+  // Handle edit poll from gear icon
+  const handleEditPoll = (message: Message) => {
+    try {
+      const pollJson = message.content.replace('POLL:', '');
+      const pollData: PollData = JSON.parse(pollJson);
+      setEditingPoll(pollData);
+      setEditingMessage(message); // Set editingMessage so updateMessage is called instead of sendMessage
+      setShowPollCreator(true);
+    } catch (e) {
+      console.error('Error parsing poll for edit:', e);
+      Alert.alert('Error', 'Failed to load poll data');
+    }
+  };
+
+  // Handle delete option
+  const handleDeleteMessage = async () => {
+    if (!selectedMessage || !currentUserId) return;
+    
+    Alert.alert(
+      'Delete Message',
+      'Are you sure you want to delete this message?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // TODO: Implement delete message API call
+              console.log('Delete message:', selectedMessage.id);
+              // Remove from local state
+              setMessages(prev => prev.filter(msg => msg.id !== selectedMessage.id));
+            } catch (error: any) {
+              console.error('Error deleting message:', error);
+              Alert.alert('Error', 'Failed to delete message');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Handle toggle reaction
+  const handleToggleReaction = async (messageId: number, emoji: string) => {
+    if (!currentUserId || !user) return;
+
+    try {
+      const currentUserName = user.name || 'You';
+      
+      // Optimistic update
+      setMessages(prev => prev.map(msg => {
+        if (msg.id !== messageId) return msg;
+
+        const currentReactions = msg.reactions || [];
+        const reactionIndex = currentReactions.findIndex(r => r.emoji === emoji);
+        const userReacted = reactionIndex !== -1 && 
+          currentReactions[reactionIndex].users.some(u => u.id === currentUserId);
+
+        if (userReacted) {
+          // Remove reaction
+          const updatedReactions = currentReactions.map((reaction, idx) => {
+            if (idx === reactionIndex) {
+              const updatedUsers = reaction.users.filter(u => u.id !== currentUserId);
+              if (updatedUsers.length === 0) {
+                return null; // Remove reaction if no users left
+              }
+              return {
+                ...reaction,
+                count: reaction.count - 1,
+                users: updatedUsers,
+                currentUserReacted: false,
+              };
+            }
+            return reaction;
+          }).filter(Boolean) as typeof currentReactions;
+
+          return {
+            ...msg,
+            reactions: updatedReactions,
+          };
+        } else {
+          // Add reaction
+          if (reactionIndex !== -1) {
+            // Reaction exists, add user
+            const updatedReactions = currentReactions.map((reaction, idx) => {
+              if (idx === reactionIndex) {
+                const newUser = { id: currentUserId, name: currentUserName };
+                return {
+                  ...reaction,
+                  count: reaction.count + 1,
+                  users: [...reaction.users, newUser],
+                  currentUserReacted: true,
+                };
+              }
+              return reaction;
+            });
+            return {
+              ...msg,
+              reactions: updatedReactions,
+            };
+          } else {
+            // New reaction
+            const newReaction = {
+              emoji,
+              count: 1,
+              users: [{ id: currentUserId, name: currentUserName }],
+              currentUserReacted: true,
+            };
+            return {
+              ...msg,
+              reactions: [...currentReactions, newReaction],
+            };
+          }
+        }
+      }));
+
+      // API call
+      await chatService.toggleReaction(messageId, emoji, currentUserId);
+    } catch (error: any) {
+      console.error('Error toggling reaction:', error);
+      // Revert optimistic update on error
+      await loadMessages();
+    }
   };
 
   // Cancel reply
@@ -282,6 +586,11 @@ export default function ConversationScreen() {
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isOwn = item.isOwn ?? false;
     const previousMessage = index > 0 ? messages[index - 1] : null;
+    
+    // Initialize animation for this message if not exists
+    if (!messageAnimations.current[item.id]) {
+      messageAnimations.current[item.id] = new Animated.Value(1);
+    }
     
     // Check if this is a system message (from GearConnect)
     const isSystemMessage = item.content?.startsWith('GearConnect:');
@@ -371,16 +680,31 @@ export default function ConversationScreen() {
           }}
           style={[
             styles.messageWrapper,
-            highlightedMessageId === item.id && styles.highlightedMessage
+            highlightedMessageId === item.id && styles.highlightedMessage,
+            selectedMessage?.id === item.id && styles.highlightedMessageBubble,
+            selectedMessage?.id === item.id && styles.messageElevated,
           ]}
         >
+
+          <Animated.View
+            style={[
+              {
+                transform: [
+                  {
+                    scale: messageAnimations.current[item.id] || new Animated.Value(1),
+                  },
+                ],
+              },
+            ]}
+          >
           <Pressable
             style={[
-          styles.messageBubble, 
-          isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
-              isGrouped && styles.groupedMessage
+              styles.messageBubble, 
+              isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
+              isGrouped && styles.groupedMessage,
+              selectedMessage?.id === item.id && styles.highlightedMessageBubble,
             ]}
-            onLongPress={() => handleReplyToMessage(item)}
+            onLongPress={(event) => handleLongPressMessage(item, event)}
           >
             {/* Reply preview inside message bubble - clickable */}
             {item.replyTo && (
@@ -601,10 +925,83 @@ export default function ConversationScreen() {
                 );
               }
             })()
+          ) : item.content.startsWith('POLL:') ? (
+            // Parse poll data
+            (() => {
+              try {
+                const pollJson = item.content.replace('POLL:', '');
+                const pollData: PollData = JSON.parse(pollJson);
+                const pollWithVotes: PollWithVotes = {
+                  ...pollData,
+                  messageId: item.id,
+                  userVotes: [], // TODO: Get from backend
+                  votes: [], // TODO: Get from backend
+                  totalVotes: 0,
+                };
+                return (
+                  <Pressable
+                    onLongPress={(event) => handleLongPressMessage(item, event)}
+                    style={selectedMessage?.id === item.id && styles.highlightedMessageBubble}
+                  >
+                    <PollCard
+                      poll={pollWithVotes}
+                      isOwn={isOwn}
+                      currentUserId={currentUserId}
+                      currentUserName={user?.name || undefined}
+                      currentUserAvatar={(user as any)?.profilePicture || user?.photoURL}
+                      currentUserAvatarPublicId={(user as any)?.profilePicturePublicId}
+                      currentUserIsVerify={(user as any)?.isVerify}
+                      onVote={async (optionId: string) => {
+                        // TODO: Implement vote API call
+                        console.log('Vote for option:', optionId, 'in poll:', item.id);
+                      }}
+                      onEdit={isOwn ? () => handleEditPoll(item) : undefined}
+                      onDelete={isOwn ? () => handleLongPressMessage(item) : undefined}
+                    />
+                  </Pressable>
+                );
+              } catch (e) {
+                // Fallback to text if parsing fails
+                return (
+                  <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                    {item.content}
+                  </Text>
+                );
+              }
+            })()
           ) : (
             <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
               {item.content}
             </Text>
+          )}
+
+          {/* Reactions display */}
+          {item.reactions && item.reactions.length > 0 && (
+            <View style={styles.reactionsContainer}>
+              {item.reactions.map((reaction, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.reactionChip,
+                    reaction.currentUserReacted && styles.reactionChipActive,
+                    isOwn && styles.ownReactionChip,
+                  ]}
+                  onPress={async () => {
+                    // Toggle reaction: if user already reacted, remove it; otherwise add it
+                    await handleToggleReaction(item.id, reaction.emoji);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.reactionChipEmoji}>{reaction.emoji}</Text>
+                  <Text style={[
+                    styles.reactionChipCount,
+                    isOwn && styles.ownReactionChipCount,
+                  ]}>
+                    {reaction.count}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           )}
           
           {/* Duration for audio messages (bottom left) and Timestamp (bottom right) */}
@@ -615,12 +1012,20 @@ export default function ConversationScreen() {
                 {formatAudioDuration(audioPositions[item.id] ?? audioDurations[item.id])}
               </Text>
             )}
-            {/* Timestamp on the right */}
-            <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
-              {formatTime(item.createdAt)}
-            </Text>
+            {/* Timestamp on the right with edited indicator */}
+            <View style={styles.messageTimeRow}>
+              <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
+                {formatTime(item.createdAt)}
+              </Text>
+              {item.isEdited && (
+                <Text style={[styles.editedIndicator, isOwn && styles.ownEditedIndicator]}>
+                  (edited)
+                </Text>
+              )}
+            </View>
           </View>
           </Pressable>
+          </Animated.View>
         </View>
 
         {/* Avatar for other users' messages (right side) */}
@@ -763,7 +1168,7 @@ export default function ConversationScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Reply preview (like WhatsApp) */}
+      {/* Reply preview */}
       {replyingTo && (
         <View style={styles.replyPreviewContainer}>
           <View style={styles.replyPreviewWrapper}>
@@ -792,10 +1197,10 @@ export default function ConversationScreen() {
       {/* Input area */}
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
-          {/* Text Input or Voice Recorder (WhatsApp style) */}
+          {/* Text Input or Voice Recorder */}
           {!isRecordingVoice ? (
             <>
-              {/* Attach button (like WhatsApp) */}
+              {/* Attach button */}
               <TouchableOpacity 
                 style={styles.attachButton}
                 onPress={() => {
@@ -816,11 +1221,32 @@ export default function ConversationScreen() {
                     setShowAttachmentMenu(false);
                   }
                 }}
-                placeholder="Type your message..."
+                placeholder={editingMessage ? "Edit your message..." : "Type your message..."}
                 placeholderTextColor={theme.colors.text.secondary}
                 multiline
                 maxLength={500}
               />
+              
+              {/* Cancel edit button (if editing) */}
+              {editingMessage && (
+                <TouchableOpacity
+                  style={styles.cancelEditButton}
+                  onPress={() => {
+                    setEditingMessage(null);
+                    setNewMessage('');
+                    setSelectedMessage(null);
+                    setShowMessageOptions(false);
+                    setShowEmojiPicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <FontAwesome 
+                    name="times" 
+                    size={16} 
+                    color={theme.colors.text.secondary} 
+                  />
+                </TouchableOpacity>
+              )}
               
               {/* Send button or microphone button */}
               {newMessage.trim() ? (
@@ -1027,15 +1453,294 @@ export default function ConversationScreen() {
           // TODO: Implement document
           console.log('Document');
         }}
-        onPollSelected={() => {
-          // TODO: Implement poll
-          console.log('Poll');
+        onPollSelected={async (poll: PollData) => {
+          if (!currentUserId) return;
+          
+          try {
+            setSending(true);
+            const conversationIdNum = parseInt(conversationId);
+            
+            // Send poll as JSON with special prefix to identify it
+            const pollMessage = `POLL:${JSON.stringify(poll)}`;
+            
+            await chatService.sendMessage(
+              conversationIdNum,
+              pollMessage,
+              currentUserId,
+              'TEXT',
+              replyingTo?.id
+            );
+            
+            // Reload messages
+            await loadMessages();
+          } catch (error: any) {
+            console.error('Error sending poll:', error);
+            Alert.alert('Error', error.response?.data?.error || 'Failed to send poll');
+          } finally {
+            setSending(false);
+          }
         }}
         onEventSelected={() => {
           // TODO: Implement event
           console.log('Event');
         }}
       />
+
+      {/* Poll Creator for editing */}
+      <PollCreator
+        visible={showPollCreator}
+        onSend={async (poll: PollData) => {
+          if (!currentUserId || !editingPoll) return;
+          
+          try {
+            setSending(true);
+            const conversationIdNum = parseInt(conversationId);
+            
+            // If editing, we need to update the existing message
+            if (editingMessage && editingMessage.content.startsWith('POLL:')) {
+              const pollMessage = `POLL:${JSON.stringify(poll)}`;
+              const updatedMessage = await chatService.updateMessage(
+                editingMessage.id,
+                pollMessage,
+                currentUserId
+              );
+              // Update local state with the updated message
+              setMessages(prev => prev.map(msg => 
+                msg.id === editingMessage.id 
+                  ? { 
+                      ...updatedMessage, 
+                      isOwn: updatedMessage.sender.id === currentUserId,
+                      isEdited: true 
+                    }
+                  : msg
+              ));
+              setEditingMessage(null);
+              setEditingPoll(null);
+              setShowPollCreator(false);
+            } else {
+              // Send as new poll (shouldn't happen in edit mode, but just in case)
+              const pollMessage = `POLL:${JSON.stringify(poll)}`;
+              await chatService.sendMessage(
+                conversationIdNum,
+                pollMessage,
+                currentUserId,
+                'TEXT',
+                replyingTo?.id
+              );
+              await loadMessages();
+            }
+          } catch (error: any) {
+            console.error('Error saving poll:', error);
+            Alert.alert('Error', error.response?.data?.error || 'Failed to save poll');
+          } finally {
+            setSending(false);
+            setShowPollCreator(false);
+            setEditingPoll(null);
+            setEditingMessage(null);
+          }
+        }}
+        onCancel={() => {
+          setShowPollCreator(false);
+          setEditingPoll(null);
+          setEditingMessage(null);
+        }}
+        initialData={editingPoll || undefined}
+      />
+
+      {/* Unified Message Options Modal - New Logic */}
+      {showMessageOptions && selectedMessage && (
+        <Modal
+          visible={showMessageOptions}
+          transparent
+          animationType="slide"
+          onRequestClose={() => {
+            setShowMessageOptions(false);
+            setSelectedMessage(null);
+            setMessagePosition(undefined);
+            setShowEmojiPicker(false); // Reset emoji picker state
+          }}
+        >
+          <TouchableOpacity
+            style={styles.unifiedModalBackdrop}
+            activeOpacity={1}
+            onPress={() => {
+              setShowMessageOptions(false);
+              setSelectedMessage(null);
+              setMessagePosition(undefined);
+              setShowEmojiPicker(false); // Reset emoji picker state
+            }}
+          >
+            <View style={styles.unifiedActionSheet} onStartShouldSetResponder={() => true}>
+              <View style={styles.unifiedSheetHandle} />
+              
+              {/* Message preview section */}
+              <View style={styles.unifiedMessagePreview}>
+                <View style={styles.unifiedMessagePreviewContent}>
+                  <View style={styles.unifiedMessagePreviewHeader}>
+                    <VerifiedAvatar
+                      publicId={selectedMessage.sender?.profilePicturePublicId}
+                      fallbackUrl={selectedMessage.sender?.profilePicture}
+                      size={32}
+                      isVerify={selectedMessage.sender?.isVerify || false}
+                      style={styles.unifiedMessagePreviewAvatar}
+                    />
+                    <View style={styles.unifiedMessagePreviewInfo}>
+                      <Text style={styles.unifiedMessagePreviewName}>
+                        {selectedMessage.sender?.name || selectedMessage.sender?.username || 'Unknown'}
+                      </Text>
+                      <Text style={styles.unifiedMessagePreviewTime}>
+                        {formatTime(selectedMessage.createdAt)}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text 
+                    style={styles.unifiedMessagePreviewText}
+                    numberOfLines={3}
+                  >
+                    {selectedMessage.content.startsWith('POLL:') 
+                      ? '📊 Poll' 
+                      : selectedMessage.content.startsWith('CONTACT:')
+                      ? '👤 Contact'
+                      : selectedMessage.messageType === 'IMAGE'
+                      ? '📷 Photo'
+                      : selectedMessage.messageType === 'AUDIO'
+                      ? '🎤 Audio'
+                      : selectedMessage.content.startsWith('GearConnect:')
+                      ? selectedMessage.content.replace('GearConnect:', '')
+                      : selectedMessage.content}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Divider */}
+              <View style={styles.unifiedDivider} />
+              
+              {/* Reactions section - integrated at top */}
+              <View style={styles.unifiedReactionsSection}>
+                <Text style={styles.unifiedSectionTitle}>React</Text>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.unifiedReactionsRow}
+                >
+                  {['👍', '❤️', '😂', '😮', '😢', '🙏', '😭', '🔥', '💯', '👏', '🎉', '✨', '💪', '🤔', '😍', '😴', '🤮', '😡', '🤝', '🙌'].map((emoji, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.unifiedReactionButton}
+                      onPress={async () => {
+                        await handleToggleReaction(selectedMessage.id, emoji);
+                        setShowMessageOptions(false);
+                        setSelectedMessage(null);
+                        setMessagePosition(undefined);
+                        setShowEmojiPicker(false);
+                      }}
+                      activeOpacity={0.6}
+                    >
+                      <Text style={styles.unifiedReactionEmoji}>{emoji}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity
+                    style={styles.unifiedReactionButton}
+                    onPress={() => {
+                      setShowEmojiPicker(!showEmojiPicker);
+                    }}
+                    activeOpacity={0.6}
+                  >
+                    <View style={[styles.unifiedAddReactionButton, showEmojiPicker && styles.unifiedAddReactionButtonActive]}>
+                      <FontAwesome name="plus" size={16} color="#8E8E93" />
+                    </View>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+
+              {/* Emoji Picker - Expandable section */}
+              {showEmojiPicker && (
+                <View style={styles.emojiPickerContainer}>
+                  <ScrollView 
+                    style={styles.emojiPickerGrid}
+                    contentContainerStyle={styles.emojiPickerGridContent}
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {allEmojis.map((emoji, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.emojiPickerItem}
+                        onPress={async () => {
+                          await handleToggleReaction(selectedMessage.id, emoji);
+                          setShowEmojiPicker(false);
+                          setShowMessageOptions(false);
+                          setSelectedMessage(null);
+                          setMessagePosition(undefined);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.emojiPickerEmoji}>{emoji}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Divider */}
+              <View style={styles.unifiedDivider} />
+
+              {/* Actions section */}
+              <View style={styles.unifiedActionsSection}>
+                <TouchableOpacity
+                  style={styles.unifiedActionRow}
+                  onPress={() => {
+                    handleReply();
+                    setShowMessageOptions(false);
+                    setSelectedMessage(null);
+                    setMessagePosition(undefined);
+                    setShowEmojiPicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <FontAwesome name="reply" size={22} color="#000000" />
+                  <Text style={styles.unifiedActionLabel}>Reply</Text>
+                </TouchableOpacity>
+
+                {selectedMessage.isOwn && (
+                  <>
+                    <TouchableOpacity
+                      style={styles.unifiedActionRow}
+                      onPress={() => {
+                        handleEditMessage();
+                        setShowMessageOptions(false);
+                        setSelectedMessage(null);
+                        setMessagePosition(undefined);
+                        setShowEmojiPicker(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <FontAwesome name="edit" size={22} color="#000000" />
+                      <Text style={styles.unifiedActionLabel}>Edit</Text>
+                    </TouchableOpacity>
+                    
+                    <View style={styles.unifiedDivider} />
+                    
+                    <TouchableOpacity
+                      style={styles.unifiedActionRow}
+                      onPress={() => {
+                        handleDeleteMessage();
+                        setShowMessageOptions(false);
+                        setSelectedMessage(null);
+                        setMessagePosition(undefined);
+                        setShowEmojiPicker(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <FontAwesome name="trash" size={22} color="#FF3B30" />
+                      <Text style={[styles.unifiedActionLabel, styles.unifiedActionLabelDanger]}>Delete</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
 
       {/* Call Menu Contextual */}
       {showCallMenu && (

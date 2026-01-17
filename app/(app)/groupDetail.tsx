@@ -28,6 +28,8 @@ import VoiceRecorder from '../src/components/messaging/VoiceRecorder';
 import AudioMessagePlayer from '../src/components/messaging/AudioMessagePlayer';
 import MediaCarousel from '../src/components/messaging/MediaCarousel';
 import ContactCard, { ContactData } from '../src/components/messaging/ContactCard';
+import PollCard, { PollWithVotes } from '../src/components/messaging/PollCard';
+import { PollData } from '../src/components/messaging/PollCreator';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -721,6 +723,43 @@ export default function GroupDetailScreen() {
                   );
                 }
               })()
+            ) : item.content.startsWith('POLL:') ? (
+              // Parse poll data
+              (() => {
+                try {
+                  const pollJson = item.content.replace('POLL:', '');
+                  const pollData: PollData = JSON.parse(pollJson);
+                  const pollWithVotes: PollWithVotes = {
+                    ...pollData,
+                    messageId: item.id,
+                    userVotes: [], // TODO: Get from backend
+                    votes: [], // TODO: Get from backend
+                    totalVotes: 0,
+                  };
+                  return (
+                    <PollCard
+                      poll={pollWithVotes}
+                      isOwn={isOwn}
+                      currentUserId={currentUserId}
+                      currentUserName={user?.name}
+                      currentUserAvatar={user?.profilePicture || user?.photoURL}
+                      currentUserAvatarPublicId={user?.profilePicturePublicId}
+                      currentUserIsVerify={user?.isVerify}
+                      onVote={async (optionId: string) => {
+                        // TODO: Implement vote API call
+                        console.log('Vote for option:', optionId, 'in poll:', item.id);
+                      }}
+                    />
+                  );
+                } catch (e) {
+                  // Fallback to text if parsing fails
+                  return (
+                    <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                      {item.content}
+                    </Text>
+                  );
+                }
+              })()
             ) : (
               <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
                 {item.content}
@@ -971,7 +1010,7 @@ export default function GroupDetailScreen() {
             <FontAwesome name="plus" size={20} color={theme.colors.text.secondary} />
             </TouchableOpacity>
           
-          {/* Text Input or Voice Recorder (WhatsApp style) */}
+          {/* Text Input or Voice Recorder */}
           {!isRecordingVoice ? (
             <>
               <TextInput
@@ -1387,9 +1426,32 @@ export default function GroupDetailScreen() {
           // TODO: Implement document
           console.log('Document');
         }}
-        onPollSelected={() => {
-          // TODO: Implement poll
-          console.log('Poll');
+        onPollSelected={async (poll: PollData) => {
+          if (!currentUserId || !group?.conversationId) return;
+          
+          try {
+            setSending(true);
+            const groupIdNum = parseInt(groupId);
+            
+            // Send poll as JSON with special prefix to identify it
+            const pollMessage = `POLL:${JSON.stringify(poll)}`;
+            
+            await groupService.sendGroupMessage(
+              groupIdNum,
+              pollMessage,
+              currentUserId,
+              'TEXT',
+              replyingTo?.id
+            );
+            
+            // Reload messages
+            await loadMessages();
+          } catch (error: any) {
+            console.error('Error sending poll:', error);
+            Alert.alert('Error', error.response?.data?.error || 'Failed to send poll');
+          } finally {
+            setSending(false);
+          }
         }}
         onEventSelected={() => {
           // TODO: Implement event

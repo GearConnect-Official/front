@@ -192,6 +192,308 @@ const styles = StyleSheet.create({
     marginVertical: 2,
     animation: 'fadeOut 1s ease-out',
   },
+  highlightedMessageBubble: {
+    borderWidth: 3,
+    borderColor: 'rgba(225, 6, 0, 0.8)',
+    // Mise en avant avec une ombre pour le contraste avec le fond opaque
+    shadowColor: '#E10600',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
+  },
+  messageElevated: {
+    zIndex: 1000,
+  },
+  reactionsBarContainer: {
+    position: 'absolute',
+    top: -50,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 1001,
+  },
+  reactionsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.grey[800],
+    borderRadius: 25,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 4,
+    minWidth: 280,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  reactionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  reactionEmoji: {
+    fontSize: 24,
+  },
+  addReactionButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: theme.colors.grey[600],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  optionsMenuContainer: {
+    position: 'absolute',
+    top: '50%',
+    zIndex: 1001,
+  },
+  optionsMenuRight: {
+    right: -190,
+  },
+  optionsMenuLeft: {
+    left: -190,
+  },
+  optionsMenu: {
+    backgroundColor: theme.colors.background.paper,
+    borderRadius: 8,
+    paddingVertical: 4,
+    minWidth: 150,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  optionText: {
+    fontSize: 15,
+    color: theme.colors.text.primary,
+    fontWeight: '500',
+  },
+  deleteOption: {
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border.light,
+    marginTop: 4,
+    paddingTop: 12,
+  },
+  deleteText: {
+    color: theme.colors.status.error,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  // Unified Message Options Modal - New Logic and Layout
+  unifiedModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  unifiedActionSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: theme.spacing.xl + 40,
+    maxHeight: '75%',
+  },
+  unifiedSheetHandle: {
+    width: 36,
+    height: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  unifiedMessagePreview: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
+  },
+  unifiedMessagePreviewContent: {
+    backgroundColor: '#F5F5F7',
+    borderRadius: 12,
+    padding: theme.spacing.md,
+  },
+  unifiedMessagePreviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  unifiedMessagePreviewAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: theme.spacing.sm,
+  },
+  unifiedMessagePreviewInfo: {
+    flex: 1,
+  },
+  unifiedMessagePreviewName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 2,
+  },
+  unifiedMessagePreviewTime: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  unifiedMessagePreviewText: {
+    fontSize: 15,
+    color: '#000000',
+    lineHeight: 20,
+  },
+  unifiedReactionsSection: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
+  },
+  unifiedSectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: theme.spacing.md,
+  },
+  unifiedReactionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xs,
+    gap: 8,
+  },
+  unifiedReactionButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F7',
+  },
+  unifiedReactionEmoji: {
+    fontSize: 28,
+  },
+  unifiedAddReactionButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F5F5F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E5E5EA',
+    borderStyle: 'dashed',
+  },
+  unifiedDivider: {
+    height: 1,
+    backgroundColor: '#E5E5EA',
+    marginHorizontal: theme.spacing.lg,
+    marginVertical: theme.spacing.xs,
+  },
+  unifiedActionsSection: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.sm,
+  },
+  unifiedActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.md + 4,
+    paddingHorizontal: theme.spacing.sm,
+  },
+  unifiedActionLabel: {
+    fontSize: 17,
+    color: '#000000',
+    fontWeight: '400',
+    marginLeft: theme.spacing.md + 4,
+    flex: 1,
+  },
+  unifiedActionLabelDanger: {
+    color: '#FF3B30',
+  },
+  // Emoji Picker Styles
+  emojiPickerContainer: {
+    maxHeight: 300,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+    marginTop: theme.spacing.sm,
+    backgroundColor: '#FAFAFA',
+  },
+  emojiPickerGrid: {
+    maxHeight: 280,
+  },
+  emojiPickerGridContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: theme.spacing.sm,
+    justifyContent: 'flex-start',
+  },
+  emojiPickerItem: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    margin: 2,
+  },
+  emojiPickerEmoji: {
+    fontSize: 28,
+  },
+  unifiedAddReactionButtonActive: {
+    backgroundColor: '#E5E5EA',
+    borderColor: '#8E8E93',
+    borderStyle: 'solid',
+  },
+  reactionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  reactionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.grey[200],
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.grey[300],
+  },
+  reactionChipActive: {
+    backgroundColor: theme.colors.primary.light + '20',
+    borderColor: theme.colors.primary.main,
+  },
+  ownReactionChip: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  reactionChipEmoji: {
+    fontSize: 14,
+  },
+  reactionChipCount: {
+    fontSize: 12,
+    color: theme.colors.text.primary,
+    fontWeight: '500',
+  },
+  ownReactionChipCount: {
+    color: '#FFFFFF',
+  },
   ownMessageContainer: {
     justifyContent: 'flex-start', // Own messages on the left
     flexDirection: 'row',
@@ -265,9 +567,22 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingTop: 2,
   },
+  messageTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  editedIndicator: {
+    fontSize: 11,
+    color: theme.colors.text.secondary,
+    fontStyle: 'italic',
+  },
+  ownEditedIndicator: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
   otherMessageBubble: {
     backgroundColor: theme.colors.background.paper,
-    // WhatsApp-style bubble shape: rounded corners with tail pointing to avatar
+    // Bubble shape: rounded corners with tail pointing to avatar
     // For messages on the right, tail points to right avatar (bottom-right corner)
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
@@ -277,7 +592,7 @@ const styles = StyleSheet.create({
   },
   ownMessageBubble: {
     backgroundColor: '#E10600', // Rouge racing de l'app
-    // WhatsApp-style bubble shape: rounded corners with tail pointing to avatar
+    // Bubble shape: rounded corners with tail pointing to avatar
     // For messages on the left, tail points to left avatar (bottom-left corner)
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
@@ -377,6 +692,14 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  cancelEditButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
   // Reply preview styles (in input area)
   replyPreviewContainer: {

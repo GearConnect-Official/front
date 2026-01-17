@@ -38,8 +38,8 @@ const PollCreator: React.FC<PollCreatorProps> = ({ visible, onSend, onCancel, in
   const [question, setQuestion] = useState(initialData?.question || '');
   const [options, setOptions] = useState<PollOption[]>(
     initialData?.options || [
-      { id: '1', text: '' },
-      { id: '2', text: '' },
+    { id: '1', text: '' },
+    { id: '2', text: '' },
     ]
   );
   const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(initialData?.allowMultipleAnswers || false);

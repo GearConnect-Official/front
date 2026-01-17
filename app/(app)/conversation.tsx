@@ -31,6 +31,8 @@ import MediaCarousel from '../src/components/messaging/MediaCarousel';
 import ContactCard, { ContactData } from '../src/components/messaging/ContactCard';
 import PollCard, { PollWithVotes } from '../src/components/messaging/PollCard';
 import PollCreator, { PollData } from '../src/components/messaging/PollCreator';
+import DocumentCard, { DocumentData } from '../src/components/messaging/DocumentCard';
+import * as DocumentPicker from 'expo-document-picker';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -287,19 +289,19 @@ export default function ConversationScreen() {
             currentUserId
           );
           // Update local state with the updated message
-          setMessages(prev => prev.map(msg => 
-            msg.id === editingMessage.id 
+        setMessages(prev => prev.map(msg => 
+          msg.id === editingMessage.id 
               ? { 
                   ...updatedMessage, 
                   isOwn: updatedMessage.sender.id === currentUserId,
                   isEdited: true 
                 }
-              : msg
-          ));
-          setNewMessage('');
-          setEditingMessage(null);
-          setSelectedMessage(null);
-          setShowMessageOptions(false);
+            : msg
+        ));
+        setNewMessage('');
+        setEditingMessage(null);
+        setSelectedMessage(null);
+        setShowMessageOptions(false);
           setShowEmojiPicker(false);
         } catch (error: any) {
           console.error('Error updating message:', error);
@@ -969,12 +971,59 @@ export default function ConversationScreen() {
                 );
               }
             })()
+          ) : item.content.startsWith('DOCUMENT:') || item.messageType === 'FILE' ? (
+            // Parse document data
+            (() => {
+              try {
+                let documentData: DocumentData;
+                if (item.content.startsWith('DOCUMENT:')) {
+                  const documentJson = item.content.replace('DOCUMENT:', '');
+                  documentData = JSON.parse(documentJson);
+                  // Ensure all required fields are present
+                  if (!documentData.name) {
+                    documentData.name = documentData.secureUrl?.split('/').pop() || 'document';
+                  }
+                  if (!documentData.secureUrl && documentData.uri) {
+                    documentData.secureUrl = documentData.uri;
+                  }
+                  if (!documentData.uri && documentData.secureUrl) {
+                    documentData.uri = documentData.secureUrl;
+                  }
+                } else {
+                  // Fallback: create document from content URL
+                  const fileName = item.content.split('/').pop() || 'document';
+                  documentData = {
+                    name: fileName,
+                    uri: item.content,
+                    secureUrl: item.content,
+                  };
+                }
+                return (
+                  <Pressable
+                    onLongPress={(event) => handleLongPressMessage(item, event)}
+                    style={selectedMessage?.id === item.id && styles.highlightedMessageBubble}
+                  >
+                    <DocumentCard
+                      document={documentData}
+                      isOwn={isOwn}
+                    />
+                  </Pressable>
+                );
+              } catch (e) {
+                // Fallback to text if parsing fails
+                return (
+                  <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                    {item.content}
+                  </Text>
+                );
+              }
+            })()
           ) : (
             <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
               {item.content}
             </Text>
           )}
-
+          
           {/* Reactions display */}
           {item.reactions && item.reactions.length > 0 && (
             <View style={styles.reactionsContainer}>
@@ -1449,9 +1498,116 @@ export default function ConversationScreen() {
             setSending(false);
           }
         }}
-        onDocumentSelected={() => {
-          // TODO: Implement document
-          console.log('Document');
+        onDocumentSelected={async () => {
+          if (!currentUserId || !conversationId) return;
+          
+          try {
+            // Open native document picker directly
+            const result = await DocumentPicker.getDocumentAsync({
+              type: '*/*',
+              copyToCacheDirectory: true,
+              multiple: false,
+            });
+
+            if (result.canceled) {
+              return;
+            }
+
+            const document = result.assets[0];
+            
+            if (!document.uri) {
+              Alert.alert('Error', 'Failed to access document');
+              return;
+            }
+
+            // Security validation
+            const { validateFileSafety } = await import('../src/utils/fileSecurity');
+            const validation = validateFileSafety(document.name || 'document', document.mimeType);
+            
+            if (!validation.isValid) {
+              Alert.alert(
+                'Security Error',
+                validation.error || 'This file type is not allowed for security reasons.',
+                [{ text: 'OK' }]
+              );
+              return;
+            }
+
+            // Verify file exists and has content before uploading (same checks as download)
+            const FileSystem = await import('expo-file-system/legacy');
+            const fileInfo = await FileSystem.getInfoAsync(document.uri);
+            
+            if (!fileInfo.exists) {
+              Alert.alert('Error', 'File does not exist at the provided location');
+              return;
+            }
+            
+            if (!fileInfo.size || fileInfo.size === 0) {
+              Alert.alert('Error', 'File is empty (0 bytes). Please select a valid file.');
+              return;
+            }
+            
+            // Verify file size matches what DocumentPicker reported
+            if (document.size && fileInfo.size !== document.size) {
+              console.warn(`File size mismatch: DocumentPicker reported ${document.size}, FileSystem reports ${fileInfo.size}`);
+            }
+            
+            console.log('📄 Document file info:', {
+              uri: document.uri,
+              name: document.name,
+              size: fileInfo.size,
+              reportedSize: document.size,
+              mimeType: document.mimeType,
+            });
+
+            setSending(true);
+            const conversationIdNum = parseInt(conversationId);
+            
+            // Upload document to Cloudinary
+            const { cloudinaryService } = await import('../src/services/cloudinary.service');
+            
+            // Clean filename for Cloudinary public_id (remove special chars, keep extension)
+            const originalName = document.name || 'document';
+            const nameParts = originalName.split('.');
+            const extension = nameParts.pop() || '';
+            const baseName = nameParts.join('.').replace(/[^a-zA-Z0-9._-]/g, '_') || 'document';
+            const cleanPublicId = `${baseName}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            
+            const uploadResult = await cloudinaryService.uploadMedia(document.uri, {
+              folder: 'messages/documents',
+              tags: ['message', 'document'],
+              resource_type: 'raw', // Use 'raw' for documents
+              public_id: cleanPublicId, // Use cleaned original filename
+            });
+
+            // Create document data
+            const documentData: DocumentData = {
+              name: document.name || 'document',
+              uri: document.uri,
+              secureUrl: uploadResult.secure_url,
+              publicId: uploadResult.public_id,
+              mimeType: document.mimeType,
+              size: document.size,
+            };
+
+            // Send message with document
+            const documentMessage = `DOCUMENT:${JSON.stringify(documentData)}`;
+            await chatService.sendMessage(
+              conversationIdNum,
+              documentMessage,
+              currentUserId,
+              'FILE',
+              replyingTo?.id
+            );
+            
+            // Reload messages
+            await loadMessages();
+          } catch (error: any) {
+            console.error('Error sending document:', error);
+            Alert.alert('Error', error.response?.data?.error || error.message || 'Failed to send document');
+          } finally {
+            setSending(false);
+          }
         }}
         onPollSelected={async (poll: PollData) => {
           if (!currentUserId) return;

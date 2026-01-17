@@ -29,7 +29,9 @@ import AudioMessagePlayer from '../src/components/messaging/AudioMessagePlayer';
 import MediaCarousel from '../src/components/messaging/MediaCarousel';
 import ContactCard, { ContactData } from '../src/components/messaging/ContactCard';
 import PollCard, { PollWithVotes } from '../src/components/messaging/PollCard';
-import { PollData } from '../src/components/messaging/PollCreator';
+import PollCreator, { PollData } from '../src/components/messaging/PollCreator';
+import DocumentCard, { DocumentData } from '../src/components/messaging/DocumentCard';
+import * as DocumentPicker from 'expo-document-picker';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -59,6 +61,9 @@ export default function GroupDetailScreen() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [addingMembers, setAddingMembers] = useState(false);
   const [removingMember, setRemovingMember] = useState<number | null>(null);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [editingPoll, setEditingPoll] = useState<PollData | null>(null);
+  const [showPollCreator, setShowPollCreator] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const messageRefs = useRef<{ [key: number]: View | null }>({});
   const router = useRouter();
@@ -67,6 +72,20 @@ export default function GroupDetailScreen() {
   
   const groupId = params.groupId as string;
   const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+
+  // Handle edit poll from gear icon
+  const handleEditPoll = (message: Message) => {
+    try {
+      const pollJson = message.content.replace('POLL:', '');
+      const pollData: PollData = JSON.parse(pollJson);
+      setEditingPoll(pollData);
+      setEditingMessage(message); // Set editingMessage so updateMessage is called instead of sendMessage
+      setShowPollCreator(true);
+    } catch (e) {
+      console.error('Error parsing poll for edit:', e);
+      Alert.alert('Error', 'Failed to load poll data');
+    }
+  };
 
   // Load group details
   const loadGroupDetails = useCallback(async () => {
@@ -749,6 +768,32 @@ export default function GroupDetailScreen() {
                         // TODO: Implement vote API call
                         console.log('Vote for option:', optionId, 'in poll:', item.id);
                       }}
+                      onEdit={isOwn ? () => handleEditPoll(item) : undefined}
+                      onDelete={isOwn ? () => {
+                        // TODO: Implement delete message
+                        console.log('Delete poll:', item.id);
+                      } : undefined}
+                    />
+                  );
+                } catch (e) {
+                  // Fallback to text if parsing fails
+                  return (
+                    <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                      {item.content}
+                    </Text>
+                  );
+                }
+              })()
+            ) : item.content.startsWith('DOCUMENT:') ? (
+              // Parse document data
+              (() => {
+                try {
+                  const documentJson = item.content.replace('DOCUMENT:', '');
+                  const documentData: DocumentData = JSON.parse(documentJson);
+                  return (
+                    <DocumentCard
+                      document={documentData}
+                      isOwn={isOwn}
                     />
                   );
                 } catch (e) {
@@ -1422,9 +1467,116 @@ export default function GroupDetailScreen() {
             setSending(false);
           }
         }}
-        onDocumentSelected={() => {
-          // TODO: Implement document
-          console.log('Document');
+        onDocumentSelected={async () => {
+          if (!currentUserId || !group?.conversationId) return;
+          
+          try {
+            // Open native document picker directly
+            const result = await DocumentPicker.getDocumentAsync({
+              type: '*/*',
+              copyToCacheDirectory: true,
+              multiple: false,
+            });
+
+            if (result.canceled) {
+              return;
+            }
+
+            const document = result.assets[0];
+            
+            if (!document.uri) {
+              Alert.alert('Error', 'Failed to access document');
+              return;
+            }
+
+            // Security validation
+            const { validateFileSafety } = await import('../src/utils/fileSecurity');
+            const validation = validateFileSafety(document.name || 'document', document.mimeType);
+            
+            if (!validation.isValid) {
+              Alert.alert(
+                'Security Error',
+                validation.error || 'This file type is not allowed for security reasons.',
+                [{ text: 'OK' }]
+              );
+              return;
+            }
+
+            // Verify file exists and has content before uploading (same checks as download)
+            const FileSystem = await import('expo-file-system/legacy');
+            const fileInfo = await FileSystem.getInfoAsync(document.uri);
+            
+            if (!fileInfo.exists) {
+              Alert.alert('Error', 'File does not exist at the provided location');
+              return;
+            }
+            
+            if (!fileInfo.size || fileInfo.size === 0) {
+              Alert.alert('Error', 'File is empty (0 bytes). Please select a valid file.');
+              return;
+            }
+            
+            // Verify file size matches what DocumentPicker reported
+            if (document.size && fileInfo.size !== document.size) {
+              console.warn(`File size mismatch: DocumentPicker reported ${document.size}, FileSystem reports ${fileInfo.size}`);
+            }
+            
+            console.log('📄 Document file info:', {
+              uri: document.uri,
+              name: document.name,
+              size: fileInfo.size,
+              reportedSize: document.size,
+              mimeType: document.mimeType,
+            });
+
+            setSending(true);
+            const groupIdNum = parseInt(groupId);
+            
+            // Upload document to Cloudinary
+            const { cloudinaryService } = await import('../src/services/cloudinary.service');
+            
+            // Clean filename for Cloudinary public_id (remove special chars, keep extension)
+            const originalName = document.name || 'document';
+            const nameParts = originalName.split('.');
+            const extension = nameParts.pop() || '';
+            const baseName = nameParts.join('.').replace(/[^a-zA-Z0-9._-]/g, '_') || 'document';
+            const cleanPublicId = `${baseName}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            
+            const uploadResult = await cloudinaryService.uploadMedia(document.uri, {
+              folder: 'messages/documents',
+              tags: ['message', 'document'],
+              resource_type: 'raw', // Use 'raw' for documents
+              public_id: cleanPublicId, // Use cleaned original filename
+            });
+
+            // Create document data
+            const documentData: DocumentData = {
+              name: document.name || 'document',
+              uri: document.uri,
+              secureUrl: uploadResult.secure_url,
+              publicId: uploadResult.public_id,
+              mimeType: document.mimeType,
+              size: document.size,
+            };
+
+            // Send message with document
+            const documentMessage = `DOCUMENT:${JSON.stringify(documentData)}`;
+            await groupService.sendGroupMessage(
+              groupIdNum,
+              documentMessage,
+              currentUserId,
+              'FILE',
+              replyingTo?.id
+            );
+            
+            // Reload messages
+            await loadMessages();
+          } catch (error: any) {
+            console.error('Error sending document:', error);
+            Alert.alert('Error', error.response?.data?.error || error.message || 'Failed to send document');
+          } finally {
+            setSending(false);
+          }
         }}
         onPollSelected={async (poll: PollData) => {
           if (!currentUserId || !group?.conversationId) return;
@@ -1457,6 +1609,67 @@ export default function GroupDetailScreen() {
           // TODO: Implement event
           console.log('Event');
         }}
+      />
+
+      {/* Poll Creator for editing */}
+      <PollCreator
+        visible={showPollCreator}
+        onSend={async (poll: PollData) => {
+          if (!currentUserId || !group?.conversationId) return;
+          
+          try {
+            setSending(true);
+            const groupIdNum = parseInt(groupId);
+            
+            // If editing, we need to update the existing message
+            if (editingMessage && editingMessage.content.startsWith('POLL:')) {
+              const pollMessage = `POLL:${JSON.stringify(poll)}`;
+              const updatedMessage = await chatService.updateMessage(
+                editingMessage.id,
+                pollMessage,
+                currentUserId
+              );
+              // Update local state with the updated message
+              setMessages(prev => prev.map(msg => 
+                msg.id === editingMessage.id 
+                  ? { 
+                      ...updatedMessage, 
+                      isOwn: updatedMessage.sender.id === currentUserId,
+                      isEdited: true 
+                    }
+                  : msg
+              ));
+              setEditingMessage(null);
+              setEditingPoll(null);
+              setShowPollCreator(false);
+            } else {
+              // Send as new poll (shouldn't happen in edit mode, but just in case)
+              const pollMessage = `POLL:${JSON.stringify(poll)}`;
+              await groupService.sendGroupMessage(
+                groupIdNum,
+                pollMessage,
+                currentUserId,
+                'TEXT',
+                replyingTo?.id
+              );
+              await loadMessages();
+            }
+          } catch (error: any) {
+            console.error('Error saving poll:', error);
+            Alert.alert('Error', error.response?.data?.error || 'Failed to save poll');
+          } finally {
+            setSending(false);
+            setShowPollCreator(false);
+            setEditingPoll(null);
+            setEditingMessage(null);
+          }
+        }}
+        onCancel={() => {
+          setShowPollCreator(false);
+          setEditingPoll(null);
+          setEditingMessage(null);
+        }}
+        initialData={editingPoll || undefined}
       />
 
       {/* Call Menu Contextual */}

@@ -268,11 +268,11 @@ export default function MessagesScreen() {
         renderRightActions={(progress) => renderRightActions(item, progress)}
         overshootRight={false}
       >
-        <TouchableOpacity
-          style={styles.conversationItem}
-          onPress={() => openConversation(item)}
-          activeOpacity={0.7}
-        >
+      <TouchableOpacity
+        style={styles.conversationItem}
+        onPress={() => openConversation(item)}
+        activeOpacity={0.7}
+      >
         <View style={styles.avatarContainer}>
           {conversationImage ? (
             <Image source={{ uri: conversationImage }} style={styles.avatar} />
@@ -303,7 +303,7 @@ export default function MessagesScreen() {
               {conversationName}
               {item.isFavorite && (
                 <>
-                  <Text> </Text>
+                <Text> </Text>
                   <FontAwesome name="star" size={14} color="#FFA500" />
                 </>
               )}
@@ -328,7 +328,7 @@ export default function MessagesScreen() {
             </Text>
           </View>
         </View>
-        </TouchableOpacity>
+      </TouchableOpacity>
       </Swipeable>
     );
   };

@@ -265,6 +265,7 @@ const groupService = {
     groupId: number,
     content: string,
     userId?: number,
+    messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO' = 'TEXT',
     replyToId?: number
   ): Promise<any> => {
     const endpoint = `${API_BASE_URL}/groups/${groupId}/messages`;
@@ -272,6 +273,7 @@ const groupService = {
       const response = await axios.post(endpoint, {
         content,
         userId,
+        messageType,
         replyToId,
       });
       return response.data;

@@ -35,14 +35,14 @@ const PostHeader: React.FC<PostHeaderProps> = ({
         activeOpacity={0.8}
       >
         <VerifiedAvatar
-          publicId={profilePicturePublicId}
+            publicId={profilePicturePublicId}
           fallbackUrl={avatar || defaultImages.profile}
-          size={32}
+            size={32}
           isVerify={isVerify}
-          quality="auto"
-          format="auto"
-          style={styles.avatar}
-        />
+            quality="auto"
+            format="auto"
+            style={styles.avatar} 
+          />
         <UsernameWithTag
           username={username}
           userId={userId}

@@ -436,8 +436,9 @@ const GroupChannelScreen: React.FC = () => {
           data={messages}
           renderItem={renderMessage}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.messagesList}
-          showsVerticalScrollIndicator={false}
+          style={styles.messagesList}
+          contentContainerStyle={styles.messagesListContent}
+          showsVerticalScrollIndicator={true}
           onContentSizeChange={() => scrollToBottom()}
         />
 

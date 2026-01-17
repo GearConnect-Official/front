@@ -12,6 +12,7 @@ import {
   Alert,
   Pressable,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -22,6 +23,10 @@ import chatService, { Message as ApiMessage } from '../src/services/chatService'
 import { useAuth } from '../src/context/AuthContext';
 import { CloudinaryAvatar } from '../src/components/media/CloudinaryImage';
 import groupService, { GroupDetails } from '../src/services/groupService';
+import AttachmentMenu, { SelectedMedia } from '../src/components/messaging/AttachmentMenu';
+import VoiceRecorder from '../src/components/messaging/VoiceRecorder';
+import AudioMessagePlayer from '../src/components/messaging/AudioMessagePlayer';
+import MediaCarousel from '../src/components/messaging/MediaCarousel';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -40,6 +45,11 @@ export default function GroupDetailScreen() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCallMenu, setShowCallMenu] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [audioDurations, setAudioDurations] = useState<{ [key: number]: number }>({});
+  const [audioPositions, setAudioPositions] = useState<{ [key: number]: number }>({});
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+  const [hasScrolledInitially, setHasScrolledInitially] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [showAddMembers, setShowAddMembers] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,14 +126,30 @@ export default function GroupDetailScreen() {
     }
   }, [group, currentUserId, loadMessages]);
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom when new messages arrive (only if already at bottom)
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && flatListRef.current && isScrolledToBottom) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
-  }, [messages]);
+  }, [messages, isScrolledToBottom]);
+  
+  // Initial scroll to bottom on mount and when messages are loaded
+  useEffect(() => {
+    if (messages.length > 0 && flatListRef.current && !loading && !hasScrolledInitially) {
+      // Use a longer timeout to ensure FlatList is fully rendered
+      const timeoutId = setTimeout(() => {
+        if (flatListRef.current) {
+          flatListRef.current.scrollToEnd({ animated: false });
+          setIsScrolledToBottom(true);
+          setHasScrolledInitially(true);
+        }
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, loading, hasScrolledInitially]);
 
   // Send a message
   const sendMessage = async () => {
@@ -143,6 +169,7 @@ export default function GroupDetailScreen() {
         groupIdNum,
         messageContent,
         currentUserId,
+        'TEXT',
         replyingTo?.id
       );
 
@@ -154,6 +181,12 @@ export default function GroupDetailScreen() {
         setMessages(prev => [...prev, newMsg]);
         setNewMessage('');
         setReplyingTo(null);
+        
+        // Scroll to bottom after sending
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+          setIsScrolledToBottom(true);
+        }, 100);
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -201,6 +234,13 @@ export default function GroupDetailScreen() {
       minute: '2-digit',
       hour12: true
     });
+  };
+
+  // Format audio duration (e.g., "0:10", "1:23")
+  const formatAudioDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Create invite
@@ -492,14 +532,192 @@ export default function GroupDetailScreen() {
             <Text style={[styles.senderName, isOwn && styles.ownSenderName]}>
               {item.sender?.name || item.sender?.username || 'Unknown User'}
             </Text>
-            <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
-              {item.content}
-            </Text>
+            
+            {/* Render audio player if message type is AUDIO */}
+            {item.messageType === 'AUDIO' ? (
+              <AudioMessagePlayer
+                audioUrl={item.content}
+                isOwn={isOwn}
+                onDurationLoaded={(duration) => {
+                  setAudioDurations(prev => ({ ...prev, [item.id]: duration }));
+                }}
+                onPositionUpdate={(position) => {
+                  setAudioPositions(prev => ({ ...prev, [item.id]: position }));
+                }}
+              />
+            ) : item.messageType === 'IMAGE' ? (
+              // Parse media from content (could be JSON array, JSON with caption, or single URL)
+              (() => {
+                try {
+                  // Check if content has a caption (format: "caption\nJSON")
+                  const parts = item.content.split('\n');
+                  let mediaData;
+                  
+                  if (parts.length > 1) {
+                    // Has caption, JSON is after first newline
+                    const jsonPart = parts.slice(1).join('\n');
+                    try {
+                      mediaData = JSON.parse(jsonPart);
+                    } catch (e) {
+                    // If JSON parsing fails, try to treat jsonPart as a URL, otherwise fallback
+                    const possibleUri = jsonPart.trim();
+                    const singleUri = possibleUri.startsWith('http://') || possibleUri.startsWith('https://')
+                      ? possibleUri
+                      : item.content.trim();
+                    if (!singleUri || singleUri === 'null' || singleUri === '') {
+                      return (
+                        <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                          <Text>Media unavailable</Text>
+                        </View>
+                      );
+                    }
+                    
+                      return (
+                        <MediaCarousel
+                          media={[{
+                          uri: singleUri,
+                            type: 'image',
+                          secureUrl: singleUri,
+                          }]}
+                          isOwn={isOwn}
+                        />
+                      );
+                    }
+                  } else {
+                    // No caption, try to parse as JSON first
+                    try {
+                      mediaData = JSON.parse(item.content);
+                    } catch (e) {
+                    // Not JSON, treat as single URL (validate first)
+                    const singleUri = item.content.trim();
+                    if (!singleUri || singleUri === 'null' || singleUri === '') {
+                      return (
+                        <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                          <Text>Media unavailable</Text>
+                        </View>
+                      );
+                    }
+                    
+                      return (
+                        <MediaCarousel
+                          media={[{
+                          uri: singleUri,
+                            type: 'image',
+                          secureUrl: singleUri,
+                          }]}
+                          isOwn={isOwn}
+                        />
+                      );
+                    }
+                  }
+                  
+                  if (Array.isArray(mediaData)) {
+                    // Filter and validate media items
+                    const validMedia = mediaData
+                      .map((m: any) => {
+                        const secureUrl = m.secureUrl || (typeof m === 'string' ? m : '');
+                        const uri = secureUrl || m.uri || (typeof m === 'string' ? m : '');
+                        
+                        // Validate URI
+                        if (!uri || uri === 'null' || uri.trim() === '') {
+                          return null;
+                        }
+                        
+                        return {
+                          uri,
+                          type: m.type || 'image',
+                          secureUrl,
+                          publicId: m.publicId,
+                        };
+                      })
+                      .filter((m: any) => m !== null && (m.uri || m.secureUrl));
+                    
+                    // If no valid media, show placeholder
+                    if (validMedia.length === 0) {
+                      return (
+                        <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                          <Text>Media unavailable</Text>
+                        </View>
+                      );
+                    }
+                    
+                    return (
+                      <>
+                        {parts.length > 1 && (
+                          <Text style={[styles.messageText, isOwn && styles.ownMessageText, { marginBottom: 8 }]}>
+                            {parts[0]}
+                          </Text>
+                        )}
+                        <MediaCarousel
+                          media={validMedia}
+                          isOwn={isOwn}
+                        />
+                      </>
+                    );
+                  }
+                  
+                  // If parsed but not an array, treat as single URL (validate first)
+                  const singleUri = item.content.trim();
+                  if (!singleUri || singleUri === 'null' || singleUri === '') {
+                    return (
+                      <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                        <Text>Media unavailable</Text>
+                      </View>
+                    );
+                  }
+                  
+                  return (
+                    <MediaCarousel
+                      media={[{
+                        uri: singleUri,
+                        type: 'image',
+                        secureUrl: singleUri,
+                      }]}
+                      isOwn={isOwn}
+                    />
+                  );
+                } catch (e) {
+                  // Fallback: treat as single URL (validate first)
+                  const singleUri = item.content.trim();
+                  if (!singleUri || singleUri === 'null' || singleUri === '') {
+                    return (
+                      <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                        <Text>Media unavailable</Text>
+                      </View>
+                    );
+                  }
+                  
+                  return (
+                    <MediaCarousel
+                      media={[{
+                        uri: singleUri,
+                        type: 'image',
+                        secureUrl: singleUri,
+                      }]}
+                      isOwn={isOwn}
+                    />
+                  );
+                }
+              })()
+            ) : (
+              <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                {item.content}
+              </Text>
+            )}
+            
+            {/* Duration for audio messages (bottom left) and Timestamp (bottom right) */}
             <View style={styles.messageTimeContainer}>
+              {/* Audio duration on the left (current position if playing, else total duration) */}
+              {item.messageType === 'AUDIO' && audioDurations[item.id] && (
+                <Text style={[styles.messageTime, styles.audioDuration, isOwn && styles.ownMessageTime]}>
+                  {formatAudioDuration(audioPositions[item.id] ?? audioDurations[item.id])}
+                </Text>
+              )}
+              {/* Timestamp on the right */}
               <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
                 {formatTime(item.createdAt)}
-            </Text>
-          </View>
+              </Text>
+            </View>
           </Pressable>
         </View>
 
@@ -633,9 +851,34 @@ export default function GroupDetailScreen() {
           data={messages}
           renderItem={renderMessage}
             keyExtractor={(item) => item.id.toString()}
+          style={styles.messagesList}
           contentContainerStyle={styles.messagesContainer}
-            showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            showsVerticalScrollIndicator={true}
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            const paddingToBottom = 150; // Threshold in pixels (increased for better detection)
+            
+            // Calculate if we're at bottom
+            const scrollPosition = contentOffset.y + layoutMeasurement.height;
+            const contentHeight = contentSize.height;
+            const isAtBottom = scrollPosition >= contentHeight - paddingToBottom || contentHeight <= layoutMeasurement.height;
+            
+            setIsScrolledToBottom(isAtBottom);
+          }}
+          scrollEventThrottle={16}
+          onContentSizeChange={() => {
+            // Always scroll to bottom on content size change if we haven't scrolled initially
+            // or if user is already at bottom
+            if (!hasScrolledInitially) {
+              setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: false });
+                setIsScrolledToBottom(true);
+                setHasScrolledInitially(true);
+              }, 100);
+            } else if (isScrolledToBottom) {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
           onScrollToIndexFailed={(info) => {
             const wait = new Promise(resolve => setTimeout(resolve, 500));
             wait.then(() => {
@@ -648,7 +891,22 @@ export default function GroupDetailScreen() {
               <Text style={styles.emptyStateText}>No messages yet. Start the conversation!</Text>
             </View>
           }
-        />
+          inverted={false}
+          />
+      )}
+      
+      {/* Scroll to bottom button */}
+      {!loading && !isScrolledToBottom && (
+        <TouchableOpacity
+          style={styles.scrollToBottomButton}
+          onPress={() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+            setIsScrolledToBottom(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <FontAwesome name="chevron-down" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
       )}
 
       {/* Reply preview */}
@@ -660,7 +918,7 @@ export default function GroupDetailScreen() {
               <View style={styles.replyPreviewInfo}>
                 <Text style={styles.replyPreviewName}>
                   {replyingTo.sender?.name || replyingTo.sender?.username || 'Unknown User'}
-                </Text>
+          </Text>
                 <Text style={styles.replyPreviewMessage} numberOfLines={1}>
                   {replyingTo.content}
                 </Text>
@@ -672,63 +930,111 @@ export default function GroupDetailScreen() {
               activeOpacity={0.7}
             >
               <FontAwesome name="times" size={16} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
-          </View>
+        </TouchableOpacity>
+      </View>
         </View>
       )}
 
       {/* Input area */}
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
-          <TouchableOpacity 
+            <TouchableOpacity
             style={styles.attachButton}
             onPress={() => {
+              Keyboard.dismiss();
               setShowAttachmentMenu(true);
             }}
             activeOpacity={0.7}
-          >
+            >
             <FontAwesome name="plus" size={20} color={theme.colors.text.secondary} />
-          </TouchableOpacity>
+            </TouchableOpacity>
           
-          <TextInput
-            style={styles.textInput}
-            value={newMessage}
-            onChangeText={(text) => {
-              setNewMessage(text);
-              if (showAttachmentMenu) {
-                setShowAttachmentMenu(false);
-              }
-            }}
-            placeholder="Type your message..."
-            placeholderTextColor={theme.colors.text.secondary}
-            multiline
-            maxLength={500}
-          />
+          {/* Text Input or Voice Recorder (WhatsApp style) */}
+          {!isRecordingVoice ? (
+            <>
+              <TextInput
+                style={styles.textInput}
+                value={newMessage}
+                onChangeText={(text) => {
+                  setNewMessage(text);
+                  if (showAttachmentMenu) {
+                    setShowAttachmentMenu(false);
+                  }
+                }}
+                placeholder="Type your message..."
+                placeholderTextColor={theme.colors.text.secondary}
+                multiline
+                maxLength={500}
+              />
 
-          {newMessage.trim() ? (
-            <TouchableOpacity
-              style={[styles.sendButton, styles.sendButtonActive]}
-              onPress={sendMessage}
-              disabled={sending || loading}
-              activeOpacity={0.7}
-            >
-              {sending ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <FontAwesome name="send" size={16} color="white" />
+              {newMessage.trim() ? (
+                <TouchableOpacity
+                  style={[styles.sendButton, styles.sendButtonActive]}
+                  onPress={sendMessage}
+                  disabled={sending || loading}
+                  activeOpacity={0.7}
+                >
+                  {sending ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <FontAwesome name="send" size={16} color="white" />
+                  )}
+                </TouchableOpacity>
+      ) : (
+                <TouchableOpacity
+                  style={styles.microphoneButton}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setIsRecordingVoice(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <FontAwesome name="microphone" size={18} color={theme.colors.text.secondary} />
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            </>
           ) : (
-            <TouchableOpacity
-              style={styles.microphoneButton}
-              onPress={() => {
-                // TODO: Implement voice message recording
-                console.log('Microphone pressed');
+            <VoiceRecorder
+              onRecordingComplete={async (uri, duration) => {
+                if (!currentUserId || !group?.conversationId) return;
+                
+                setIsRecordingVoice(false);
+                
+                try {
+                  setSending(true);
+                  
+                  // Upload audio to Cloudinary
+                  const { cloudinaryService } = await import('../src/services/cloudinary.service');
+                  const uploadResult = await cloudinaryService.uploadMedia(uri, {
+                    folder: 'messages',
+                    tags: ['message', 'audio', 'group'],
+                    resource_type: 'auto',
+                  });
+
+                  // Send message with audio
+                  await groupService.sendGroupMessage(
+                    parseInt(groupId),
+                    currentUserId,
+                    uploadResult.secure_url,
+                    'AUDIO',
+                    replyingTo?.id
+                  );
+                  
+                  // Reload messages
+                  await loadMessages();
+                } catch (error: any) {
+                  console.error('Error sending voice message:', error);
+                  Alert.alert('Error', error.response?.data?.error || 'Failed to send voice message');
+                } finally {
+                  setSending(false);
+                }
               }}
-              activeOpacity={0.7}
-            >
-              <FontAwesome name="microphone" size={18} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
+              onCancel={() => {
+                setIsRecordingVoice(false);
+                console.log('Voice recording cancelled');
+              }}
+              disabled={sending || loading}
+          />
           )}
         </View>
           </View>
@@ -748,7 +1054,7 @@ export default function GroupDetailScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
           {/* Header */}
           <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
-                  <TouchableOpacity
+            <TouchableOpacity
               onPress={() => {
                 if (showAddMembers) {
                   setShowAddMembers(false);
@@ -758,17 +1064,17 @@ export default function GroupDetailScreen() {
                   setShowMembersModal(false);
                 }
               }}
-                  >
+              >
               <FontAwesome name={showAddMembers ? "arrow-left" : "times"} size={24} color="#6A707C" />
             </TouchableOpacity>
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 16, flex: 1 }}>
               {showAddMembers ? 'Add Members' : 'Members'}
                     </Text>
             {!showAddMembers && canManageMembers && (
-              <TouchableOpacity
+                  <TouchableOpacity
                 onPress={() => setShowAddMembers(true)}
                 style={{ padding: 8 }}
-              >
+                  >
                 <FontAwesome name="plus" size={20} color="#E10600" />
                   </TouchableOpacity>
             )}
@@ -936,141 +1242,73 @@ export default function GroupDetailScreen() {
       </Modal>
 
       {/* Attachment Menu */}
-      {showAttachmentMenu && (
-        <>
-          <TouchableOpacity
-            style={styles.attachmentMenuOverlay}
-            activeOpacity={1}
-            onPress={() => setShowAttachmentMenu(false)}
-          />
-          <View style={styles.attachmentMenu}>
-            {/* Keyboard button to close menu */}
-            <TouchableOpacity
-              style={styles.attachmentMenuKeyboardButton}
-              onPress={() => {
-                setShowAttachmentMenu(false);
-              }}
-              activeOpacity={0.7}
-            >
-              <FontAwesome name="keyboard-o" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-
-            {/* Attachment options grid */}
-            <View style={styles.attachmentGrid}>
-              {/* First row */}
-              <View style={styles.attachmentRow}>
-                <TouchableOpacity
-                  style={styles.attachmentOption}
-                  onPress={() => {
-                    setShowAttachmentMenu(false);
-                    // TODO: Implement photos
-                    console.log('Photos');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.attachmentIcon, { backgroundColor: '#0084FF' }]}>
-                    <FontAwesome name="image" size={24} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.attachmentLabel}>Photos</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.attachmentOption}
-                  onPress={() => {
-                    setShowAttachmentMenu(false);
-                    // TODO: Implement camera
-                    console.log('Camera');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.attachmentIcon, { backgroundColor: '#34C759' }]}>
-                    <FontAwesome name="camera" size={24} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.attachmentLabel}>Camera</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.attachmentOption}
-                  onPress={() => {
-                    setShowAttachmentMenu(false);
-                    // TODO: Implement location
-                    console.log('Location');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.attachmentIcon, { backgroundColor: '#25D366' }]}>
-                    <FontAwesome name="map-marker" size={24} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.attachmentLabel}>Location</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.attachmentOption}
-                  onPress={() => {
-                    setShowAttachmentMenu(false);
-                    // TODO: Implement contact
-                    console.log('Contact');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.attachmentIcon, { backgroundColor: '#5AC8FA' }]}>
-                    <FontAwesome name="user" size={24} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.attachmentLabel}>Contact</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Second row */}
-              <View style={styles.attachmentRow}>
-                <TouchableOpacity
-                  style={styles.attachmentOption}
-                  onPress={() => {
-                    setShowAttachmentMenu(false);
-                    // TODO: Implement document
-                    console.log('Document');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.attachmentIcon, { backgroundColor: '#007AFF' }]}>
-                    <FontAwesome name="file" size={24} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.attachmentLabel}>Document</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.attachmentOption}
-                  onPress={() => {
-                    setShowAttachmentMenu(false);
-                    // TODO: Implement poll
-                    console.log('Poll');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.attachmentIcon, { backgroundColor: '#FF9500' }]}>
-                    <FontAwesome name="bar-chart" size={24} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.attachmentLabel}>Poll</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.attachmentOption}
-                  onPress={() => {
-                    setShowAttachmentMenu(false);
-                    // TODO: Implement event
-                    console.log('Event');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.attachmentIcon, { backgroundColor: '#E10600' }]}>
-                    <FontAwesome name="calendar" size={24} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.attachmentLabel}>Event</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </>
-      )}
+      <AttachmentMenu
+        visible={showAttachmentMenu}
+        onClose={() => setShowAttachmentMenu(false)}
+        groupId={groupId}
+        onPhotosSelected={async (media, caption) => {
+          if (!currentUserId || !group?.conversationId) return;
+          
+          try {
+            setSending(true);
+            const groupIdNum = parseInt(groupId);
+            
+            // Group all media into a single message as JSON array
+            const mediaArray = media.map(m => ({
+              uri: m.uri,
+              type: m.type,
+              secureUrl: m.secureUrl,
+              publicId: m.publicId,
+            }));
+            
+            // If there's a caption, prepend it to the JSON
+            const content = caption 
+              ? `${caption}\n${JSON.stringify(mediaArray)}`
+              : JSON.stringify(mediaArray);
+            
+            // Use IMAGE type for now (backend can handle both images and videos)
+            await groupService.sendGroupMessage(
+              groupIdNum,
+              content,
+              currentUserId,
+              'IMAGE',
+              replyingTo?.id
+            );
+            
+            // Reload messages
+            await loadMessages();
+          } catch (error: any) {
+            console.error('Error sending media:', error);
+            Alert.alert('Error', error.response?.data?.error || 'Failed to send media');
+          } finally {
+            setSending(false);
+          }
+        }}
+        onCameraSelected={() => {
+          // TODO: Implement camera
+          console.log('Camera');
+        }}
+        onLocationSelected={() => {
+          // TODO: Implement location
+          console.log('Location');
+        }}
+        onContactSelected={() => {
+          // TODO: Implement contact
+          console.log('Contact');
+        }}
+        onDocumentSelected={() => {
+          // TODO: Implement document
+          console.log('Document');
+        }}
+        onPollSelected={() => {
+          // TODO: Implement poll
+          console.log('Poll');
+        }}
+        onEventSelected={() => {
+          // TODO: Implement event
+          console.log('Event');
+        }}
+      />
 
       {/* Call Menu Contextual */}
       {showCallMenu && (
@@ -1148,6 +1386,7 @@ export default function GroupDetailScreen() {
           </View>
         </>
       )}
+
     </KeyboardAvoidingView>
   );
 }

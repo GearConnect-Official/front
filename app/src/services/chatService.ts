@@ -17,7 +17,7 @@ export interface Message {
   sender: MessageUser;
   createdAt: string;
   updatedAt?: string;
-  messageType?: 'TEXT' | 'IMAGE' | 'FILE';
+  messageType?: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO';
   isEdited?: boolean;
   replyTo?: {
     id: number;
@@ -117,7 +117,7 @@ const chatService = {
     conversationId: number,
     content: string,
     userId?: number,
-    messageType: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT',
+    messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO' = 'TEXT',
     replyToId?: number
   ) => {
     const endpoint = `${API_URL_MESSAGING}/conversations/${conversationId}/messages`;

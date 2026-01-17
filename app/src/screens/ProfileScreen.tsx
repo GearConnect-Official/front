@@ -1347,17 +1347,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <Text style={styles.username}>Profile</Text>
           <View style={styles.headerRight}>
             <TouchableOpacity
-              style={styles.friendsButton}
-              onPress={handleFriendsPress}
-              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-            >
-              <FontAwesome name="users" size={20} color="#1E1E1E" />
-              {/* Badge pour nouvelles demandes d'amis */}
-              <View style={styles.friendsBadge}>
-                <Text style={styles.friendsBadgeText}>2</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
               style={styles.menuButton}
               onPress={() => setMenuVisible(true)}
               hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}

@@ -41,7 +41,10 @@ const styles = StyleSheet.create({
   },
   messagesList: {
     flex: 1,
+  },
+  messagesListContent: {
     paddingHorizontal: theme.spacing.md,
+    flexGrow: 1,
   },
   messageItem: {
     ...theme.common.row,
@@ -313,6 +316,11 @@ const styles = StyleSheet.create({
   ownMessageTime: {
     color: 'rgba(255, 255, 255, 0.8)', // Semi-transparent white for own messages
   },
+  audioDuration: {
+    marginRight: 'auto',
+    paddingLeft: 0,
+    paddingRight: 4,
+  },
   // Reactions styles
   reactionsContainer: {
     ...theme.common.row,
@@ -404,6 +412,23 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 0.5,
+  },
+  scrollToBottomButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: theme.spacing.md,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary.main,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000,
   },
 });
 

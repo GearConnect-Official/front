@@ -144,9 +144,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   messagesContainer: {
-    flex: 1,
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.sm,
+    flexGrow: 1,
+  },
+  messagesList: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -257,7 +260,8 @@ const styles = StyleSheet.create({
   },
   messageTimeContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: 4,
     paddingTop: 2,
   },
@@ -313,6 +317,11 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     paddingLeft: 4,
   },
+  audioDuration: {
+    marginRight: 'auto',
+    paddingLeft: 0,
+    paddingRight: 4,
+  },
   inputContainer: {
     backgroundColor: theme.colors.grey[100],
     borderTopWidth: 1,
@@ -331,6 +340,7 @@ const styles = StyleSheet.create({
     minHeight: 42,
     borderWidth: 1,
     borderColor: theme.colors.border.light,
+    position: 'relative',
   },
   attachButton: {
     width: 32,
@@ -375,6 +385,8 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.border.light,
     paddingHorizontal: Math.max(theme.spacing.sm, width * 0.04),
     paddingVertical: theme.spacing.xs,
+    zIndex: 1, // Lower than audio player
+    pointerEvents: 'box-none', // Allow touches to pass through to audio player
   },
   replyPreviewWrapper: {
     flexDirection: 'row',
@@ -427,6 +439,7 @@ const styles = StyleSheet.create({
   },
   // Reply preview styles (inside message bubble) - clickable
   replyPreview: {
+    pointerEvents: 'auto', // Allow interaction with reply preview itself
     flexDirection: 'row',
     marginBottom: theme.spacing.xs,
     paddingBottom: theme.spacing.xs,
@@ -495,6 +508,23 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.borders.radius.md,
     overflow: 'hidden',
+  },
+  scrollToBottomButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: theme.spacing.md,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary.main,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000,
   },
 });
 

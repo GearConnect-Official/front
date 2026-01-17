@@ -56,16 +56,16 @@ export const configureAxios = async () => {
         const isMessagingRoute = config.url?.includes('/messaging/');
         
         if (!isVerificationRoute && !isMessagingRoute) {
-          try {
-            const clerkInstance = getClerkInstance();
-            const token = await clerkInstance.session?.getToken();
-            
-            if (token) {
-              config.headers['Authorization'] = `Bearer ${token}`;
-              console.log('🔑 Bearer token added to request');
+        try {
+          const clerkInstance = getClerkInstance();
+          const token = await clerkInstance.session?.getToken();
+          
+          if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+            console.log('🔑 Bearer token added to request');
             }
             // No log for missing token - it's expected for some routes
-          } catch (clerkError) {
+        } catch (clerkError) {
             // Silent fail for routes that don't need Clerk
           }
         }

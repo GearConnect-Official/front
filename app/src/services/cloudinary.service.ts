@@ -44,6 +44,11 @@ class CloudinaryService {
     options: CloudinaryUploadOptions = {}
   ): Promise<CloudinaryUploadResponse> {
     try {
+      // Validate URI
+      if (!uri || uri === 'null' || uri.trim() === '') {
+        throw new Error('Invalid media URI: URI is null or empty');
+      }
+
       const formData = new FormData();
       
       // Déterminer le type de fichier

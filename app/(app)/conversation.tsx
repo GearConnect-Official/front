@@ -32,6 +32,7 @@ import ContactCard, { ContactData } from '../src/components/messaging/ContactCar
 import PollCard, { PollWithVotes } from '../src/components/messaging/PollCard';
 import PollCreator, { PollData } from '../src/components/messaging/PollCreator';
 import DocumentCard, { DocumentData } from '../src/components/messaging/DocumentCard';
+import LocationCard, { LocationData } from '../src/components/messaging/LocationCard';
 import * as DocumentPicker from 'expo-document-picker';
 
 // Extended Message type with isOwn property for UI
@@ -1018,6 +1019,32 @@ export default function ConversationScreen() {
                 );
               }
             })()
+          ) : item.content.startsWith('LOCATION:') ? (
+            // Parse location data
+            (() => {
+              try {
+                const locationJson = item.content.replace('LOCATION:', '');
+                const locationData: LocationData = JSON.parse(locationJson);
+                return (
+                  <Pressable
+                    onLongPress={(event) => handleLongPressMessage(item, event)}
+                    style={selectedMessage?.id === item.id && styles.highlightedMessageBubble}
+                  >
+                    <LocationCard
+                      location={locationData}
+                      isOwn={isOwn}
+                    />
+                  </Pressable>
+                );
+              } catch (e) {
+                // Fallback to text if parsing fails
+                return (
+                  <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                    {item.content}
+                  </Text>
+                );
+              }
+            })()
           ) : (
             <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
               {item.content}
@@ -1458,9 +1485,77 @@ export default function ConversationScreen() {
             setSending(false);
           }
         }}
-        onLocationSelected={() => {
-          // TODO: Implement location
-          console.log('Location');
+        onLocationSelected={async () => {
+          if (!currentUserId || !conversationId) return;
+          
+          try {
+            // Request location permission and get current position
+            const { requestForegroundPermissionsAsync, getCurrentPositionAsync } = await import('expo-location');
+            
+            // Request permission
+            const { status } = await requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert(
+                'Permission refusée',
+                'L\'accès à la localisation est nécessaire pour partager votre position.',
+                [{ text: 'OK' }]
+              );
+              return;
+            }
+
+            setSending(true);
+            
+            // Get current position
+            const location = await getCurrentPositionAsync({
+              accuracy: 6, // High accuracy
+            });
+
+            // Try to get address from coordinates (reverse geocoding)
+            let address: string | undefined;
+            try {
+              const { reverseGeocodeAsync } = await import('expo-location');
+              const [result] = await reverseGeocodeAsync({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              });
+              
+              // Format address
+              const addressParts = [];
+              if (result.street) addressParts.push(result.street);
+              if (result.city) addressParts.push(result.city);
+              if (result.postalCode) addressParts.push(result.postalCode);
+              if (result.country) addressParts.push(result.country);
+              address = addressParts.join(', ') || undefined;
+            } catch (geocodeError) {
+              console.log('Reverse geocoding failed, continuing without address');
+            }
+
+            // Create location data
+            const locationData: LocationData = {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              address: address,
+            };
+
+            // Send message with location
+            const locationMessage = `LOCATION:${JSON.stringify(locationData)}`;
+            const conversationIdNum = parseInt(conversationId);
+            await chatService.sendMessage(
+              conversationIdNum,
+              locationMessage,
+              currentUserId,
+              'TEXT',
+              replyingTo?.id
+            );
+            
+            // Reload messages
+            await loadMessages();
+          } catch (error: any) {
+            console.error('Error sending location:', error);
+            Alert.alert('Error', error.response?.data?.error || error.message || 'Failed to send location');
+          } finally {
+            setSending(false);
+          }
         }}
         onContactSelected={async (contact) => {
           if (!currentUserId) return;

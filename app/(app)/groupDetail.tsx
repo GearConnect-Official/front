@@ -39,6 +39,7 @@ export default function GroupDetailScreen() {
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCallMenu, setShowCallMenu] = useState(false);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [showAddMembers, setShowAddMembers] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -679,21 +680,25 @@ export default function GroupDetailScreen() {
       {/* Input area */}
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
-          <TouchableOpacity
+          <TouchableOpacity 
             style={styles.attachButton}
             onPress={() => {
-              // TODO: Implement attach functionality
-              console.log('Attach button pressed');
+              setShowAttachmentMenu(true);
             }}
             activeOpacity={0.7}
           >
             <FontAwesome name="plus" size={20} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
-
+          </TouchableOpacity>
+          
           <TextInput
             style={styles.textInput}
             value={newMessage}
-            onChangeText={setNewMessage}
+            onChangeText={(text) => {
+              setNewMessage(text);
+              if (showAttachmentMenu) {
+                setShowAttachmentMenu(false);
+              }
+            }}
             placeholder="Type your message..."
             placeholderTextColor={theme.colors.text.secondary}
             multiline
@@ -929,6 +934,143 @@ export default function GroupDetailScreen() {
           </View>
         </SafeAreaView>
       </Modal>
+
+      {/* Attachment Menu */}
+      {showAttachmentMenu && (
+        <>
+          <TouchableOpacity
+            style={styles.attachmentMenuOverlay}
+            activeOpacity={1}
+            onPress={() => setShowAttachmentMenu(false)}
+          />
+          <View style={styles.attachmentMenu}>
+            {/* Keyboard button to close menu */}
+            <TouchableOpacity
+              style={styles.attachmentMenuKeyboardButton}
+              onPress={() => {
+                setShowAttachmentMenu(false);
+              }}
+              activeOpacity={0.7}
+            >
+              <FontAwesome name="keyboard-o" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            {/* Attachment options grid */}
+            <View style={styles.attachmentGrid}>
+              {/* First row */}
+              <View style={styles.attachmentRow}>
+                <TouchableOpacity
+                  style={styles.attachmentOption}
+                  onPress={() => {
+                    setShowAttachmentMenu(false);
+                    // TODO: Implement photos
+                    console.log('Photos');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.attachmentIcon, { backgroundColor: '#0084FF' }]}>
+                    <FontAwesome name="image" size={24} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.attachmentLabel}>Photos</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.attachmentOption}
+                  onPress={() => {
+                    setShowAttachmentMenu(false);
+                    // TODO: Implement camera
+                    console.log('Camera');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.attachmentIcon, { backgroundColor: '#34C759' }]}>
+                    <FontAwesome name="camera" size={24} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.attachmentLabel}>Camera</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.attachmentOption}
+                  onPress={() => {
+                    setShowAttachmentMenu(false);
+                    // TODO: Implement location
+                    console.log('Location');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.attachmentIcon, { backgroundColor: '#25D366' }]}>
+                    <FontAwesome name="map-marker" size={24} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.attachmentLabel}>Location</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.attachmentOption}
+                  onPress={() => {
+                    setShowAttachmentMenu(false);
+                    // TODO: Implement contact
+                    console.log('Contact');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.attachmentIcon, { backgroundColor: '#5AC8FA' }]}>
+                    <FontAwesome name="user" size={24} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.attachmentLabel}>Contact</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Second row */}
+              <View style={styles.attachmentRow}>
+                <TouchableOpacity
+                  style={styles.attachmentOption}
+                  onPress={() => {
+                    setShowAttachmentMenu(false);
+                    // TODO: Implement document
+                    console.log('Document');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.attachmentIcon, { backgroundColor: '#007AFF' }]}>
+                    <FontAwesome name="file" size={24} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.attachmentLabel}>Document</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.attachmentOption}
+                  onPress={() => {
+                    setShowAttachmentMenu(false);
+                    // TODO: Implement poll
+                    console.log('Poll');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.attachmentIcon, { backgroundColor: '#FF9500' }]}>
+                    <FontAwesome name="bar-chart" size={24} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.attachmentLabel}>Poll</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.attachmentOption}
+                  onPress={() => {
+                    setShowAttachmentMenu(false);
+                    // TODO: Implement event
+                    console.log('Event');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.attachmentIcon, { backgroundColor: '#E10600' }]}>
+                    <FontAwesome name="calendar" size={24} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.attachmentLabel}>Event</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </>
+      )}
 
       {/* Call Menu Contextual */}
       {showCallMenu && (

@@ -924,9 +924,42 @@ export default function ConversationScreen() {
             setSending(false);
           }
         }}
-        onCameraSelected={() => {
-          // TODO: Implement camera
-          console.log('Camera');
+        onCameraSelected={async (media, caption) => {
+          if (!currentUserId) return;
+          
+          try {
+            setSending(true);
+            const conversationIdNum = parseInt(conversationId);
+            
+            // Group camera media into a single message as JSON array
+            const mediaArray = media.map(m => ({
+              uri: m.uri,
+              type: m.type,
+              secureUrl: m.secureUrl,
+              publicId: m.publicId,
+            }));
+            
+            // If there's a caption, prepend it to the JSON
+            const content = caption 
+              ? `${caption}\n${JSON.stringify(mediaArray)}`
+              : JSON.stringify(mediaArray);
+            
+            await chatService.sendMessage(
+              conversationIdNum,
+              content,
+              currentUserId,
+              'IMAGE',
+              replyingTo?.id
+            );
+            
+            // Reload messages
+            await loadMessages();
+          } catch (error: any) {
+            console.error('Error sending camera image:', error);
+            Alert.alert('Error', error.response?.data?.error || 'Failed to send image');
+          } finally {
+            setSending(false);
+          }
         }}
         onLocationSelected={() => {
           // TODO: Implement location

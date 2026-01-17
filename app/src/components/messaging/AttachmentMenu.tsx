@@ -4,6 +4,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import theme from '../../styles/config/theme';
 import MediaPickerModal from './MediaPickerModal';
 import { SelectedMedia } from './MediaPickerModal';
+import CameraModal from './CameraModal';
+import { CameraMedia } from './CameraModal';
 
 // Re-export SelectedMedia for convenience
 export type { SelectedMedia };
@@ -12,7 +14,7 @@ interface AttachmentMenuProps {
   visible: boolean;
   onClose: () => void;
   onPhotosSelected?: (media: SelectedMedia[], caption: string) => void;
-  onCameraSelected?: () => void;
+  onCameraSelected?: (media: CameraMedia[], caption: string) => void;
   onLocationSelected?: () => void;
   onContactSelected?: () => void;
   onDocumentSelected?: () => void;
@@ -36,6 +38,7 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
   groupId,
 }) => {
   const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   const handlePhotosPress = () => {
     setShowMediaPicker(true);
@@ -46,6 +49,13 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
     setShowMediaPicker(false);
     if (onPhotosSelected) {
       onPhotosSelected(media, caption);
+    }
+  };
+
+  const handleCameraSend = (media: CameraMedia[], caption: string) => {
+    setShowCamera(false);
+    if (onCameraSelected) {
+      onCameraSelected(media, caption);
     }
   };
 
@@ -87,8 +97,8 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
             <TouchableOpacity
               style={styles.option}
               onPress={() => {
+                setShowCamera(true);
                 onClose();
-                if (onCameraSelected) onCameraSelected();
               }}
               activeOpacity={0.7}
             >
@@ -186,6 +196,17 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
           }}
           onCancel={() => {
             setShowMediaPicker(false);
+          }}
+        />
+      )}
+
+      {/* Camera Modal - Keep visible even when attachment menu is closed */}
+      {showCamera && (
+        <CameraModal
+          visible={showCamera}
+          onSend={handleCameraSend}
+          onCancel={() => {
+            setShowCamera(false);
           }}
         />
       )}

@@ -61,8 +61,8 @@ const GroupChannelScreen: React.FC = () => {
           isOwn: msg.sender.id === currentUserId,
         }));
       setMessages(sortedMessages);
-      // Scroll to bottom after loading
-      setTimeout(() => scrollToBottom(), 100);
+        // Scroll to bottom after loading
+        setTimeout(() => scrollToBottom(), 100);
     } catch (error: any) {
       console.error('Error loading messages:', error);
       Alert.alert('Error', error.response?.data?.error || 'Failed to load messages');
@@ -276,68 +276,68 @@ const GroupChannelScreen: React.FC = () => {
             )}
 
             <View style={[styles.messageBody, isOwn && styles.ownMessageBody]}>
-              <View style={styles.messageHeader}>
+                <View style={styles.messageHeader}>
                 <Text style={[styles.senderName, isOwn && styles.ownSenderName]}>
-                  {item.sender.name}
-                </Text>
-                {item.sender.isVerify && (
+                    {item.sender.name}
+                  </Text>
+                  {item.sender.isVerify && (
                   <FontAwesome name="check-circle" size={12} color={isOwn ? "#FFFFFF" : "#E10600"} />
-                )}
+                  )}
                 <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
-                  {formatTime(item.createdAt)}
-                </Text>
-                {item.isEdited && (
+                    {formatTime(item.createdAt)}
+                  </Text>
+                  {item.isEdited && (
                   <Text style={[styles.editedLabel, isOwn && styles.ownEditedLabel]}>
                     (edited)
-                  </Text>
-                )}
-                {item.isPinned && (
+                    </Text>
+                  )}
+                  {item.isPinned && (
                   <FontAwesome name="thumb-tack" size={10} color={isOwn ? "#FFFFFF" : "#F59E0B"} />
+                  )}
+                </View>
+
+                <Pressable
+                  onLongPress={() => replyToMessage(item)}
+                style={[styles.messageTextContainer, isOwn && styles.ownMessageTextContainer]}
+                >
+                <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                    {item.content}
+                  </Text>
+                </Pressable>
+
+                {/* Reactions */}
+                {item.reactions.length > 0 && (
+                  <View style={styles.reactionsContainer}>
+                    {item.reactions.map((reaction, idx) => (
+                      <TouchableOpacity
+                        key={idx}
+                        style={styles.reactionButton}
+                        onPress={() => addReaction(item.id, reaction.emoji)}
+                      >
+                        <Text style={styles.reactionEmoji}>
+                          {reaction.emoji}
+                        </Text>
+                        <Text style={styles.reactionCount}>
+                          {reaction.count}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                    
+                    {/* Add reaction button */}
+                    <TouchableOpacity
+                      style={styles.addReactionButton}
+                      onPress={() => {
+                        // Show emoji picker - for now just add a random emoji
+                        const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡', '🏎️', '🏆', '🔥'];
+                        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                        addReaction(item.id, randomEmoji);
+                      }}
+                    >
+                      <FontAwesome name="plus" size={12} color="#6A707C" />
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
-
-              <Pressable
-                onLongPress={() => replyToMessage(item)}
-                style={[styles.messageTextContainer, isOwn && styles.ownMessageTextContainer]}
-              >
-                <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
-                  {item.content}
-                </Text>
-              </Pressable>
-
-              {/* Reactions */}
-              {item.reactions.length > 0 && (
-                <View style={styles.reactionsContainer}>
-                  {item.reactions.map((reaction, idx) => (
-                    <TouchableOpacity
-                      key={idx}
-                      style={styles.reactionButton}
-                      onPress={() => addReaction(item.id, reaction.emoji)}
-                    >
-                      <Text style={styles.reactionEmoji}>
-                        {reaction.emoji}
-                      </Text>
-                      <Text style={styles.reactionCount}>
-                        {reaction.count}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                  
-                  {/* Add reaction button */}
-                  <TouchableOpacity
-                    style={styles.addReactionButton}
-                    onPress={() => {
-                      // Show emoji picker - for now just add a random emoji
-                      const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡', '🏎️', '🏆', '🔥'];
-                      const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-                      addReaction(item.id, randomEmoji);
-                    }}
-                  >
-                    <FontAwesome name="plus" size={12} color="#6A707C" />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
 
             {/* Avatar for other messages (right side) */}
             {!isOwn && (
@@ -364,7 +364,7 @@ const GroupChannelScreen: React.FC = () => {
                 ) : (
                   <View style={[styles.avatar, styles.defaultAvatar]}>
                     <FontAwesome name="user" size={14} color="#6A707C" />
-                  </View>
+            </View>
                 )}
               </TouchableOpacity>
             )}

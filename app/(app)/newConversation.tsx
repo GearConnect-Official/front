@@ -63,7 +63,7 @@ export default function NewConversationScreen() {
       } catch (error) {
         console.error('Error loading friends:', error);
         setAllFriends([]);
-        setSearchResults([]);
+      setSearchResults([]);
       } finally {
         setLoading(false);
       }
@@ -93,19 +93,19 @@ export default function NewConversationScreen() {
   const handleUserClick = async (clickedUser: User) => {
     if (isGroupChat) {
       // Group mode: toggle selection
-      setSelectedUsers(prev => {
+    setSelectedUsers(prev => {
         const isSelected = prev.some(u => u.id === clickedUser.id);
-        if (isSelected) {
+      if (isSelected) {
           return prev.filter(u => u.id !== clickedUser.id);
-        } else {
+      } else {
           // Group limit
           if (prev.length >= 9) { // Max 10 participants including current user
             Alert.alert('Limit reached', 'A group can contain a maximum of 10 participants.');
-            return prev;
-          }
-          return [...prev, clickedUser];
+          return prev;
         }
-      });
+          return [...prev, clickedUser];
+      }
+    });
     } else {
       // Direct message mode: start conversation immediately
       const isMutualFollow = clickedUser.isFollowing && clickedUser.followsBack;
@@ -137,19 +137,32 @@ export default function NewConversationScreen() {
     setLoading(true);
     try {
       const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
-      const conversation = await chatService.createConversation([targetUser.id], currentUserId);
-      if (conversation) {
-        router.push({
-          pathname: '/(app)/conversation',
-          params: {
-            conversationId: conversation.id.toString(),
+      const result = await chatService.createConversation([targetUser.id], currentUserId);
+      
+      // Check if result is a request or a conversation
+      if (result.isRequest || result.status === 'PENDING' || result.status === 'pending') {
+        // It's a request, show modal to add message
+        setPendingRequestUser(targetUser);
+        setShowRequestModal(true);
+      } else if (result.id) {
+        // It's a conversation (or commercial conversation)
+      router.push({
+        pathname: '/(app)/conversation',
+        params: { 
+            conversationId: result.id.toString(),
             conversationName: targetUser.name,
           },
-        });
+      });
       }
     } catch (error: any) {
       console.error('Error creating conversation:', error);
-      Alert.alert('Error', error.response?.data?.error || 'Unable to create conversation');
+      // If error suggests creating a request, show request modal
+      if (error.response?.data?.isRequest || error.response?.data?.error?.includes('Mutual follow')) {
+        setPendingRequestUser(targetUser);
+        setShowRequestModal(true);
+    } else {
+        Alert.alert('Error', error.response?.data?.error || 'Unable to create conversation');
+      }
     } finally {
       setLoading(false);
     }
@@ -223,15 +236,15 @@ export default function NewConversationScreen() {
       );
 
       // Close modal and navigate to group detail page
-      setShowGroupModal(false);
+    setShowGroupModal(false);
       setGroupName('');
       setSelectedUsers([]);
       setIsGroupChat(false);
       
       // Navigate to the group detail page
-      router.push({
+    router.push({
         pathname: '/(app)/groupDetail',
-        params: {
+      params: { 
           groupId: newGroup.id.toString(),
           groupName: newGroup.name,
         },
@@ -283,13 +296,13 @@ export default function NewConversationScreen() {
         </View>
 
         {isGroupChat ? (
-          <View style={styles.selectionIndicator}>
-            {isSelected ? (
-              <FontAwesome name="check-circle" size={20} color="#E10600" />
-            ) : (
-              <View style={styles.emptyCircle} />
-            )}
-          </View>
+        <View style={styles.selectionIndicator}>
+          {isSelected ? (
+            <FontAwesome name="check-circle" size={20} color="#E10600" />
+          ) : (
+            <View style={styles.emptyCircle} />
+          )}
+        </View>
         ) : (
           <FontAwesome name="chevron-right" size={16} color={theme.colors.text.secondary} />
         )}
@@ -311,15 +324,15 @@ export default function NewConversationScreen() {
         <Text style={styles.headerTitle}>New Conversation</Text>
 
         {isGroupChat && (
-          <TouchableOpacity
-            style={[styles.nextButton, selectedUsers.length > 0 && styles.nextButtonActive]}
+        <TouchableOpacity
+          style={[styles.nextButton, selectedUsers.length > 0 && styles.nextButtonActive]}
             onPress={startGroupConversation}
-            disabled={selectedUsers.length === 0}
-          >
-            <Text style={[styles.nextButtonText, selectedUsers.length > 0 && styles.nextButtonTextActive]}>
+          disabled={selectedUsers.length === 0}
+        >
+          <Text style={[styles.nextButtonText, selectedUsers.length > 0 && styles.nextButtonTextActive]}>
               Next
-            </Text>
-          </TouchableOpacity>
+          </Text>
+        </TouchableOpacity>
         )}
       </View>
 
@@ -363,34 +376,34 @@ export default function NewConversationScreen() {
           <Text style={styles.loadingText}>Loading friends...</Text>
         </View>
       ) : (
-        <FlatList
-          data={searchResults}
-          renderItem={renderUser}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.usersList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            searchQuery.trim() ? (
-              <View style={styles.emptyState}>
-                <FontAwesome name="search" size={40} color={theme.colors.text.secondary} />
-                <Text style={styles.emptyStateText}>
+      <FlatList
+        data={searchResults}
+        renderItem={renderUser}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.usersList}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          searchQuery.trim() ? (
+            <View style={styles.emptyState}>
+              <FontAwesome name="search" size={40} color={theme.colors.text.secondary} />
+              <Text style={styles.emptyStateText}>
                   No friends found for &quot;{searchQuery}&quot;
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.emptyState}>
-                <FontAwesome name="users" size={40} color={theme.colors.text.secondary} />
-                <Text style={styles.emptyStateText}>
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <FontAwesome name="users" size={40} color={theme.colors.text.secondary} />
+              <Text style={styles.emptyStateText}>
                   {loading ? 'Loading friends...' : allFriends.length === 0 
                     ? 'You don\'t have any friends yet. Follow users who follow you back to start conversations.'
                     : searchQuery.trim() 
                       ? `No friends found for "${searchQuery}"`
                       : 'Select a friend to start a conversation'}
-                </Text>
-              </View>
-            )
-          }
-        />
+              </Text>
+            </View>
+          )
+        }
+      />
       )}
 
       {/* Modal de création de groupe */}

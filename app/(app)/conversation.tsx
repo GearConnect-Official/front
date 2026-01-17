@@ -18,6 +18,7 @@ import theme from '../src/styles/config/theme';
 import { conversationScreenStyles as styles } from '../src/styles/screens';
 import chatService, { Message as ApiMessage } from '../src/services/chatService';
 import { useAuth } from '../src/context/AuthContext';
+import { VerifiedAvatar } from '../src/components/media/VerifiedAvatar';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -33,7 +34,7 @@ export default function ConversationScreen() {
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
-  const [userStatus, setUserStatus] = useState<UserStatus>('Online'); // TODO: Fetch from API
+  const [userStatus] = useState<UserStatus>('Online'); // TODO: Fetch from API (setUserStatus reserved for future API integration)
   const [showCallMenu, setShowCallMenu] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const messageRefs = useRef<{ [key: number]: View | null }>({});
@@ -154,10 +155,10 @@ export default function ConversationScreen() {
         'TEXT',
         replyingTo?.id
       );
-      
+    
       if (sentMessage) {
         // Add sent message to list - always mark as own since current user sent it
-        const newMsg: Message = {
+    const newMsg: Message = {
           ...sentMessage,
           isOwn: sentMessage.sender.id === currentUserId,
         };
@@ -171,7 +172,7 @@ export default function ConversationScreen() {
     } finally {
       setSending(false);
     }
-  };
+    };
 
   // Handle long press on message to reply
   const handleReplyToMessage = (message: Message) => {
@@ -277,16 +278,13 @@ export default function ConversationScreen() {
                 }}
                 activeOpacity={0.7}
               >
-                {item.sender?.profilePicture || item.sender?.profilePicturePublicId ? (
-                  <Image 
-                    source={{ uri: item.sender.profilePicture || item.sender.profilePicturePublicId }} 
-                    style={styles.messageAvatar} 
-                  />
-                ) : (
-                  <View style={[styles.messageAvatar, styles.defaultMessageAvatar]}>
-                    <FontAwesome name="user" size={16} color="#999" />
-                  </View>
-                )}
+                <VerifiedAvatar
+                  publicId={item.sender?.profilePicturePublicId}
+                  fallbackUrl={item.sender?.profilePicture}
+                  size={36}
+                  isVerify={item.sender?.isVerify || false}
+                  style={styles.messageAvatar}
+                />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity 
@@ -321,8 +319,8 @@ export default function ConversationScreen() {
         >
           <Pressable
             style={[
-              styles.messageBubble, 
-              isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
+          styles.messageBubble, 
+          isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
               isGrouped && styles.groupedMessage
             ]}
             onLongPress={() => handleReplyToMessage(item)}
@@ -362,9 +360,9 @@ export default function ConversationScreen() {
           </Text>
           {/* Timestamp inside bubble */}
           <View style={styles.messageTimeContainer}>
-            <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
-              {formatTime(item.createdAt)}
-            </Text>
+          <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
+            {formatTime(item.createdAt)}
+          </Text>
           </View>
           </Pressable>
         </View>
@@ -385,16 +383,13 @@ export default function ConversationScreen() {
                 }}
                 activeOpacity={0.7}
               >
-                {item.sender?.profilePicture || item.sender?.profilePicturePublicId ? (
-                  <Image 
-                    source={{ uri: item.sender.profilePicture || item.sender.profilePicturePublicId }} 
-                    style={styles.messageAvatar} 
-                  />
-                ) : (
-                  <View style={[styles.messageAvatar, styles.defaultMessageAvatar]}>
-                    <FontAwesome name="user" size={16} color="#999" />
-                  </View>
-                )}
+                <VerifiedAvatar
+                  publicId={item.sender?.profilePicturePublicId}
+                  fallbackUrl={item.sender?.profilePicture}
+                  size={36}
+                  isVerify={item.sender?.isVerify || false}
+                  style={styles.messageAvatar}
+                />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity 
@@ -450,7 +445,7 @@ export default function ConversationScreen() {
           >
             <FontAwesome name="video-camera" size={20} color={theme.colors.text.secondary} />
             <FontAwesome name="chevron-down" size={12} color={theme.colors.text.secondary} style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
+        </TouchableOpacity>
         </View>
       </View>
 
@@ -461,14 +456,14 @@ export default function ConversationScreen() {
           <Text style={styles.loadingText}>Loading messages...</Text>
         </View>
       ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.messagesContainer}
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        renderItem={renderMessage}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.messagesContainer}
+        showsVerticalScrollIndicator={false}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           onScrollToIndexFailed={(info) => {
             // Handle scroll to index failure
             const wait = new Promise(resolve => setTimeout(resolve, 500));
@@ -535,21 +530,21 @@ export default function ConversationScreen() {
             multiline
             maxLength={500}
           />
-      
+          
           {/* Send button or microphone button (like WhatsApp) */}
           {newMessage.trim() ? (
-            <TouchableOpacity
+          <TouchableOpacity
               style={[styles.sendButton, styles.sendButtonActive]}
-              onPress={sendMessage}
+            onPress={sendMessage}
               disabled={sending || loading}
               activeOpacity={0.7}
-            >
+          >
               {sending ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
-                <FontAwesome 
-                  name="send" 
-                  size={16} 
+            <FontAwesome 
+              name="send" 
+              size={16} 
                   color="white" 
                 />
               )}
@@ -567,8 +562,8 @@ export default function ConversationScreen() {
                 name="microphone" 
                 size={18} 
                 color={theme.colors.text.secondary} 
-              />
-            </TouchableOpacity>
+            />
+          </TouchableOpacity>
           )}
         </View>
       </View>

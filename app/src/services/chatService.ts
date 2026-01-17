@@ -41,6 +41,7 @@ export interface Conversation {
   name?: string;
   isGroup: boolean;
   isCommercial?: boolean; // Pour les conversations avec comptes certifiés
+  isFavorite?: boolean; // User's favorite conversations
   participants: ConversationParticipant[];
   messages: Message[];
   updatedAt: string;
@@ -53,11 +54,15 @@ export interface Conversation {
 
 export interface MessageRequest {
   id: number;
+  senderId: number;
+  recipientId: number;
   from: MessageUser;
   to: MessageUser;
   message?: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'pending' | 'accepted' | 'rejected'; // Support both formats
   createdAt: string;
+  updatedAt?: string;
+  isReceived?: boolean; // true if this request was received by current user, false if sent
 }
 
 export interface ConversationsResponse {
@@ -118,8 +123,8 @@ const chatService = {
     const endpoint = `${API_URL_MESSAGING}/conversations/${conversationId}/messages`;
     try {
       const response = await axios.post(endpoint, {
-        content,
-        messageType,
+          content,
+          messageType,
         userId,
         replyToId,
       });
@@ -141,8 +146,8 @@ const chatService = {
     const endpoint = `${API_URL_MESSAGING}/conversations`;
     try {
       const response = await axios.post(endpoint, {
-        participantIds,
-        isGroup: participantIds.length > 1,
+          participantIds,
+          isGroup: participantIds.length > 1,
         userId,
       });
       return response.data;
@@ -163,8 +168,8 @@ const chatService = {
     const endpoint = `${API_URL_MESSAGING}/requests`;
     try {
       const response = await axios.post(endpoint, {
-        recipientId,
-        message,
+          recipientId,
+          message,
         userId,
       });
       return response.data;
@@ -257,6 +262,36 @@ const chatService = {
       return response.data;
     } catch (error) {
       console.error("Error checking follow status:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Toggle favorite status of a conversation
+   */
+  toggleFavorite: async (conversationId: number, userId: number) => {
+    const endpoint = `${API_URL_MESSAGING}/conversations/${conversationId}/favorite`;
+    try {
+      const response = await axios.put(endpoint, { userId });
+      return response.data;
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a conversation (remove participant)
+   */
+  deleteConversation: async (conversationId: number, userId: number) => {
+    const endpoint = `${API_URL_MESSAGING}/conversations/${conversationId}`;
+    try {
+      const response = await axios.delete(endpoint, { 
+        params: { userId }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
       throw error;
     }
   },

@@ -195,6 +195,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  requestStatusText: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
+    fontStyle: 'italic',
+    marginLeft: theme.spacing.xs,
+  },
   commercialIndicator: {
     position: 'absolute',
     bottom: -2,
@@ -217,6 +223,98 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.text.secondary,
     textAlign: 'center',
+  },
+  // Section headers for requests
+  sectionHeader: {
+    backgroundColor: theme.colors.background.default,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
+  },
+  sectionHeaderText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  // Sub-tabs for requests
+  subTabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.background.paper,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
+    paddingHorizontal: theme.spacing.md,
+  },
+  subTab: {
+    flex: 1,
+    paddingVertical: theme.spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    marginHorizontal: theme.spacing.xs,
+  },
+  activeSubTab: {
+    borderBottomColor: '#E10600',
+  },
+  subTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: theme.colors.text.secondary,
+  },
+  activeSubTabText: {
+    color: '#E10600',
+    fontWeight: '600',
+  },
+  subTabBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#E10600',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  subTabBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  swipeActionsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginVertical: 4,
+  },
+  swipeAction: {
+    width: 100,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  favoriteAction: {
+    backgroundColor: '#FFA500',
+  },
+  deleteAction: {
+    backgroundColor: '#E10600',
+  },
+  swipeActionButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  swipeActionText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
   },
 });
 

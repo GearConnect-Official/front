@@ -237,7 +237,7 @@ export default function GroupDetailScreen() {
               if (isNaN(groupIdNum)) {
                 Alert.alert('Error', 'Invalid group ID');
                 return;
-              }
+    }
               await groupService.deleteGroup(groupIdNum, currentUserId);
               Alert.alert('Success', 'Group deleted successfully', [
                 {
@@ -248,7 +248,7 @@ export default function GroupDetailScreen() {
             } catch (error: any) {
               console.error('Error deleting group:', error);
               Alert.alert('Error', error.response?.data?.error || 'Failed to delete group');
-            }
+    }
           },
         },
       ]
@@ -391,7 +391,7 @@ export default function GroupDetailScreen() {
           <Text style={styles.systemMessageText}>
             {item.content}
           </Text>
-        </View>
+      </View>
       );
     }
 
@@ -417,15 +417,15 @@ export default function GroupDetailScreen() {
                 activeOpacity={0.7}
               >
                 {item.sender?.profilePicture || item.sender?.profilePicturePublicId ? (
-                  <Image
+            <Image
                     source={{ uri: item.sender.profilePicture || item.sender.profilePicturePublicId }}
                     style={styles.messageAvatar}
-                  />
-                ) : (
+            />
+          ) : (
                   <View style={[styles.messageAvatar, styles.defaultMessageAvatar]}>
                     <FontAwesome name="user" size={16} color="#999" />
-                  </View>
-                )}
+            </View>
+          )}
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -450,7 +450,7 @@ export default function GroupDetailScreen() {
               messageRefs.current[item.id] = ref;
             }
           }}
-          style={[
+                style={[
             styles.messageWrapper,
             highlightedMessageId === item.id && styles.highlightedMessage
           ]}
@@ -477,7 +477,7 @@ export default function GroupDetailScreen() {
                 <View style={styles.replyPreviewContent}>
                   <Text style={[styles.replyAuthor, isOwn && styles.ownReplyAuthor]}>
                     {item.replyTo.sender.name || item.replyTo.sender.username}
-                  </Text>
+              </Text>
                   <Text
                     style={[styles.replyPreviewText, isOwn && styles.ownReplyPreviewText]}
                     numberOfLines={1}
@@ -497,19 +497,19 @@ export default function GroupDetailScreen() {
             <View style={styles.messageTimeContainer}>
               <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
                 {formatTime(item.createdAt)}
-              </Text>
-            </View>
+            </Text>
+          </View>
           </Pressable>
         </View>
 
         {!isOwn && (
           <>
             {showAvatar ? (
-              <TouchableOpacity
+        <TouchableOpacity
                 style={styles.otherAvatarContainer}
                 onPress={() => {
                   if (item.sender?.id) {
-                    router.push({
+            router.push({
                       pathname: '/userProfile',
                       params: { userId: item.sender.id.toString() },
                     });
@@ -527,7 +527,7 @@ export default function GroupDetailScreen() {
                     <FontAwesome name="user" size={16} color="#999" />
                   </View>
                 )}
-              </TouchableOpacity>
+        </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 style={styles.otherAvatarSpacer}
@@ -560,8 +560,8 @@ export default function GroupDetailScreen() {
   }
 
   if (!group) {
-    return (
-      <SafeAreaView style={styles.container}>
+  return (
+    <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Group not found</Text>
         </View>
@@ -599,26 +599,26 @@ export default function GroupDetailScreen() {
         <View style={styles.headerActions}>
           {/* Delete group button (only for owner) */}
           {group.owner?.id === currentUserId && (
-            <TouchableOpacity
+        <TouchableOpacity
               style={styles.headerActionButton}
               onPress={handleDeleteGroup}
               activeOpacity={0.7}
-            >
+        >
               <FontAwesome name="trash" size={18} color="#E10600" />
-            </TouchableOpacity>
+        </TouchableOpacity>
           )}
-          
+
           {/* Video call button with dropdown */}
-          <TouchableOpacity
+        <TouchableOpacity
             style={styles.headerActionButton}
             onPress={() => setShowCallMenu(!showCallMenu)}
             activeOpacity={0.7}
-          >
+        >
             <FontAwesome name="video-camera" size={20} color={theme.colors.text.secondary} />
             <FontAwesome name="chevron-down" size={12} color={theme.colors.text.secondary} style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
       </View>
+          </View>
 
       {/* Messages list */}
       {loading ? (
@@ -627,13 +627,13 @@ export default function GroupDetailScreen() {
           <Text style={styles.loadingText}>Loading messages...</Text>
         </View>
       ) : (
-        <FlatList
+          <FlatList
           ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
-          keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.messagesContainer}
-          showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           onScrollToIndexFailed={(info) => {
             const wait = new Promise(resolve => setTimeout(resolve, 500));
@@ -688,7 +688,7 @@ export default function GroupDetailScreen() {
             activeOpacity={0.7}
           >
             <FontAwesome name="plus" size={20} color={theme.colors.text.secondary} />
-          </TouchableOpacity>
+            </TouchableOpacity>
 
           <TextInput
             style={styles.textInput}
@@ -726,7 +726,7 @@ export default function GroupDetailScreen() {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+          </View>
 
       {/* Members Modal */}
       <Modal
@@ -743,7 +743,7 @@ export default function GroupDetailScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
           {/* Header */}
           <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
-            <TouchableOpacity 
+                  <TouchableOpacity
               onPress={() => {
                 if (showAddMembers) {
                   setShowAddMembers(false);
@@ -753,21 +753,21 @@ export default function GroupDetailScreen() {
                   setShowMembersModal(false);
                 }
               }}
-            >
+                  >
               <FontAwesome name={showAddMembers ? "arrow-left" : "times"} size={24} color="#6A707C" />
             </TouchableOpacity>
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 16, flex: 1 }}>
               {showAddMembers ? 'Add Members' : 'Members'}
-            </Text>
+                    </Text>
             {!showAddMembers && canManageMembers && (
               <TouchableOpacity
                 onPress={() => setShowAddMembers(true)}
                 style={{ padding: 8 }}
               >
                 <FontAwesome name="plus" size={20} color="#E10600" />
-              </TouchableOpacity>
+                  </TouchableOpacity>
             )}
-          </View>
+            </View>
 
           {showAddMembers ? (
             /* Add Members View */
@@ -776,7 +776,7 @@ export default function GroupDetailScreen() {
               <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
                   <FontAwesome name="search" size={16} color="#6A707C" />
-                  <TextInput
+              <TextInput
                     style={{ flex: 1, marginLeft: 8, fontSize: 16, color: '#1F2937' }}
                     placeholder="Search friends..."
                     placeholderTextColor="#9CA3AF"
@@ -787,7 +787,7 @@ export default function GroupDetailScreen() {
                     }}
                   />
                 </View>
-              </View>
+            </View>
 
               {/* Search Results */}
               <FlatList

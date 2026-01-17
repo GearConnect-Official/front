@@ -32,6 +32,7 @@ export interface Post {
   username: string;
   avatar: string;
   profilePicturePublicId?: string;
+  isVerify?: boolean;
   userId?: number;
   images: string[];
   imagePublicIds?: string[]; // Public IDs Cloudinary pour l'optimisation
@@ -202,6 +203,7 @@ const PostItem: React.FC<PostItemProps> = ({
         username={post.username}
         avatar={post.avatar}
         profilePicturePublicId={post.profilePicturePublicId}
+        isVerify={post.isVerify}
         onProfilePress={() => onProfilePress(post.username, post.userId)}
         currentUsername={currentUsername}
         userId={post.userId}

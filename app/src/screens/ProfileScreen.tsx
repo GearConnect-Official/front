@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   StatusBar,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
@@ -21,7 +22,7 @@ import postService from "../services/postService";
 import { API_URL_USERS } from "../config";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from "../components/media";
-import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
+import { VerifiedAvatar } from "../components/media/VerifiedAvatar";
 import { detectMediaType } from "../utils/mediaUtils";
 import { defaultImages } from "../config/defaultImages";
 import PerformanceService from "../services/performanceService";
@@ -32,6 +33,7 @@ import { FollowStats } from "../types/follow.types";
 import eventService from "../services/eventService";
 import { countEventsWithMissingInfo, checkMissingEventInfo } from "../utils/eventMissingInfo";
 import { trackSocial, trackScreenView } from "../utils/mixpanelTracking";
+import chatService from "../services/chatService";
 
 // Screen width to calculate grid image dimensions
 const NUM_COLUMNS = 3;
@@ -138,7 +140,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     propUserId || (user?.id ? Number(user.id) : undefined);
 
   // Function to fetch user data
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     if (!effectiveUserId) return;
 
     setIsLoadingUserData(true);
@@ -167,10 +169,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     } finally {
       setIsLoadingUserData(false);
     }
-  };
+  }, [effectiveUserId]);
 
   // Function to fetch follow statistics
-  const fetchFollowStats = async () => {
+  const fetchFollowStats = useCallback(async () => {
     if (!effectiveUserId) return;
 
     setIsLoadingFollowStats(true);
@@ -193,7 +195,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     } finally {
       setIsLoadingFollowStats(false);
     }
-  };
+  }, [effectiveUserId, user?.id]);
 
   // Rafraîchir les données utilisateur quand on revient sur l'écran
   useFocusEffect(
@@ -208,7 +210,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         trackSocial.profileViewed(String(effectiveUserId), isOwnProfile);
         trackScreenView('Profile', { user_id: effectiveUserId, is_own_profile: isOwnProfile });
       }
-    }, [effectiveUserId, auth?.user?.id])
+    }, [effectiveUserId, auth?.user?.id, fetchFollowStats, fetchUserData])
   );
 
   // Function to fetch next event tag
@@ -461,6 +463,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     };
 
     loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveUserId, params.refresh]);
 
   const onRefreshProfile = async () => {
@@ -638,9 +641,67 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     router.push("/friends");
   };
 
-  const handleSendMessage = () => {
-    // TODO: Naviguer vers la messagerie pour envoyer un message
-    console.log("Navigate to send message - not implemented yet");
+  const handleSendMessage = async () => {
+    if (!effectiveUserId || !user?.id) {
+      Alert.alert('Error', 'Unable to send message');
+      return;
+    }
+
+    const currentUserId = Number(user.id);
+    const targetUserId = effectiveUserId;
+
+    if (currentUserId === targetUserId) {
+      Alert.alert('Error', 'You cannot send a message to yourself');
+      return;
+    }
+
+    try {
+      // Check if target user is verified or if mutual follow exists
+      const isTargetVerified = userData?.isVerify || false;
+      const isMutualFollow = followStats.isFollowing && followStats.isFollowedBy;
+
+      // If target is verified or mutual follow, create conversation directly
+      if (isTargetVerified || isMutualFollow) {
+        const conversation = await chatService.createConversation([targetUserId], currentUserId);
+        
+        if (conversation && conversation.id) {
+          router.push({
+            pathname: '/(app)/conversation',
+            params: {
+              conversationId: conversation.id.toString(),
+              conversationName: userData?.name || 'User',
+            },
+          });
+        } else {
+          Alert.alert('Error', 'Failed to create conversation');
+        }
+      } else {
+        // Create a message request
+        const request = await chatService.sendMessageRequest(targetUserId, currentUserId);
+        
+        if (request) {
+          Alert.alert(
+            'Request sent',
+            'Your message request has been sent. You will be notified when the user accepts it.',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  // Optionally navigate to requests tab in messages
+                  router.push('/(app)/messages');
+                },
+              },
+            ]
+          );
+        } else {
+          Alert.alert('Error', 'Failed to send message request');
+        }
+      }
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      const errorMessage = error.response?.data?.error || 'Unable to send message';
+      Alert.alert('Error', errorMessage);
+    }
   };
 
   const renderPostsGrid = () => {
@@ -1363,28 +1424,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <View style={styles.profileContainer}>
               <View style={styles.profileSection}>
                 <View style={styles.profileHeader}>
-              {/* Photo de profil optimisée avec Cloudinary */}
-              {userData?.profilePicturePublicId ? (
-                <CloudinaryAvatar
-                  publicId={userData.profilePicturePublicId}
-                  size={80}
-                  quality="auto"
-                  format="auto"
-                  style={styles.profileImage}
-                  fallbackUrl={userData?.profilePicture}
-                />
-              ) : (
-                <Image
-                  source={
-                    userData?.profilePicture
-                      ? { uri: userData.profilePicture }
-                      : defaultImages.profile
-                  }
-                  style={styles.profileImage}
-                />
-              )}
+              {/* Photo de profil optimisée avec Cloudinary et badge de vérification */}
+              <VerifiedAvatar
+                publicId={userData?.profilePicturePublicId}
+                fallbackUrl={userData?.profilePicture || defaultImages.profile}
+                size={80}
+                isVerify={userData?.isVerify || false}
+                quality="auto"
+                format="auto"
+                style={styles.profileImage}
+              />
               <View style={styles.profileInfo}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                  {isLoadingUserData && (
+                    <ActivityIndicator size="small" color="#E10600" style={{ marginRight: 4 }} />
+                  )}
                   <Text style={styles.username}>
                     {userData?.username || user?.username || "User"}
                   </Text>
@@ -1433,8 +1487,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                       pathname: '/followList',
                       params: { userId: effectiveUserId?.toString(), initialTab: 'followers' }
                     })}
+                    disabled={isLoadingFollowStats}
                   >
-                    <Text style={styles.statNumber}>{stats.followers}</Text>
+                    {isLoadingFollowStats ? (
+                      <ActivityIndicator size="small" color="#E10600" />
+                    ) : (
+                      <Text style={styles.statNumber}>{stats.followers}</Text>
+                    )}
                     <Text style={styles.statLabel}>Followers</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
@@ -1443,8 +1502,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                       pathname: '/followList',
                       params: { userId: effectiveUserId?.toString(), initialTab: 'following' }
                     })}
+                    disabled={isLoadingFollowStats}
                   >
-                    <Text style={styles.statNumber}>{stats.following}</Text>
+                    {isLoadingFollowStats ? (
+                      <ActivityIndicator size="small" color="#E10600" />
+                    ) : (
+                      <Text style={styles.statNumber}>{stats.following}</Text>
+                    )}
                     <Text style={styles.statLabel}>Following</Text>
                   </TouchableOpacity>
                 </View>

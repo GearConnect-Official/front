@@ -118,6 +118,10 @@ const SettingsScreen: React.FC = () => {
     router.push('/editProfile');
   };
 
+  const handleVerificationRequest = () => {
+    router.push('/verificationRequest');
+  };
+
   const handleHelpCenter = async () => {
     try {
       const url = 'https://gearconnect-landing.vercel.app/faq';
@@ -197,6 +201,12 @@ const SettingsScreen: React.FC = () => {
             title="Privacy Settings"
             subtitle="Control your privacy preferences"
             onPress={handlePrivacySettings}
+          />
+          <SettingsItem
+            icon="check-circle"
+            title="Request Verification"
+            subtitle="Apply for account verification"
+            onPress={handleVerificationRequest}
           />
         </SettingsSection>
         

@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
@@ -39,6 +39,7 @@ import { defaultImages } from "../config/defaultImages";
 import userService from "../services/userService";
 import { useMessage } from '../context/MessageContext';
 import { trackPost, trackScreenView } from '../utils/mixpanelTracking';
+import chatService from '../services/chatService';
 
 // Types
 interface Story {
@@ -55,6 +56,7 @@ interface UIPost {
   username: string;
   avatar: string;
   profilePicturePublicId?: string; // Nouveau : pour CloudinaryAvatar
+  isVerify?: boolean; // Verification status
   images: string[];
   imagePublicIds?: string[];  // Public IDs Cloudinary pour l'optimisation
   mediaTypes?: ('image' | 'video')[];  // Types de médias pour chaque élément
@@ -114,6 +116,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
     username: apiPost.user?.username || `user_${apiPost.userId}`,
     avatar: userAvatar,
     profilePicturePublicId: (apiPost.user as any)?.profilePicturePublicId,
+    isVerify: (apiPost.user as any)?.isVerify || false,
     images,
     imagePublicIds,
     mediaTypes,
@@ -151,6 +154,47 @@ const HomeScreen: React.FC = () => {
     trackScreenView('Home');
   }, []);
 
+  // Load pending requests count
+  const loadPendingRequestsCount = useCallback(async () => {
+    if (!user?.id) {
+      console.log('🔔 No user ID, skipping pending requests count');
+      return;
+    }
+    
+    try {
+      const userId = parseInt(user.id.toString());
+      console.log('🔔 Loading pending requests count for user:', userId);
+      const response = await chatService.getConversations(userId);
+      console.log('🔔 Response:', response);
+      console.log('🔔 Requests:', response?.requests);
+      
+      const pendingCount = response?.requests?.filter((r: any) => {
+        const status = (r.status || '').toString().toUpperCase();
+        const isReceived = r.isReceived === true;
+        const isPending = status === 'PENDING';
+        console.log('🔔 Request:', { id: r.id, status, isReceived, isPending });
+        return isReceived && isPending;
+      }).length || 0;
+      
+      console.log('🔔 Pending requests count:', pendingCount);
+      setPendingRequestsCount(pendingCount);
+    } catch (error) {
+      console.error('🔔 Error loading pending requests count:', error);
+      setPendingRequestsCount(0);
+    }
+  }, [user?.id]);
+
+  // Load pending requests count on mount and when screen is focused
+  useEffect(() => {
+    loadPendingRequestsCount();
+  }, [loadPendingRequestsCount]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPendingRequestsCount();
+    }, [loadPendingRequestsCount])
+  );
+
   // Version simple et robuste - pas de cache complexe pour l'instant
   const [posts, setPosts] = useState<UIPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,6 +203,7 @@ const HomeScreen: React.FC = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   
   // Debounce pour éviter les appels multiples
   const lastFetchTime = useRef<number>(0);
@@ -779,8 +824,13 @@ const HomeScreen: React.FC = () => {
               onPress={handleNavigateToMessages}
             >
               <FontAwesome name="comments" size={22} color={theme.colors.text.secondary} />
-              {/* Badge pour futures notifications */}
-              {/* <View style={styles.notificationBadge} /> */}
+              {pendingRequestsCount > 0 ? (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount.toString()}
+                  </Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}

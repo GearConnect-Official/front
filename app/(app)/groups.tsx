@@ -95,8 +95,8 @@ const GroupsScreen: React.FC = () => {
         <View style={styles.groupInfo as StyleProp<ViewStyle>}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Text style={styles.groupName as StyleProp<TextStyle>} numberOfLines={1}>
-              {item.name}
-            </Text>
+            {item.name}
+          </Text>
             {item.eventId && (
               <FontAwesome name="trophy" size={14} color="#FFD700" />
             )}

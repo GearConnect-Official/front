@@ -1,16 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   FlatList,
+  SectionList,
   TouchableOpacity,
   Image,
   RefreshControl,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Swipeable } from 'react-native-gesture-handler';
 import theme from '../src/styles/config/theme';
 import { messagesScreenStyles as styles } from '../src/styles/screens';
 import chatService, { Conversation, MessageRequest } from '../src/services/chatService';
@@ -18,9 +21,11 @@ import { useAuth } from '../src/context/AuthContext';
 
 // Tab types
 type TabType = 'messages' | 'requests' | 'commercial';
+type RequestSubTabType = 'pending' | 'sent';
 
 export default function MessagesScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('messages');
+  const [activeRequestSubTab, setActiveRequestSubTab] = useState<RequestSubTabType>('pending');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [requests, setRequests] = useState<MessageRequest[]>([]);
   const [commercial, setCommercial] = useState<Conversation[]>([]);
@@ -53,11 +58,18 @@ export default function MessagesScreen() {
     loadConversations();
   }, [loadConversations]);
 
+  // Reset request sub-tab when switching away from requests tab
+  useEffect(() => {
+    if (activeTab !== 'requests') {
+      setActiveRequestSubTab('pending');
+    }
+  }, [activeTab]);
+
   // Handle refresh
   const onRefresh = async () => {
     setRefreshing(true);
     await loadConversations();
-    setRefreshing(false);
+      setRefreshing(false);
   };
 
   // Navigate to a conversation
@@ -154,6 +166,96 @@ export default function MessagesScreen() {
     }
   };
 
+  // Handle toggle favorite
+  const handleToggleFavorite = async (conversation: Conversation) => {
+    try {
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      if (!currentUserId) return;
+      
+      await chatService.toggleFavorite(conversation.id, currentUserId);
+      await loadConversations();
+    } catch (error: any) {
+      console.error('Error toggling favorite:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Unable to update favorite status');
+    }
+  };
+
+  // Handle delete conversation
+  const handleDeleteConversation = async (conversation: Conversation) => {
+    Alert.alert(
+      'Delete Conversation',
+      'Are you sure you want to delete this conversation?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+              if (!currentUserId) return;
+              
+              await chatService.deleteConversation(conversation.id, currentUserId);
+              await loadConversations();
+            } catch (error: any) {
+              console.error('Error deleting conversation:', error);
+              Alert.alert('Error', error.response?.data?.error || 'Unable to delete conversation');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Render right actions for swipeable
+  const renderRightActions = (conversation: Conversation, progress: Animated.AnimatedInterpolation<number>) => {
+    const translateX = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [100, 0],
+    });
+
+    return (
+      <View style={styles.swipeActionsContainer}>
+        <Animated.View
+          style={[
+            styles.swipeAction,
+            styles.favoriteAction,
+            { transform: [{ translateX }] },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.swipeActionButton}
+            onPress={() => handleToggleFavorite(conversation)}
+          >
+            <FontAwesome
+              name={conversation.isFavorite ? 'star' : 'star-o'}
+              size={24}
+              color="white"
+            />
+            <Text style={styles.swipeActionText}>
+              {conversation.isFavorite ? 'Unfavorite' : 'Favorite'}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.swipeAction,
+            styles.deleteAction,
+            { transform: [{ translateX }] },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.swipeActionButton}
+            onPress={() => handleDeleteConversation(conversation)}
+          >
+            <FontAwesome name="trash" size={24} color="white" />
+            <Text style={styles.swipeActionText}>Delete</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    );
+  };
+
   // Render conversation item
   const renderConversationItem = ({ item }: { item: Conversation }) => {
     const lastMessage = item.messages[0];
@@ -162,11 +264,15 @@ export default function MessagesScreen() {
     const otherParticipant = getOtherParticipant(item);
 
     return (
-      <TouchableOpacity
-        style={styles.conversationItem}
-        onPress={() => openConversation(item)}
-        activeOpacity={0.7}
+      <Swipeable
+        renderRightActions={(progress) => renderRightActions(item, progress)}
+        overshootRight={false}
       >
+        <TouchableOpacity
+          style={styles.conversationItem}
+          onPress={() => openConversation(item)}
+          activeOpacity={0.7}
+        >
         <View style={styles.avatarContainer}>
           {conversationImage ? (
             <Image source={{ uri: conversationImage }} style={styles.avatar} />
@@ -195,10 +301,16 @@ export default function MessagesScreen() {
           <View style={styles.conversationHeader}>
             <Text style={styles.conversationName} numberOfLines={1}>
               {conversationName}
-              {!item.isGroup && otherParticipant?.isVerify && (
+              {item.isFavorite && (
                 <>
                   <Text> </Text>
-                  <FontAwesome name="check-circle" size={14} color="#E10600" />
+                  <FontAwesome name="star" size={14} color="#FFA500" />
+                </>
+              )}
+              {!item.isGroup && otherParticipant?.isVerify && (
+                <>
+                <Text> </Text>
+                <FontAwesome name="check-circle" size={14} color="#E10600" />
                 </>
               )}
             </Text>
@@ -216,17 +328,25 @@ export default function MessagesScreen() {
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Swipeable>
     );
   };
 
   // Render request item
   const renderRequestItem = ({ item }: { item: MessageRequest }) => {
+    const isReceived = item.isReceived ?? true; // Default to received if not specified
+    const otherUser = isReceived ? item.from : item.to;
+    const status = item.status.toUpperCase() as 'PENDING' | 'ACCEPTED' | 'REJECTED';
+    
     return (
       <View style={styles.requestItem}>
         <View style={styles.avatarContainer}>
-          {item.from.profilePicture ? (
-            <Image source={{ uri: item.from.profilePicture }} style={styles.avatar} />
+          {otherUser.profilePicture || otherUser.profilePicturePublicId ? (
+            <Image 
+              source={{ uri: otherUser.profilePicture || otherUser.profilePicturePublicId }} 
+              style={styles.avatar} 
+            />
           ) : (
             <View style={[styles.avatar, styles.defaultAvatar]}>
               <FontAwesome name="user" size={24} color={theme.colors.text.secondary} />
@@ -237,11 +357,21 @@ export default function MessagesScreen() {
         <View style={styles.conversationInfo}>
           <View style={styles.conversationHeader}>
             <Text style={styles.conversationName} numberOfLines={1}>
-              {item.from.name}
-              {item.from.isVerify && (
+              {otherUser.name}
+              {otherUser.isVerify && (
                 <>
                   <Text> </Text>
                   <FontAwesome name="check-circle" size={14} color="#E10600" />
+                </>
+              )}
+              {!isReceived && (
+                <>
+                  <Text> </Text>
+                  <Text style={styles.requestStatusText}>
+                    {status === 'PENDING' && '(Pending)'}
+                    {status === 'ACCEPTED' && '(Accepted)'}
+                    {status === 'REJECTED' && '(Rejected)'}
+                  </Text>
                 </>
               )}
             </Text>
@@ -258,20 +388,23 @@ export default function MessagesScreen() {
             </View>
           )}
 
-          <View style={styles.requestActions}>
-            <TouchableOpacity
-              style={[styles.requestButton, styles.acceptButton]}
-              onPress={() => handleAcceptRequest(item)}
-            >
-              <Text style={styles.acceptButtonText}>Accepter</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.requestButton, styles.rejectButton]}
-              onPress={() => handleRejectRequest(item)}
-            >
-              <Text style={styles.rejectButtonText}>Rejeter</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Only show actions for received pending requests */}
+          {isReceived && status === 'PENDING' && (
+            <View style={styles.requestActions}>
+              <TouchableOpacity
+                style={[styles.requestButton, styles.acceptButton]}
+                onPress={() => handleAcceptRequest(item)}
+              >
+                <Text style={styles.acceptButtonText}>Accept</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.requestButton, styles.rejectButton]}
+                onPress={() => handleRejectRequest(item)}
+              >
+                <Text style={styles.rejectButtonText}>Decline</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -301,8 +434,11 @@ export default function MessagesScreen() {
     }
   };
 
-  // Get pending requests count
-  const pendingRequestsCount = requests.filter(r => r.status === 'pending').length;
+  // Get pending requests count (only received pending requests)
+  const pendingRequestsCount = requests.filter(r => {
+    const status = r.status.toUpperCase();
+    return r.isReceived && status === 'PENDING';
+  }).length;
 
   return (
     <View style={styles.container}>
@@ -338,7 +474,7 @@ export default function MessagesScreen() {
           onPress={() => setActiveTab('messages')}
         >
           <Text style={[styles.tabText, activeTab === 'messages' && styles.activeTabText]}>
-            Chats
+            Messages
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -368,32 +504,72 @@ export default function MessagesScreen() {
 
       {/* List based on active tab */}
       {activeTab === 'requests' ? (
-        <FlatList
-          data={requests.filter(r => r.status === 'pending')}
-          renderItem={renderRequestItem}
-          keyExtractor={(item) => item.id.toString()}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <FontAwesome name="inbox" size={40} color={theme.colors.text.secondary} />
-              <Text style={styles.emptyText}>No pending requests</Text>
-            </View>
-          }
-        />
+        <>
+          {/* Sub-tabs for requests */}
+          <View style={styles.subTabsContainer}>
+            <TouchableOpacity
+              style={[styles.subTab, activeRequestSubTab === 'pending' && styles.activeSubTab]}
+              onPress={() => setActiveRequestSubTab('pending')}
+            >
+              <Text style={[styles.subTabText, activeRequestSubTab === 'pending' && styles.activeSubTabText]}>
+                Pending
+              </Text>
+              {pendingRequestsCount > 0 && (
+                <View style={styles.subTabBadge}>
+                  <Text style={styles.subTabBadgeText}>
+                    {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.subTab, activeRequestSubTab === 'sent' && styles.activeSubTab]}
+              onPress={() => setActiveRequestSubTab('sent')}
+            >
+              <Text style={[styles.subTabText, activeRequestSubTab === 'sent' && styles.activeSubTabText]}>
+                Sent
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Requests list based on sub-tab */}
+          <FlatList
+            data={activeRequestSubTab === 'pending' 
+              ? requests.filter(r => {
+                  const status = r.status.toUpperCase();
+                  return r.isReceived && status === 'PENDING';
+                })
+              : requests.filter(r => !r.isReceived)
+            }
+            renderItem={renderRequestItem}
+            keyExtractor={(item) => item.id.toString()}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <FontAwesome name="inbox" size={40} color={theme.colors.text.secondary} />
+                <Text style={styles.emptyText}>
+                  {activeRequestSubTab === 'pending' 
+                    ? 'No pending requests' 
+                    : 'No sent requests'}
+                </Text>
+              </View>
+            }
+          />
+        </>
       ) : (
-        <FlatList
+      <FlatList
           data={getCurrentData() as Conversation[]}
-          renderItem={renderConversationItem}
-          keyExtractor={(item) => item.id.toString()}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
+        renderItem={renderConversationItem}
+        keyExtractor={(item) => item.id.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <FontAwesome 
@@ -408,7 +584,7 @@ export default function MessagesScreen() {
               </Text>
             </View>
           }
-        />
+      />
       )}
 
       {/* Loading state */}

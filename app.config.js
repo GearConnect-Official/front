@@ -19,14 +19,20 @@ export default {
     ],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.gearconnect.app"
+      bundleIdentifier: "com.gearconnect.app",
+      infoPlist: {
+        NSContactsUsageDescription: "We need access to your contacts to share them in conversations."
+      }
     },
     android: {
       adaptiveIcon: {
         foregroundImage: "./app/assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
-      package: "com.gearconnect.app"
+      package: "com.gearconnect.app",
+      permissions: [
+        "android.permission.READ_CONTACTS"
+      ]
     },
     web: {
       bundler: "metro",

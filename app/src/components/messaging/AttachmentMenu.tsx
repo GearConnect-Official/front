@@ -6,6 +6,8 @@ import MediaPickerModal from './MediaPickerModal';
 import { SelectedMedia } from './MediaPickerModal';
 import CameraModal from './CameraModal';
 import { CameraMedia } from './CameraModal';
+import ContactPickerModal from './ContactPickerModal';
+import { ContactData } from './ContactPickerModal';
 
 // Re-export SelectedMedia for convenience
 export type { SelectedMedia };
@@ -16,7 +18,7 @@ interface AttachmentMenuProps {
   onPhotosSelected?: (media: SelectedMedia[], caption: string) => void;
   onCameraSelected?: (media: CameraMedia[], caption: string) => void;
   onLocationSelected?: () => void;
-  onContactSelected?: () => void;
+  onContactSelected?: (contact: ContactData) => void;
   onDocumentSelected?: () => void;
   onPollSelected?: () => void;
   onEventSelected?: () => void;
@@ -39,6 +41,7 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
 }) => {
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [showContactPicker, setShowContactPicker] = useState(false);
 
   const handlePhotosPress = () => {
     setShowMediaPicker(true);
@@ -56,6 +59,13 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
     setShowCamera(false);
     if (onCameraSelected) {
       onCameraSelected(media, caption);
+    }
+  };
+
+  const handleContactSend = (contact: ContactData) => {
+    setShowContactPicker(false);
+    if (onContactSelected) {
+      onContactSelected(contact);
     }
   };
 
@@ -125,8 +135,8 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
             <TouchableOpacity
               style={styles.option}
               onPress={() => {
+                setShowContactPicker(true);
                 onClose();
-                if (onContactSelected) onContactSelected();
               }}
               activeOpacity={0.7}
             >
@@ -207,6 +217,17 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
           onSend={handleCameraSend}
           onCancel={() => {
             setShowCamera(false);
+          }}
+        />
+      )}
+
+      {/* Contact Picker Modal - Keep visible even when attachment menu is closed */}
+      {showContactPicker && (
+        <ContactPickerModal
+          visible={showContactPicker}
+          onSend={handleContactSend}
+          onCancel={() => {
+            setShowContactPicker(false);
           }}
         />
       )}

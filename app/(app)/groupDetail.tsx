@@ -27,6 +27,7 @@ import AttachmentMenu, { SelectedMedia } from '../src/components/messaging/Attac
 import VoiceRecorder from '../src/components/messaging/VoiceRecorder';
 import AudioMessagePlayer from '../src/components/messaging/AudioMessagePlayer';
 import MediaCarousel from '../src/components/messaging/MediaCarousel';
+import ContactCard, { ContactData } from '../src/components/messaging/ContactCard';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -699,6 +700,27 @@ export default function GroupDetailScreen() {
                   );
                 }
               })()
+            ) : item.content.startsWith('CONTACT:') ? (
+              // Parse contact data
+              (() => {
+                try {
+                  const contactJson = item.content.replace('CONTACT:', '');
+                  const contactData: ContactData = JSON.parse(contactJson);
+                  return (
+                    <ContactCard
+                      contact={contactData}
+                      isOwn={isOwn}
+                    />
+                  );
+                } catch (e) {
+                  // Fallback to text if parsing fails
+                  return (
+                    <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                      {item.content}
+                    </Text>
+                  );
+                }
+              })()
             ) : (
               <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
                 {item.content}
@@ -1325,9 +1347,41 @@ export default function GroupDetailScreen() {
           // TODO: Implement location
           console.log('Location');
         }}
-        onContactSelected={() => {
-          // TODO: Implement contact
-          console.log('Contact');
+        onContactSelected={async (contact) => {
+          if (!currentUserId || !group?.conversationId) return;
+          
+          try {
+            setSending(true);
+            const groupIdNum = parseInt(groupId);
+            
+            // Send contact as JSON with special prefix to identify it
+            const contactData = {
+              type: 'contact',
+              name: contact.name,
+              phoneNumbers: contact.phoneNumbers,
+              emails: contact.emails,
+              organization: contact.organization,
+              jobTitle: contact.jobTitle,
+            };
+            
+            const contactMessage = `CONTACT:${JSON.stringify(contactData)}`;
+            
+            await groupService.sendGroupMessage(
+              groupIdNum,
+              contactMessage,
+              currentUserId,
+              'TEXT',
+              replyingTo?.id
+            );
+            
+            // Reload messages
+            await loadMessages();
+          } catch (error: any) {
+            console.error('Error sending contact:', error);
+            Alert.alert('Error', error.response?.data?.error || 'Failed to send contact');
+          } finally {
+            setSending(false);
+          }
         }}
         onDocumentSelected={() => {
           // TODO: Implement document

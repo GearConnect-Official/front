@@ -209,6 +209,16 @@ const SettingsScreen: React.FC = () => {
             onPress={handleVerificationRequest}
           />
         </SettingsSection>
+
+        {/* Permissions Section */}
+        <SettingsSection title="Permissions">
+          <SettingsItem
+            icon="shield"
+            title="App Permissions"
+            subtitle="Manage camera, photos, contacts permissions"
+            onPress={() => router.push('/permissions')}
+          />
+        </SettingsSection>
         
         {/* Support Section */}
         <SettingsSection title="Support">

@@ -15,6 +15,9 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Contacts from 'expo-contacts';
 import * as MediaLibrary from 'expo-media-library';
+import * as Location from 'expo-location';
+import * as Calendar from 'expo-calendar';
+import { Audio } from 'expo-av';
 import theme from '../src/styles/config/theme';
 
 type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'checking';
@@ -60,13 +63,43 @@ export default function PermissionsScreen() {
     }
   };
 
+  const checkLocationPermission = async (): Promise<PermissionStatus> => {
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      return status === 'granted' ? 'granted' : status === 'denied' ? 'denied' : 'undetermined';
+    } catch {
+      return 'undetermined';
+    }
+  };
+
+  const checkCalendarPermission = async (): Promise<PermissionStatus> => {
+    try {
+      const { status } = await Calendar.getCalendarPermissionsAsync();
+      return status === 'granted' ? 'granted' : status === 'denied' ? 'denied' : 'undetermined';
+    } catch {
+      return 'undetermined';
+    }
+  };
+
+  const checkMicrophonePermission = async (): Promise<PermissionStatus> => {
+    try {
+      const { status } = await Audio.getPermissionsAsync();
+      return status === 'granted' ? 'granted' : status === 'denied' ? 'denied' : 'undetermined';
+    } catch {
+      return 'undetermined';
+    }
+  };
+
   const loadPermissions = async () => {
     setLoading(true);
     try {
-      const [cameraStatus, mediaStatus, contactsStatus] = await Promise.all([
+      const [cameraStatus, mediaStatus, contactsStatus, locationStatus, calendarStatus, microphoneStatus] = await Promise.all([
         checkCameraPermission(),
         checkMediaLibraryPermission(),
         checkContactsPermission(),
+        checkLocationPermission(),
+        checkCalendarPermission(),
+        checkMicrophonePermission(),
       ]);
 
       setPermissions([
@@ -93,6 +126,30 @@ export default function PermissionsScreen() {
           icon: 'user',
           status: contactsStatus,
           checkPermission: checkContactsPermission,
+        },
+        {
+          id: 'location',
+          name: 'Location',
+          description: 'Share your location in conversations',
+          icon: 'map-marker',
+          status: locationStatus,
+          checkPermission: checkLocationPermission,
+        },
+        {
+          id: 'calendar',
+          name: 'Calendar',
+          description: 'Add appointments to your calendar',
+          icon: 'calendar',
+          status: calendarStatus,
+          checkPermission: checkCalendarPermission,
+        },
+        {
+          id: 'microphone',
+          name: 'Microphone',
+          description: 'Record voice messages',
+          icon: 'microphone',
+          status: microphoneStatus,
+          checkPermission: checkMicrophonePermission,
         },
       ]);
     } catch (error) {
@@ -138,6 +195,18 @@ export default function PermissionsScreen() {
         case 'contacts':
           const contactsResult = await Contacts.requestPermissionsAsync();
           newStatus = contactsResult.status === 'granted' ? 'granted' : 'denied';
+          break;
+        case 'location':
+          const locationResult = await Location.requestForegroundPermissionsAsync();
+          newStatus = locationResult.status === 'granted' ? 'granted' : 'denied';
+          break;
+        case 'calendar':
+          const calendarResult = await Calendar.requestCalendarPermissionsAsync();
+          newStatus = calendarResult.status === 'granted' ? 'granted' : 'denied';
+          break;
+        case 'microphone':
+          const microphoneResult = await Audio.requestPermissionsAsync();
+          newStatus = microphoneResult.status === 'granted' ? 'granted' : 'denied';
           break;
       }
 

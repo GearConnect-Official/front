@@ -210,6 +210,16 @@ const SettingsScreen: React.FC = () => {
           />
         </SettingsSection>
 
+        {/* Notifications Section */}
+        <SettingsSection title="Notifications">
+          <SettingsItem
+            icon="bell"
+            title="Messaging Notifications"
+            subtitle="Control what notifications you receive"
+            onPress={() => router.push('/notificationSettings')}
+          />
+        </SettingsSection>
+
         {/* Permissions Section */}
         <SettingsSection title="Permissions">
           <SettingsItem

@@ -13,7 +13,8 @@
     "test": "jest --config jest.config.js",
     "test:errors": "bash ./scripts/test-error-handling.sh",
     "lint": "expo lint",
-    "build:content": "node ./scripts/convert-yaml-to-ts.js"
+    "build:content": "node ./scripts/convert-yaml-to-ts.js",
+    "clean:dist": "find app -type d -name dist -exec rm -rf {} + 2>/dev/null || true"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.7.1",

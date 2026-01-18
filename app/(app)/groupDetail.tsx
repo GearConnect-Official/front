@@ -35,6 +35,7 @@ import LocationCard, { LocationData } from '../src/components/messaging/Location
 import AppointmentCard, { AppointmentData } from '../src/components/messaging/AppointmentCard';
 import AppointmentCreator from '../src/components/messaging/AppointmentCreator';
 import * as DocumentPicker from 'expo-document-picker';
+import { UserStatus, UserStatusDisplay } from '../src/types/userStatus';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -71,6 +72,7 @@ export default function GroupDetailScreen() {
   const [showAppointmentCreator, setShowAppointmentCreator] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const messageRefs = useRef<{ [key: number]: View | null }>({});
+  const loadedGroupIdRef = useRef<string | null>(null); // Track which group is loaded
   const router = useRouter();
   const params = useLocalSearchParams();
   const { user } = useAuth() || {};
@@ -152,8 +154,18 @@ export default function GroupDetailScreen() {
     }
   }, [currentUserId]);
 
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async (forceReload = false) => {
     if (!currentUserId || !group) return;
+
+    // Reset loaded group ref if group changed
+    if (loadedGroupIdRef.current !== groupId) {
+      loadedGroupIdRef.current = null;
+    }
+
+    // Skip reload if group is already loaded and we're not forcing a reload
+    if (!forceReload && loadedGroupIdRef.current === groupId) {
+      return; // Group already loaded, skip
+    }
 
     try {
       setLoading(true);
@@ -178,6 +190,7 @@ export default function GroupDetailScreen() {
       // Load poll votes
       const messagesWithVotes = await loadPollVotes(formattedMessages);
       setMessages(messagesWithVotes);
+      loadedGroupIdRef.current = groupId; // Mark group as loaded
     } catch (error) {
       console.error('Error loading messages:', error);
       Alert.alert('Error', 'Failed to load messages');
@@ -189,14 +202,30 @@ export default function GroupDetailScreen() {
   useEffect(() => {
     if (groupId && currentUserId) {
       loadGroupDetails();
+      
+      // Mark group conversation as read when opening it (only if group changed)
+      const shouldReload = loadedGroupIdRef.current !== groupId;
+      if (shouldReload) {
+        const markAsRead = async () => {
+          try {
+            const groupIdNum = parseInt(groupId);
+            await groupService.markGroupAsRead(groupIdNum, currentUserId);
+          } catch (error) {
+            console.error('Error marking group as read:', error);
+          }
+        };
+        markAsRead();
+      }
     }
   }, [groupId, currentUserId, loadGroupDetails]);
 
   useEffect(() => {
     if (group && currentUserId) {
-      loadMessages();
+      // Only reload if group changed
+      const shouldReload = loadedGroupIdRef.current !== groupId;
+      loadMessages(shouldReload);
     }
-  }, [group, currentUserId, loadMessages]);
+  }, [group, currentUserId, loadMessages, groupId]);
 
   // Scroll to bottom when new messages arrive (only if already at bottom)
   useEffect(() => {
@@ -463,7 +492,7 @@ export default function GroupDetailScreen() {
     try {
       await groupService.addMembers(parseInt(groupId), memberIds, currentUserId);
       await loadGroupDetails();
-      await loadMessages(); // Reload messages to show system messages
+      await loadMessages(true); // Force reload after adding members
       setShowAddMembers(false);
       setSearchQuery('');
       setSearchResults([]);
@@ -493,7 +522,7 @@ export default function GroupDetailScreen() {
             try {
               await groupService.removeMember(parseInt(groupId), memberId, currentUserId);
               await loadGroupDetails();
-              await loadMessages(); // Reload messages to show system message
+              await loadMessages(true); // Force reload after removing member
               Alert.alert('Success', 'Member removed successfully');
             } catch (error: any) {
               console.error('Error removing member:', error);
@@ -810,14 +839,14 @@ export default function GroupDetailScreen() {
               // Parse contact data
               (() => {
                 try {
-                const contactJson = item.content.replace('CONTACT:', '');
-                const contactData: ContactData = JSON.parse(contactJson);
-                return (
-                  <ContactCard
-                    contact={contactData}
-                    isOwn={isOwn}
-                  />
-                );
+                  const contactJson = item.content.replace('CONTACT:', '');
+                  const contactData: ContactData = JSON.parse(contactJson);
+                  return (
+                    <ContactCard
+                      contact={contactData}
+                      isOwn={isOwn}
+                    />
+                  );
               } catch {
                   // Fallback to text if parsing fails
                   return (
@@ -1284,7 +1313,7 @@ export default function GroupDetailScreen() {
                   );
                   
                   // Reload messages
-                  await loadMessages();
+                  await loadMessages(true); // Force reload after sending voice message
                 } catch (error: any) {
                   console.error('Error sending voice message:', error);
                   Alert.alert('Error', error.response?.data?.error || 'Failed to send voice message');
@@ -1410,16 +1439,68 @@ export default function GroupDetailScreen() {
                 const isOwner = item.user.id === group.owner?.id;
                 const canRemove = canManageMembers && !isOwner && item.user.id !== currentUserId;
                 
+                // Get user status
+                const userStatus = item.user.status || 'OFFLINE';
+                
+                // Determine if user is actually online (check lastSeenAt if status is ONLINE)
+                let actualStatus = userStatus;
+                if (userStatus === 'ONLINE' && item.user.lastSeenAt) {
+                  const lastSeen = new Date(item.user.lastSeenAt);
+                  const now = new Date();
+                  const diffMinutes = (now.getTime() - lastSeen.getTime()) / (1000 * 60);
+                  if (diffMinutes > 5) {
+                    actualStatus = 'OFFLINE';
+                  }
+                }
+                const finalStatusDisplay = actualStatus === 'ONLINE' 
+                  ? UserStatusDisplay[UserStatus.ONLINE]
+                  : UserStatusDisplay[UserStatus.OFFLINE];
+                
+                const handleNavigateToProfile = () => {
+                  if (item.user.id) {
+                    setShowMembersModal(false);
+                    // Small delay to ensure modal closes before navigation
+                    setTimeout(() => {
+                      router.push({
+                        pathname: '/userProfile',
+                        params: { userId: item.user.id.toString() },
+                      });
+                    }, 100);
+                  }
+                };
+
                 return (
                   <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
-                    {item.user.profilePicturePublicId ? (
-                      <CloudinaryAvatar publicId={item.user.profilePicturePublicId} size={40} />
-                    ) : (
-                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#D9D9D9', justifyContent: 'center', alignItems: 'center' }}>
-                        <FontAwesome name="user" size={16} color="#6A707C" />
-                      </View>
-                    )}
-                    <View style={{ marginLeft: 12, flex: 1 }}>
+                    <TouchableOpacity
+                      onPress={handleNavigateToProfile}
+                      activeOpacity={0.7}
+                      style={{ position: 'relative' }}
+                    >
+                      {item.user.profilePicturePublicId ? (
+                        <CloudinaryAvatar publicId={item.user.profilePicturePublicId} size={40} />
+                      ) : (
+                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#D9D9D9', justifyContent: 'center', alignItems: 'center' }}>
+                          <FontAwesome name="user" size={16} color="#6A707C" />
+                        </View>
+                      )}
+                      {/* Status indicator */}
+                      <View style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: 0,
+                        width: 12,
+                        height: 12,
+                        borderRadius: 6,
+                        backgroundColor: finalStatusDisplay.color,
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF',
+                      }} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={handleNavigateToProfile}
+                      activeOpacity={0.7}
+                      style={{ marginLeft: 12, flex: 1 }}
+                    >
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <Text style={{ fontSize: 16, fontWeight: '600' }}>{item.user.name}</Text>
                         {isOwner && (
@@ -1428,8 +1509,10 @@ export default function GroupDetailScreen() {
                           </View>
                         )}
                       </View>
-                      <Text style={{ fontSize: 12, color: '#6A707C' }}>{formatLastActive(item.lastActiveAt || item.joinedAt)}</Text>
-                    </View>
+                      <Text style={{ fontSize: 12, color: finalStatusDisplay.color }}>
+                        {finalStatusDisplay.label}
+                      </Text>
+                    </TouchableOpacity>
                     {canRemove && (
                       <TouchableOpacity
                         onPress={() => handleRemoveMember(item.user.id, item.user.name)}
@@ -1539,7 +1622,7 @@ export default function GroupDetailScreen() {
             );
             
             // Reload messages
-            await loadMessages();
+            await loadMessages(true); // Force reload after sending media
           } catch (error: any) {
             console.error('Error sending media:', error);
             Alert.alert('Error', error.response?.data?.error || 'Failed to send media');
@@ -1576,7 +1659,7 @@ export default function GroupDetailScreen() {
             );
             
             // Reload messages
-            await loadMessages();
+            await loadMessages(true); // Force reload after sending camera image
           } catch (error: any) {
             console.error('Error sending camera image:', error);
             Alert.alert('Error', error.response?.data?.error || 'Failed to send image');
@@ -1648,7 +1731,7 @@ export default function GroupDetailScreen() {
             );
             
             // Reload messages
-            await loadMessages();
+            await loadMessages(true); // Force reload after sending location
           } catch (error: any) {
             console.error('Error sending location:', error);
             Alert.alert('Error', error.response?.data?.error || error.message || 'Failed to send location');
@@ -1684,7 +1767,7 @@ export default function GroupDetailScreen() {
             );
             
             // Reload messages
-            await loadMessages();
+            await loadMessages(true); // Force reload after sending contact
           } catch (error: any) {
             console.error('Error sending contact:', error);
             Alert.alert('Error', error.response?.data?.error || 'Failed to send contact');
@@ -1795,7 +1878,7 @@ export default function GroupDetailScreen() {
             );
             
             // Reload messages
-            await loadMessages();
+            await loadMessages(true); // Force reload after sending document
           } catch (error: any) {
             console.error('Error sending document:', error);
             Alert.alert('Error', error.response?.data?.error || error.message || 'Failed to send document');
@@ -1822,7 +1905,7 @@ export default function GroupDetailScreen() {
             );
             
             // Reload messages
-            await loadMessages();
+            await loadMessages(true); // Force reload after sending poll
           } catch (error: any) {
             console.error('Error sending poll:', error);
             Alert.alert('Error', error.response?.data?.error || 'Failed to send poll');
@@ -1876,7 +1959,7 @@ export default function GroupDetailScreen() {
                 'TEXT',
                 replyingTo?.id
               );
-              await loadMessages();
+              await loadMessages(true); // Force reload after updating message
             }
           } catch (error: any) {
             console.error('Error saving poll:', error);
@@ -1937,7 +2020,7 @@ export default function GroupDetailScreen() {
                 'TEXT',
                 replyingTo?.id
               );
-              await loadMessages();
+              await loadMessages(true); // Force reload after updating message
             }
           } catch (error: any) {
             console.error('Error saving appointment:', error);

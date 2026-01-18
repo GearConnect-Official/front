@@ -12,12 +12,13 @@ import {
   Animated,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Swipeable } from 'react-native-gesture-handler';
 import theme from '../src/styles/config/theme';
 import { messagesScreenStyles as styles } from '../src/styles/screens';
 import chatService, { Conversation, MessageRequest } from '../src/services/chatService';
 import { useAuth } from '../src/context/AuthContext';
+import { UserStatus, UserStatusDisplay } from '../src/types/userStatus';
 
 // Tab types
 type TabType = 'messages' | 'requests' | 'commercial';
@@ -31,6 +32,7 @@ export default function MessagesScreen() {
   const [commercial, setCommercial] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [participantStatuses, setParticipantStatuses] = useState<Record<number, { status: string; lastSeenAt?: string }>>({});
   const router = useRouter();
   const { user } = useAuth() || {};
 
@@ -45,6 +47,23 @@ export default function MessagesScreen() {
         setConversations(response.conversations || []);
         setRequests(response.requests || []);
         setCommercial(response.commercial || []);
+        
+        // Build status map from conversation data (status is already included in the response)
+        const statusMap: Record<number, { status: string; lastSeenAt?: string }> = {};
+        
+        [...(response.conversations || []), ...(response.commercial || [])].forEach((conv) => {
+          if (!conv.isGroup) {
+            const otherParticipant = conv.participants.find(p => p.user.id !== currentUserId);
+            if (otherParticipant && otherParticipant.user.status) {
+              statusMap[otherParticipant.user.id] = {
+                status: otherParticipant.user.status,
+                lastSeenAt: otherParticipant.user.lastSeenAt,
+              };
+            }
+          }
+        });
+        
+        setParticipantStatuses(statusMap);
       }
     } catch (error) {
       console.error('Error loading conversations:', error);
@@ -53,10 +72,17 @@ export default function MessagesScreen() {
     }
   }, [user?.id]);
 
-  // Load conversations on mount
+  // Load conversations on mount and when screen is focused
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
+
+  // Reload conversations when screen is focused (to update unread counts)
+  useFocusEffect(
+    useCallback(() => {
+      loadConversations();
+    }, [loadConversations])
+  );
 
   // Reset request sub-tab when switching away from requests tab
   useEffect(() => {
@@ -256,12 +282,65 @@ export default function MessagesScreen() {
     );
   };
 
+  // Calculate unread messages count
+  const getUnreadCount = (conversation: Conversation): number => {
+    const currentUserId = user?.id ? parseInt(user.id.toString()) : null;
+    if (!currentUserId) return 0;
+    
+    const userParticipant = conversation.participants.find(p => p.user.id === currentUserId);
+    if (!userParticipant || !userParticipant.lastReadAt) {
+      // If never read, count all messages
+      return conversation.messages.length;
+    }
+    
+    const lastReadDate = new Date(userParticipant.lastReadAt);
+    return conversation.messages.filter(msg => {
+      const msgDate = new Date(msg.createdAt);
+      return msgDate > lastReadDate && msg.senderId !== currentUserId;
+    }).length;
+  };
+
+  // Get participant status for display
+  const getParticipantStatus = (conversation: Conversation): { label: string; color: string } => {
+    if (conversation.isGroup) {
+      return { label: 'Group', color: theme.colors.text.secondary };
+    }
+    
+    const otherParticipant = getOtherParticipant(conversation);
+    if (!otherParticipant) {
+      return { label: 'Offline', color: UserStatusDisplay[UserStatus.OFFLINE].color };
+    }
+    
+    const statusData = participantStatuses[otherParticipant.id];
+    if (!statusData) {
+      return { label: 'Offline', color: UserStatusDisplay[UserStatus.OFFLINE].color };
+    }
+    
+    // Determine if user is actually online (check lastSeenAt if status is ONLINE)
+    let actualStatus = statusData.status;
+    if (statusData.status === 'ONLINE' && statusData.lastSeenAt) {
+      const lastSeen = new Date(statusData.lastSeenAt);
+      const now = new Date();
+      const diffMinutes = (now.getTime() - lastSeen.getTime()) / (1000 * 60);
+      if (diffMinutes > 5) {
+        actualStatus = 'OFFLINE';
+      }
+    }
+    
+    const statusDisplay = actualStatus === 'ONLINE' 
+      ? UserStatusDisplay[UserStatus.ONLINE]
+      : UserStatusDisplay[UserStatus.OFFLINE];
+    
+    return { label: statusDisplay.label, color: statusDisplay.color };
+  };
+
   // Render conversation item
   const renderConversationItem = ({ item }: { item: Conversation }) => {
-    const lastMessage = item.messages[0];
     const conversationName = getConversationName(item);
     const conversationImage = getConversationImage(item);
     const otherParticipant = getOtherParticipant(item);
+    const unreadCount = getUnreadCount(item);
+    const statusInfo = getParticipantStatus(item);
 
     return (
       <Swipeable
@@ -295,6 +374,31 @@ export default function MessagesScreen() {
               <FontAwesome name="briefcase" size={12} color="white" />
             </View>
           )}
+          {/* Unread badge */}
+          {unreadCount > 0 && (
+            <View style={{
+              position: 'absolute',
+              top: -4,
+              right: -4,
+              backgroundColor: '#E10600',
+              borderRadius: 10,
+              minWidth: 20,
+              height: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: 6,
+              borderWidth: 2,
+              borderColor: '#FFFFFF',
+            }}>
+              <Text style={{
+                color: '#FFFFFF',
+                fontSize: 11,
+                fontWeight: '700',
+              }}>
+                {unreadCount > 99 ? '99+' : unreadCount.toString()}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.conversationInfo}>
@@ -320,11 +424,8 @@ export default function MessagesScreen() {
           </View>
 
           <View style={styles.messagePreview}>
-            <Text style={styles.lastMessage} numberOfLines={2}>
-              {lastMessage ? 
-                (item.isGroup ? `${lastMessage.sender.name}: ${lastMessage.content}` : lastMessage.content)
-                : 'No messages'
-              }
+            <Text style={[styles.lastMessage, { color: statusInfo.color }]} numberOfLines={1}>
+              {statusInfo.label}
             </Text>
           </View>
         </View>

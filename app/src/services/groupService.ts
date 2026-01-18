@@ -9,6 +9,8 @@ export interface GroupUser {
   profilePicture?: string;
   profilePicturePublicId?: string;
   isVerify: boolean;
+  status?: 'ONLINE' | 'OFFLINE' | 'DO_NOT_DISTURB';
+  lastSeenAt?: string;
 }
 
 export interface GroupMember {
@@ -356,6 +358,57 @@ const groupService = {
       await axios.delete(endpoint, { params });
     } catch (error) {
       console.error('Error removing member:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mute a group
+   */
+  muteGroup: async (groupId: number, userId: number, duration: '15min' | '1h' | '3h' | '8h' | '24h' | 'forever') => {
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/groups/${groupId}/mute`,
+        { duration },
+        { params: { userId } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error muting group:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Unmute a group
+   */
+  unmuteGroup: async (groupId: number, userId: number) => {
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/groups/${groupId}/unmute`,
+        {},
+        { params: { userId } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error unmuting group:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark group conversation as read (update lastReadAt)
+   */
+  markGroupAsRead: async (groupId: number, userId: number) => {
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/groups/${groupId}/read`,
+        {},
+        { params: { userId } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error marking group as read:', error);
       throw error;
     }
   },

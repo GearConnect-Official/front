@@ -330,19 +330,19 @@ const AppointmentCreator: React.FC<AppointmentCreatorProps> = ({ visible, onSend
 
               {Platform.OS === 'android' && (
                 <>
-                  {showDatePicker && (
-                    <DateTimePicker
-                      value={date}
-                      mode="date"
+              {showDatePicker && (
+                <DateTimePicker
+                  value={date}
+                  mode="date"
                       display="default"
                       onChange={handleDateChange}
-                      minimumDate={new Date()}
-                    />
-                  )}
-                  {showTimePicker && (
-                    <DateTimePicker
-                      value={date}
-                      mode="time"
+                  minimumDate={new Date()}
+                />
+              )}
+              {showTimePicker && (
+                <DateTimePicker
+                  value={date}
+                  mode="time"
                       display="default"
                       onChange={handleTimeChange}
                     />

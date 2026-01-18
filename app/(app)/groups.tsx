@@ -69,14 +69,41 @@ const GroupsScreen: React.FC = () => {
     return `${count} members`;
   };
 
-  const renderGroupItem = ({ item }: { item: Group }) => (
+  // Calculate unread messages count for a group
+  const getUnreadCount = (group: Group): number => {
+    const currentUserId = user?.id ? parseInt(user.id.toString()) : null;
+    if (!currentUserId || !(group as any).conversation) return 0;
+    
+    const conversation = (group as any).conversation;
+    if (!conversation.lastReadAt) {
+      // If never read, count all messages (we need to get total message count)
+      // For now, if there's a lastMessage, assume there's at least 1 unread
+      return conversation.lastMessage ? 1 : 0;
+    }
+    
+    const lastReadDate = new Date(conversation.lastReadAt);
+    if (conversation.lastMessage) {
+      const msgDate = new Date(conversation.lastMessage.createdAt);
+      // If last message is after lastReadAt and not from current user, it's unread
+      if (msgDate > lastReadDate && conversation.lastMessage.senderId !== currentUserId) {
+        return 1; // At least 1 unread (we'd need full message list for exact count)
+      }
+    }
+    
+    return 0;
+  };
+
+  const renderGroupItem = ({ item }: { item: Group }) => {
+    const unreadCount = getUnreadCount(item);
+    
+    return (
     <TouchableOpacity
       style={styles.groupItem as StyleProp<ViewStyle>}
       onPress={() => openGroup(item)}
       activeOpacity={0.7}
     >
       <View style={styles.groupHeader as StyleProp<ViewStyle>}>
-        <View style={styles.groupIconContainer as StyleProp<ViewStyle>}>
+        <View style={[styles.groupIconContainer as StyleProp<ViewStyle>, { position: 'relative' }]}>
           {item.iconPublicId ? (
             <CloudinaryAvatar
               publicId={item.iconPublicId}
@@ -88,6 +115,31 @@ const GroupsScreen: React.FC = () => {
           ) : (
             <View style={[styles.groupIcon as StyleProp<ViewStyle>, styles.defaultGroupIcon as StyleProp<ViewStyle>]}>
               <FontAwesome name="users" size={24} color="#6A707C" />
+            </View>
+          )}
+          {/* Unread badge */}
+          {unreadCount > 0 && (
+            <View style={{
+              position: 'absolute',
+              top: -4,
+              right: -4,
+              backgroundColor: '#E10600',
+              borderRadius: 10,
+              minWidth: 20,
+              height: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: 6,
+              borderWidth: 2,
+              borderColor: '#FFFFFF',
+            }}>
+              <Text style={{
+                color: '#FFFFFF',
+                fontSize: 11,
+                fontWeight: '700',
+              }}>
+                {unreadCount > 99 ? '99+' : unreadCount.toString()}
+              </Text>
             </View>
           )}
         </View>
@@ -116,7 +168,8 @@ const GroupsScreen: React.FC = () => {
         </View>
       </View>
     </TouchableOpacity>
-  );
+    );
+  };
 
   if (loading) {
     return (

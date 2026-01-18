@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL_MESSAGING } from '../config';
+import { UserStatus } from '../types/userStatus';
 
 // Types pour la messagerie
 export interface MessageUser {
@@ -9,6 +10,8 @@ export interface MessageUser {
   profilePicture?: string;
   profilePicturePublicId?: string;
   isVerify: boolean;
+  status?: 'ONLINE' | 'OFFLINE' | 'DO_NOT_DISTURB';
+  lastSeenAt?: string;
 }
 
 export interface MessageReaction {
@@ -22,6 +25,19 @@ export interface MessageReaction {
   currentUserReacted?: boolean;
 }
 
+export interface MessageReadReceipt {
+  id: number;
+  userId: number;
+  user: {
+    id: number;
+    name: string;
+    username: string;
+    profilePicture?: string;
+    profilePicturePublicId?: string;
+  };
+  readAt: string;
+}
+
 export interface Message {
   id: number;
   content: string;
@@ -31,6 +47,7 @@ export interface Message {
   messageType?: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO';
   isEdited?: boolean;
   reactions?: MessageReaction[];
+  readReceipts?: MessageReadReceipt[]; // Who has read this message
   replyTo?: {
     id: number;
     content: string;
@@ -409,6 +426,152 @@ const chatService = {
       return response.data;
     } catch (error) {
       console.error("Error getting poll votes:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get user status
+   */
+  getUserStatus: async (userId: number, currentUserId?: number) => {
+    const endpoint = `${API_URL_MESSAGING}/users/${userId}/status`;
+    const params = currentUserId ? { userId: currentUserId } : {};
+    try {
+      const response = await axios.get(endpoint, { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting user status:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update user status
+   */
+  updateUserStatus: async (userId: number, status: UserStatus) => {
+    const endpoint = `${API_URL_MESSAGING}/users/${userId}/status`;
+    try {
+      const response = await axios.put(endpoint, {
+        userId,
+        status
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get other participant's status in a conversation
+   */
+  getParticipantStatus: async (conversationId: number, userId: number) => {
+    const endpoint = `${API_URL_MESSAGING}/conversations/${conversationId}/participant-status`;
+    const params = { userId };
+    try {
+      const response = await axios.get(endpoint, { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting participant status:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mute a conversation
+   */
+  muteConversation: async (conversationId: number, userId: number, duration: '15min' | '1h' | '3h' | '8h' | '24h' | 'forever') => {
+    try {
+      const response = await axios.put(
+        `${API_URL_MESSAGING}/conversations/${conversationId}/mute`,
+        { duration },
+        { params: { userId } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error muting conversation:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Unmute a conversation
+   */
+  unmuteConversation: async (conversationId: number, userId: number) => {
+    try {
+      const response = await axios.put(
+        `${API_URL_MESSAGING}/conversations/${conversationId}/unmute`,
+        {},
+        { params: { userId } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error unmuting conversation:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark conversation as read (update lastReadAt)
+   */
+  markConversationAsRead: async (conversationId: number, userId: number) => {
+    try {
+      const response = await axios.put(
+        `${API_URL_MESSAGING}/conversations/${conversationId}/read`,
+        {},
+        { params: { userId } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark a message as read (read receipt)
+   */
+  markMessageAsRead: async (messageId: number, userId: number) => {
+    try {
+      const response = await axios.post(
+        `${API_URL_MESSAGING}/messages/${messageId}/read`,
+        { userId }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark multiple messages as read (batch read receipts)
+   */
+  markMessagesAsRead: async (messageIds: number[], userId: number) => {
+    try {
+      const response = await axios.post(
+        `${API_URL_MESSAGING}/messages/batch-read`,
+        { messageIds, userId }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get read receipts for a message
+   */
+  getMessageReads: async (messageId: number, userId: number) => {
+    try {
+      const response = await axios.get(
+        `${API_URL_MESSAGING}/messages/${messageId}/reads`,
+        { params: { userId } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error getting message reads:', error);
       throw error;
     }
   },

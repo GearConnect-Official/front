@@ -40,6 +40,7 @@ import userService from "../services/userService";
 import { useMessage } from '../context/MessageContext';
 import { trackPost, trackScreenView } from '../utils/mixpanelTracking';
 import chatService from '../services/chatService';
+import { getMessagingNotificationCount, NotificationCounts } from '../services/notificationService';
 
 // Types
 interface Story {
@@ -154,45 +155,32 @@ const HomeScreen: React.FC = () => {
     trackScreenView('Home');
   }, []);
 
-  // Load pending requests count
-  const loadPendingRequestsCount = useCallback(async () => {
+  // Load notification counts (messages, requests, commercial)
+  const loadNotificationCounts = useCallback(async () => {
     if (!user?.id) {
-      console.log('🔔 No user ID, skipping pending requests count');
+      console.log('🔔 No user ID, skipping notification counts');
       return;
     }
     
     try {
       const userId = parseInt(user.id.toString());
-      console.log('🔔 Loading pending requests count for user:', userId);
-      const response = await chatService.getConversations(userId);
-      console.log('🔔 Response:', response);
-      console.log('🔔 Requests:', response?.requests);
-      
-      const pendingCount = response?.requests?.filter((r: any) => {
-        const status = (r.status || '').toString().toUpperCase();
-        const isReceived = r.isReceived === true;
-        const isPending = status === 'PENDING';
-        console.log('🔔 Request:', { id: r.id, status, isReceived, isPending });
-        return isReceived && isPending;
-      }).length || 0;
-      
-      console.log('🔔 Pending requests count:', pendingCount);
-      setPendingRequestsCount(pendingCount);
+      const counts = await getMessagingNotificationCount(userId);
+      setNotificationCounts(counts);
     } catch (error) {
-      console.error('🔔 Error loading pending requests count:', error);
-      setPendingRequestsCount(0);
+      console.error('🔔 Error loading notification counts:', error);
+      setNotificationCounts({ unreadMessages: 0, pendingRequests: 0, commercialMessages: 0, total: 0 });
     }
   }, [user?.id]);
 
-  // Load pending requests count on mount and when screen is focused
+  // Load notification counts on mount and when screen is focused
   useEffect(() => {
-    loadPendingRequestsCount();
-  }, [loadPendingRequestsCount]);
+    loadNotificationCounts();
+  }, [loadNotificationCounts]);
 
   useFocusEffect(
     useCallback(() => {
-      loadPendingRequestsCount();
-    }, [loadPendingRequestsCount])
+      loadNotificationCounts();
+    }, [loadNotificationCounts])
   );
 
   // Version simple et robuste - pas de cache complexe pour l'instant
@@ -203,7 +191,12 @@ const HomeScreen: React.FC = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
-  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [notificationCounts, setNotificationCounts] = useState<NotificationCounts>({
+    unreadMessages: 0,
+    pendingRequests: 0,
+    commercialMessages: 0,
+    total: 0,
+  });
   
   // Debounce pour éviter les appels multiples
   const lastFetchTime = useRef<number>(0);
@@ -824,10 +817,10 @@ const HomeScreen: React.FC = () => {
               onPress={handleNavigateToMessages}
             >
               <FontAwesome name="comments" size={22} color={theme.colors.text.secondary} />
-              {pendingRequestsCount > 0 ? (
+              {notificationCounts.total > 0 ? (
                 <View style={styles.notificationBadge}>
                   <Text style={styles.notificationBadgeText}>
-                    {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount.toString()}
+                    {notificationCounts.total > 99 ? '99+' : notificationCounts.total.toString()}
                   </Text>
                 </View>
               ) : null}

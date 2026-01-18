@@ -14,6 +14,7 @@ import {
   Modal,
   Animated,
   ScrollView,
+  AppState,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -34,13 +35,20 @@ import LocationCard, { LocationData } from '../src/components/messaging/Location
 import AppointmentCard, { AppointmentData } from '../src/components/messaging/AppointmentCard';
 import AppointmentCreator from '../src/components/messaging/AppointmentCreator';
 import * as DocumentPicker from 'expo-document-picker';
+import { UserStatus, UserStatusDisplay } from '../src/types/userStatus';
+import MuteModal, { MuteDuration } from '../src/components/messaging/MuteModal';
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
   isOwn?: boolean;
 };
 
-type UserStatus = 'Online' | 'Offline' | 'Do not disturb';
+// UI display type for status
+type UserStatusDisplayType = 'Online' | 'Offline' | 'Do not disturb';
+
+const mapApiStatusToDisplay = (apiStatus: UserStatus): UserStatusDisplayType => {
+  return UserStatusDisplay[apiStatus].label as UserStatusDisplayType;
+};
 
 export default function ConversationScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -49,7 +57,7 @@ export default function ConversationScreen() {
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
-  const [userStatus] = useState<UserStatus>('Online'); // TODO: Fetch from API (setUserStatus reserved for future API integration)
+  const [userStatus, setUserStatus] = useState<UserStatusDisplayType>('Offline');
   const [showCallMenu, setShowCallMenu] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
@@ -65,6 +73,8 @@ export default function ConversationScreen() {
   const [showPollCreator, setShowPollCreator] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<AppointmentData | null>(null);
   const [showAppointmentCreator, setShowAppointmentCreator] = useState(false);
+  const [showMuteModal, setShowMuteModal] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const messageRefs = useRef<{ [key: number]: View | null }>({});
   const messageAnimations = useRef<{ [key: number]: Animated.Value }>({});
@@ -98,32 +108,19 @@ export default function ConversationScreen() {
     '🍿', '🍩', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '🫖', '☕️', '🍵', '🧃', '🥤', '🧋', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃',
   ];
 
-  // Get status color
-  const getStatusColor = (status: UserStatus): string => {
-    switch (status) {
-      case 'Online':
-        return '#25D366'; // Green color for online status
-      case 'Offline':
-        return '#E10600'; // App red
-      case 'Do not disturb':
-        return '#FF9500'; // Orange
-      default:
-        return theme.colors.text.secondary;
+  // Get status color and text from UserStatusDisplay
+  const getStatusColor = (status: UserStatusDisplayType): string => {
+    // Find the UserStatus enum key that matches the display label
+    for (const value of Object.values(UserStatusDisplay)) {
+      if (value.label === status) {
+        return value.color;
+      }
     }
+    return '#E10600'; // Default to red if not found
   };
 
-  // Get status text
-  const getStatusText = (status: UserStatus): string => {
-    switch (status) {
-      case 'Online':
-        return 'Online';
-      case 'Offline':
-        return 'Offline';
-      case 'Do not disturb':
-        return 'Do not disturb';
-      default:
-        return 'Online';
-    }
+  const getStatusText = (status: UserStatusDisplayType): string => {
+    return status;
   };
 
   // Load messages from API
@@ -178,7 +175,7 @@ export default function ConversationScreen() {
         Alert.alert('Error', 'Invalid conversation ID');
         return;
       }
-
+      
       const response = await chatService.getMessages(conversationIdNum, currentUserId);
       // Backend returns array of messages directly
       let formattedMessages: Message[] = [];
@@ -203,6 +200,35 @@ export default function ConversationScreen() {
         });
       }
 
+      // Load read receipts for own messages (to show read status)
+      const ownMessages = formattedMessages.filter(msg => msg.sender.id === currentUserId);
+      if (ownMessages.length > 0) {
+        const readPromises = ownMessages.map(async (msg) => {
+          try {
+            const reads = await chatService.getMessageReads(msg.id, currentUserId);
+            return { messageId: msg.id, reads };
+          } catch (error) {
+            console.error(`Error loading reads for message ${msg.id}:`, error);
+            return { messageId: msg.id, reads: [] };
+          }
+        });
+
+        const readResults = await Promise.all(readPromises);
+        const readsMap = new Map(readResults.map(r => [r.messageId, r.reads]));
+
+        // Update messages with read receipts
+        formattedMessages = formattedMessages.map(msg => {
+          if (msg.sender.id === currentUserId) {
+            const reads = readsMap.get(msg.id) || [];
+            return {
+              ...msg,
+              readReceipts: reads,
+            };
+          }
+          return msg;
+        });
+      }
+
       // Load poll votes
       const messagesWithVotes = await loadPollVotes(formattedMessages);
       setMessages(messagesWithVotes);
@@ -214,12 +240,96 @@ export default function ConversationScreen() {
     }
   }, [conversationId, currentUserId, loadPollVotes]);
 
+  // Load participant status
+  const loadParticipantStatus = useCallback(async () => {
+    if (!conversationId || !currentUserId) return;
+    
+    try {
+      const conversationIdNum = parseInt(conversationId);
+      if (isNaN(conversationIdNum)) return;
+
+      const statusData = await chatService.getParticipantStatus(conversationIdNum, currentUserId);
+      const mappedStatus = mapApiStatusToDisplay(statusData.status as UserStatus);
+      setUserStatus(mappedStatus);
+    } catch (error) {
+      console.error('Error loading participant status:', error);
+      // Default to offline on error
+      setUserStatus('Offline');
+    }
+  }, [conversationId, currentUserId]);
+
+  // Refresh participant status periodically
+  useEffect(() => {
+    if (!conversationId || !currentUserId) return;
+
+    // Load status immediately
+    loadParticipantStatus();
+
+    // Refresh status every 30 seconds
+    const interval = setInterval(() => {
+      loadParticipantStatus();
+    }, 30 * 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [conversationId, currentUserId, loadParticipantStatus]);
+
   // Load messages on mount and when conversationId or currentUserId changes
   useEffect(() => {
     if (conversationId && currentUserId) {
       loadMessages();
+      loadParticipantStatus();
+      
+      // Mark conversation as read when opening it
+      const markAsRead = async () => {
+        try {
+          const conversationIdNum = parseInt(conversationId);
+          await chatService.markConversationAsRead(conversationIdNum, currentUserId);
+        } catch (error) {
+          console.error('Error marking conversation as read:', error);
+        }
+      };
+      markAsRead();
     }
-  }, [conversationId, currentUserId, loadMessages]);
+  }, [conversationId, currentUserId, loadMessages, loadParticipantStatus]);
+
+  // Update user's own status to ONLINE when component mounts and on activity
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const updateOwnStatus = async (status: UserStatus = UserStatus.ONLINE) => {
+      try {
+        await chatService.updateUserStatus(currentUserId, status);
+      } catch (error) {
+        console.error('Error updating own status:', error);
+      }
+    };
+
+    // Update status to ONLINE on mount
+    updateOwnStatus(UserStatus.ONLINE);
+
+    // Update status periodically (every 2 minutes) to keep user online
+    const interval = setInterval(() => updateOwnStatus(UserStatus.ONLINE), 2 * 60 * 1000);
+
+    // Update status when app state changes
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        updateOwnStatus(UserStatus.ONLINE);
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // Optionally set to offline when app goes to background
+        // For now, we keep it online but could change this behavior
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+      // Set status to offline when component unmounts (user leaves conversation)
+      // Note: This might be too aggressive if user is just navigating
+      // Consider removing this or making it configurable
+    };
+  }, [currentUserId]);
 
   // Scroll to bottom when new messages arrive (only if already at bottom)
   useEffect(() => {
@@ -1206,7 +1316,7 @@ export default function ConversationScreen() {
                 {formatAudioDuration(audioPositions[item.id] ?? audioDurations[item.id])}
               </Text>
             )}
-            {/* Timestamp on the right with edited indicator */}
+            {/* Timestamp on the right with edited indicator and read receipts */}
             <View style={styles.messageTimeRow}>
               <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
                 {formatTime(item.createdAt)}
@@ -1215,6 +1325,42 @@ export default function ConversationScreen() {
                 <Text style={[styles.editedIndicator, isOwn && styles.ownEditedIndicator]}>
                   (edited)
                 </Text>
+              )}
+              {/* Read receipts for own messages */}
+              {isOwn && item.readReceipts !== undefined && (
+                <View style={{ marginLeft: 4 }}>
+                  {(() => {
+                    const readCount = item.readReceipts?.length || 0;
+                    
+                    if (readCount === 0) {
+                      // Message sent but not read yet - single check (gray)
+                      return (
+                        <FontAwesome 
+                          name="check" 
+                          size={12} 
+                          color={isOwn ? 'rgba(255, 255, 255, 0.7)' : theme.colors.text.secondary} 
+                        />
+                      );
+                    } else {
+                      // Message read - double check (blue)
+                      return (
+                        <View style={{ flexDirection: 'row' }}>
+                          <FontAwesome 
+                            name="check" 
+                            size={12} 
+                            color="#4FC3F7" 
+                          />
+                          <FontAwesome 
+                            name="check" 
+                            size={12} 
+                            color="#4FC3F7" 
+                            style={{ marginLeft: -4 }}
+                          />
+                        </View>
+                      );
+                    }
+                  })()}
+                </View>
               )}
             </View>
           </View>
@@ -1321,6 +1467,33 @@ export default function ConversationScreen() {
         showsVerticalScrollIndicator={true}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        onViewableItemsChanged={({ viewableItems }) => {
+          // Mark messages as read when they become visible
+          if (!currentUserId) return;
+          
+          const visibleMessageIds = viewableItems
+            .filter(item => item.isViewable)
+            .map(item => item.item.id);
+          
+          if (visibleMessageIds.length > 0) {
+            // Filter to only mark messages from other users as read (not own messages)
+            const messagesToMark = messages.filter(msg => 
+              visibleMessageIds.includes(msg.id) && 
+              msg.sender.id !== currentUserId
+            );
+            
+            if (messagesToMark.length > 0) {
+              const messageIdsToMark = messagesToMark.map(msg => msg.id);
+              // Use batch read for efficiency
+              chatService.markMessagesAsRead(messageIdsToMark, currentUserId).catch(error => {
+                console.error('Error marking messages as read:', error);
+              });
+            }
+          }
+        }}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50, // Message is considered visible when 50% is shown
+        }}
         onContentSizeChange={() => {
           // Always scroll to bottom on content size change if we haven't scrolled initially
           // or if user is already at bottom
@@ -2238,6 +2411,33 @@ export default function ConversationScreen() {
           </View>
         </>
       )}
+
+      {/* Mute Modal */}
+      <MuteModal
+        visible={showMuteModal}
+        onClose={() => setShowMuteModal(false)}
+        onSelectDuration={async (duration: MuteDuration) => {
+          if (!conversationId || !currentUserId) return;
+          try {
+            const conversationIdNum = parseInt(conversationId);
+            await chatService.muteConversation(conversationIdNum, currentUserId, duration);
+            setIsMuted(true);
+          } catch (error) {
+            console.error('Error muting conversation:', error);
+          }
+        }}
+        isMuted={isMuted}
+        onUnmute={async () => {
+          if (!conversationId || !currentUserId) return;
+          try {
+            const conversationIdNum = parseInt(conversationId);
+            await chatService.unmuteConversation(conversationIdNum, currentUserId);
+            setIsMuted(false);
+          } catch (error) {
+            console.error('Error unmuting conversation:', error);
+          }
+        }}
+      />
 
     </KeyboardAvoidingView>
   );

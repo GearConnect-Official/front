@@ -21,7 +21,15 @@ export default {
       supportsTablet: true,
       bundleIdentifier: "com.gearconnect.app",
       infoPlist: {
-        NSContactsUsageDescription: "We need access to your contacts to share them in conversations."
+        NSContactsUsageDescription: "We need access to your contacts to share them in conversations.",
+        NSLocationWhenInUseUsageDescription: "We need access to your location to share it in conversations.",
+        NSLocationAlwaysAndWhenInUseUsageDescription: "We need access to your location to share it in conversations.",
+        NSCameraUsageDescription: "We need access to your camera to take photos and videos to share in conversations.",
+        NSPhotoLibraryUsageDescription: "We need access to your photo library to share photos and videos in conversations.",
+        NSPhotoLibraryAddUsageDescription: "We need access to save photos and videos to your library.",
+        NSMicrophoneUsageDescription: "We need access to your microphone to record voice messages.",
+        NSCalendarsUsageDescription: "We need access to your calendar to add appointments shared in conversations.",
+        NSCalendarsWriteOnlyUsageDescription: "We need access to add appointments to your calendar."
       }
     },
     android: {
@@ -31,7 +39,17 @@ export default {
       },
       package: "com.gearconnect.app",
       permissions: [
-        "android.permission.READ_CONTACTS"
+        "android.permission.READ_CONTACTS",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
       ]
     },
     web: {
@@ -67,7 +85,20 @@ export default {
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          locationAlwaysAndWhenInUsePermission: "We need access to your location to share it in conversations."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          calendarPermission: "We need access to your calendar to add appointments shared in conversations."
+        }
+      ],
+      "expo-document-picker"
     ],
     experiments: {
       typedRoutes: true

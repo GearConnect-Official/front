@@ -1468,7 +1468,7 @@ export default function GroupDetailScreen() {
                     }, 100);
                   }
                 };
-
+                
                 return (
                   <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
                     <TouchableOpacity
@@ -1476,13 +1476,13 @@ export default function GroupDetailScreen() {
                       activeOpacity={0.7}
                       style={{ position: 'relative' }}
                     >
-                      {item.user.profilePicturePublicId ? (
-                        <CloudinaryAvatar publicId={item.user.profilePicturePublicId} size={40} />
-                      ) : (
-                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#D9D9D9', justifyContent: 'center', alignItems: 'center' }}>
-                          <FontAwesome name="user" size={16} color="#6A707C" />
-                        </View>
-                      )}
+                    {item.user.profilePicturePublicId ? (
+                      <CloudinaryAvatar publicId={item.user.profilePicturePublicId} size={40} />
+                    ) : (
+                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#D9D9D9', justifyContent: 'center', alignItems: 'center' }}>
+                        <FontAwesome name="user" size={16} color="#6A707C" />
+                      </View>
+                    )}
                       {/* Status indicator */}
                       <View style={{
                         position: 'absolute',

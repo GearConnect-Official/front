@@ -78,6 +78,7 @@ export default function ConversationScreen() {
   const flatListRef = useRef<FlatList>(null);
   const messageRefs = useRef<{ [key: number]: View | null }>({});
   const messageAnimations = useRef<{ [key: number]: Animated.Value }>({});
+  const loadedConversationIdRef = useRef<string | null>(null); // Track which conversation is loaded
   const router = useRouter();
   const params = useLocalSearchParams();
   const { user } = useAuth() || {};
@@ -165,8 +166,18 @@ export default function ConversationScreen() {
     }
   }, [currentUserId]);
 
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async (forceReload = false) => {
     if (!conversationId || !currentUserId) return;
+    
+    // Reset loaded conversation ref if conversation changed
+    if (loadedConversationIdRef.current !== conversationId) {
+      loadedConversationIdRef.current = null;
+    }
+    
+    // Skip reload if conversation is already loaded and we're not forcing a reload
+    if (!forceReload && loadedConversationIdRef.current === conversationId) {
+      return; // Conversation already loaded, skip
+    }
     
     try {
       setLoading(true);
@@ -200,38 +211,21 @@ export default function ConversationScreen() {
         });
       }
 
-      // Load read receipts for own messages (to show read status)
-      const ownMessages = formattedMessages.filter(msg => msg.sender.id === currentUserId);
-      if (ownMessages.length > 0) {
-        const readPromises = ownMessages.map(async (msg) => {
-          try {
-            const reads = await chatService.getMessageReads(msg.id, currentUserId);
-            return { messageId: msg.id, reads };
-          } catch (error) {
-            console.error(`Error loading reads for message ${msg.id}:`, error);
-            return { messageId: msg.id, reads: [] };
-          }
-        });
-
-        const readResults = await Promise.all(readPromises);
-        const readsMap = new Map(readResults.map(r => [r.messageId, r.reads]));
-
-        // Update messages with read receipts
-        formattedMessages = formattedMessages.map(msg => {
-          if (msg.sender.id === currentUserId) {
-            const reads = readsMap.get(msg.id) || [];
-            return {
-              ...msg,
-              readReceipts: reads,
-            };
-          }
-          return msg;
-        });
-      }
+      // Read receipts are already included in backend response, just ensure they're set
+      formattedMessages = formattedMessages.map(msg => {
+        if (msg.sender.id === currentUserId && !msg.readReceipts) {
+          return {
+            ...msg,
+            readReceipts: [],
+          };
+        }
+        return msg;
+      });
 
       // Load poll votes
       const messagesWithVotes = await loadPollVotes(formattedMessages);
       setMessages(messagesWithVotes);
+      loadedConversationIdRef.current = conversationId; // Mark conversation as loaded
     } catch (error) {
       console.error('Error loading messages:', error);
       Alert.alert('Error', 'Failed to load messages');
@@ -258,12 +252,15 @@ export default function ConversationScreen() {
     }
   }, [conversationId, currentUserId]);
 
-  // Refresh participant status periodically
+  // Refresh participant status periodically (only when conversation changes)
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
 
-    // Load status immediately
-    loadParticipantStatus();
+    // Only load status if conversation changed
+    const shouldLoad = loadedConversationIdRef.current !== conversationId;
+    if (shouldLoad) {
+      loadParticipantStatus();
+    }
 
     // Refresh status every 30 seconds
     const interval = setInterval(() => {
@@ -278,21 +275,25 @@ export default function ConversationScreen() {
   // Load messages on mount and when conversationId or currentUserId changes
   useEffect(() => {
     if (conversationId && currentUserId) {
-      loadMessages();
-      loadParticipantStatus();
+      // Only reload if conversation changed
+      const shouldReload = loadedConversationIdRef.current !== conversationId;
+      loadMessages(shouldReload);
+      // loadParticipantStatus is already called in its own useEffect, no need to call it here
       
-      // Mark conversation as read when opening it
-      const markAsRead = async () => {
-        try {
-          const conversationIdNum = parseInt(conversationId);
-          await chatService.markConversationAsRead(conversationIdNum, currentUserId);
-        } catch (error) {
-          console.error('Error marking conversation as read:', error);
-        }
-      };
-      markAsRead();
+      // Mark conversation as read when opening it (only if conversation changed)
+      if (shouldReload) {
+        const markAsRead = async () => {
+          try {
+            const conversationIdNum = parseInt(conversationId);
+            await chatService.markConversationAsRead(conversationIdNum, currentUserId);
+          } catch (error) {
+            console.error('Error marking conversation as read:', error);
+          }
+        };
+        markAsRead();
+      }
     }
-  }, [conversationId, currentUserId, loadMessages, loadParticipantStatus]);
+  }, [conversationId, currentUserId, loadMessages]);
 
   // Update user's own status to ONLINE when component mounts and on activity
   useEffect(() => {

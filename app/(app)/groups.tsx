@@ -168,7 +168,7 @@ const GroupsScreen: React.FC = () => {
         </View>
       </View>
     </TouchableOpacity>
-    );
+  );
   };
 
   if (loading) {

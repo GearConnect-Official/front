@@ -380,6 +380,38 @@ const chatService = {
       throw error;
     }
   },
+
+  /**
+   * Vote on a poll option
+   */
+  votePoll: async (messageId: number, optionId: string, userId: number) => {
+    const endpoint = `${API_URL_MESSAGING}/polls/${messageId}/vote`;
+    try {
+      const response = await axios.post(endpoint, {
+        optionId,
+        userId
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error voting on poll:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get votes for a poll
+   */
+  getPollVotes: async (messageId: number, userId?: number) => {
+    const endpoint = `${API_URL_MESSAGING}/polls/${messageId}/votes`;
+    const params = userId ? { userId } : {};
+    try {
+      const response = await axios.get(endpoint, { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting poll votes:", error);
+      throw error;
+    }
+  },
 };
 
 export default chatService;

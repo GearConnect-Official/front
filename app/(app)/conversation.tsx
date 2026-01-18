@@ -27,7 +27,7 @@ import VoiceRecorder from '../src/components/messaging/VoiceRecorder';
 import AudioMessagePlayer from '../src/components/messaging/AudioMessagePlayer';
 import MediaCarousel from '../src/components/messaging/MediaCarousel';
 import ContactCard, { ContactData } from '../src/components/messaging/ContactCard';
-import PollCard, { PollWithVotes } from '../src/components/messaging/PollCard';
+import PollCard, { PollWithVotes, PollVote } from '../src/components/messaging/PollCard';
 import PollCreator, { PollData } from '../src/components/messaging/PollCreator';
 import DocumentCard, { DocumentData } from '../src/components/messaging/DocumentCard';
 import LocationCard, { LocationData } from '../src/components/messaging/LocationCard';
@@ -127,6 +127,47 @@ export default function ConversationScreen() {
   };
 
   // Load messages from API
+  // Load poll votes for all poll messages
+  const loadPollVotes = useCallback(async (messages: Message[]) => {
+    if (!currentUserId) return messages;
+    
+    const pollMessages = messages.filter(msg => msg.content?.startsWith('POLL:'));
+    if (pollMessages.length === 0) return messages;
+
+    try {
+      const votesPromises = pollMessages.map(async (msg) => {
+        try {
+          const votesData = await chatService.getPollVotes(msg.id, currentUserId);
+          return { messageId: msg.id, votesData };
+        } catch (error) {
+          console.error(`Error loading votes for poll ${msg.id}:`, error);
+          return { messageId: msg.id, votesData: null };
+        }
+      });
+
+      const votesResults = await Promise.all(votesPromises);
+      const votesMap = new Map(votesResults.map(r => [r.messageId, r.votesData]));
+
+      // Update messages with votes
+      return messages.map(msg => {
+        if (msg.content?.startsWith('POLL:')) {
+          const votesData = votesMap.get(msg.id);
+          if (votesData) {
+            return {
+              ...msg,
+              pollVotes: votesData.votes || [],
+              pollUserVotes: votesData.userVotes || [],
+            };
+          }
+        }
+        return msg;
+      });
+    } catch (error) {
+      console.error('Error loading poll votes:', error);
+      return messages;
+    }
+  }, [currentUserId]);
+
   const loadMessages = useCallback(async () => {
     if (!conversationId || !currentUserId) return;
     
@@ -137,38 +178,41 @@ export default function ConversationScreen() {
         Alert.alert('Error', 'Invalid conversation ID');
         return;
       }
-      
+
       const response = await chatService.getMessages(conversationIdNum, currentUserId);
       // Backend returns array of messages directly
+      let formattedMessages: Message[] = [];
       if (response && Array.isArray(response)) {
         // Map API messages to UI format
         // isOwn = true if the message sender is the current logged-in user
-        const formattedMessages: Message[] = response.map((msg: ApiMessage) => {
+        formattedMessages = response.map((msg: ApiMessage) => {
           const isOwnMessage = msg.sender.id === currentUserId;
           return {
             ...msg,
             isOwn: isOwnMessage,
           };
         });
-        setMessages(formattedMessages);
       } else if (response && Array.isArray(response.messages)) {
         // Fallback if response is wrapped in an object
-        const formattedMessages: Message[] = response.messages.map((msg: ApiMessage) => {
+        formattedMessages = response.messages.map((msg: ApiMessage) => {
           const isOwnMessage = msg.sender.id === currentUserId;
           return {
             ...msg,
             isOwn: isOwnMessage,
           };
         });
-        setMessages(formattedMessages);
       }
+
+      // Load poll votes
+      const messagesWithVotes = await loadPollVotes(formattedMessages);
+      setMessages(messagesWithVotes);
     } catch (error) {
       console.error('Error loading messages:', error);
       Alert.alert('Error', 'Failed to load messages');
     } finally {
       setLoading(false);
     }
-  }, [conversationId, currentUserId]);
+  }, [conversationId, currentUserId, loadPollVotes]);
 
   // Load messages on mount and when conversationId or currentUserId changes
   useEffect(() => {
@@ -975,12 +1019,27 @@ export default function ConversationScreen() {
               try {
                 const pollJson = item.content.replace('POLL:', '');
                 const pollData: PollData = JSON.parse(pollJson);
+                
+                // Get votes from message (loaded by loadPollVotes)
+                const pollVotes = (item as any).pollVotes || [];
+                const pollUserVotes = (item as any).pollUserVotes || [];
+                
+                // Format votes for PollCard
+                const formattedVotes: PollVote[] = pollVotes.map((vote: any) => ({
+                  optionId: vote.optionId,
+                  userId: vote.userId,
+                  userName: vote.userName,
+                  userAvatar: vote.userAvatar,
+                  userAvatarPublicId: vote.userAvatarPublicId,
+                  isVerify: vote.isVerify,
+                }));
+
                 const pollWithVotes: PollWithVotes = {
                   ...pollData,
                   messageId: item.id,
-                  userVotes: [], // TODO: Get from backend
-                  votes: [], // TODO: Get from backend
-                  totalVotes: 0,
+                  userVotes: pollUserVotes,
+                  votes: formattedVotes,
+                  totalVotes: formattedVotes.length,
                 };
                 return (
                   <Pressable
@@ -996,8 +1055,26 @@ export default function ConversationScreen() {
                       currentUserAvatarPublicId={(user as any)?.profilePicturePublicId}
                       currentUserIsVerify={(user as any)?.isVerify}
                       onVote={async (optionId: string) => {
-                        // TODO: Implement vote API call
-                        console.log('Vote for option:', optionId, 'in poll:', item.id);
+                        if (!currentUserId) return;
+                        try {
+                          await chatService.votePoll(item.id, optionId, currentUserId);
+                          // Reload poll votes
+                          const votesData = await chatService.getPollVotes(item.id, currentUserId);
+                          // Update the specific message in the messages array
+                          setMessages(prev => prev.map(msg => {
+                            if (msg.id === item.id) {
+                              return {
+                                ...msg,
+                                pollVotes: votesData.votes || [],
+                                pollUserVotes: votesData.userVotes || [],
+                              };
+                            }
+                            return msg;
+                          }));
+                        } catch (error: any) {
+                          console.error('Error voting on poll:', error);
+                          Alert.alert('Error', error.response?.data?.error || 'Failed to vote on poll');
+                        }
                       }}
                       onEdit={isOwn ? () => handleEditPoll(item) : undefined}
                       onDelete={isOwn ? () => handleLongPressMessage(item) : undefined}

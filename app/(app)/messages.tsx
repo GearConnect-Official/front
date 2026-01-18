@@ -162,14 +162,24 @@ export default function MessagesScreen() {
   const handleAcceptRequest = async (request: MessageRequest) => {
     try {
       const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
-      const conversation = await chatService.acceptRequest(request.id, currentUserId);
+      const response = await chatService.acceptRequest(request.id, currentUserId);
       await loadConversations();
-      // Navigate to created conversation
-      if (conversation) {
+      
+      // Check if this is a group invite (response has groupId)
+      if (response && 'groupId' in response && response.groupId) {
+        // Navigate to group
+        router.push({
+          pathname: '/(app)/groupDetail',
+          params: {
+            groupId: response.groupId.toString(),
+          },
+        });
+      } else if (response && 'id' in response) {
+        // Regular conversation
         router.push({
           pathname: '/(app)/conversation',
           params: {
-            conversationId: conversation.id.toString(),
+            conversationId: response.id.toString(),
             conversationName: request.from.name,
           },
         });

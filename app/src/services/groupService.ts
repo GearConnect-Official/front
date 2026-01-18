@@ -290,16 +290,20 @@ const groupService = {
    */
   createInvite: async (
     groupId: number,
-    userId?: number,
-    maxUses?: number,
-    expiresInHours?: number
+    userId: number,
+    options?: {
+      maxUses?: number;
+      expiresInDays?: number | null;
+      recipientId?: number;
+    }
   ): Promise<{ code: string; expiresAt?: string }> => {
     const endpoint = `${API_BASE_URL}/groups/${groupId}/invite`;
     try {
       const response = await axios.post(endpoint, {
         userId,
-        maxUses,
-        expiresInHours,
+        maxUses: options?.maxUses,
+        expiresInDays: options?.expiresInDays,
+        recipientId: options?.recipientId,
       });
       return response.data;
     } catch (error) {
@@ -348,14 +352,12 @@ const groupService = {
   /**
    * Remove a member from a group
    */
-  removeMember: async (groupId: number, memberId: number, userId?: number): Promise<void> => {
+  removeMember: async (groupId: number, memberId: number, userId: number): Promise<void> => {
     const endpoint = `${API_BASE_URL}/groups/${groupId}/members/${memberId}`;
     try {
-      const params: any = {};
-      if (userId) {
-        params.userId = userId;
-      }
-      await axios.delete(endpoint, { params });
+      await axios.delete(endpoint, {
+        params: { userId },
+      });
     } catch (error) {
       console.error('Error removing member:', error);
       throw error;

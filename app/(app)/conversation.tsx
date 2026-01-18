@@ -5,7 +5,6 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
@@ -13,7 +12,6 @@ import {
   Pressable,
   Keyboard,
   Modal,
-  Dimensions,
   Animated,
   ScrollView,
 } from 'react-native';
@@ -24,7 +22,7 @@ import { conversationScreenStyles as styles } from '../src/styles/screens';
 import chatService, { Message as ApiMessage } from '../src/services/chatService';
 import { useAuth } from '../src/context/AuthContext';
 import { VerifiedAvatar } from '../src/components/media/VerifiedAvatar';
-import AttachmentMenu, { SelectedMedia } from '../src/components/messaging/AttachmentMenu';
+import AttachmentMenu from '../src/components/messaging/AttachmentMenu';
 import VoiceRecorder from '../src/components/messaging/VoiceRecorder';
 import AudioMessagePlayer from '../src/components/messaging/AudioMessagePlayer';
 import MediaCarousel from '../src/components/messaging/MediaCarousel';
@@ -33,6 +31,8 @@ import PollCard, { PollWithVotes } from '../src/components/messaging/PollCard';
 import PollCreator, { PollData } from '../src/components/messaging/PollCreator';
 import DocumentCard, { DocumentData } from '../src/components/messaging/DocumentCard';
 import LocationCard, { LocationData } from '../src/components/messaging/LocationCard';
+import AppointmentCard, { AppointmentData } from '../src/components/messaging/AppointmentCard';
+import AppointmentCreator from '../src/components/messaging/AppointmentCreator';
 import * as DocumentPicker from 'expo-document-picker';
 
 // Extended Message type with isOwn property for UI
@@ -41,8 +41,6 @@ type Message = ApiMessage & {
 };
 
 type UserStatus = 'Online' | 'Offline' | 'Do not disturb';
-
-const { width } = Dimensions.get('window');
 
 export default function ConversationScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -65,7 +63,8 @@ export default function ConversationScreen() {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [editingPoll, setEditingPoll] = useState<PollData | null>(null);
   const [showPollCreator, setShowPollCreator] = useState(false);
-  const [messagePosition, setMessagePosition] = useState<{ x: number; y: number; width: number; height: number } | undefined>(undefined);
+  const [editingAppointment, setEditingAppointment] = useState<AppointmentData | null>(null);
+  const [showAppointmentCreator, setShowAppointmentCreator] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const messageRefs = useRef<{ [key: number]: View | null }>({});
   const messageAnimations = useRef<{ [key: number]: Animated.Value }>({});
@@ -201,7 +200,7 @@ export default function ConversationScreen() {
         }, 100);
       }
     }
-  }, [showMessageOptions, selectedMessage?.id, messages]);
+  }, [showMessageOptions, selectedMessage, messages]);
   
   // Initial scroll to bottom on mount and when messages are loaded
   useEffect(() => {
@@ -364,17 +363,14 @@ export default function ConversationScreen() {
     
     // Get message position for menu placement
     if (event?.nativeEvent) {
-      const { pageX, pageY } = event.nativeEvent;
       // Try to get message dimensions from ref
       const messageRef = messageRefs.current[message.id];
       if (messageRef) {
-        messageRef.measure((x, y, width, height, pageX, pageY) => {
-          setMessagePosition({ x: pageX, y: pageY, width, height });
+        messageRef.measure(() => {
           setShowMessageOptions(true);
         });
       } else {
         // Fallback: estimate position
-        setMessagePosition({ x: pageX, y: pageY, width: 200, height: 50 });
         setShowMessageOptions(true);
       }
     } else {
@@ -406,6 +402,16 @@ export default function ConversationScreen() {
           setShowPollCreator(true);
         } catch (e) {
           console.error('Error parsing poll for edit:', e);
+        }
+      } else if (selectedMessage.content.startsWith('APPOINTMENT:')) {
+        // Handle appointment editing
+        try {
+          const appointmentJson = selectedMessage.content.replace('APPOINTMENT:', '');
+          const appointmentData: AppointmentData = JSON.parse(appointmentJson);
+          setEditingAppointment(appointmentData);
+          setShowAppointmentCreator(true);
+        } catch (e) {
+          console.error('Error parsing appointment for edit:', e);
         }
       } else {
         // Handle text message editing
@@ -766,7 +772,7 @@ export default function ConversationScreen() {
                   const jsonPart = parts.slice(1).join('\n');
                   try {
                     mediaData = JSON.parse(jsonPart);
-                  } catch (e) {
+                  } catch {
                     // If JSON parsing fails, try to treat jsonPart as a URL, otherwise fallback
                     const possibleUri = jsonPart.trim();
                     const singleUri = possibleUri.startsWith('http://') || possibleUri.startsWith('https://')
@@ -774,8 +780,8 @@ export default function ConversationScreen() {
                       : item.content.trim();
                     if (!singleUri || singleUri === 'null' || singleUri === '') {
                       return (
-                        <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
-                          <Text>Media unavailable</Text>
+                        <View>
+                          <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
                         </View>
                       );
                     }
@@ -795,13 +801,13 @@ export default function ConversationScreen() {
                   // No caption, try to parse as JSON first
                   try {
                     mediaData = JSON.parse(item.content);
-                  } catch (e) {
+                  } catch {
                     // Not JSON, treat as single URL (validate first)
                     const singleUri = item.content.trim();
                     if (!singleUri || singleUri === 'null' || singleUri === '') {
                       return (
-                        <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
-                          <Text>Media unavailable</Text>
+                        <View>
+                          <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
                         </View>
                       );
                     }
@@ -827,24 +833,24 @@ export default function ConversationScreen() {
                       const uri = secureUrl || m.uri || (typeof m === 'string' ? m : '');
                       
                       // Validate URI
-                      if (!uri || uri === 'null' || uri.trim() === '') {
+                      if (!uri || uri === 'null' || uri.trim() === '' || typeof uri !== 'string') {
                         return null;
                       }
                       
                       return {
-                        uri,
-                        type: m.type || 'image',
+                        uri: uri as string,
+                        type: (m.type || 'image') as 'image' | 'video',
                         secureUrl,
                         publicId: m.publicId,
                       };
                     })
-                    .filter((m: any) => m !== null && (m.uri || m.secureUrl));
+                    .filter((m) => m !== null) as { uri: string; type: 'image' | 'video'; secureUrl?: string; publicId?: string }[];
                   
                   // If no valid media, show placeholder
                   if (validMedia.length === 0) {
                     return (
-                      <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
-                        <Text>Media unavailable</Text>
+                      <View>
+                        <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
                       </View>
                     );
                   }
@@ -868,8 +874,8 @@ export default function ConversationScreen() {
                 const singleUri = item.content.trim();
                 if (!singleUri || singleUri === 'null' || singleUri === '') {
                   return (
-                    <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
-                      <Text>Media unavailable</Text>
+                    <View>
+                      <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
                     </View>
                   );
                 }
@@ -884,13 +890,13 @@ export default function ConversationScreen() {
                     isOwn={isOwn}
                   />
                 );
-              } catch (e) {
+              } catch {
                 // Fallback: treat as single URL (validate first)
                 const singleUri = item.content.trim();
                 if (!singleUri || singleUri === 'null' || singleUri === '') {
                   return (
-                    <View style={[styles.messageText, isOwn && styles.ownMessageText]}>
-                      <Text>Media unavailable</Text>
+                    <View>
+                      <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
                     </View>
                   );
                 }
@@ -919,7 +925,33 @@ export default function ConversationScreen() {
                     isOwn={isOwn}
                   />
                 );
-              } catch (e) {
+              } catch {
+                // Fallback to text if parsing fails
+                return (
+                  <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+                    {item.content}
+                  </Text>
+                );
+              }
+            })()
+          ) : item.content.startsWith('APPOINTMENT:') ? (
+            // Parse appointment data
+            (() => {
+              try {
+                const appointmentJson = item.content.replace('APPOINTMENT:', '');
+                const appointmentData: AppointmentData = JSON.parse(appointmentJson);
+                return (
+                  <Pressable
+                    onLongPress={(event) => handleLongPressMessage(item, event)}
+                    style={selectedMessage?.id === item.id && styles.highlightedMessageBubble}
+                  >
+                    <AppointmentCard
+                      appointment={appointmentData}
+                      isOwn={isOwn}
+                    />
+                  </Pressable>
+                );
+              } catch {
                 // Fallback to text if parsing fails
                 return (
                   <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
@@ -963,7 +995,7 @@ export default function ConversationScreen() {
                     />
                   </Pressable>
                 );
-              } catch (e) {
+              } catch {
                 // Fallback to text if parsing fails
                 return (
                   <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
@@ -1010,12 +1042,12 @@ export default function ConversationScreen() {
                     />
                   </Pressable>
                 );
-              } catch (e) {
+              } catch {
                 // Fallback to text if parsing fails
                 return (
-                  <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
-                    {item.content}
-                  </Text>
+            <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+              {item.content}
+            </Text>
                 );
               }
             })()
@@ -1036,7 +1068,7 @@ export default function ConversationScreen() {
                     />
                   </Pressable>
                 );
-              } catch (e) {
+              } catch {
                 // Fallback to text if parsing fails
                 return (
                   <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
@@ -1050,7 +1082,7 @@ export default function ConversationScreen() {
               {item.content}
             </Text>
           )}
-          
+
           {/* Reactions display */}
           {item.reactions && item.reactions.length > 0 && (
             <View style={styles.reactionsContainer}>
@@ -1370,7 +1402,7 @@ export default function ConversationScreen() {
                   setSending(true);
                   
                   // Upload audio to Cloudinary
-                  const { cloudinaryService } = await import('../src/services/cloudinary.service');
+                  const { cloudinaryService } = await import('../src/services/cloudinary.service.js');
                   const uploadResult = await cloudinaryService.uploadMedia(uri, {
                     folder: 'messages',
                     tags: ['message', 'audio'],
@@ -1526,7 +1558,7 @@ export default function ConversationScreen() {
               if (result.postalCode) addressParts.push(result.postalCode);
               if (result.country) addressParts.push(result.country);
               address = addressParts.join(', ') || undefined;
-            } catch (geocodeError) {
+            } catch {
               console.log('Reverse geocoding failed, continuing without address');
             }
 
@@ -1616,7 +1648,7 @@ export default function ConversationScreen() {
             }
 
             // Security validation
-            const { validateFileSafety } = await import('../src/utils/fileSecurity');
+            const { validateFileSafety } = await import('../src/utils/fileSecurity.js');
             const validation = validateFileSafety(document.name || 'document', document.mimeType);
             
             if (!validation.isValid) {
@@ -1629,7 +1661,7 @@ export default function ConversationScreen() {
             }
 
             // Verify file exists and has content before uploading (same checks as download)
-            const FileSystem = await import('expo-file-system/legacy');
+            const FileSystem = await import('expo-file-system');
             const fileInfo = await FileSystem.getInfoAsync(document.uri);
             
             if (!fileInfo.exists) {
@@ -1659,12 +1691,12 @@ export default function ConversationScreen() {
             const conversationIdNum = parseInt(conversationId);
             
             // Upload document to Cloudinary
-            const { cloudinaryService } = await import('../src/services/cloudinary.service');
+            const { cloudinaryService } = await import('../src/services/cloudinary.service.js');
             
             // Clean filename for Cloudinary public_id (remove special chars, keep extension)
             const originalName = document.name || 'document';
             const nameParts = originalName.split('.');
-            const extension = nameParts.pop() || '';
+            nameParts.pop(); // Remove extension
             const baseName = nameParts.join('.').replace(/[^a-zA-Z0-9._-]/g, '_') || 'document';
             const cleanPublicId = `${baseName}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             
@@ -1731,9 +1763,8 @@ export default function ConversationScreen() {
             setSending(false);
           }
         }}
-        onEventSelected={() => {
-          // TODO: Implement event
-          console.log('Event');
+        onAppointmentSelected={() => {
+          setShowAppointmentCreator(true);
         }}
       />
 
@@ -1798,6 +1829,67 @@ export default function ConversationScreen() {
         initialData={editingPoll || undefined}
       />
 
+      {/* Appointment Creator Modal */}
+      <AppointmentCreator
+        visible={showAppointmentCreator}
+        onSend={async (appointment: AppointmentData) => {
+          if (!currentUserId || !conversationId) return;
+          
+          try {
+            setSending(true);
+            const conversationIdNum = parseInt(conversationId);
+            
+            // If editing, we need to update the existing message
+            if (editingMessage && editingMessage.content.startsWith('APPOINTMENT:')) {
+              const appointmentMessage = `APPOINTMENT:${JSON.stringify(appointment)}`;
+              const updatedMessage = await chatService.updateMessage(
+                editingMessage.id,
+                appointmentMessage,
+                currentUserId
+              );
+              // Update local state with the updated message
+              setMessages(prev => prev.map(msg => 
+                msg.id === editingMessage.id 
+                  ? { 
+                      ...updatedMessage, 
+                      isOwn: updatedMessage.sender.id === currentUserId,
+                      isEdited: true 
+                    }
+                  : msg
+              ));
+              setEditingMessage(null);
+              setEditingAppointment(null);
+              setShowAppointmentCreator(false);
+            } else {
+              // Send as new appointment
+              const appointmentMessage = `APPOINTMENT:${JSON.stringify(appointment)}`;
+              await chatService.sendMessage(
+                conversationIdNum,
+                appointmentMessage,
+                currentUserId,
+                'TEXT',
+                replyingTo?.id
+              );
+              await loadMessages();
+            }
+          } catch (error: any) {
+            console.error('Error saving appointment:', error);
+            Alert.alert('Error', error.response?.data?.error || 'Failed to save appointment');
+          } finally {
+            setSending(false);
+            setShowAppointmentCreator(false);
+            setEditingAppointment(null);
+            setEditingMessage(null);
+          }
+        }}
+        onCancel={() => {
+          setShowAppointmentCreator(false);
+          setEditingAppointment(null);
+          setEditingMessage(null);
+        }}
+        initialData={editingAppointment || undefined}
+      />
+
       {/* Unified Message Options Modal - New Logic */}
       {showMessageOptions && selectedMessage && (
         <Modal
@@ -1807,7 +1899,6 @@ export default function ConversationScreen() {
           onRequestClose={() => {
             setShowMessageOptions(false);
             setSelectedMessage(null);
-            setMessagePosition(undefined);
             setShowEmojiPicker(false); // Reset emoji picker state
           }}
         >
@@ -1817,7 +1908,6 @@ export default function ConversationScreen() {
             onPress={() => {
               setShowMessageOptions(false);
               setSelectedMessage(null);
-              setMessagePosition(undefined);
               setShowEmojiPicker(false); // Reset emoji picker state
             }}
           >
@@ -1882,7 +1972,6 @@ export default function ConversationScreen() {
                         await handleToggleReaction(selectedMessage.id, emoji);
                         setShowMessageOptions(false);
                         setSelectedMessage(null);
-                        setMessagePosition(undefined);
                         setShowEmojiPicker(false);
                       }}
                       activeOpacity={0.6}
@@ -1921,7 +2010,6 @@ export default function ConversationScreen() {
                           setShowEmojiPicker(false);
                           setShowMessageOptions(false);
                           setSelectedMessage(null);
-                          setMessagePosition(undefined);
                         }}
                         activeOpacity={0.7}
                       >
@@ -1943,7 +2031,6 @@ export default function ConversationScreen() {
                     handleReply();
                     setShowMessageOptions(false);
                     setSelectedMessage(null);
-                    setMessagePosition(undefined);
                     setShowEmojiPicker(false);
                   }}
                   activeOpacity={0.7}
@@ -1960,7 +2047,6 @@ export default function ConversationScreen() {
                         handleEditMessage();
                         setShowMessageOptions(false);
                         setSelectedMessage(null);
-                        setMessagePosition(undefined);
                         setShowEmojiPicker(false);
                       }}
                       activeOpacity={0.7}
@@ -1977,7 +2063,6 @@ export default function ConversationScreen() {
                         handleDeleteMessage();
                         setShowMessageOptions(false);
                         setSelectedMessage(null);
-                        setMessagePosition(undefined);
                         setShowEmojiPicker(false);
                       }}
                       activeOpacity={0.7}

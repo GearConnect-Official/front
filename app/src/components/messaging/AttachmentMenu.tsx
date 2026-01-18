@@ -22,7 +22,7 @@ interface AttachmentMenuProps {
   onContactSelected?: (contact: ContactData) => void;
   onDocumentSelected?: () => void;
   onPollSelected?: (poll: PollData) => void;
-  onEventSelected?: () => void;
+  onAppointmentSelected?: () => void;
   conversationId?: string;
   groupId?: string;
 }
@@ -36,7 +36,7 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
   onContactSelected,
   onDocumentSelected,
   onPollSelected,
-  onEventSelected,
+  onAppointmentSelected,
   conversationId,
   groupId,
 }) => {
@@ -192,14 +192,14 @@ const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
               style={styles.option}
               onPress={() => {
                 onClose();
-                if (onEventSelected) onEventSelected();
+                if (onAppointmentSelected) onAppointmentSelected();
               }}
               activeOpacity={0.7}
             >
               <View style={[styles.icon, { backgroundColor: '#E10600' }]}>
                 <FontAwesome name="calendar" size={24} color="#FFFFFF" />
               </View>
-              <Text style={styles.label}>Event</Text>
+              <Text style={styles.label}>Appointment</Text>
             </TouchableOpacity>
           </View>
         </View>

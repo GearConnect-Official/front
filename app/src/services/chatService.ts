@@ -364,6 +364,22 @@ const chatService = {
       throw error;
     }
   },
+
+  /**
+   * Delete a message
+   */
+  deleteMessage: async (messageId: number, userId: number) => {
+    const endpoint = `${API_URL_MESSAGING}/messages/${messageId}`;
+    try {
+      const response = await axios.delete(endpoint, {
+        params: { userId }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      throw error;
+    }
+  },
 };
 
 export default chatService;

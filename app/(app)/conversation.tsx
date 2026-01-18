@@ -449,13 +449,18 @@ export default function ConversationScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              // TODO: Implement delete message API call
-              console.log('Delete message:', selectedMessage.id);
-              // Remove from local state
-              setMessages(prev => prev.filter(msg => msg.id !== selectedMessage.id));
+              const updatedMessage = await chatService.deleteMessage(selectedMessage.id, currentUserId);
+              // Update message in local state with system message
+              setMessages(prev => prev.map(msg => 
+                msg.id === selectedMessage.id 
+                  ? { ...updatedMessage, isOwn: msg.isOwn }
+                  : msg
+              ));
+              setShowMessageOptions(false);
+              setSelectedMessage(null);
             } catch (error: any) {
               console.error('Error deleting message:', error);
-              Alert.alert('Error', 'Failed to delete message');
+              Alert.alert('Error', error.response?.data?.error || 'Failed to delete message');
             }
           },
         },
@@ -601,8 +606,12 @@ export default function ConversationScreen() {
       messageAnimations.current[item.id] = new Animated.Value(1);
     }
     
-    // Check if this is a system message (from GearConnect)
-    const isSystemMessage = item.content?.startsWith('GearConnect:');
+    // Check if this is a system message (detected by content patterns)
+    const isSystemMessage = item.content && (
+      item.content.includes('joined the group') ||
+      item.content.includes('left the group') ||
+      item.content.includes('was deleted')
+    );
     
     // Show avatar logic: for own messages (left side) and other messages (right side)
     const showAvatar = isOwn 
@@ -1946,8 +1955,6 @@ export default function ConversationScreen() {
                       ? '📷 Photo'
                       : selectedMessage.messageType === 'AUDIO'
                       ? '🎤 Audio'
-                      : selectedMessage.content.startsWith('GearConnect:')
-                      ? selectedMessage.content.replace('GearConnect:', '')
                       : selectedMessage.content}
                   </Text>
                 </View>

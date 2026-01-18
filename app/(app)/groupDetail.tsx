@@ -284,6 +284,37 @@ export default function GroupDetailScreen() {
     }
   };
 
+  // Handle delete message
+  const handleDeleteMessage = async (messageId: number) => {
+    if (!currentUserId) return;
+    
+    Alert.alert(
+      'Delete Message',
+      'Are you sure you want to delete this message?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedMessage = await chatService.deleteMessage(messageId, currentUserId);
+              // Update message in local state with system message
+              setMessages(prev => prev.map(msg => 
+                msg.id === messageId 
+                  ? { ...updatedMessage, isOwn: msg.isOwn }
+                  : msg
+              ));
+            } catch (error: any) {
+              console.error('Error deleting message:', error);
+              Alert.alert('Error', error.response?.data?.error || 'Failed to delete message');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Handle delete group
   const handleDeleteGroup = () => {
     if (!group) return;
@@ -436,8 +467,12 @@ export default function GroupDetailScreen() {
     const isOwn = item.isOwn ?? false;
     const previousMessage = index > 0 ? messages[index - 1] : null;
 
-    // Check if this is a system message (from GearConnect)
-    const isSystemMessage = item.content?.startsWith('GearConnect:');
+    // Check if this is a system message (detected by content patterns)
+    const isSystemMessage = item.content && (
+      item.content.includes('joined the group') ||
+      item.content.includes('left the group') ||
+      item.content.includes('was deleted')
+    );
 
     const showAvatar = isOwn
       ? (index === 0 ||
@@ -816,10 +851,7 @@ export default function GroupDetailScreen() {
                         console.log('Vote for option:', optionId, 'in poll:', item.id);
                       }}
                       onEdit={isOwn ? () => handleEditPoll(item) : undefined}
-                      onDelete={isOwn ? () => {
-                        // TODO: Implement delete message
-                        console.log('Delete poll:', item.id);
-                      } : undefined}
+                      onDelete={isOwn ? () => handleDeleteMessage(item.id) : undefined}
                     />
                   );
                 } catch {

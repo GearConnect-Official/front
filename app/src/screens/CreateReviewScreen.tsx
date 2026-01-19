@@ -1,89 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import {
-  RouteProp,
-  useNavigation,
-  useRoute,
-  NavigationProp,
-} from '@react-navigation/native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import styles from '../styles/reviewStyles';
-import { useAuth } from '../context/AuthContext';
-import eventService from '../services/eventService';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-
-type RootStackParamList = {
-  CreateReview: {
-    eventId: number;
-  };
-};
-
-type CreateReviewScreenRouteProp = RouteProp<
-  RootStackParamList,
-  'CreateReview'
->;
-
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import styles from "../styles/reviewStyles";
+import { useAuth } from "../context/AuthContext";
+import eventService from "../services/eventService";
+import { SafeAreaView } from "react-native-safe-area-context";
 const CreateReviewScreen: React.FC = () => {
-  const { user } = useAuth();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<CreateReviewScreenRouteProp>();
-  const { eventId } = route.params;
-  const [reviewText, setReviewText] = useState('');
+  const auth = useAuth();
+  if (!auth) {
+    throw new Error("CreateReviewScreen must be used within AuthProvider.");
+  }
+  const { user } = auth;
+  const router = useRouter();
+  const { eventId: eventIdParam } = useLocalSearchParams<{
+    eventId?: string | string[];
+  }>();
+  const eventIdValue = Array.isArray(eventIdParam)
+    ? Number(eventIdParam[0])
+    : Number(eventIdParam);
+  const eventId = Number.isFinite(eventIdValue) ? eventIdValue : undefined;
+  const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const maxReviewLength = 190;
-    const onSubmit = async () => {
-      setLoading(true);
-      setError(null);
-      // Add logic to submit the review to your API
-      console.log('Submitting review:', { eventId, reviewText, rating });
-      if (!reviewText.trim()) {
-        setError('Please enter a review text.');
-        setLoading(false);
-        return;
-      }
-      if (reviewText.length > maxReviewLength) {
-        setError(`Review text cannot exceed ${maxReviewLength} characters.`);
-        setLoading(false);
-        return;
-      }
-      if (!rating) {
-        setError('Please select a rating.');
-        setLoading(false);
-        return;
-      }
-      if (!user || !user.id) {
-        setError('User not authenticated. Please log in.');
-        setLoading(false);
-        return;
-      }
-      try {
-        const reviewData = {
-          eventId: eventId,
-          userId: user.id,
-          note: rating,
-          description: reviewText,
-        };
-        const createdReview = await eventService.createEventReview(reviewData);
-        console.log('Review created successfully:', createdReview);
-        navigation.goBack();
-      } catch (error: any) {
-        console.error('Error submitting review:', error);
-        setError('Error submitting review. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const isSubmitDisabled = !reviewText.trim() || rating === 0 || loading;
+
+  const onSubmit = async () => {
+    setLoading(true);
+    setError(null);
+    console.log("Submitting review:", { eventId, reviewText, rating });
+    if (!eventId) {
+      setError("Missing event information. Please reopen this screen.");
+      setLoading(false);
+      return;
+    }
+    if (!reviewText.trim()) {
+      setError("Please enter a review text.");
+      setLoading(false);
+      return;
+    }
+    if (reviewText.length > maxReviewLength) {
+      setError(`Review text cannot exceed ${maxReviewLength} characters.`);
+      setLoading(false);
+      return;
+    }
+    if (!rating) {
+      setError("Please select a rating.");
+      setLoading(false);
+      return;
+    }
+    if (!user || !user.id) {
+      setError("User not authenticated. Please log in.");
+      setLoading(false);
+      return;
+    }
+    try {
+      const reviewData = {
+        eventId,
+        userId: user.id,
+        note: rating,
+        description: reviewText,
+      };
+      const createdReview = await eventService.createEventReview(reviewData);
+      console.log("Review created successfully:", createdReview);
+      router.back();
+    } catch (error: any) {
+      console.error("Error submitting review:", error);
+      setError("Error submitting review. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Star rating component
   const RatingSelector = () => {
@@ -98,9 +94,9 @@ const CreateReviewScreen: React.FC = () => {
               style={styles.starButton}
             >
               <FontAwesome
-                name={rating >= star ? 'star' : 'star-o'}
+                name={rating >= star ? "star" : "star-o"}
                 size={30}
-                color={rating >= star ? '#FFD700' : '#aaa'}
+                color={rating >= star ? "#FFD700" : "#aaa"}
               />
             </TouchableOpacity>
           ))}
@@ -122,7 +118,7 @@ const CreateReviewScreen: React.FC = () => {
           <Text
             style={[
               styles.title,
-              { flex: 1, textAlign: 'center', marginRight: 85 },
+              { flex: 1, textAlign: "center", marginRight: 85 },
             ]}
           >
             Create Review
@@ -132,7 +128,7 @@ const CreateReviewScreen: React.FC = () => {
 
       <KeyboardAvoidingView
         style={styles.reviewContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={100}
       >
         <View>
@@ -159,17 +155,19 @@ const CreateReviewScreen: React.FC = () => {
         <TouchableOpacity
           style={[
             styles.submitButton,
-            (!reviewText.trim() || rating === 0) && styles.disabledButton,
+            isSubmitDisabled && styles.disabledButton,
           ]}
           onPress={onSubmit}
-          disabled={!reviewText.trim() || rating === 0}
+          disabled={isSubmitDisabled}
         >
           <Text style={styles.submitButtonText}>
-            {reviewText.trim() && rating > 0
-              ? 'Post Review'
-              : 'Add Rating & Review'}
+            {loading
+              ? "Posting Review..."
+              : reviewText.trim() && rating > 0
+              ? "Post Review"
+              : "Add Rating & Review"}
           </Text>
-          {reviewText.trim() && rating > 0 && (
+          {reviewText.trim() && rating > 0 && !loading && (
             <FontAwesome
               name="paper-plane"
               size={16}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,13 +10,13 @@ import {
   TextInput,
   Modal,
   Alert,
-} from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import theme from '../src/styles/config/theme';
-import { CloudinaryAvatar } from '../src/components/media/CloudinaryImage';
-import { groupsScreenStyles as styles } from '../src/styles/screens/groups';
+} from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import theme from "../src/styles/config/theme";
+import { CloudinaryAvatar } from "../src/components/media/CloudinaryImage";
+import { groupsScreenStyles as styles } from "../src/styles/screens/groups";
 
 // Types pour les groupes
 interface GroupMember {
@@ -45,7 +45,7 @@ interface GroupChannel {
   id: number;
   name: string;
   description?: string;
-  type: 'TEXT' | 'VOICE' | 'ANNOUNCEMENT';
+  type: "TEXT" | "VOICE" | "ANNOUNCEMENT";
   position: number;
   isPrivate: boolean;
   _count: {
@@ -81,10 +81,10 @@ const GroupsScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
-  const [newGroupDescription, setNewGroupDescription] = useState('');
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupDescription, setNewGroupDescription] = useState("");
   const [newGroupIsPublic, setNewGroupIsPublic] = useState(false);
-  const [inviteCode, setInviteCode] = useState('');
+  const [inviteCode, setInviteCode] = useState("");
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState(false);
   const router = useRouter();
@@ -93,85 +93,88 @@ const GroupsScreen: React.FC = () => {
   const mockGroups: Group[] = [
     {
       id: 1,
-      name: 'Passionés de F1',
-      description: 'Communauté dédiée à la Formule 1 et aux sports automobiles',
+      name: "Passionés de F1",
+      description: "Communauté dédiée à la Formule 1 et aux sports automobiles",
       isPublic: true,
       owner: {
         id: 1,
-        name: 'Marc Dubois',
-        username: 'marc.racing',
-        profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        name: "Marc Dubois",
+        username: "marc.racing",
+        profilePicture:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
       },
       members: [
         {
           id: 1,
           user: {
             id: 2,
-            name: 'Sarah Martin',
-            username: 'sarah.speed',
-            profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b0bd?w=150&h=150&fit=crop&crop=face',
+            name: "Sarah Martin",
+            username: "sarah.speed",
+            profilePicture:
+              "https://images.unsplash.com/photo-1494790108755-2616b612b0bd?w=150&h=150&fit=crop&crop=face",
             isVerify: true,
           },
-          joinedAt: '2024-01-10T10:00:00Z',
+          joinedAt: "2024-01-10T10:00:00Z",
           roles: [
             {
               role: {
                 id: 1,
-                name: 'Admin',
-                color: '#E10600',
+                name: "Admin",
+                color: "#E10600",
                 position: 100,
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
       ],
       channels: [
         {
           id: 1,
-          name: 'général',
-          description: 'Discussion générale',
-          type: 'TEXT',
+          name: "général",
+          description: "Discussion générale",
+          type: "TEXT",
           position: 0,
           isPrivate: false,
-          _count: { messages: 156 }
+          _count: { messages: 156 },
         },
         {
           id: 2,
-          name: 'résultats-courses',
-          description: 'Discussions sur les résultats',
-          type: 'TEXT',
+          name: "résultats-courses",
+          description: "Discussions sur les résultats",
+          type: "TEXT",
           position: 1,
           isPrivate: false,
-          _count: { messages: 89 }
+          _count: { messages: 89 },
         },
       ],
       _count: { members: 47 },
-      createdAt: '2024-01-05T09:00:00Z'
+      createdAt: "2024-01-05T09:00:00Z",
     },
     {
       id: 2,
-      name: 'Karting Amateur',
-      description: 'Groupe pour les amateurs de karting',
+      name: "Karting Amateur",
+      description: "Groupe pour les amateurs de karting",
       isPublic: false,
       owner: {
         id: 3,
-        name: 'Antoine Leclerc',
-        username: 'antoine.f1',
-        profilePicture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+        name: "Antoine Leclerc",
+        username: "antoine.f1",
+        profilePicture:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
       },
       members: [],
       channels: [
         {
           id: 3,
-          name: 'général',
-          type: 'TEXT',
+          name: "général",
+          type: "TEXT",
           position: 0,
           isPrivate: false,
-          _count: { messages: 23 }
+          _count: { messages: 23 },
         },
       ],
       _count: { members: 12 },
-      createdAt: '2024-01-12T14:30:00Z'
+      createdAt: "2024-01-12T14:30:00Z",
     },
   ];
 
@@ -186,14 +189,14 @@ const GroupsScreen: React.FC = () => {
       // const response = await fetch('/api/groups');
       // const data = await response.json();
       // setGroups(data);
-      
+
       // Simuler un délai de chargement
       setTimeout(() => {
         setGroups(mockGroups);
         setLoading(false);
       }, 1000);
     } catch (error) {
-      console.error('Error loading groups:', error);
+      console.error("Error loading groups:", error);
       setLoading(false);
     }
   };
@@ -206,94 +209,94 @@ const GroupsScreen: React.FC = () => {
 
   const openGroup = (group: Group) => {
     router.push({
-      pathname: '/(app)/groupDetail',
-      params: { 
+      pathname: "/(app)/groupDetail",
+      params: {
         groupId: group.id.toString(),
-        groupName: group.name 
-      }
+        groupName: group.name,
+      },
     });
   };
 
   const createGroup = async () => {
     if (!newGroupName.trim()) {
-      Alert.alert('Erreur', 'Le nom du groupe est requis');
+      Alert.alert("Erreur", "Le nom du groupe est requis");
       return;
     }
 
     setCreating(true);
     try {
       // TODO: Appel API pour créer le groupe
-      console.log('Creating group:', {
+      console.log("Creating group:", {
         name: newGroupName,
         description: newGroupDescription,
-        isPublic: newGroupIsPublic
+        isPublic: newGroupIsPublic,
       });
-      
+
       // Simuler la création
       setTimeout(() => {
         setShowCreateModal(false);
-        setNewGroupName('');
-        setNewGroupDescription('');
+        setNewGroupName("");
+        setNewGroupDescription("");
         setNewGroupIsPublic(false);
         setCreating(false);
-        Alert.alert('Succès', 'Groupe créé avec succès !');
+        Alert.alert("Succès", "Groupe créé avec succès !");
         loadGroups();
       }, 1000);
     } catch (error) {
-      console.error('Error creating group:', error);
-      Alert.alert('Erreur', 'Impossible de créer le groupe');
+      console.error("Error creating group:", error);
+      Alert.alert("Erreur", "Impossible de créer le groupe");
       setCreating(false);
     }
   };
 
   const joinGroup = async () => {
     if (!inviteCode.trim()) {
-      Alert.alert('Erreur', 'Le code d\'invitation est requis');
+      Alert.alert("Erreur", "Le code d'invitation est requis");
       return;
     }
 
     setJoining(true);
     try {
       // TODO: Appel API pour rejoindre le groupe
-      console.log('Joining group with code:', inviteCode);
-      
+      console.log("Joining group with code:", inviteCode);
+
       // Simuler le join
       setTimeout(() => {
         setShowJoinModal(false);
-        setInviteCode('');
+        setInviteCode("");
         setJoining(false);
-        Alert.alert('Succès', 'Vous avez rejoint le groupe !');
+        Alert.alert("Succès", "Vous avez rejoint le groupe !");
         loadGroups();
       }, 1000);
     } catch (error) {
-      console.error('Error joining group:', error);
-      Alert.alert('Erreur', 'Code d\'invitation invalide ou expiré');
+      console.error("Error joining group:", error);
+      Alert.alert("Erreur", "Code d'invitation invalide ou expiré");
       setJoining(false);
     }
   };
 
   const formatMemberCount = (count: number): string => {
-    if (count === 1) return '1 membre';
+    if (count === 1) return "1 membre";
     return `${count} membres`;
   };
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
   const getChannelIcon = (type: string) => {
     switch (type) {
-      case 'VOICE':
-        return 'volume-up';
-      case 'ANNOUNCEMENT':
-        return 'bullhorn';
+      case "VOICE":
+        return "volume-up";
+      case "ANNOUNCEMENT":
+        return "bullhorn";
       default:
-        return 'hashtag';
+        return "hashtag";
     }
   };
 
@@ -330,9 +333,9 @@ const GroupsScreen: React.FC = () => {
             {item.name}
           </Text>
           <Text style={styles.groupDescription} numberOfLines={2}>
-            {item.description || 'Aucune description'}
+            {item.description || "Aucune description"}
           </Text>
-          
+
           <View style={styles.groupMeta}>
             <View style={styles.metaItem}>
               <FontAwesome name="users" size={12} color="#6A707C" />
@@ -357,18 +360,14 @@ const GroupsScreen: React.FC = () => {
       <View style={styles.groupChannels}>
         {item.channels.slice(0, 3).map((channel, index) => (
           <View key={channel.id} style={styles.channelPreview}>
-            <FontAwesome 
-              name={getChannelIcon(channel.type)} 
-              size={12} 
-              color="#6A707C" 
+            <FontAwesome
+              name={getChannelIcon(channel.type)}
+              size={12}
+              color="#6A707C"
             />
-            <Text style={styles.channelName}>
-              {channel.name}
-            </Text>
+            <Text style={styles.channelName}>{channel.name}</Text>
             {channel._count.messages > 0 && (
-              <Text style={styles.messageCount}>
-                {channel._count.messages}
-              </Text>
+              <Text style={styles.messageCount}>{channel._count.messages}</Text>
             )}
           </View>
         ))}
@@ -458,11 +457,14 @@ const GroupsScreen: React.FC = () => {
               onPress={createGroup}
               disabled={creating || !newGroupName.trim()}
             >
-              <Text style={[
-                styles.modalAction,
-                (!newGroupName.trim() || creating) && styles.modalActionDisabled
-              ]}>
-                {creating ? 'Création...' : 'Créer'}
+              <Text
+                style={[
+                  styles.modalAction,
+                  (!newGroupName.trim() || creating) &&
+                    styles.modalActionDisabled,
+                ]}
+              >
+                {creating ? "Création..." : "Créer"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -496,7 +498,12 @@ const GroupsScreen: React.FC = () => {
               style={styles.checkboxGroup}
               onPress={() => setNewGroupIsPublic(!newGroupIsPublic)}
             >
-              <View style={[styles.checkbox, newGroupIsPublic && styles.checkboxChecked]}>
+              <View
+                style={[
+                  styles.checkbox,
+                  newGroupIsPublic && styles.checkboxChecked,
+                ]}
+              >
                 {newGroupIsPublic && (
                   <FontAwesome name="check" size={12} color="white" />
                 )}
@@ -504,7 +511,8 @@ const GroupsScreen: React.FC = () => {
               <View style={styles.checkboxLabel}>
                 <Text style={styles.checkboxText}>Groupe public</Text>
                 <Text style={styles.checkboxDescription}>
-                  Les groupes publics peuvent être découverts par d&apos;autres utilisateurs
+                  Les groupes publics peuvent être découverts par d&apos;autres
+                  utilisateurs
                 </Text>
               </View>
             </TouchableOpacity>
@@ -528,11 +536,13 @@ const GroupsScreen: React.FC = () => {
               onPress={joinGroup}
               disabled={joining || !inviteCode.trim()}
             >
-              <Text style={[
-                styles.modalAction,
-                (!inviteCode.trim() || joining) && styles.modalActionDisabled
-              ]}>
-                {joining ? 'Connexion...' : 'Rejoindre'}
+              <Text
+                style={[
+                  styles.modalAction,
+                  (!inviteCode.trim() || joining) && styles.modalActionDisabled,
+                ]}
+              >
+                {joining ? "Connexion..." : "Rejoindre"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -559,4 +569,4 @@ const GroupsScreen: React.FC = () => {
   );
 };
 
-export default GroupsScreen; 
+export default GroupsScreen;

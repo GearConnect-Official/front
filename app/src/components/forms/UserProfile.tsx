@@ -1,10 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { useAuth } from '../../context/AuthContext';
-import styles from '../../styles/Profile/userProfileStyles';
-import { useMessage } from '../../context/MessageContext';
-import MessageService from '../../services/messageService';
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+} from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
+import styles from "../../styles/Profile/userProfileStyles";
+import { useMessage } from "../../context/MessageContext";
+import { MessageService } from "../../services/messageService";
 
 interface UserProfileProps {
   navigateToHome?: () => void;
@@ -13,12 +18,11 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
-  navigateToHome,
   onLogout,
   user,
 }) => {
-  const { logout } = useAuth();
-  const { showConfirmation, showError } = useMessage();
+  useAuth();
+  const { showConfirmation } = useMessage();
 
   const handleLogout = () => {
     showConfirmation({
@@ -27,12 +31,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
         if (onLogout) {
           onLogout();
         }
-      }
+      },
     });
-  };
-
-  const handleError = (error: string) => {
-    showError(error);
   };
 
   return (

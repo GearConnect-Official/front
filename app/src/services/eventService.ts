@@ -20,6 +20,10 @@ export interface Event {
   imagePublicIds?: string[];
   // Number of participants who joined the event
   participantsCount?: number;
+  // Number of views of the event page
+  viewCount?: number;
+  // Number of reviews for the event
+  reviewsCount?: number;
   // Track condition information
   meteo?: {
     trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';

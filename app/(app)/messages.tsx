@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
-  SectionList,
   TouchableOpacity,
   Image,
   RefreshControl,
@@ -53,7 +52,7 @@ export default function MessagesScreen() {
         
         [...(response.conversations || []), ...(response.commercial || [])].forEach((conv) => {
           if (!conv.isGroup) {
-            const otherParticipant = conv.participants.find(p => p.user.id !== currentUserId);
+            const otherParticipant = conv.participants.find((p: { user: { id: number } }) => p.user.id !== currentUserId);
             if (otherParticipant && otherParticipant.user.status) {
               statusMap[otherParticipant.user.id] = {
                 status: otherParticipant.user.status,
@@ -306,7 +305,7 @@ export default function MessagesScreen() {
     const lastReadDate = new Date(userParticipant.lastReadAt);
     return conversation.messages.filter(msg => {
       const msgDate = new Date(msg.createdAt);
-      return msgDate > lastReadDate && msg.senderId !== currentUserId;
+      return msgDate > lastReadDate && msg.sender.id !== currentUserId;
     }).length;
   };
 

@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Pressable,
   Dimensions,
   PanResponder,
 } from 'react-native';
@@ -39,7 +38,7 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
   const [isSeeking, setIsSeeking] = useState(false);
   const [waveformData, setWaveformData] = useState<number[]>([]);
   const [waveformWidth, setWaveformWidth] = useState(0);
-  const positionUpdateInterval = useRef<NodeJS.Timeout | null>(null);
+  const positionUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const waveformRef = useRef<View | null>(null);
 
   const generateWaveformData = (durationSeconds: number) => {
@@ -75,25 +74,32 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
     setWaveformData(bars);
   };
 
-  useEffect(() => {
-    // Generate waveform if initial duration is provided
-    if (initialDuration && initialDuration > 0) {
-      generateWaveformData(initialDuration);
+  const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
+    if (!status.isLoaded) {
+      return;
     }
-    
-    loadAudio();
 
-    return () => {
-      if (sound) {
-        sound.unloadAsync().catch(console.error);
+    if (status.didJustFinish) {
+      setIsPlaying(false);
+      const finalPosition = 0;
+      setPosition(finalPosition);
+      if (onPositionUpdate) {
+        onPositionUpdate(finalPosition);
       }
       if (positionUpdateInterval.current) {
         clearInterval(positionUpdateInterval.current);
+        positionUpdateInterval.current = null;
       }
-    };
-  }, [audioUrl]);
+    } else if (!isSeeking) {
+      const newPosition = status.positionMillis / 1000;
+      setPosition(newPosition);
+      if (onPositionUpdate) {
+        onPositionUpdate(newPosition);
+      }
+    }
+  }, [isSeeking, onPositionUpdate]);
 
-  const loadAudio = async () => {
+  const loadAudio = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -140,32 +146,25 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
       console.error('Error loading audio:', error);
       setIsLoading(false);
     }
-  };
+  }, [audioUrl, onDurationLoaded, sound, onPlaybackStatusUpdate]);
 
-  const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-    if (!status.isLoaded) {
-      return;
+  useEffect(() => {
+    // Generate waveform if initial duration is provided
+    if (initialDuration && initialDuration > 0) {
+      generateWaveformData(initialDuration);
     }
+    
+    loadAudio();
 
-    if (status.didJustFinish) {
-      setIsPlaying(false);
-      const finalPosition = 0;
-      setPosition(finalPosition);
-      if (onPositionUpdate) {
-        onPositionUpdate(finalPosition);
+    return () => {
+      if (sound) {
+        sound.unloadAsync().catch(console.error);
       }
       if (positionUpdateInterval.current) {
         clearInterval(positionUpdateInterval.current);
-        positionUpdateInterval.current = null;
       }
-    } else if (!isSeeking) {
-      const newPosition = status.positionMillis / 1000;
-      setPosition(newPosition);
-      if (onPositionUpdate) {
-        onPositionUpdate(newPosition);
-      }
-    }
-  };
+    };
+  }, [audioUrl, initialDuration, loadAudio, sound]);
 
   const togglePlayPause = async () => {
     if (!sound) return;
@@ -254,11 +253,6 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
     }
   };
 
-  const handleWaveformPress = async (event: any) => {
-    const { locationX } = event.nativeEvent;
-    await handleWaveformSeek(locationX);
-  };
-
   // PanResponder for smooth dragging on waveform
   const panResponder = useRef(
     PanResponder.create({
@@ -279,12 +273,6 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
       },
     })
   ).current;
-
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   if (isLoading) {
     return (

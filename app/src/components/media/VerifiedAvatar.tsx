@@ -1,10 +1,7 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { CloudinaryAvatar } from './CloudinaryImage';
-import { Image, ImageProps } from 'react-native';
-import theme from '../../styles/config/theme';
-
 export interface VerifiedAvatarProps {
   publicId?: string;
   fallbackUrl?: string | number; // string for URI, number for require()

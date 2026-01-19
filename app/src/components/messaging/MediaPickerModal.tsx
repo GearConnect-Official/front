@@ -16,9 +16,6 @@ import {
   Platform,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-// Note: Using Image for video thumbnails instead of Video component for better performance
-// Video component from expo-av is deprecated, but we only need thumbnails here
-import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import theme from '../../styles/config/theme';
 import { cloudinaryService } from '../../services/cloudinary.service';

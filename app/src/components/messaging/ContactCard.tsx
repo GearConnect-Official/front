@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
-  Platform,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
@@ -42,8 +41,8 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isOwn }) => {
 
       // Create contact object
       const newContact: Contacts.Contact = {
-        [Contacts.Fields.ID]: undefined,
         name: contact.name,
+        contactType: Contacts.ContactTypes.Person,
         phoneNumbers: contact.phoneNumbers.map((phone) => ({
           number: phone,
           label: 'mobile',

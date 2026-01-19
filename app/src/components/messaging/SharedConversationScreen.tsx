@@ -2057,10 +2057,6 @@ export default function SharedConversationScreen({
             });
 
             setSending(true);
-            if (!id) {
-              Alert.alert('Error', 'Conversation ID is missing');
-              return;
-            }
             
             // Upload document to Cloudinary
             const { cloudinaryService } = await import('../../services/cloudinary.service.js');

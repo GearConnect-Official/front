@@ -84,7 +84,6 @@ const PollCard: React.FC<PollCardProps> = ({
   }, [poll.votes, poll.userVotes, localVotes, poll.options]);
 
   const totalVotes = Object.values(localVoteCounts).reduce((sum, count) => sum + count, 0);
-  const maxVotes = Math.max(...Object.values(localVoteCounts), 0);
 
   const handleVote = async (optionId: string) => {
     if (isVoting || !onVote) return;
@@ -117,7 +116,7 @@ const PollCard: React.FC<PollCardProps> = ({
     if (onVote) {
       try {
         await onVote(optionId);
-      } catch (error) {
+      } catch {
         // Revert on error
         setLocalVotes(poll.userVotes || []);
       }

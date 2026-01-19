@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Image, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import styles from "../../styles/feed/postHeaderStyles";
 import PostOptionsButton from "./PostOptionsButton";
 import { VerifiedAvatar } from "../media/VerifiedAvatar";

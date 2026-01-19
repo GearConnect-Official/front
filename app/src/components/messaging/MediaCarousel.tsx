@@ -14,7 +14,6 @@ import theme from '../../styles/config/theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const CAROUSEL_WIDTH = screenWidth * 0.75; // Fullscreen paging width baseline
-const PREVIEW_SIZE = screenWidth * 0.5;
 
 export interface MediaItem {
   uri: string;
@@ -202,7 +201,6 @@ const MediaCarousel: React.FC<MediaCarouselProps> = ({ media, isOwn }) => {
             }}
             style={styles.fullScreenScroll}
             contentOffset={{ x: fullScreenIndex * screenWidth, y: 0 }}
-            initialScrollIndex={fullScreenIndex}
           >
             {imageMedia.map((item, index) => {
               const imageUri = item.secureUrl || item.uri;

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   StyleSheet,
-  Dimensions,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -22,19 +21,17 @@ interface PostOptionsMenuProps {
   onCopyLink: () => void;
   isOwnPost: boolean;
   position?: { x: number; y: number };
-  postUserId?: number; // ID de l'utilisateur qui a créé le post (pour unfollow)
+  postUserId?: number;
 }
 
 const PostOptionsMenu: React.FC<PostOptionsMenuProps> = ({
   visible,
   onClose,
-  onReport,
   onCopyLink,
   isOwnPost,
   position = { x: 0, y: 0 },
   postUserId,
 }) => {
-  const { width } = Dimensions.get('window');
   const menuWidth = 200;
   const menuX = Math.max(0, position.x - menuWidth - 8);
   const auth = useAuth();

@@ -3,8 +3,6 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import PostOptionsMenu from './PostOptionsMenu';
-import followService from '../../services/followService';
-import { useAuth } from '../../context/AuthContext';
 import { useMessage } from '../../context/MessageContext';
 import { MessageService } from '../../services/messageService';
 
@@ -24,8 +22,7 @@ const PostOptionsButton: React.FC<PostOptionsButtonProps> = ({
   const [showOptions, setShowOptions] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const buttonRef = useRef(null);
-  const { user } = useAuth();
-  const { showError, showSuccess, showMessage } = useMessage();
+  const { showError, showMessage } = useMessage();
 
   const handleOptionsPress = () => {
     if (buttonRef.current) {

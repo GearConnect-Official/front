@@ -17,8 +17,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import { homeStyles as styles } from "../styles/screens";
 import theme from "../styles/config/theme";

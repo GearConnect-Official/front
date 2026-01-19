@@ -143,12 +143,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         playsInSilentModeIOS: true,
       });
 
+      // createAsync() already starts the recording automatically
       const { recording: newRecording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
-
-      // Start the recording immediately - this is crucial!
-      await newRecording.startAsync();
 
       const startTime = Date.now();
       

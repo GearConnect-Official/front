@@ -61,16 +61,33 @@ const MediaPickerModal: React.FC<MediaPickerModalProps> = ({ onSend, onCancel })
   const [assetInfoCache, setAssetInfoCache] = useState<Map<string, { localUri: string; type: 'image' | 'video' }>>(new Map()); // Cache for asset info
 
   const requestPermissions = useCallback(async () => {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'We need access to your photos to send media.',
-        [{ text: 'OK' }]
-      );
+    try {
+      // Only request photo/video permissions, not audio (audio is handled separately by expo-av)
+      const { status } = await MediaLibrary.requestPermissionsAsync(false, ['photo', 'video']);
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'We need access to your photos to send media.',
+          [{ text: 'OK' }]
+        );
+        return false;
+      }
+      return true;
+    } catch (error: any) {
+      // Expo Go doesn't support granular permissions on Android 13+
+      // Show a helpful message to the user
+      if (error.message?.includes('Expo Go')) {
+        Alert.alert(
+          'Expo Go Limitation',
+          'Media library access requires a development build on Android 13+. Please use "npx expo run:android" to create a development build.',
+          [{ text: 'OK' }]
+        );
+        console.warn('MediaLibrary permissions not available in Expo Go on Android 13+');
+      } else {
+        console.error('Error requesting permissions:', error);
+      }
       return false;
     }
-    return true;
   }, []);
 
   // Load photos and albums
@@ -865,11 +882,9 @@ const MediaPickerModal: React.FC<MediaPickerModalProps> = ({ onSend, onCancel })
                 }}
                 activeOpacity={0.7}
               >
-                {item.albumName && (
-                  <View style={styles.albumThumbnail}>
-                    <FontAwesome name="folder" size={32} color={theme.colors.text.secondary} />
-                  </View>
-                )}
+                <View style={styles.albumThumbnail}>
+                  <FontAwesome name="folder" size={32} color={theme.colors.text.secondary} />
+                </View>
                 <View style={styles.albumInfo}>
                   <Text style={styles.albumName}>{item.title}</Text>
                   <Text style={styles.albumCount}>{item.assetCount} items</Text>

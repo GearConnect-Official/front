@@ -48,8 +48,11 @@ export default {
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO",
         "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR"
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.AUDIO_RECORD"
       ]
     },
     web: {
@@ -98,7 +101,16 @@ export default {
           calendarPermission: "We need access to your calendar to add appointments shared in conversations."
         }
       ],
-      "expo-document-picker"
+      "expo-document-picker",
+      [
+        "expo-media-library",
+        {
+          photosPermission: "We need access to your photo library to share photos and videos.",
+          savePhotosPermission: "We need access to save photos and videos to your library.",
+          isAccessMediaLocationEnabled: true,
+          granularPermissions: ["photo", "video"]
+        }
+      ]
     ],
     experiments: {
       typedRoutes: true

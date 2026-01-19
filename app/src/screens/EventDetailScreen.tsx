@@ -22,8 +22,6 @@ import {
 } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
-//import relatedProductService from '../services/relatedProductService';
 import EventDetailReview from '../components/EventDetailReview';
 import EventResultsGrid from '../components/EventResults/EventResultsGrid';
 import PerformanceService from '../services/performanceService';
@@ -32,16 +30,10 @@ import EventTag from '../components/EventTag';
 import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
 import { trackEvent, trackScreenView } from '../utils/mixpanelTracking';
 
-type RootStackParamList = {
-  EventDetail: { eventId: string };
-  // Add other routes as needed
-};
-
-type EventDetailScreenRouteProp = RouteProp<RootStackParamList, "EventDetail">;
-
 interface MeteoInfo {
-  condition: string;
-  temperature: number | string;
+  trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+  circuitName?: string;
+  expectedParticipants?: number;
 }
 
 const EventDetailScreen: React.FC = () => {
@@ -153,7 +145,7 @@ const EventDetailScreen: React.FC = () => {
     const existingReview = reviews.find((review) => {
       if (!review.userId) return false;
       const reviewUserId = String(review.userId);
-      return reviewUserId === currentUserId;
+      return reviewUserId === String(user.id);
     });
 
     setUserReview(existingReview || null);
@@ -194,7 +186,7 @@ const EventDetailScreen: React.FC = () => {
       const enhancedEvent = await Promise.all([
         enhanceEventWithTags(fetchedEvent),
         enhanceEventWithReviews(fetchedEvent),
-        // enhanceEventWithProducts(fetchedEvent),
+        // enhanceEventWithProducts removed - RelatedProduct no longer linked to events
       ]).then(() => fetchedEvent);
 
       // User-specific checks
@@ -357,26 +349,7 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
-  // const enhanceEventWithProducts = async (
-  //   eventData: EventInterface
-  // ): Promise<void> => {
-  //   try {
-  //     const relatedProducts = await relatedProductService.getProductsByEventId(
-  //       eventId
-  //     );
-  //     eventData.relatedProducts = relatedProducts;
-  //     if (!Array.isArray(eventData.relatedProducts)) {
-  //       console.warn("Related products response is not an array");
-  //       eventData.relatedProducts = [];
-  //     }
-  //     if (eventData.relatedProducts.length === 0) {
-  //       console.warn("No related products found for this event");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error processing related products:", error);
-  //     eventData.relatedProducts = [];
-  //   }
-  // };
+  // enhanceEventWithProducts removed - RelatedProduct no longer linked to events
 
   const loadOrganizersWithDetails = async (event: EventInterface) => {
     try {
@@ -532,36 +505,23 @@ const EventDetailScreen: React.FC = () => {
     );
   }
   if (event !== null) {
-    const meteoInfo = event.meteo as any;
+    const meteoInfo = event.meteo as MeteoInfo | undefined;
 
     // Helper function to safely get track condition information
     const getTrackConditionInfo = () => {
-      if (!meteoInfo || typeof meteoInfo !== 'object') {
+      if (!meteoInfo || typeof meteoInfo !== 'object' || !meteoInfo.trackCondition) {
         return 'Track condition unavailable';
       }
 
-      // Track condition
-      if (meteoInfo.trackCondition) {
-        const trackConditions: { [key: string]: string } = {
-          'dry': '☀️ Dry',
-          'damp': '💧 Damp',
-          'wet': '🌧️ Wet',
-          'mixed': '🌦️ Mixed',
-          'slippery': '⚠️ Slippery',
-          'drying': '🌤️ Drying'
-        };
-        return trackConditions[meteoInfo.trackCondition] || meteoInfo.trackCondition;
-      }
-
-      // Fallback to old format for backward compatibility
-      if (meteoInfo.condition) {
-        return meteoInfo.condition;
-      }
-      if (meteoInfo.temperature !== undefined) {
-        return `${meteoInfo.temperature}°`;
-      }
-
-      return 'Track condition unavailable';
+      const trackConditions: { [key: string]: string } = {
+        'dry': '☀️ Dry',
+        'damp': '💧 Damp',
+        'wet': '🌧️ Wet',
+        'mixed': '🌦️ Mixed',
+        'slippery': '⚠️ Slippery',
+        'drying': '🌤️ Drying'
+      };
+      return trackConditions[meteoInfo.trackCondition] || meteoInfo.trackCondition;
     };
 
     function handleReviewPress(): void {
@@ -820,15 +780,23 @@ const EventDetailScreen: React.FC = () => {
             />
             <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
           </View>
-           {/* <RelatedProductsSection
-          eventId={eventId}
-          products={(event.relatedProducts || []).map((product: any) => ({
-            ...product,
-            price: typeof product.price === 'string' ? parseFloat(product.price) || 0 : product.price,
-          }))}
-          isOrganizer={isOrganizer}
-          onRefresh={fetchData}
-        /> */}
+          {meteoInfo && typeof meteoInfo === 'object' && meteoInfo.circuitName && (
+            <View style={styles.detailRow}>
+              <Ionicons name="location-outline" size={20} color="gray" />
+              <Text style={styles.detailText}>
+                Circuit: {meteoInfo.circuitName}
+              </Text>
+            </View>
+          )}
+          {meteoInfo && typeof meteoInfo === 'object' && meteoInfo.expectedParticipants !== undefined && (
+            <View style={styles.detailRow}>
+              <Ionicons name="people-outline" size={20} color="gray" />
+              <Text style={styles.detailText}>
+                Expected Participants: {meteoInfo.expectedParticipants}
+              </Text>
+            </View>
+          )}
+          {/* RelatedProductsSection removed - RelatedProduct no longer linked to events */}
           <EventDetailReview
             eventId={eventId}
             reviews={event.reviews || []}

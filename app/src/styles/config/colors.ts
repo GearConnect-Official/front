@@ -5,7 +5,7 @@
 const palette = {
   // Couleurs primaires
   primary: {
-    main: '#E53935', // Rouge principal
+    main: '#E10600', // Rouge Racing (Racing Red)
     light: '#FF5252', // Rouge plus clair
     dark: '#C62828', // Rouge plus foncé
   },

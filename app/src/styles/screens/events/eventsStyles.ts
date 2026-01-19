@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     ...theme.typography.caption,
     fontWeight: "bold",
     textTransform: "uppercase",
-    backgroundColor: "rgba(58, 134, 255, 0.7)",
+    backgroundColor: "rgba(225, 6, 0, 0.7)", // Changed from blue to red
     alignSelf: "flex-start",
     paddingHorizontal: theme.spacing.xs,
     paddingVertical: 4,

@@ -23,9 +23,9 @@ const CreateEventScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.contentContainer}>
+      <ScrollView style={styles.container}>
         <CreateEventForm onCancel={handleCancel} onSuccess={handleSuccess} />
-        <View style={styles.spacer} />
+        <View />
       </ScrollView>
     </View>
   );

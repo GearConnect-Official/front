@@ -25,7 +25,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
         ]}
       >
         <TouchableOpacity
-          style={styles.backButtonLarge}
+          style={styles.backButton}
           onPress={() => router.back()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityRole="button"

@@ -213,7 +213,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
         </View>
       )}
       <View style={styles.previewSection}>
-        <Text style={styles.sectionTitle}>Preview</Text>
+        <Text style={styles.title}>Preview</Text>
         <View style={styles.previewCard}>
           {logo ? (
             <Image source={{ uri: logo }} style={styles.previewLogo} />

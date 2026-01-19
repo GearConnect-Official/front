@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -23,7 +23,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
-import relatedProductService from '../services/relatedProductService';
+//import relatedProductService from '../services/relatedProductService';
 import EventDetailReview from '../components/EventDetailReview';
 import EventResultsGrid from '../components/EventResults/EventResultsGrid';
 import PerformanceService from '../services/performanceService';
@@ -65,6 +65,10 @@ const EventDetailScreen: React.FC = () => {
     profilePicture?: string;
     profilePicturePublicId?: string;
   }[]>([]);
+  const currentUserId = useMemo(
+  () => (user?.id != null ? String(user.id) : null),
+  [user?.id]
+);
 
   function formatDate(data: string | number | Date) {
     if (!data) return "Date not available";
@@ -190,7 +194,7 @@ const EventDetailScreen: React.FC = () => {
       const enhancedEvent = await Promise.all([
         enhanceEventWithTags(fetchedEvent),
         enhanceEventWithReviews(fetchedEvent),
-        enhanceEventWithProducts(fetchedEvent),
+        // enhanceEventWithProducts(fetchedEvent),
       ]).then(() => fetchedEvent);
 
       // User-specific checks
@@ -353,26 +357,26 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
-  const enhanceEventWithProducts = async (
-    eventData: EventInterface
-  ): Promise<void> => {
-    try {
-      const relatedProducts = await relatedProductService.getProductsByEventId(
-        eventId
-      );
-      eventData.relatedProducts = relatedProducts;
-      if (!Array.isArray(eventData.relatedProducts)) {
-        console.warn("Related products response is not an array");
-        eventData.relatedProducts = [];
-      }
-      if (eventData.relatedProducts.length === 0) {
-        console.warn("No related products found for this event");
-      }
-    } catch (error) {
-      console.error("Error processing related products:", error);
-      eventData.relatedProducts = [];
-    }
-  };
+  // const enhanceEventWithProducts = async (
+  //   eventData: EventInterface
+  // ): Promise<void> => {
+  //   try {
+  //     const relatedProducts = await relatedProductService.getProductsByEventId(
+  //       eventId
+  //     );
+  //     eventData.relatedProducts = relatedProducts;
+  //     if (!Array.isArray(eventData.relatedProducts)) {
+  //       console.warn("Related products response is not an array");
+  //       eventData.relatedProducts = [];
+  //     }
+  //     if (eventData.relatedProducts.length === 0) {
+  //       console.warn("No related products found for this event");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error processing related products:", error);
+  //     eventData.relatedProducts = [];
+  //   }
+  // };
 
   const loadOrganizersWithDetails = async (event: EventInterface) => {
     try {
@@ -816,7 +820,7 @@ const EventDetailScreen: React.FC = () => {
             />
             <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
           </View>
-           <RelatedProductsSection
+           {/* <RelatedProductsSection
           eventId={eventId}
           products={(event.relatedProducts || []).map((product: any) => ({
             ...product,
@@ -824,7 +828,7 @@ const EventDetailScreen: React.FC = () => {
           }))}
           isOrganizer={isOrganizer}
           onRefresh={fetchData}
-        />
+        /> */}
           <EventDetailReview
             eventId={eventId}
             reviews={event.reviews || []}

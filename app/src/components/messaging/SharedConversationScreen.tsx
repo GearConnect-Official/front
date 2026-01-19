@@ -2225,10 +2225,6 @@ export default function SharedConversationScreen({
           
           try {
             setSending(true);
-            if (!id) {
-              Alert.alert('Error', 'Conversation ID is missing');
-              return;
-            }
             
             // If editing, we need to update the existing message
             if (editingMessage && editingMessage.content.startsWith('APPOINTMENT:')) {

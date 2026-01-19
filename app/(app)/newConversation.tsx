@@ -394,7 +394,7 @@ export default function NewConversationScreen() {
             <View style={styles.emptyState}>
               <FontAwesome name="users" size={40} color={theme.colors.text.secondary} />
               <Text style={styles.emptyStateText}>
-                  {loading ? 'Loading friends...' : allFriends.length === 0 
+                  {allFriends.length === 0 
                     ? 'You don\'t have any friends yet. Follow users who follow you back to start conversations.'
                     : searchQuery.trim() 
                       ? `No friends found for "${searchQuery}"`

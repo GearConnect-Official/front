@@ -55,7 +55,6 @@ const GroupInviteCard: React.FC<GroupInviteCardProps> = ({ inviteData, isOwn, cu
           name: result.group.name,
           iconPublicId: result.group.iconPublicId,
         });
-      }
       
       Alert.alert(
         'Success',
@@ -75,6 +74,9 @@ const GroupInviteCard: React.FC<GroupInviteCardProps> = ({ inviteData, isOwn, cu
           },
         ]
       );
+      } else {
+        Alert.alert('Success', 'You\'ve joined the group!');
+      }
     } catch (error: any) {
       console.error('Error joining group:', error);
       const errorMessage = error.response?.data?.error || 'Failed to join group';

@@ -1,6 +1,5 @@
 import { cloudinaryConfig } from '../config';
 import * as FileSystem from 'expo-file-system/legacy';
-import { Platform } from 'react-native';
 
 export interface CloudinaryUploadResponse {
   public_id: string;

@@ -255,32 +255,32 @@ const GroupChannelScreen: React.FC = () => {
             {/* Avatar for other messages (left side) */}
             {!isOwn && (
               showAvatar ? (
-                <TouchableOpacity
-                  style={styles.messageAvatar}
-                  onPress={() => {
-                    if (item.sender?.id) {
-                      router.push({
-                        pathname: '/userProfile',
-                        params: { userId: item.sender.id.toString() },
-                      });
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  {item.sender.profilePicturePublicId ? (
-                    <CloudinaryAvatar
-                      publicId={item.sender.profilePicturePublicId}
-                      size={36}
-                      style={styles.avatar}
-                    />
-                  ) : item.sender.profilePicture ? (
-                    <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
-                  ) : (
-                    <View style={[styles.avatar, styles.defaultAvatar]}>
-                      <FontAwesome name="user" size={14} color="#6A707C" />
-                    </View>
-                  )}
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.messageAvatar}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                {item.sender.profilePicturePublicId ? (
+                  <CloudinaryAvatar
+                    publicId={item.sender.profilePicturePublicId}
+                    size={36}
+                    style={styles.avatar}
+                  />
+                ) : item.sender.profilePicture ? (
+                  <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
+                ) : (
+                  <View style={[styles.avatar, styles.defaultAvatar]}>
+                    <FontAwesome name="user" size={14} color="#6A707C" />
+                  </View>
+                )}
+              </TouchableOpacity>
               ) : (
                 <View style={styles.messageAvatar} />
               )
@@ -353,32 +353,32 @@ const GroupChannelScreen: React.FC = () => {
             {/* Avatar for own messages (right side) */}
             {isOwn && (
               showAvatar ? (
-                <TouchableOpacity
-                  style={styles.messageAvatar}
-                  onPress={() => {
-                    if (item.sender?.id) {
-                      router.push({
-                        pathname: '/userProfile',
-                        params: { userId: item.sender.id.toString() },
-                      });
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  {item.sender.profilePicturePublicId ? (
-                    <CloudinaryAvatar
-                      publicId={item.sender.profilePicturePublicId}
-                      size={36}
-                      style={styles.avatar}
-                    />
-                  ) : item.sender.profilePicture ? (
-                    <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
-                  ) : (
-                    <View style={[styles.avatar, styles.defaultAvatar]}>
-                      <FontAwesome name="user" size={14} color="#6A707C" />
-             </View>
-                  )}
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.messageAvatar}
+                onPress={() => {
+                  if (item.sender?.id) {
+                    router.push({
+                      pathname: '/userProfile',
+                      params: { userId: item.sender.id.toString() },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                {item.sender.profilePicturePublicId ? (
+                  <CloudinaryAvatar
+                    publicId={item.sender.profilePicturePublicId}
+                    size={36}
+                    style={styles.avatar}
+                  />
+                ) : item.sender.profilePicture ? (
+                  <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
+                ) : (
+                  <View style={[styles.avatar, styles.defaultAvatar]}>
+                    <FontAwesome name="user" size={14} color="#6A707C" />
+            </View>
+                )}
+              </TouchableOpacity>
               ) : (
                 <View style={styles.messageAvatar} />
               )

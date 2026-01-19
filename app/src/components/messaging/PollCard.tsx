@@ -113,13 +113,11 @@ const PollCard: React.FC<PollCardProps> = ({
     }
 
     // Call backend
-    if (onVote) {
       try {
         await onVote(optionId);
-      } catch {
+    } catch {
         // Revert on error
         setLocalVotes(poll.userVotes || []);
-      }
     }
   };
 

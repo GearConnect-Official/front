@@ -20,7 +20,7 @@ interface VoiceRecorderProps {
 // Waveform indicator component with realistic audio patterns
 const WaveformIndicator: React.FC<{ isPaused: boolean; duration: number }> = ({ isPaused, duration }) => {
   const [heights, setHeights] = useState<number[]>([]);
-  const animationRef = useRef<NodeJS.Timeout | null>(null);
+  const animationRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const baseHeightsRef = useRef<number[]>([]);
 
   useEffect(() => {
@@ -117,11 +117,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [duration, setDuration] = useState(0);
-  const [pausedDuration, setPausedDuration] = useState(0);
-  const [recordingStartTime, setRecordingStartTime] = useState(0);
   const [pausedStartTime, setPausedStartTime] = useState(0);
   
-  const durationInterval = useRef<NodeJS.Timeout | null>(null);
+  const durationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
   
   // Use refs to access current values in setInterval
@@ -154,8 +152,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       setIsRecording(true);
       setIsPaused(false);
       setDuration(0);
-      setPausedDuration(0);
-      setRecordingStartTime(startTime);
       
       // Update refs
       isPausedRef.current = false;
@@ -199,8 +195,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       const newPausedDuration = pausedDurationRef.current + pauseTime;
       
       setIsPaused(false);
-      setPausedDuration(newPausedDuration);
-      setRecordingStartTime(Date.now());
+      pausedDurationRef.current = newPausedDuration;
+      recordingStartTimeRef.current = Date.now();
       
       // Update refs
       isPausedRef.current = false;
@@ -234,7 +230,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       setIsRecording(false);
       setIsPaused(false);
       setDuration(0);
-      setPausedDuration(0);
+      pausedDurationRef.current = 0;
       
       // Reset refs
       isPausedRef.current = false;
@@ -311,6 +307,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         recording.stopAndUnloadAsync().catch(console.error);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const translateX = slideAnim.interpolate({

@@ -4,15 +4,12 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import theme from '../../styles/config/theme';
-import { PollData, PollOption } from './PollCreator';
-import PollVotersModal, { PollVoter } from './PollVotersModal';
+import { PollData } from './PollCreator';
+import PollVotersModal from './PollVotersModal';
 import styles from '../../styles/components/messaging/pollCardStyles';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 export interface PollVote {
   optionId: string;

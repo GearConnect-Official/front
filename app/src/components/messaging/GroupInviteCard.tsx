@@ -127,7 +127,7 @@ const GroupInviteCard: React.FC<GroupInviteCardProps> = ({ inviteData, isOwn, cu
         activeOpacity={0.7}
       >
         {joining ? (
-          <ActivityIndicator size="small" color={isOwn ? '#FFFFFF' : '#FFFFFF'} />
+          <ActivityIndicator size="small" color="#FFFFFF" />
         ) : (
           <Text style={[styles.joinButtonText, isOwn && styles.ownJoinButtonText]}>
             Join

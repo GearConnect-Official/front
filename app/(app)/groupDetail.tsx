@@ -222,10 +222,10 @@ export default function GroupDetailScreen() {
 
           {/* Members List */}
             <FlatList
-              data={group.members}
+              data={group?.members || []}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => {
-                const isOwner = item.user.id === group.owner?.id;
+                const isOwner = item.user.id === group?.owner?.id;
                 const canRemove = canManageMembers && !isOwner && item.user.id !== currentUserId;
                       
                       // Get user status

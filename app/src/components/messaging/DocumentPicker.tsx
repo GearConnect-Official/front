@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Modal,
-  ActivityIndicator,
   Alert,
   ScrollView,
 } from 'react-native';
@@ -35,7 +34,6 @@ const DocumentPickerModal: React.FC<DocumentPickerProps> = ({
   onDocumentSelected,
   onCancel,
 }) => {
-  const [uploading, setUploading] = useState(false);
 
   const handlePickDocument = async () => {
     try {

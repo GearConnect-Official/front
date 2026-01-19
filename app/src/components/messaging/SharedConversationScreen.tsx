@@ -87,7 +87,6 @@ export default function SharedConversationScreen({
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [userStatus, setUserStatus] = useState<UserStatusDisplayType>('Offline');
-  const [showCallMenu, setShowCallMenu] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [audioDurations, setAudioDurations] = useState<{ [key: number]: number }>({});
@@ -488,12 +487,6 @@ export default function SharedConversationScreen({
     if (!newMessage.trim() || !id || !currentUserId) return;
 
     const messageContent = newMessage.trim();
-    const idNum = parseInt(id);
-    
-    if (isNaN(idNum)) {
-      Alert.alert('Error', `Invalid ${type === 'dm' ? 'conversation' : 'group'} ID`);
-      return;
-    }
 
     setSending(true);
     try {
@@ -1071,7 +1064,7 @@ export default function SharedConversationScreen({
                     const singleUri = possibleUri.startsWith('http://') || possibleUri.startsWith('https://')
                       ? possibleUri
                       : item.content.trim();
-                    if (!singleUri || singleUri === 'null' || singleUri === '') {
+                    if (!singleUri || singleUri === 'null') {
                       return (
                         <View>
                           <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
@@ -1097,7 +1090,7 @@ export default function SharedConversationScreen({
                   } catch {
                     // Not JSON, treat as single URL (validate first)
                     const singleUri = item.content.trim();
-                    if (!singleUri || singleUri === 'null' || singleUri === '') {
+                    if (!singleUri || singleUri === 'null') {
                       return (
                         <View>
                           <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
@@ -1165,7 +1158,7 @@ export default function SharedConversationScreen({
                 
                 // If parsed but not an array, treat as single URL (validate first)
                 const singleUri = item.content.trim();
-                if (!singleUri || singleUri === 'null' || singleUri === '') {
+                if (!singleUri || singleUri === 'null') {
                   return (
                     <View>
                       <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
@@ -1186,7 +1179,7 @@ export default function SharedConversationScreen({
               } catch {
                 // Fallback: treat as single URL (validate first)
                 const singleUri = item.content.trim();
-                if (!singleUri || singleUri === 'null' || singleUri === '') {
+                if (!singleUri || singleUri === 'null') {
                   return (
                     <View>
                       <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>Media unavailable</Text>
@@ -1754,7 +1747,7 @@ export default function SharedConversationScreen({
                   setSending(true);
                   
                   // Upload audio to Cloudinary
-                  const { cloudinaryService } = await import('../../services/cloudinary.service');
+                  const { cloudinaryService } = await import('../../services/cloudinary.service.js');
                   const uploadResult = await cloudinaryService.uploadMedia(uri, {
                     folder: 'messages',
                     tags: ['message', 'audio'],
@@ -1802,7 +1795,10 @@ export default function SharedConversationScreen({
           
           try {
             setSending(true);
-            const idNum = parseInt(id);
+            if (!id) {
+              Alert.alert('Error', 'Conversation ID is missing');
+              return;
+            }
             
             // Group all media into a single message as JSON array (carousel)
             const mediaArray = media.map(m => ({
@@ -1843,7 +1839,10 @@ export default function SharedConversationScreen({
           
           try {
             setSending(true);
-            const idNum = parseInt(id);
+            if (!id) {
+              Alert.alert('Error', 'Conversation ID is missing');
+              return;
+            }
             
             // Group camera media into a single message as JSON array
             const mediaArray = media.map(m => ({
@@ -1957,7 +1956,10 @@ export default function SharedConversationScreen({
           
           try {
             setSending(true);
-            const idNum = parseInt(id);
+            if (!id) {
+              Alert.alert('Error', 'Conversation ID is missing');
+              return;
+            }
             
             // Send contact as JSON with special prefix to identify it
             const contactData = {
@@ -2014,7 +2016,7 @@ export default function SharedConversationScreen({
             }
 
             // Security validation
-            const { validateFileSafety } = await import('../../utils/fileSecurity');
+            const { validateFileSafety } = await import('../../utils/fileSecurity.js');
             const validation = validateFileSafety(document.name || 'document', document.mimeType);
             
             if (!validation.isValid) {
@@ -2027,7 +2029,8 @@ export default function SharedConversationScreen({
             }
 
             // Verify file exists and has content before uploading (same checks as download)
-            const FileSystem = await import('expo-file-system/legacy');
+            const FileSystemModule = await import('expo-file-system');
+            const FileSystem = FileSystemModule.default || FileSystemModule;
             const fileInfo = await FileSystem.getInfoAsync(document.uri);
             
             if (!fileInfo.exists) {
@@ -2054,10 +2057,13 @@ export default function SharedConversationScreen({
             });
 
             setSending(true);
-            const idNum = parseInt(id);
+            if (!id) {
+              Alert.alert('Error', 'Conversation ID is missing');
+              return;
+            }
             
             // Upload document to Cloudinary
-            const { cloudinaryService } = await import('../../services/cloudinary.service');
+            const { cloudinaryService } = await import('../../services/cloudinary.service.js');
             
             // Clean filename for Cloudinary public_id (remove special chars, keep extension)
             const originalName = document.name || 'document';
@@ -2110,7 +2116,10 @@ export default function SharedConversationScreen({
           
           try {
             setSending(true);
-            const idNum = parseInt(id);
+            if (!id) {
+              Alert.alert('Error', 'Conversation ID is missing');
+              return;
+            }
             
             // Send poll as JSON with special prefix to identify it
             const pollMessage = `POLL:${JSON.stringify(poll)}`;
@@ -2148,7 +2157,10 @@ export default function SharedConversationScreen({
           
           try {
             setSending(true);
-            const idNum = parseInt(id);
+            if (!id) {
+              Alert.alert('Error', 'Conversation ID is missing');
+              return;
+            }
             
             // If editing, we need to update the existing message
             if (editingMessage && editingMessage.content.startsWith('POLL:')) {
@@ -2213,7 +2225,10 @@ export default function SharedConversationScreen({
           
           try {
             setSending(true);
-            const idNum = parseInt(id);
+            if (!id) {
+              Alert.alert('Error', 'Conversation ID is missing');
+              return;
+            }
             
             // If editing, we need to update the existing message
             if (editingMessage && editingMessage.content.startsWith('APPOINTMENT:')) {

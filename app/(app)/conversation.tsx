@@ -5,7 +5,7 @@ import SharedConversationScreen from '../src/components/messaging/SharedConversa
 import chatService from '../src/services/chatService';
 import { UserStatus, UserStatusDisplay } from '../src/types/userStatus';
 import MuteModal, { MuteDuration } from '../src/components/messaging/MuteModal';
-import { TouchableOpacity, View, Text } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import theme from '../src/styles/config/theme';
 import { conversationScreenStyles as styles } from '../src/styles/screens';

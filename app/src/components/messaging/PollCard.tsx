@@ -152,7 +152,7 @@ const PollCard: React.FC<PollCardProps> = ({
             <FontAwesome
               name="cog"
               size={18}
-              color={isOwn ? '#FFFFFF' : theme.colors.text.secondary}
+              color="#FFFFFF"
             />
           </TouchableOpacity>
         )}

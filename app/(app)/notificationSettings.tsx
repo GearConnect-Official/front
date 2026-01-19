@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../src/context/AuthContext';
 import { useMessage } from '../src/context/MessageContext';
 import { MessageType } from '../src/types/messages';
 import styles, { colors } from '../src/styles/screens/user/settingsStyles';
@@ -63,7 +62,6 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
 
 export default function NotificationSettingsScreen() {
   const router = useRouter();
-  const { user } = useAuth();
   const { showMessage } = useMessage();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -127,7 +125,7 @@ export default function NotificationSettingsScreen() {
           <View style={styles.placeholderRight} />
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.activityIndicator} />
         </View>
       </SafeAreaView>
     );
@@ -151,9 +149,9 @@ export default function NotificationSettingsScreen() {
           disabled={isSaving}
         >
           {isSaving ? (
-            <ActivityIndicator size="small" color={colors.primary} />
+            <ActivityIndicator size="small" color={colors.activityIndicator} />
           ) : (
-            <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '600' }}>Save</Text>
+            <Text style={{ color: colors.iconPrimary, fontSize: 16, fontWeight: '600' }}>Save</Text>
           )}
         </TouchableOpacity>
       </View>

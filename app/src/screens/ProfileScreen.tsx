@@ -637,10 +637,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     router.push("/performances");
   };
 
-  const handleFriendsPress = () => {
-    router.push("/friends");
-  };
-
   const handleSendMessage = async () => {
     if (!effectiveUserId || !user?.id) {
       Alert.alert('Error', 'Unable to send message');

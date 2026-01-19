@@ -57,10 +57,6 @@ const EventDetailScreen: React.FC = () => {
     profilePicture?: string;
     profilePicturePublicId?: string;
   }[]>([]);
-  const currentUserId = useMemo(
-  () => (user?.id != null ? String(user.id) : null),
-  [user?.id]
-);
 
   function formatDate(data: string | number | Date) {
     if (!data) return "Date not available";

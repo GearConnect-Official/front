@@ -125,7 +125,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [createdEvents, setCreatedEvents] = useState<any[]>([]);
   const [isLoadingCreatedEvents, setIsLoadingCreatedEvents] = useState(false);
   const [missingInfoCount, setMissingInfoCount] = useState(0);
-  const [nextEventTag, setNextEventTag] = useState<{ text: string; color: string; isOrganizer?: boolean; eventId?: number } | null>(null);
+  const [nextEventTag, setNextEventTag] = useState<{ text: string; color: string; isOrganizer?: boolean; eventId?: number; eventName?: string } | null>(null);
 
   // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
@@ -216,6 +216,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         setNextEventTag({
           ...response.data.tag,
           eventId: response.data.event.id,
+          eventName: response.data.event.name,
         });
       }
     } catch (error) {
@@ -1390,7 +1391,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                             fontWeight: '600',
                           }}
                         >
-                          {nextEventTag.isOrganizer ? `Organizer of ${nextEventTag.text}` : nextEventTag.text}
+                          {nextEventTag.isOrganizer ? `Organizer of ${nextEventTag.eventName || nextEventTag.text}` : (nextEventTag.eventName || nextEventTag.text)}
                         </Text>
                       </View>
                     </TouchableOpacity>

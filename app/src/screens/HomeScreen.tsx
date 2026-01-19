@@ -28,13 +28,11 @@ import PostItem, { Comment as PostItemComment, PostTag } from "../components/Fee
 import { Post as APIPost } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import * as postService from '../services/postService';
-import commentService from '../services/commentService';
 import favoritesService from '../services/favoritesService';
 import { useAuth } from '../context/AuthContext';
 import useVisibilityTracker from '../hooks/useVisibilityTracker';
 // Hooks complexes temporairement désactivés - version simple pour debug
 import { detectMediaType } from '../utils/mediaUtils';
-import { ApiError, ErrorType } from '../services/axiosConfig';
 import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
 import { defaultImages } from "../config/defaultImages";
 import userService from "../services/userService";
@@ -648,28 +646,6 @@ const HomeScreen: React.FC = () => {
       const postLink = `https://gearconnect.app/post/${postId}`;
       await Clipboard.setStringAsync(postLink);
       showMessage(MessageService.SUCCESS.CONTENT_COPIED);
-    }
-  };
-
-  const shareTextContent = async (content: string) => {
-    // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
-    try {
-      // Créer un fichier temporaire avec le contenu
-      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
-      await FileSystem.writeAsStringAsync(tempFile, content);
-      
-      await Sharing.shareAsync(tempFile, {
-        mimeType: 'text/plain',
-        dialogTitle: 'Partager ce post',
-      });
-      
-      // Nettoyer le fichier temporaire
-      await FileSystem.deleteAsync(tempFile, { idempotent: true });
-    } catch (error) {
-      console.log('⚠️ Text file sharing failed:', error);
-      showMessage(MessageService.SUCCESS.CONTENT_COPIED);
-      // Fallback: copier dans le presse-papiers
-      Clipboard.setStringAsync(content);
     }
   };
 

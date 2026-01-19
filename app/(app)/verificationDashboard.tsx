@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Alert,
   StatusBar,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';

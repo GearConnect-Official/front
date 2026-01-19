@@ -96,7 +96,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ document, isOwn }) => {
   };
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes || bytes === 0) return 'Size unknown';
+    if (!bytes) return 'Size unknown';
     
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;

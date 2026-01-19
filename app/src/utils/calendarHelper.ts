@@ -1,5 +1,5 @@
 import * as Calendar from 'expo-calendar';
-import { Platform, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import { AppointmentData } from '../components/messaging/AppointmentCard';
 
 const checkExistingEvent = async (

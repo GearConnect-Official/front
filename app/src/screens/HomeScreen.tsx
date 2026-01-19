@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
@@ -39,6 +39,8 @@ import { defaultImages } from "../config/defaultImages";
 import userService from "../services/userService";
 import { useMessage } from '../context/MessageContext';
 import { trackPost, trackScreenView } from '../utils/mixpanelTracking';
+import chatService from '../services/chatService';
+import { getMessagingNotificationCount, NotificationCounts } from '../services/notificationService';
 
 // Types
 interface Story {
@@ -55,6 +57,7 @@ interface UIPost {
   username: string;
   avatar: string;
   profilePicturePublicId?: string; // Nouveau : pour CloudinaryAvatar
+  isVerify?: boolean; // Verification status
   images: string[];
   imagePublicIds?: string[];  // Public IDs Cloudinary pour l'optimisation
   mediaTypes?: ('image' | 'video')[];  // Types de médias pour chaque élément
@@ -114,6 +117,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
     username: apiPost.user?.username || `user_${apiPost.userId}`,
     avatar: userAvatar,
     profilePicturePublicId: (apiPost.user as any)?.profilePicturePublicId,
+    isVerify: (apiPost.user as any)?.isVerify || false,
     images,
     imagePublicIds,
     mediaTypes,
@@ -151,6 +155,34 @@ const HomeScreen: React.FC = () => {
     trackScreenView('Home');
   }, []);
 
+  // Load notification counts (messages, requests, commercial)
+  const loadNotificationCounts = useCallback(async () => {
+    if (!user?.id) {
+      console.log('🔔 No user ID, skipping notification counts');
+      return;
+    }
+    
+    try {
+      const userId = parseInt(user.id.toString());
+      const counts = await getMessagingNotificationCount(userId);
+      setNotificationCounts(counts);
+    } catch (error) {
+      console.error('🔔 Error loading notification counts:', error);
+      setNotificationCounts({ unreadMessages: 0, pendingRequests: 0, commercialMessages: 0, total: 0 });
+    }
+  }, [user?.id]);
+
+  // Load notification counts on mount and when screen is focused
+  useEffect(() => {
+    loadNotificationCounts();
+  }, [loadNotificationCounts]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadNotificationCounts();
+    }, [loadNotificationCounts])
+  );
+
   // Version simple et robuste - pas de cache complexe pour l'instant
   const [posts, setPosts] = useState<UIPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,6 +191,12 @@ const HomeScreen: React.FC = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [notificationCounts, setNotificationCounts] = useState<NotificationCounts>({
+    unreadMessages: 0,
+    pendingRequests: 0,
+    commercialMessages: 0,
+    total: 0,
+  });
   
   // Debounce pour éviter les appels multiples
   const lastFetchTime = useRef<number>(0);
@@ -779,8 +817,13 @@ const HomeScreen: React.FC = () => {
               onPress={handleNavigateToMessages}
             >
               <FontAwesome name="comments" size={22} color={theme.colors.text.secondary} />
-              {/* Badge pour futures notifications */}
-              {/* <View style={styles.notificationBadge} /> */}
+              {notificationCounts.total > 0 ? (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {notificationCounts.total > 99 ? '99+' : notificationCounts.total.toString()}
+                  </Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}

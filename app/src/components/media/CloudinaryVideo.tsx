@@ -115,28 +115,10 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
       hasFallback: !!fallbackUrl
     });
 
-    // Si on a un publicId, utiliser le service Cloudinary
-    if (publicId && publicId.trim() !== '') {
-      try {
-        const optimizedUrl = cloudinaryService.generateOptimizedUrl(publicId, {
-          width,
-          height,
-          quality: quality as 'auto' | number,
-          format: (format || 'mp4') as 'auto' | 'webp' | 'jpg' | 'png' | 'mp4' | 'webm',
-          crop: crop as 'fill' | 'fit' | 'limit' | 'scale' | 'crop',
-          resource_type: 'video'
-        });
-        console.log('📹 Generated optimized URL:', optimizedUrl);
-        return optimizedUrl;
-      } catch (error) {
-        console.error('📹 Error generating optimized URL:', error);
-        // Ne pas retourner null tout de suite, essayer le fallback
-      }
-    }
-    
-    // Si on a une URL de fallback, l'utiliser directement d'abord
-    if (fallbackUrl) {
-      console.log('📹 Using fallback URL directly:', fallbackUrl);
+    // Prioriser fallbackUrl (secureUrl) si disponible - c'est l'URL directe Cloudinary sans transformations
+    // Les transformations peuvent causer des erreurs de lecture vidéo
+    if (fallbackUrl && fallbackUrl.trim() !== '') {
+      console.log('📹 Using fallback URL directly (secureUrl):', fallbackUrl);
       
       // Pour Cloudinary, assurer que l'URL est correcte pour les vidéos
       if (fallbackUrl.includes('cloudinary.com')) {
@@ -146,20 +128,31 @@ const CloudinaryVideo: React.FC<CloudinaryVideoProps> = ({
           console.log('📹 Corrected URL from image to video:', correctedUrl);
           return correctedUrl;
         }
-        
-        // Assurer que l'URL a le bon format vidéo
-        if (!fallbackUrl.includes('f_mp4') && !fallbackUrl.includes('.mp4')) {
-          // Ajouter le format mp4 si absent
-          const urlWithFormat = fallbackUrl.includes('?') 
-            ? `${fallbackUrl}&f_mp4`
-            : `${fallbackUrl}/f_mp4`;
-          console.log('📹 Added MP4 format to URL:', urlWithFormat);
-          return urlWithFormat;
-        }
       }
       
-      // Utiliser l'URL de fallback directement
+      // Utiliser l'URL de fallback directement (pas de transformations)
       return fallbackUrl;
+    }
+
+    // Si pas de fallbackUrl, utiliser publicId avec génération d'URL
+    // Mais seulement si on n'a pas de fallbackUrl valide
+    if (publicId && publicId.trim() !== '') {
+      try {
+        // Pour les vidéos, utiliser l'URL de base sans transformations complexes
+        // Les transformations peuvent causer des erreurs -1008
+        const baseUrl = cloudinaryService.generateOptimizedUrl(publicId, {
+          width: undefined, // Pas de resize pour éviter les erreurs
+          height: undefined,
+          quality: 'auto',
+          format: 'mp4',
+          crop: undefined,
+          resource_type: 'video'
+        });
+        console.log('📹 Generated base URL from publicId:', baseUrl);
+        return baseUrl;
+      } catch (error) {
+        console.error('📹 Error generating URL from publicId:', error);
+      }
     }
     
     console.warn('📹 No valid URL source available');

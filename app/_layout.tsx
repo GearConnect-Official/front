@@ -20,6 +20,7 @@ import useNetworkStatus from './src/hooks/useNetworkStatus';
 import LoadingScreen from './src/screens/LoadingScreen';
 import Constants from 'expo-constants';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Connectivity Manager Component - Now only handles initialization, individual screens handle their own network errors
 const ConnectivityManager: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -109,30 +110,32 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaProvider>
-        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-          <ThemeProvider>
-            <AxiosConfigProvider>
-              <AuthProvider>
-                <MixpanelProvider>
-                  {/* NOUVEAU: MessageProvider remplace FeedbackManager */}
-                  <MessageProvider>
-                    <MessageDisplay>
-                      <ConnectivityManager>
-                        <Stack screenOptions={{ headerShown: false }}>
-                          <Stack.Screen name="index" />
-                          <Stack.Screen name="(auth)" />
-                          <Stack.Screen name="(app)" />
-                        </Stack>
-                      </ConnectivityManager>
-                    </MessageDisplay>
-                  </MessageProvider>
-                </MixpanelProvider>
-              </AuthProvider>
-            </AxiosConfigProvider>
-          </ThemeProvider>
-        </ClerkProvider>
-      </SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+            <ThemeProvider>
+              <AxiosConfigProvider>
+                <AuthProvider>
+                  <MixpanelProvider>
+                    {/* NOUVEAU: MessageProvider remplace FeedbackManager */}
+                    <MessageProvider>
+                      <MessageDisplay>
+                        <ConnectivityManager>
+                          <Stack screenOptions={{ headerShown: false }}>
+                            <Stack.Screen name="index" />
+                            <Stack.Screen name="(auth)" />
+                            <Stack.Screen name="(app)" />
+                          </Stack>
+                        </ConnectivityManager>
+                      </MessageDisplay>
+                    </MessageProvider>
+                  </MixpanelProvider>
+                </AuthProvider>
+              </AxiosConfigProvider>
+            </ThemeProvider>
+          </ClerkProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </ErrorBoundary>
   );
 }

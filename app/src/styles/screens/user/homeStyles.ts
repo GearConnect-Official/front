@@ -25,18 +25,36 @@ const styles = StyleSheet.create({
   headerIconBtn: {
     padding: theme.spacing.xs,
     marginLeft: theme.spacing.xs,
+    position: 'relative',
   },
   notificationButton: {
     position: 'relative',
   },
   notificationBadge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.primary.main,
+    top: -2,
+    right: -2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#E10600',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    borderWidth: 2,
+    borderColor: theme.colors.background.paper,
+    zIndex: 1000,
+    elevation: 10, // For Android shadow
+    shadowColor: '#000', // For iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  notificationBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+    lineHeight: 12,
   },
   profileImage: {
     width: 32,

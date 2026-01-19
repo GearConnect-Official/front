@@ -72,7 +72,7 @@ export default {
       mixpanelToken: process.env.MIXPANEL_TOKEN,
       mixpanelServerURL: process.env.MIXPANEL_SERVER_URL || 'https://api-eu.mixpanel.com',
       eas: {
-        projectId: "76d9f701-5132-4e95-955c-76578f90d7a6"
+        projectId: "ca893aec-0abe-4342-8ed4-2deb3ba8ff2a"
       }
     },
     scheme: "gearconnect",

@@ -15,9 +15,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import { homeStyles as styles } from "../styles/screens";
 import theme from "../styles/config/theme";
@@ -27,18 +26,17 @@ import PostItem, { Comment as PostItemComment, PostTag } from "../components/Fee
 import { Post as APIPost } from "../services/postService";
 import { formatPostDate, isPostFromToday } from "../utils/dateUtils";
 import * as postService from '../services/postService';
-import commentService from '../services/commentService';
 import favoritesService from '../services/favoritesService';
 import { useAuth } from '../context/AuthContext';
 import useVisibilityTracker from '../hooks/useVisibilityTracker';
 // Hooks complexes temporairement désactivés - version simple pour debug
 import { detectMediaType } from '../utils/mediaUtils';
-import { ApiError, ErrorType } from '../services/axiosConfig';
 import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
 import { defaultImages } from "../config/defaultImages";
 import userService from "../services/userService";
 import { useMessage } from '../context/MessageContext';
 import { trackPost, trackScreenView } from '../utils/mixpanelTracking';
+import { getMessagingNotificationCount, NotificationCounts } from '../services/notificationService';
 
 // Types
 interface Story {
@@ -55,6 +53,7 @@ interface UIPost {
   username: string;
   avatar: string;
   profilePicturePublicId?: string; // Nouveau : pour CloudinaryAvatar
+  isVerify?: boolean; // Verification status
   images: string[];
   imagePublicIds?: string[];  // Public IDs Cloudinary pour l'optimisation
   mediaTypes?: ('image' | 'video')[];  // Types de médias pour chaque élément
@@ -114,6 +113,7 @@ const convertApiPostToUiPost = (apiPost: APIPost, currentUserId: number): UIPost
     username: apiPost.user?.username || `user_${apiPost.userId}`,
     avatar: userAvatar,
     profilePicturePublicId: (apiPost.user as any)?.profilePicturePublicId,
+    isVerify: (apiPost.user as any)?.isVerify || false,
     images,
     imagePublicIds,
     mediaTypes,
@@ -151,6 +151,34 @@ const HomeScreen: React.FC = () => {
     trackScreenView('Home');
   }, []);
 
+  // Load notification counts (messages, requests, commercial)
+  const loadNotificationCounts = useCallback(async () => {
+    if (!user?.id) {
+      console.log('🔔 No user ID, skipping notification counts');
+      return;
+    }
+    
+    try {
+      const userId = parseInt(user.id.toString());
+      const counts = await getMessagingNotificationCount(userId);
+      setNotificationCounts(counts);
+    } catch (error) {
+      console.error('🔔 Error loading notification counts:', error);
+      setNotificationCounts({ unreadMessages: 0, pendingRequests: 0, commercialMessages: 0, total: 0 });
+    }
+  }, [user?.id]);
+
+  // Load notification counts on mount and when screen is focused
+  useEffect(() => {
+    loadNotificationCounts();
+  }, [loadNotificationCounts]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadNotificationCounts();
+    }, [loadNotificationCounts])
+  );
+
   // Version simple et robuste - pas de cache complexe pour l'instant
   const [posts, setPosts] = useState<UIPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,6 +187,12 @@ const HomeScreen: React.FC = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [notificationCounts, setNotificationCounts] = useState<NotificationCounts>({
+    unreadMessages: 0,
+    pendingRequests: 0,
+    commercialMessages: 0,
+    total: 0,
+  });
   
   // Debounce pour éviter les appels multiples
   const lastFetchTime = useRef<number>(0);
@@ -324,67 +358,6 @@ const HomeScreen: React.FC = () => {
   // Vérifier si on a une erreur réseau
   const isNetworkError = loadingError?.includes('Connection') || loadingError?.includes('Network');
 
-  // Simulation du chargement des données des stories (à remplacer par un appel API réel plus tard)
-  const loadStories = useCallback(() => {
-    // Utiliser la vraie photo de profil pour l'utilisateur connecté
-    const currentUserAvatar = currentUserData?.profilePicturePublicId ? 
-      '' : // CloudinaryAvatar le gérera dans le composant story
-      (currentUserData?.profilePicture || (user as any)?.profilePicture || "https://via.placeholder.com/40");
-
-    // Stories mock data avec des images réalistes
-    const mockStories: Story[] = [
-      {
-        id: "1",
-        username: user?.username || currentUserData?.username || CURRENT_USERNAME,
-        avatar: currentUserAvatar,
-        viewed: false,
-        content:
-          "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: "2",
-        username: "John",
-        avatar: "https://randomuser.me/api/portraits/men/41.jpg",
-        viewed: false,
-        content:
-          "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: "3",
-        username: "Marie",
-        avatar: "https://randomuser.me/api/portraits/women/64.jpg",
-        viewed: false,
-        content:
-          "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: "4",
-        username: "Alex",
-        avatar: "https://randomuser.me/api/portraits/men/61.jpg",
-        viewed: true,
-        content:
-          "https://images.unsplash.com/photo-1546336502-94aa5d6c8bd3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: "5",
-        username: "Emma",
-        avatar: "https://randomuser.me/api/portraits/women/33.jpg",
-        viewed: true,
-        content:
-          "https://images.unsplash.com/photo-1513151233558-d860c5398176?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: "6",
-        username: "Tom",
-        avatar: "https://randomuser.me/api/portraits/men/91.jpg",
-        viewed: true,
-        content:
-          "https://images.unsplash.com/photo-1519834022364-8dec37f38d05?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      },
-    ];
-
-    setStories(mockStories);
-  }, [currentUserData, user]);
 
   // Charger les données une seule fois au montage
   useEffect(() => {
@@ -422,6 +395,7 @@ const HomeScreen: React.FC = () => {
     if (user?.id) {
       loadCurrentUserData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Une seule fois au montage
 
   // Recharger les posts seulement quand l'utilisateur change
@@ -431,7 +405,7 @@ const HomeScreen: React.FC = () => {
       loadPosts(1, false);
       loadCurrentUserData();
     }
-  }, [user?.id]);
+  }, [user?.id, loadPosts, loadCurrentUserData]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -660,24 +634,14 @@ const HomeScreen: React.FC = () => {
   };
 
   const shareTextContent = async (content: string) => {
-    // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
+    // Pour le texte, utiliser directement le presse-papiers ou l'API Web Share
     try {
-      // Créer un fichier temporaire avec le contenu
-      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
-      await FileSystem.writeAsStringAsync(tempFile, content);
-      
-      await Sharing.shareAsync(tempFile, {
-        mimeType: 'text/plain',
-        dialogTitle: 'Partager ce post',
-      });
-      
-      // Nettoyer le fichier temporaire
-      await FileSystem.deleteAsync(tempFile, { idempotent: true });
-    } catch (error) {
-      console.log('⚠️ Text file sharing failed:', error);
+      // Essayer d'abord de copier dans le presse-papiers
+      await Clipboard.setStringAsync(content);
       showInfo('Content copied to clipboard');
-      // Fallback: copier dans le presse-papiers
-      Clipboard.setStringAsync(content);
+    } catch (error) {
+      console.log('⚠️ Clipboard sharing failed:', error);
+      showError('Unable to share content');
     }
   };
 
@@ -689,21 +653,6 @@ const HomeScreen: React.FC = () => {
     
     // Track comment
     trackPost.commented(postId, text.length);
-
-    // Utiliser la vraie photo de profil de l'utilisateur connecté
-    const userAvatar = currentUserData?.profilePicturePublicId ? 
-      '' : // CloudinaryAvatar le gérera
-      (currentUserData?.profilePicture || (user as any)?.profilePicture || "https://via.placeholder.com/40");
-
-    const newComment: PostItemComment = {
-      id: Date.now().toString(),
-      username: user.username || currentUserData?.username || CURRENT_USERNAME,
-      avatar: userAvatar,
-      profilePicturePublicId: currentUserData?.profilePicturePublicId, // Ajouter le champ Cloudinary
-      text,
-      timeAgo: "Now",
-      likes: 0,
-    };
 
     try {
       // Utiliser la nouvelle méthode addComment
@@ -779,8 +728,13 @@ const HomeScreen: React.FC = () => {
               onPress={handleNavigateToMessages}
             >
               <FontAwesome name="comments" size={22} color={theme.colors.text.secondary} />
-              {/* Badge pour futures notifications */}
-              {/* <View style={styles.notificationBadge} /> */}
+              {notificationCounts.total > 0 ? (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {notificationCounts.total > 99 ? '99+' : notificationCounts.total.toString()}
+                  </Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}

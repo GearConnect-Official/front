@@ -135,7 +135,7 @@ const HomeScreen: React.FC = () => {
   const router = useRouter();
   const authContext = useAuth();
   const user = authContext?.user;
-  const { showError, showInfo, showMessage } = useMessage();
+  const { showError, showMessage } = useMessage();
   const [stories, setStories] = useState<Story[]>([]);
   const [isStoryModalVisible, setIsStoryModalVisible] = useState(false);
   const [currentStoryId, setCurrentStoryId] = useState("");

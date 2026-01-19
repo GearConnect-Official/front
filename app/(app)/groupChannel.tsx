@@ -245,8 +245,8 @@ const GroupChannelScreen: React.FC = () => {
               </View>
             )}
 
-            {/* Avatar for own messages (left side) */}
-            {isOwn && (
+            {/* Avatar for other messages (left side) */}
+            {!isOwn && (
               <TouchableOpacity
                 style={styles.messageAvatar}
                 onPress={() => {
@@ -339,8 +339,8 @@ const GroupChannelScreen: React.FC = () => {
                 )}
               </View>
 
-            {/* Avatar for other messages (right side) */}
-            {!isOwn && (
+            {/* Avatar for own messages (right side) */}
+            {isOwn && (
               <TouchableOpacity
                 style={styles.messageAvatar}
                 onPress={() => {

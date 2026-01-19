@@ -828,7 +828,7 @@ export default function SharedConversationScreen({
       item.content.includes('was deleted')
     );
     
-    // Show avatar logic: for own messages (left side) and other messages (right side)
+    // Show avatar logic: for own messages (right side) and other messages (left side)
     const showAvatar = isOwn 
       ? (index === 0 || 
          previousMessage?.sender?.id !== item.sender?.id ||
@@ -861,12 +861,12 @@ export default function SharedConversationScreen({
         isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
         isNewGroup && styles.newMessageGroup
       ]}>
-        {/* Avatar for own messages (left side) */}
-        {isOwn && (
+        {/* Avatar for other users' messages (left side) */}
+        {!isOwn && (
           <>
             {showAvatar ? (
               <TouchableOpacity 
-                style={styles.ownAvatarContainer}
+                style={styles.otherAvatarContainer}
                 onPress={() => {
                   if (item.sender?.id) {
                     router.push({
@@ -887,7 +887,7 @@ export default function SharedConversationScreen({
               </TouchableOpacity>
             ) : (
               <TouchableOpacity 
-                style={styles.ownAvatarSpacer}
+                style={styles.otherAvatarSpacer}
                 onPress={() => {
                   if (item.sender?.id) {
                     router.push({
@@ -1460,12 +1460,12 @@ export default function SharedConversationScreen({
           </Animated.View>
         </View>
 
-        {/* Avatar for other users' messages (right side) */}
-        {!isOwn && (
+        {/* Avatar for own messages (right side) */}
+        {isOwn && (
           <>
             {showAvatar ? (
               <TouchableOpacity 
-                style={styles.otherAvatarContainer}
+                style={styles.ownAvatarContainer}
                 onPress={() => {
                   if (item.sender?.id) {
                     router.push({
@@ -1486,7 +1486,7 @@ export default function SharedConversationScreen({
               </TouchableOpacity>
             ) : (
               <TouchableOpacity 
-                style={styles.otherAvatarSpacer}
+                style={styles.ownAvatarSpacer}
                 onPress={() => {
                   if (item.sender?.id) {
                     router.push({

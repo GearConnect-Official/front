@@ -495,43 +495,43 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   ownMessageContainer: {
-    justifyContent: 'flex-start', // Own messages on the left
+    justifyContent: 'flex-end', // Own messages on the right
     flexDirection: 'row',
   },
   otherMessageContainer: {
-    justifyContent: 'flex-end', // Other messages on the right
+    justifyContent: 'flex-start', // Other messages on the left
     flexDirection: 'row',
   },
   newMessageGroup: {
     marginTop: 8,
   },
-  // Avatar containers for own messages (left side)
+  // Avatar containers for own messages (right side)
   ownAvatarContainer: {
     width: 32,
     height: 32,
-    marginRight: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
     marginBottom: 2,
     alignSelf: 'flex-end',
   },
   ownAvatarSpacer: {
     width: 32,
     height: 32,
-    marginRight: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
     marginBottom: 2,
     alignSelf: 'flex-end',
   },
-  // Avatar containers for other messages (right side)
+  // Avatar containers for other messages (left side)
   otherAvatarContainer: {
     width: 32,
     height: 32,
-    marginLeft: theme.spacing.xs,
+    marginRight: theme.spacing.xs,
     marginBottom: 2,
     alignSelf: 'flex-end',
   },
   otherAvatarSpacer: {
     width: 32,
     height: 32,
-    marginLeft: theme.spacing.xs,
+    marginRight: theme.spacing.xs,
     marginBottom: 2,
     alignSelf: 'flex-end',
   },
@@ -583,22 +583,22 @@ const styles = StyleSheet.create({
   otherMessageBubble: {
     backgroundColor: theme.colors.background.paper,
     // Bubble shape: rounded corners with tail pointing to avatar
-    // For messages on the right, tail points to right avatar (bottom-right corner)
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 4, // Tail effect - less rounded corner pointing to right avatar
-    alignSelf: 'flex-end', // Other messages on the right
-  },
-  ownMessageBubble: {
-    backgroundColor: '#E10600', // Rouge racing de l'app
-    // Bubble shape: rounded corners with tail pointing to avatar
     // For messages on the left, tail points to left avatar (bottom-left corner)
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     borderBottomLeftRadius: 4, // Tail effect - less rounded corner pointing to left avatar
     borderBottomRightRadius: 18,
-    alignSelf: 'flex-start', // Own messages on the left
+    alignSelf: 'flex-start', // Other messages on the left
+  },
+  ownMessageBubble: {
+    backgroundColor: '#E10600', // Rouge racing de l'app
+    // Bubble shape: rounded corners with tail pointing to avatar
+    // For messages on the right, tail points to right avatar (bottom-right corner)
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 4, // Tail effect - less rounded corner pointing to right avatar
+    alignSelf: 'flex-end', // Own messages on the right
   },
   messageWithoutAvatar: {
     marginLeft: 0,

@@ -1561,15 +1561,15 @@ export default function SharedConversationScreen({
         <View style={styles.headerActions}>
           {renderHeaderActions ? renderHeaderActions() : (
             <>
-              {/* Video call button with dropdown */}
-              <TouchableOpacity 
+              {/* Video call button with dropdown - TODO: Implement call functionality with Stream.io */}
+              {/* <TouchableOpacity 
                 style={styles.headerActionButton}
                 onPress={() => setShowCallMenu(!showCallMenu)}
                 activeOpacity={0.7}
               >
                 <FontAwesome name="video-camera" size={20} color={theme.colors.text.secondary} />
                 <FontAwesome name="chevron-down" size={12} color={theme.colors.text.secondary} style={{ marginLeft: 4 }} />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </>
           )}
         </View>
@@ -2488,8 +2488,8 @@ export default function SharedConversationScreen({
         </Modal>
       )}
 
-      {/* Call Menu Contextual */}
-      {showCallMenu && (
+      {/* Call Menu Contextual - TODO: Implement call functionality with Stream.io */}
+      {/* {showCallMenu && (
         <>
           <TouchableOpacity
             style={styles.callMenuOverlay}
@@ -2563,7 +2563,7 @@ export default function SharedConversationScreen({
             </TouchableOpacity>
           </View>
         </>
-      )}
+      )} */}
 
       {/* Mute Modal (only for DM) */}
       {type === 'dm' && (

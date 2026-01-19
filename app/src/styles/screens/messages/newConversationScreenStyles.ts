@@ -222,8 +222,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.paper,
     borderRadius: 12,
     padding: theme.spacing.lg,
-    width: "100%",
+    width: '100%',
     maxWidth: 400,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
   },
   modalTitle: {
     fontSize: 20,

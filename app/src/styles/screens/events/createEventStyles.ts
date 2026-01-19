@@ -23,7 +23,7 @@ export default StyleSheet.create({
 
   scrollViewContent: {
     padding: theme.spacing.md,
-    paddingBottom: theme.spacing.lg * 2,
+    paddingBottom: theme.spacing.md,
     flexGrow: 1,
   },
 
@@ -124,7 +124,7 @@ export default StyleSheet.create({
   stepContainer: {
     backgroundColor: "#fff",
     marginHorizontal: 0,
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.xs,
     padding: 18,
     borderRadius: 14,
     shadowColor: "#000",
@@ -200,7 +200,7 @@ export default StyleSheet.create({
 
   // Preview card
   previewSection: {
-    marginTop: 18,
+    marginTop: 8,
   },
   previewCard: {
     backgroundColor: "#fff",
@@ -262,7 +262,7 @@ export default StyleSheet.create({
     gap: 12,
     borderTopWidth: 0,
     backgroundColor: "transparent",
-    marginTop: 12,
+    marginBottom: 30,
   },
   // pour occuper la place du bouton Back à la première étape
   navSpacer: {
@@ -305,7 +305,6 @@ export default StyleSheet.create({
 
   // Action buttons (submit/cancel)
   actionButtonsContainer: {
-    marginTop: theme.spacing.xl,
     marginBottom: theme.spacing.md,
     flexDirection: "row",
     gap: 8,

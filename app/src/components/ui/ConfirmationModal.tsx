@@ -353,6 +353,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 25,
     elevation: 25,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   iconSection: {
     alignItems: 'center',

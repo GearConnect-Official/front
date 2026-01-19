@@ -63,6 +63,7 @@ const PostHeader: React.FC<PostHeaderProps> = ({
         postId={postId}
         username={username}
         currentUsername={currentUsername}
+        userId={userId}
       />
     </View>
   );

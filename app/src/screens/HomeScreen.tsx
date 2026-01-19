@@ -12,6 +12,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   FlatListProps,
+  Share,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
@@ -38,6 +39,7 @@ import { CloudinaryAvatar } from "../components/media/CloudinaryImage";
 import { defaultImages } from "../config/defaultImages";
 import userService from "../services/userService";
 import { useMessage } from '../context/MessageContext';
+import { MessageService } from '../services/messageService';
 import { trackPost, trackScreenView } from '../utils/mixpanelTracking';
 
 // Types
@@ -135,7 +137,7 @@ const HomeScreen: React.FC = () => {
   const router = useRouter();
   const authContext = useAuth();
   const user = authContext?.user;
-  const { showError, showInfo } = useMessage();
+  const { showError, showInfo, showMessage } = useMessage();
   const [stories, setStories] = useState<Story[]>([]);
   const [isStoryModalVisible, setIsStoryModalVisible] = useState(false);
   const [currentStoryId, setCurrentStoryId] = useState("");
@@ -614,48 +616,38 @@ const HomeScreen: React.FC = () => {
     if (!post) return;
     
     try {
-      console.log('📤 Sharing post:', postId);
+      console.log('Sharing post:', postId);
       trackPost.shared(postId, 'native');
       
-      // TODO: PRODUCTION - Quand l'app sera déployée en production, modifier cette fonction pour :
-      // 1. Partager un lien direct vers le post dans l'app (ex: https://gearconnect.app/post/123)
-      // 2. Inclure une preview du post avec titre/description/image miniature
-      // 3. Ne plus partager directement l'URL Cloudinary mais plutôt rediriger vers le post complet
-      // 4. Permettre aux utilisateurs externes de voir le post même sans avoir l'app installée
-      // 5. Ajouter des métadonnées Open Graph pour un meilleur affichage sur les réseaux sociaux
+      // Créer le lien du post (à adapter en production)
+      const postLink = `https://gearconnect.app/post/${postId}`;
       
-      // Vérifier si le partage est disponible sur l'appareil
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (!isAvailable) {
-        showError('Sharing is not available on this device');
-        return;
-      }
+      // Créer le message de partage
+      const shareMessage = post.title 
+        ? `${post.title}\n\n${post.description || ''}\n\n${postLink}`
+        : `${post.description || 'Découvre ce post sur GearConnect!'}\n\n${postLink}`;
 
-      // Créer le contenu à partager
-      const shareContent = `${post.title}\n\n${post.description}\n\nVu sur GearConnect`;
-      
-      // Si le post a une image, on peut essayer de la partager aussi
-      if (post.images.length > 0) {
-        try {
-          // Partager avec l'image (si possible)
-          await Sharing.shareAsync(post.images[0], {
-            mimeType: 'image/jpeg',
-            dialogTitle: 'Partager ce post',
-            UTI: 'public.jpeg'
-          });
-        } catch (imageError) {
-          console.log('⚠️ Image sharing failed, falling back to text:', imageError);
-          // Fallback vers le partage de texte
-          await shareTextContent(shareContent);
+      // Utiliser l'API Share native de React Native
+      const result = await Share.share({
+        message: shareMessage,
+        title: post.title || 'Partager ce post',
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log('✅ Post shared successfully');
+        if (result.activityType) {
+          console.log('📱 Shared via:', result.activityType);
         }
-      } else {
-        // Partager seulement le texte
-        await shareTextContent(shareContent);
+      } else if (result.action === Share.dismissedAction) {
+        console.log('❌ Share dismissed');
       }
       
-    } catch {
-      // console.error('❌ Error sharing post:', error);
-      showError('Impossible de partager ce post');
+    } catch (error) {
+      console.error('❌ Error sharing post:', error);
+      // Fallback: copier dans le presse-papiers
+      const postLink = `https://gearconnect.app/post/${postId}`;
+      await Clipboard.setStringAsync(postLink);
+      showMessage(MessageService.SUCCESS.CONTENT_COPIED);
     }
   };
 
@@ -675,7 +667,7 @@ const HomeScreen: React.FC = () => {
       await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
       console.log('⚠️ Text file sharing failed:', error);
-      showInfo('Content copied to clipboard');
+      showMessage(MessageService.SUCCESS.CONTENT_COPIED);
       // Fallback: copier dans le presse-papiers
       Clipboard.setStringAsync(content);
     }

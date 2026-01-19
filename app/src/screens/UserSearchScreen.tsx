@@ -510,7 +510,8 @@ const styles = StyleSheet.create({
     ...theme.common.centerContent,
     flex: 1,
     paddingHorizontal: theme.spacing.xxl,
-    paddingVertical: theme.spacing.xxxl,
+    paddingTop: theme.spacing.xl,
+    justifyContent: 'flex-start',
   },
   emptyTitle: {
     ...theme.typography.h3,

@@ -5,17 +5,14 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  Modal,
   RefreshControl,
   ActivityIndicator,
-  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import styles from "../styles/Profile/profileStyles";
 import { useAuth } from "../context/AuthContext";
-import ProfilePost from "../components/Feed/ProfilePost";
 import favoritesService from "../services/favoritesService";
 import postService from "../services/postService";
 import { API_URL_USERS } from "../config";
@@ -108,8 +105,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     averagePosition: 0,
   });
   const [isLoadingDriverStats, setIsLoadingDriverStats] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [postModalVisible, setPostModalVisible] = useState(false);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -568,42 +563,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }
   };
 
-  const handlePostPress = (post: Post) => {
-    setSelectedPost(post);
-    setPostModalVisible(true);
-  };
-
-  const handleClosePostModal = () => {
-    setPostModalVisible(false);
-    setSelectedPost(null);
-  };
-
-  const handleLikePost = (postId: string) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            likes: post.likes + 1,
-          };
-        }
-        return post;
-      })
-    );
-  };
-
-  const handleCommentPost = (postId: string) => {
-    console.log(`Open comments for post ${postId}`);
-  };
-
-  const handleSharePost = (postId: string) => {
-    console.log(`Share post ${postId}`);
-  };
-
-  const handleProfilePress = (username: string) => {
-    console.log(`Navigate to profile of ${username}`);
-  };
-
   const handleEventPress = (eventId: string) => {
     router.push({
       pathname: "/(app)/eventDetail",
@@ -669,7 +628,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               key={item.id}
               style={styles.postTile}
               activeOpacity={0.8}
-              onPress={() => handlePostPress(item)}
+              onPress={() => {
+                router.push({
+                  pathname: "/(app)/postDetail",
+                  params: { postId: item.id },
+                });
+              }}
             >
               {item.isVideo ? (
                 <CloudinaryMedia
@@ -993,7 +957,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               key={item.id}
               style={styles.postTile}
               activeOpacity={0.8}
-              onPress={() => handlePostPress(item)}
+              onPress={() => {
+                router.push({
+                  pathname: "/(app)/postDetail",
+                  params: { postId: item.id },
+                });
+              }}
             >
               <CloudinaryMedia
                 publicId={item.cloudinaryPublicId || ""}
@@ -1153,7 +1122,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               key={item.id}
               style={styles.postTile}
               activeOpacity={0.8}
-              onPress={() => handlePostPress(item)}
+              onPress={() => {
+                router.push({
+                  pathname: "/(app)/postDetail",
+                  params: { postId: item.id },
+                });
+              }}
             >
               {item.isVideo ? (
                 <CloudinaryMedia
@@ -1777,31 +1751,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         onPerformancesPress={handlePerformancesPress}
         userId={effectiveUserId || 0}
       />
-
-      <Modal
-        visible={postModalVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={handleClosePostModal}      >
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
-          {selectedPost && (
-            <ProfilePost
-              post={{
-                ...selectedPost,
-                username: "esteban_dardillac",
-                userAvatar:
-                  "https://images.pexels.com/photos/3482523/pexels-photo-3482523.jpeg",
-              }}
-              onClose={handleClosePostModal}
-              onLike={handleLikePost}
-              onComment={handleCommentPost}
-              onShare={handleSharePost}
-              onProfilePress={handleProfilePress}
-            />
-          )}
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 };

@@ -250,7 +250,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
           <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
           <ScrollView 
             style={styles.scrollView}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
             nestedScrollEnabled={true}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={true}

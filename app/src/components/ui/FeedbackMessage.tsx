@@ -23,6 +23,7 @@ interface FeedbackMessageProps {
   errorType?: ErrorType;
   visible: boolean;
   testID?: string;
+  customBackgroundColor?: string;
 }
 
 /**
@@ -35,7 +36,8 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
   onDismiss,
   errorType,
   visible,
-  testID
+  testID,
+  customBackgroundColor,
 }) => {
   // Valeurs d'animation
   const opacity = useRef(new Animated.Value(0)).current;
@@ -56,7 +58,7 @@ const FeedbackMessage: React.FC<FeedbackMessageProps> = ({
       case FeedbackType.SUCCESS:
         return {
           iconName: 'checkmark-circle' as const,
-          backgroundColor: '#10B981',
+          backgroundColor: customBackgroundColor || '#10B981',
           textColor: '#FFFFFF',
         };
       case FeedbackType.ERROR:

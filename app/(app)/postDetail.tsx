@@ -44,7 +44,11 @@ const PostDetailScreen: React.FC = () => {
         const uiPost: Post = {
           id: response.id.toString(),
           username: response.user?.username || response.user?.name || 'Unknown User',
-          avatar: response.user?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user?.username || 'User')}&background=E10600&color=fff`,
+          avatar: (response.user as any)?.profilePicturePublicId ? 
+            '' : 
+            (response.user?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user?.username || 'User')}&background=E10600&color=fff`),
+          profilePicturePublicId: (response.user as any)?.profilePicturePublicId,
+          userId: response.userId,
           images: response.cloudinaryUrl ? [response.cloudinaryUrl] : [],
           imagePublicIds: response.cloudinaryPublicId ? [response.cloudinaryPublicId] : [],
           mediaTypes,
@@ -208,7 +212,7 @@ const PostDetailScreen: React.FC = () => {
       await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
       console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
+      Alert.alert('Info', 'Content copied to clipboard', [
         { text: 'OK', onPress: () => {
           // Fallback: copier dans le presse-papiers
           Clipboard.setStringAsync(content);

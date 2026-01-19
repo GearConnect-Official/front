@@ -4,6 +4,8 @@ export const commentsModalStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   header: {
     flexDirection: 'row',

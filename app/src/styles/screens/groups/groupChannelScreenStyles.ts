@@ -217,11 +217,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   ownMessageContainer: {
-    justifyContent: 'flex-start', // Own messages on the left
+    justifyContent: 'flex-end', // Own messages on the right
+    flexDirection: 'row-reverse', // Reverse order for right alignment
   },
   otherMessageContainer: {
-    justifyContent: 'flex-end', // Other messages on the right
-    flexDirection: 'row-reverse', // Reverse order for right alignment
+    justifyContent: 'flex-start', // Other messages on the left
   },
   // Reply styles
   replyContainer: {

@@ -815,6 +815,7 @@ export default function SharedConversationScreen({
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isOwn = item.isOwn ?? false;
     const previousMessage = index > 0 ? messages[index - 1] : null;
+    const nextMessage = index < messages.length - 1 ? messages[index + 1] : null;
     
     // Initialize animation for this message if not exists
     if (!messageAnimations.current[item.id]) {
@@ -828,14 +829,11 @@ export default function SharedConversationScreen({
       item.content.includes('was deleted')
     );
     
-    // Show avatar logic: for own messages (left side) and other messages (right side)
-    const showAvatar = isOwn 
-      ? (index === 0 || 
-         previousMessage?.sender?.id !== item.sender?.id ||
-         (previousMessage && (new Date(item.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) > 300000))
-      : (index === 0 || 
-         previousMessage?.sender?.id !== item.sender?.id ||
-         (previousMessage && (new Date(item.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) > 300000));
+    // Show avatar logic: avatar appears only on the last message of a consecutive series
+    // Avatar shows if: there's no next message OR next message is from different sender OR next message is more than 5 minutes later
+    const showAvatar = !nextMessage || 
+                      nextMessage.sender?.id !== item.sender?.id ||
+                      (nextMessage && (new Date(nextMessage.createdAt).getTime() - new Date(item.createdAt).getTime()) > 300000);
     
     // Group messages: same user, less than 5 minutes apart
     const isGrouped = previousMessage?.sender?.id === item.sender?.id &&
@@ -861,47 +859,32 @@ export default function SharedConversationScreen({
         isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
         isNewGroup && styles.newMessageGroup
       ]}>
-        {/* Avatar for own messages (left side) */}
-        {isOwn && (
-          <>
-            {showAvatar ? (
-              <TouchableOpacity 
-                style={styles.ownAvatarContainer}
-                onPress={() => {
-                  if (item.sender?.id) {
-                    router.push({
-                      pathname: '/userProfile',
-                      params: { userId: item.sender.id.toString() },
-                    });
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                <VerifiedAvatar
-                  publicId={item.sender?.profilePicturePublicId}
-                  fallbackUrl={item.sender?.profilePicture}
-                  size={36}
-                  isVerify={item.sender?.isVerify || false}
-                  style={styles.messageAvatar}
-                />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity 
-                style={styles.ownAvatarSpacer}
-                onPress={() => {
-                  if (item.sender?.id) {
-                    router.push({
-                      pathname: '/userProfile',
-                      params: { userId: item.sender.id.toString() },
-                    });
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                {/* Invisible spacer that's still clickable */}
-              </TouchableOpacity>
-            )}
-          </>
+        {/* Avatar for other users' messages (left side) */}
+        {!isOwn && (
+          showAvatar ? (
+            <TouchableOpacity 
+              style={styles.otherAvatarContainer}
+              onPress={() => {
+                if (item.sender?.id) {
+                  router.push({
+                    pathname: '/userProfile',
+                    params: { userId: item.sender.id.toString() },
+                  });
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <VerifiedAvatar
+                publicId={item.sender?.profilePicturePublicId}
+                fallbackUrl={item.sender?.profilePicture}
+                size={36}
+                isVerify={item.sender?.isVerify || false}
+                style={styles.messageAvatar}
+              />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.otherAvatarSpacer} />
+          )
         )}
         
         {/* Message */}
@@ -1460,47 +1443,32 @@ export default function SharedConversationScreen({
           </Animated.View>
         </View>
 
-        {/* Avatar for other users' messages (right side) */}
-        {!isOwn && (
-          <>
-            {showAvatar ? (
-              <TouchableOpacity 
-                style={styles.otherAvatarContainer}
-                onPress={() => {
-                  if (item.sender?.id) {
-                    router.push({
-                      pathname: '/userProfile',
-                      params: { userId: item.sender.id.toString() },
-                    });
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                <VerifiedAvatar
-                  publicId={item.sender?.profilePicturePublicId}
-                  fallbackUrl={item.sender?.profilePicture}
-                  size={36}
-                  isVerify={item.sender?.isVerify || false}
-                  style={styles.messageAvatar}
-                />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity 
-                style={styles.otherAvatarSpacer}
-                onPress={() => {
-                  if (item.sender?.id) {
-                    router.push({
-                      pathname: '/userProfile',
-                      params: { userId: item.sender.id.toString() },
-                    });
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                {/* Invisible spacer that's still clickable */}
-              </TouchableOpacity>
-            )}
-          </>
+        {/* Avatar for own messages (right side) */}
+        {isOwn && (
+          showAvatar ? (
+            <TouchableOpacity 
+              style={styles.ownAvatarContainer}
+              onPress={() => {
+                if (item.sender?.id) {
+                  router.push({
+                    pathname: '/userProfile',
+                    params: { userId: item.sender.id.toString() },
+                  });
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <VerifiedAvatar
+                publicId={item.sender?.profilePicturePublicId}
+                fallbackUrl={item.sender?.profilePicture}
+                size={36}
+                isVerify={item.sender?.isVerify || false}
+                style={styles.messageAvatar}
+              />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.ownAvatarSpacer} />
+          )
         )}
       </View>
     );

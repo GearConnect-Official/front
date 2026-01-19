@@ -199,8 +199,15 @@ const GroupChannelScreen: React.FC = () => {
     const isSystemMessage = item.messageType === 'SYSTEM';
     const isOwn = item.isOwn ?? false;
     const previousMessage = index > 0 ? messages[index - 1] : null;
+    const nextMessage = index < messages.length - 1 ? messages[index + 1] : null;
     const showDate = !previousMessage || 
       formatDate(item.createdAt) !== formatDate(previousMessage.createdAt);
+    
+    // Show avatar logic: avatar appears only on the last message of a consecutive series
+    // Avatar shows if: there's no next message OR next message is from different sender OR next message is more than 5 minutes later
+    const showAvatar = !nextMessage || 
+                      nextMessage.sender?.id !== item.sender?.id ||
+                      (nextMessage && (new Date(nextMessage.createdAt).getTime() - new Date(item.createdAt).getTime()) > 300000);
 
     return (
       <View>
@@ -245,34 +252,38 @@ const GroupChannelScreen: React.FC = () => {
               </View>
             )}
 
-            {/* Avatar for own messages (left side) */}
-            {isOwn && (
-              <TouchableOpacity
-                style={styles.messageAvatar}
-                onPress={() => {
-                  if (item.sender?.id) {
-                    router.push({
-                      pathname: '/userProfile',
-                      params: { userId: item.sender.id.toString() },
-                    });
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                {item.sender.profilePicturePublicId ? (
-                  <CloudinaryAvatar
-                    publicId={item.sender.profilePicturePublicId}
-                    size={36}
-                    style={styles.avatar}
-                  />
-                ) : item.sender.profilePicture ? (
-                  <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
-                ) : (
-                  <View style={[styles.avatar, styles.defaultAvatar]}>
-                    <FontAwesome name="user" size={14} color="#6A707C" />
-                  </View>
-                )}
-              </TouchableOpacity>
+            {/* Avatar for other messages (left side) */}
+            {!isOwn && (
+              showAvatar ? (
+                <TouchableOpacity
+                  style={styles.messageAvatar}
+                  onPress={() => {
+                    if (item.sender?.id) {
+                      router.push({
+                        pathname: '/userProfile',
+                        params: { userId: item.sender.id.toString() },
+                      });
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  {item.sender.profilePicturePublicId ? (
+                    <CloudinaryAvatar
+                      publicId={item.sender.profilePicturePublicId}
+                      size={36}
+                      style={styles.avatar}
+                    />
+                  ) : item.sender.profilePicture ? (
+                    <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
+                  ) : (
+                    <View style={[styles.avatar, styles.defaultAvatar]}>
+                      <FontAwesome name="user" size={14} color="#6A707C" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.messageAvatar} />
+              )
             )}
 
             <View style={[styles.messageBody, isOwn && styles.ownMessageBody]}>
@@ -339,34 +350,38 @@ const GroupChannelScreen: React.FC = () => {
                 )}
               </View>
 
-            {/* Avatar for other messages (right side) */}
-            {!isOwn && (
-              <TouchableOpacity
-                style={styles.messageAvatar}
-                onPress={() => {
-                  if (item.sender?.id) {
-                    router.push({
-                      pathname: '/userProfile',
-                      params: { userId: item.sender.id.toString() },
-                    });
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                {item.sender.profilePicturePublicId ? (
-                  <CloudinaryAvatar
-                    publicId={item.sender.profilePicturePublicId}
-                    size={36}
-                    style={styles.avatar}
-                  />
-                ) : item.sender.profilePicture ? (
-                  <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
-                ) : (
-                  <View style={[styles.avatar, styles.defaultAvatar]}>
-                    <FontAwesome name="user" size={14} color="#6A707C" />
-            </View>
-                )}
-              </TouchableOpacity>
+            {/* Avatar for own messages (right side) */}
+            {isOwn && (
+              showAvatar ? (
+                <TouchableOpacity
+                  style={styles.messageAvatar}
+                  onPress={() => {
+                    if (item.sender?.id) {
+                      router.push({
+                        pathname: '/userProfile',
+                        params: { userId: item.sender.id.toString() },
+                      });
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  {item.sender.profilePicturePublicId ? (
+                    <CloudinaryAvatar
+                      publicId={item.sender.profilePicturePublicId}
+                      size={36}
+                      style={styles.avatar}
+                    />
+                  ) : item.sender.profilePicture ? (
+                    <Image source={{ uri: item.sender.profilePicture }} style={styles.avatar} />
+                  ) : (
+                    <View style={[styles.avatar, styles.defaultAvatar]}>
+                      <FontAwesome name="user" size={14} color="#6A707C" />
+             </View>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.messageAvatar} />
+              )
             )}
           </View>
         )}

@@ -9,13 +9,10 @@ import FeedbackMessage, {
 import { useAuth } from "../context/AuthContext";
 import { CloudinaryUploadResponse } from "../services/cloudinary.service";
 import { useMessage } from "../context/MessageContext";
-import MessageService from "../services/messageService";
 import { QuickMessages } from "../utils/messageUtils";
 import { trackPost, trackScreenView } from "../utils/mixpanelTracking";
-
 import Header from "../components/Publication/Header";
 import MediaSection from "../components/Publication/MediaSection";
-import ImageViewer from "../components/Publication/ImageViewer";
 import PublicationForm from "../components/Publication/PublicationForm";
 
 /**

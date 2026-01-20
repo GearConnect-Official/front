@@ -2016,7 +2016,8 @@ export default function SharedConversationScreen({
             }
 
             // Security validation
-            const { validateFileSafety } = await import('../../utils/fileSecurity.js');
+            // @ts-expect-error TS2835 - Metro résout .ts sans extension ; .js provoque "Cannot find module" au runtime
+            const { validateFileSafety } = await import('../../utils/fileSecurity');
             const validation = validateFileSafety(document.name || 'document', document.mimeType);
             
             if (!validation.isValid) {
@@ -2029,9 +2030,9 @@ export default function SharedConversationScreen({
             }
 
             // Verify file exists and has content before uploading (same checks as download)
-            const FileSystemModule = await import('expo-file-system');
-            const FileSystem = FileSystemModule.default || FileSystemModule;
-            const fileInfo = await FileSystem.getInfoAsync(document.uri);
+            // @ts-expect-error TS2307 - expo-file-system/legacy existe à l'exécution (Expo SDK 54) mais les types ne sont pas exportés
+            const { getInfoAsync } = await import('expo-file-system/legacy');
+            const fileInfo = await getInfoAsync(document.uri, { size: true });
             
             if (!fileInfo.exists) {
               Alert.alert('Error', 'File does not exist at the provided location');

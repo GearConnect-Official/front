@@ -44,7 +44,7 @@ export const getMessagingNotificationCount = async (userId: number): Promise<Not
         const lastReadDate = new Date(userParticipant.lastReadAt);
         unreadMessages += conv.messages.filter(msg => {
           const msgDate = new Date(msg.createdAt);
-          return msgDate > lastReadDate && msg.senderId !== userId;
+          return msgDate > lastReadDate && msg.sender.id !== userId;
         }).length;
       }
     });
@@ -78,7 +78,7 @@ export const getMessagingNotificationCount = async (userId: number): Promise<Not
         const lastReadDate = new Date(userParticipant.lastReadAt);
         commercialMessages += conv.messages.filter(msg => {
           const msgDate = new Date(msg.createdAt);
-          return msgDate > lastReadDate && msg.senderId !== userId;
+          return msgDate > lastReadDate && msg.sender.id !== userId;
         }).length;
       }
     });
@@ -91,8 +91,8 @@ export const getMessagingNotificationCount = async (userId: number): Promise<Not
       commercialMessages,
       total,
     };
-  } catch (error) {
-    console.error('Error getting notification count:', error);
+  } catch {
+    
     return { unreadMessages: 0, pendingRequests: 0, commercialMessages: 0, total: 0 };
   }
 };

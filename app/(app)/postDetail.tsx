@@ -7,11 +7,11 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import { useAuth } from '../src/context/AuthContext';
 import PostItem, { Post } from '../src/components/Feed/PostItem';
@@ -198,27 +198,17 @@ const PostDetailScreen: React.FC = () => {
   };
 
   const shareTextContent = async (content: string) => {
-    // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
+    // Utiliser le Share natif de React Native
     try {
-      // Créer un fichier temporaire avec le contenu
-      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
-      await FileSystem.writeAsStringAsync(tempFile, content);
-      
-      await Sharing.shareAsync(tempFile, {
-        mimeType: 'text/plain',
-        dialogTitle: 'Partager ce post',
+      await Share.share({
+        message: content,
+        title: 'Partager ce post',
       });
-      
-      // Nettoyer le fichier temporaire
-      await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
-      console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Content copied ', [
-        { text: 'OK', onPress: () => {
-          // Fallback: copier dans le presse-papiers
-          Clipboard.setStringAsync(content);
-        }}
-      ]);
+      console.log('⚠️ Text sharing failed:', error);
+      // Fallback: copier dans le presse-papiers
+      await Clipboard.setStringAsync(content);
+      Alert.alert('Info', 'Contenu copié dans le presse-papiers');
     }
   };
 

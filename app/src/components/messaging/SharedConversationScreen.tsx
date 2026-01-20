@@ -22,6 +22,7 @@ import theme from '../../styles/config/theme';
 import { conversationScreenStyles as styles } from '../../styles/screens';
 import chatService, { Message as ApiMessage } from '../../services/chatService';
 import groupService from '../../services/groupService';
+// Polling version - WebSocket import removed
 import { VerifiedAvatar } from '../media/VerifiedAvatar';
 import AttachmentMenu from './AttachmentMenu';
 import VoiceRecorder from './VoiceRecorder';
@@ -39,6 +40,9 @@ import * as DocumentPicker from 'expo-document-picker';
 import { UserStatus, UserStatusDisplay } from '../../types/userStatus';
 import MuteModal, { MuteDuration } from './MuteModal';
 import { useAuth } from '../../context/AuthContext';
+
+// Polling interval in milliseconds (3 seconds for near real-time feel)
+const POLLING_INTERVAL = 3000;
 
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
@@ -79,7 +83,9 @@ export default function SharedConversationScreen({
   onBack,
   onHeaderInfoPress,
 }: SharedConversationScreenProps) {
-  const { user } = useAuth() || {};
+  const authContext = useAuth();
+  const user = authContext && 'user' in authContext ? authContext.user : null;
+  // Note: token removed - not needed for polling version
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -328,6 +334,70 @@ export default function SharedConversationScreen({
       }
     }
   }, [id, currentUserId, loadMessages, type]);
+
+  // Polling: Fetch new messages periodically for real-time updates
+  useEffect(() => {
+    if (!id || !currentUserId) return;
+
+    const idNum = parseInt(id);
+    if (isNaN(idNum)) return;
+
+    console.log(`🔄 Starting polling for ${type === 'dm' ? 'conversation' : 'group'}: ${idNum}`);
+
+    // Function to fetch and merge new messages
+    const pollMessages = async () => {
+      try {
+        let response: ApiMessage[];
+        if (type === 'dm') {
+          response = await chatService.getMessages(idNum, currentUserId);
+        } else {
+          response = await groupService.getGroupMessages(idNum, currentUserId);
+        }
+
+        if (response && Array.isArray(response)) {
+          // Map API messages to UI format
+          const newMessages: Message[] = response.map((msg: ApiMessage) => ({
+            ...msg,
+            isOwn: msg.sender.id === currentUserId,
+          }));
+
+          // Merge new messages with existing ones (avoid duplicates)
+          setMessages(prev => {
+            // Create a map of existing message IDs for quick lookup
+            const existingIds = new Set(prev.map(m => Number(m.id)));
+            
+            // Find new messages that don't exist yet
+            const messagesToAdd = newMessages.filter(m => !existingIds.has(Number(m.id)));
+            
+            // Also update existing messages (for edits, reactions, etc.)
+            const updatedMessages = prev.map(existingMsg => {
+              const updatedVersion = newMessages.find(m => Number(m.id) === Number(existingMsg.id));
+              return updatedVersion || existingMsg;
+            });
+
+            if (messagesToAdd.length > 0) {
+              console.log(`📨 Polling found ${messagesToAdd.length} new message(s)`);
+              return [...updatedMessages, ...messagesToAdd];
+            }
+            
+            return updatedMessages;
+          });
+        }
+      } catch (error) {
+        // Silent fail for polling - don't spam user with errors
+        console.log('Polling error (silent):', error);
+      }
+    };
+
+    // Start polling interval
+    const pollInterval = setInterval(pollMessages, POLLING_INTERVAL);
+
+    // Cleanup: stop polling when component unmounts or id changes
+    return () => {
+      console.log(`🛑 Stopping polling for ${type === 'dm' ? 'conversation' : 'group'}: ${idNum}`);
+      clearInterval(pollInterval);
+    };
+  }, [id, currentUserId, type]);
 
   // Update user's own status to ONLINE when component mounts and on activity
   useEffect(() => {
@@ -1547,7 +1617,7 @@ export default function SharedConversationScreen({
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => `msg-${item.id}-${index}`}
         style={styles.messagesList}
         contentContainerStyle={styles.messagesContainer}
         showsVerticalScrollIndicator={true}

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Modal,
@@ -36,18 +36,50 @@ const PostOptionsMenu: React.FC<PostOptionsMenuProps> = ({
   const menuX = Math.max(0, position.x - menuWidth - 8);
   const auth = useAuth();
   const { user } = auth || {};
-  const [isUnfollowLoading, setIsUnfollowLoading] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
-  const handleUnfollow = async () => {
-    if (isUnfollowLoading) return;
+  // Check follow status when menu opens
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!visible || !user?.id || !postUserId || isOwnPost) return;
+      
+      const currentUserId = Number(user.id);
+      if (currentUserId === postUserId) return;
+
+      setIsCheckingStatus(true);
+      try {
+        // Get the user's following list and check if postUserId is in it
+        const response = await followService.getFollowing(currentUserId);
+        if (response.success && response.data) {
+          const isCurrentlyFollowing = response.data.following.some(
+            (followedUser) => followedUser.id === postUserId
+          );
+          setIsFollowing(isCurrentlyFollowing);
+        }
+      } catch (error) {
+        console.error('Error checking follow status:', error);
+        // Default to showing "Follow" if we can't determine status
+        setIsFollowing(false);
+      } finally {
+        setIsCheckingStatus(false);
+      }
+    };
+
+    checkFollowStatus();
+  }, [visible, user?.id, postUserId, isOwnPost]);
+
+  const handleFollowToggle = async () => {
+    if (isFollowLoading) return;
 
     if (!user || !user.id) {
-      Alert.alert('Error', 'You must be logged in to unfollow users');
+      Alert.alert('Error', 'You must be logged in to follow/unfollow users');
       return;
     }
 
     if (!postUserId) {
-      Alert.alert('Error', 'Unable to unfollow this user');
+      Alert.alert('Error', 'Unable to perform this action');
       onClose();
       return;
     }
@@ -55,26 +87,39 @@ const PostOptionsMenu: React.FC<PostOptionsMenuProps> = ({
     const currentUserId = Number(user.id);
 
     if (currentUserId === postUserId) {
-      Alert.alert('Error', 'You cannot unfollow yourself');
+      Alert.alert('Error', 'You cannot follow/unfollow yourself');
       onClose();
       return;
     }
 
-    setIsUnfollowLoading(true);
+    setIsFollowLoading(true);
     try {
-      const response = await followService.unfollowUser(postUserId, currentUserId);
-
-      if (response.success) {
-        trackSocial.unfollowed(String(postUserId));
-        Alert.alert('Success', 'User unfollowed');
+      if (isFollowing) {
+        // Unfollow
+        const response = await followService.unfollowUser(postUserId, currentUserId);
+        if (response.success) {
+          trackSocial.unfollowed(String(postUserId));
+          setIsFollowing(false);
+          Alert.alert('Success', 'User unfollowed');
+        } else {
+          Alert.alert('Error', response.error || 'Failed to unfollow user');
+        }
       } else {
-        Alert.alert('Error', response.error || 'Failed to unfollow user');
+        // Follow
+        const response = await followService.followUser(postUserId, currentUserId);
+        if (response.success) {
+          trackSocial.followed(String(postUserId));
+          setIsFollowing(true);
+          Alert.alert('Success', 'User followed');
+        } else {
+          Alert.alert('Error', response.error || 'Failed to follow user');
+        }
       }
     } catch (error) {
-      console.error('Error unfollowing user:', error);
+      console.error('Error toggling follow:', error);
       Alert.alert('Error', 'An unexpected error occurred');
     } finally {
-      setIsUnfollowLoading(false);
+      setIsFollowLoading(false);
       onClose();
     }
   };
@@ -131,15 +176,21 @@ const PostOptionsMenu: React.FC<PostOptionsMenuProps> = ({
                   
                   <TouchableOpacity 
                     style={styles.option} 
-                    onPress={handleUnfollow}
-                    disabled={isUnfollowLoading}
+                    onPress={handleFollowToggle}
+                    disabled={isFollowLoading || isCheckingStatus}
                   >
-                    {isUnfollowLoading ? (
+                    {isFollowLoading || isCheckingStatus ? (
                       <ActivityIndicator size="small" color="#262626" />
                     ) : (
-                      <FontAwesome name="user-times" size={20} color="#262626" />
+                      <FontAwesome 
+                        name={isFollowing ? "user-times" : "user-plus"} 
+                        size={20} 
+                        color="#262626" 
+                      />
                     )}
-                    <Text style={styles.optionText}>Unfollow</Text>
+                    <Text style={styles.optionText}>
+                      {isCheckingStatus ? 'Loading...' : isFollowing ? 'Unfollow' : 'Follow'}
+                    </Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={styles.option} onPress={onCopyLink}>

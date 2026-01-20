@@ -974,7 +974,7 @@ const PerformancesScreen: React.FC = () => {
         <Text style={performanceStyles.headerTitle}>Performance Tracker</Text>
 
         <View style={{ flexDirection: "row" }}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[performanceStyles.headerButton, { marginRight: 8 }]}
             onPress={() => setShowSettingsPanel(!showSettingsPanel)}
           >
@@ -987,7 +987,7 @@ const PerformancesScreen: React.FC = () => {
                   : THEME_COLORS.TEXT_SECONDARY
               }
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             style={performanceStyles.headerButton}

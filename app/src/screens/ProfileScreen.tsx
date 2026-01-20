@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  StatusBar,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -838,7 +837,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             style={{
               marginTop: 16,
               padding: 12,
-              backgroundColor: '#3a86ff',
+              backgroundColor: '#E10600',
               borderRadius: 8,
             }}
             onPress={() => router.push('/(app)/createEvent')}

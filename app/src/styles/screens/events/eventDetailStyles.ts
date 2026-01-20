@@ -72,11 +72,17 @@ export const styles = StyleSheet.create({
     marginVertical: theme.spacing.sm,
   },
 
-  // Images
+  // Images (additional photos only, logo excluded) — contain = pas de rognage, dimensions respectées
+  mainEventImageWrapper: {
+    width: "100%",
+    aspectRatio: 16 / 9,
+    borderRadius: theme.borders.radius.md,
+    overflow: "hidden",
+    backgroundColor: theme.colors.grey[200],
+  },
   mainEventImage: {
     width: "100%",
-    height: 200,
-    borderRadius: theme.borders.radius.md,
+    height: "100%",
   },
   placeholderMainImage: {
     width: "100%",

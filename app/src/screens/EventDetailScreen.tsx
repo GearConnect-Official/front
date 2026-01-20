@@ -8,7 +8,10 @@ import {
   StatusBar,
   Linking,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { EventInterface } from '../services/EventInterface';
@@ -35,6 +38,62 @@ interface MeteoInfo {
   circuitName?: string;
   expectedParticipants?: number;
 }
+
+/** Slide du carousel dont la hauteur suit le ratio de l'image (comme les cards) — meilleure présentation de l'original. */
+const EventDetailImageSlide: React.FC<{
+  uri: string;
+  slideWidth: number;
+  minHeight?: number;
+  maxHeight?: number;
+  fallbackHeight?: number;
+}> = ({ uri, slideWidth, minHeight = 200, maxHeight = 420, fallbackHeight = 240 }) => {
+  const [aspect, setAspect] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!uri || typeof uri !== "string" || !uri.trim()) {
+      setAspect(null);
+      return;
+    }
+    Image.getSize(uri, (w, h) => setAspect(h / w), () => setAspect(9 / 16));
+  }, [uri]);
+
+  const height =
+    aspect != null
+      ? Math.max(minHeight, Math.min(maxHeight, slideWidth * aspect))
+      : fallbackHeight;
+
+  return (
+    <View
+      style={{
+        width: slideWidth,
+        height,
+        borderRadius: 8,
+        overflow: "hidden",
+        backgroundColor: "#f0f0f0",
+      }}
+    >
+      <Image source={{ uri }} style={styles.mainEventImage} resizeMode="contain" />
+    </View>
+  );
+};
+
+const EventDetailImagesCarousel: React.FC<{ images: string[]; slideWidth: number }> = ({ images, slideWidth }) => {
+  const w = Math.max(slideWidth, 200);
+  return (
+    <ScrollView
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      decelerationRate="fast"
+      style={{ width: w }}
+      contentContainerStyle={{ alignItems: "flex-start" }}
+    >
+      {images.map((url: string, i: number) => (
+        <EventDetailImageSlide key={i} uri={url} slideWidth={w} />
+      ))}
+    </ScrollView>
+  );
+};
 
 const EventDetailScreen: React.FC = () => {
   const params = useLocalSearchParams();
@@ -743,19 +802,20 @@ const EventDetailScreen: React.FC = () => {
             </View>
           </View>
 
-            {/* 
-         <Text style={styles.sectionTitle}>Best of Images</Text>
-         {event.images[0] ? (
-          <Image
-            source={{ uri: event?.images[0] }}
-            style={styles.mainEventImage}
-          />
-        ) : (
-          <View style={styles.placeholderMainImage}>
-            <Text>No Image Available</Text>
-          </View>
-        )}
-        */}
+          <Text style={styles.sectionTitle}>Images</Text>
+          {(() => {
+            const imgs = (event as any).images || [];
+            if (imgs.length === 0) {
+              return (
+                <View style={styles.placeholderMainImage}>
+                  <Text>No Image Available</Text>
+                </View>
+              );
+            }
+            return (
+              <EventDetailImagesCarousel images={imgs} slideWidth={SCREEN_WIDTH - 32} />
+            );
+          })()}
           <Text style={styles.sectionTitle}>Event Details</Text>
           <View style={styles.detailRow}>
             <Ionicons name="location-outline" size={20} color="gray" />

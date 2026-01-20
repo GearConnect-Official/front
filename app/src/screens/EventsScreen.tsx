@@ -411,6 +411,10 @@ const EventsScreen: React.FC = () => {
             day: 'numeric',
             month: 'short',
           })}
+          icon={item.logo}
+          logoPublicId={item.logoPublicId}
+          images={item.images}
+          imagePublicIds={item.imagePublicIds}
           location={item.location}
           attendees={participantsCount}
           onPress={() => handleEventPress(item)}
@@ -638,7 +642,10 @@ const EventsScreen: React.FC = () => {
                     day: 'numeric',
                     month: 'short',
                   })}
-                  emoji="🎉"
+                  icon={event.logo}
+                  logoPublicId={event.logoPublicId}
+                  images={event.images}
+                  imagePublicIds={event.imagePublicIds}
                   location={event.location}
                   attendees={participantsCount}
                   onPress={() => handleEventPress(event)}

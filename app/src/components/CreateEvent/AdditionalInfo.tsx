@@ -4,9 +4,11 @@ import { FontAwesome } from '@expo/vector-icons';
 import { createEventStyles as styles } from '../../styles/screens';
 import { Event } from '../../services/eventService';
 import { TRACK_CONDITIONS } from '../../types/performance.types';
+import { AspectBannerImage } from '../media/AspectBannerImage';
 
 interface AdditionalInfoProps {
   logo: string;
+  images?: string[];
   name: string;
   location: string;
   date: Date;
@@ -24,6 +26,7 @@ interface AdditionalInfoProps {
 
 const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
   logo,
+  images = [],
   name,
   location,
   date,
@@ -181,16 +184,22 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
         <TextInput
           style={styles.input as TextStyle}
           placeholder="e.g., 30"
-          value={meteo?.expectedParticipants?.toString() || ''}
+          value={meteo?.expectedParticipants != null ? String(meteo.expectedParticipants) : ''}
           onChangeText={(text) => {
-            const numValue = text.trim() === '' ? undefined : parseInt(text);
-            if (text.trim() === '' || (!isNaN(numValue!) && numValue! > 0)) {
-              handleMeteoChange('expectedParticipants' as any, numValue);
+            const t = text.trim();
+            if (t === '') {
+              handleMeteoChange('expectedParticipants' as any, undefined);
+              return;
+            }
+            const num = parseInt(t, 10);
+            if (!isNaN(num) && num >= 0 && num <= 99999) {
+              handleMeteoChange('expectedParticipants' as any, num);
             }
           }}
-          keyboardType="numeric"
+          keyboardType="number-pad"
           returnKeyType="done"
           blurOnSubmit={true}
+          maxLength={5}
         />
       </View>
 
@@ -215,6 +224,18 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({
       <View style={styles.previewSection}>
         <Text style={styles.title}>Preview</Text>
         <View style={styles.previewCard}>
+          <AspectBannerImage
+            sourceUri={images[0] || null}
+            placeholder={
+              <View style={[styles.previewBannerPlaceholder, { position: 'absolute' as const, left: 0, top: 0, right: 0, bottom: 0 }]}>
+                <FontAwesome name="image" size={28} color="rgba(255,255,255,0.7)" />
+              </View>
+            }
+            fallbackHeight={80}
+            minHeight={60}
+            maxHeight={140}
+            containerStyle={{ marginBottom: 12, borderRadius: 8 }}
+          />
           {logo ? (
             <Image source={{ uri: logo }} style={styles.previewLogo} />
           ) : (

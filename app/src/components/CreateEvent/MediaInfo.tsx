@@ -83,6 +83,7 @@ const MediaInfo: React.FC<MediaInfoProps> = ({
                     buttonText="+"
                     showPreview={false}
                     style={styles.addImageButton}
+                    allowsEditing={false}
                   />
                 );
               }

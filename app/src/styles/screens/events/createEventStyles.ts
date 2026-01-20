@@ -213,6 +213,25 @@ export default StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
   },
+  previewBanner: {
+    width: "100%",
+    height: 80,
+    borderRadius: 8,
+    overflow: "hidden",
+    marginBottom: 12,
+    backgroundColor: "#f0f0f0",
+  },
+  previewBannerImage: {
+    width: "100%",
+    height: "100%",
+  },
+  previewBannerPlaceholder: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#E10600",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   previewLogo: {
     width: 64,
     height: 64,

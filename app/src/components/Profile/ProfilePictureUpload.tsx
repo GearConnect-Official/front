@@ -257,7 +257,7 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
           position: 'absolute',
           bottom: 0,
           right: 0,
-          backgroundColor: '#007AFF',
+          backgroundColor: '#E10600',
           borderRadius: 18,
           width: 36,
           height: 36,

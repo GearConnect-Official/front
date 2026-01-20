@@ -22,6 +22,7 @@ import { formatPostDate } from '../src/utils/dateUtils';
 import { detectMediaType } from '../src/utils/mediaUtils';
 import { postDetailStyles as styles } from '../src/styles/screens';
 
+
 const PostDetailScreen: React.FC = () => {
   const router = useRouter();
   const authContext = useAuth();
@@ -212,7 +213,7 @@ const PostDetailScreen: React.FC = () => {
       await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
       console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Content copied to clipboard', [
+      Alert.alert('Info', 'Content copied ', [
         { text: 'OK', onPress: () => {
           // Fallback: copier dans le presse-papiers
           Clipboard.setStringAsync(content);

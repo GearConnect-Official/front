@@ -107,13 +107,8 @@ const chatService = {
   getConversations: async (userId?: number) => {
     const endpoint = `${API_URL_MESSAGING}/conversations`;
     const params = userId ? { userId } : {};
-    try {
-      const response = await axios.get(endpoint, { params });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching conversations:", error);
-      throw error;
-    }
+    const response = await axios.get(endpoint, { params });
+    return response.data;
   },
 
   /**
@@ -179,9 +174,8 @@ const chatService = {
         userId,
       });
       return response.data;
-    } catch (error) {
-      console.error("Error updating message:", error);
-      throw error;
+    } catch {
+      console.log("Error updating message:");
     }
   },
 

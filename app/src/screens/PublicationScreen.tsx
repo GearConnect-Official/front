@@ -35,12 +35,11 @@ const PublicationScreen: React.FC = () => {
   const router = useRouter();
   const auth = useAuth();
   const user = auth?.user;
-  const [step, setStep] = useState<"select" | "crop" | "form">("select");
+  const [step, setStep] = useState<"select" | "form">("select");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImagePublicId, setSelectedImagePublicId] = useState<
     string | null
   >(null);
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -83,7 +82,6 @@ const PublicationScreen: React.FC = () => {
             style: "destructive",
             onPress: () => {
               setSelectedImage(null);
-              setCroppedImage(null);
               setTitle("");
               setDescription("");
               setTags([]);
@@ -103,7 +101,7 @@ const PublicationScreen: React.FC = () => {
   };
 
   const handleShare = async () => {
-    const imageToShare = croppedImage || selectedImage;
+    const imageToShare =  selectedImage;
 
     if (!imageToShare || !title.trim()) {
       showError("Please add an image and title");
@@ -153,7 +151,6 @@ const PublicationScreen: React.FC = () => {
       // Réinitialiser le formulaire
       setSelectedImage(null);
       setSelectedImagePublicId(null);
-      setCroppedImage(null);
       setTitle("");
       setDescription("");
       setTags([]);
@@ -188,7 +185,6 @@ const PublicationScreen: React.FC = () => {
     });
 
     setSelectedImage(cloudinaryResponse.secure_url);
-    setCroppedImage(cloudinaryResponse.secure_url);
     setSelectedImagePublicId(cloudinaryResponse.public_id);
 
     // Stocker le type de ressource pour les métadonnées
@@ -196,22 +192,14 @@ const PublicationScreen: React.FC = () => {
     setResourceType(resourceType);
     console.log("📸 Resource type set to:", resourceType);
 
-    // Les vidéos sautent directement au formulaire, pas de crop
-    if (resourceType === "video") {
-      console.log("📹 Video detected, skipping crop step");
-      setStep("form");
-    } else {
-      setStep("crop");
-    }
-  };
-
-  const handleImageChange = (newUri: string) => {
-    setCroppedImage(newUri);
+    // Aller directement au formulaire (plus d'étape crop)
+    console.log("📸 Media selected, going to form");
+    setStep("form");
   };
 
   const handleNext = () => {
-    if (step === "crop") {
-      if (!croppedImage && !selectedImage) {
+    if (step === "select") {
+      if (!selectedImage) {
         showError("Please select an image first");
         return;
       }
@@ -222,9 +210,6 @@ const PublicationScreen: React.FC = () => {
   const handleBack = () => {
     switch (step) {
       case "form":
-        setStep("crop");
-        break;
-      case "crop":
         setStep("select");
         break;
       default:
@@ -244,19 +229,8 @@ const PublicationScreen: React.FC = () => {
       case "select":
         return <MediaSection onImageSelected={handleImageSelected} />;
 
-      case "crop":
-        return selectedImage ? (
-          <ImageViewer
-            imageUri={selectedImage}
-            onImageChange={handleImageChange}
-            onNext={handleNext}
-            onGoBack={handleBack}
-            isLastStep={false}
-          />
-        ) : null;
-
       case "form":
-        const imageToShow = croppedImage || selectedImage;
+        const imageToShow = selectedImage;
         return imageToShow ? (
           <PublicationForm
             imageUri={imageToShow}
@@ -284,7 +258,7 @@ const PublicationScreen: React.FC = () => {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.container}>
         <Header
-          isCropping={step === "crop"}
+          isCropping={false}
           isLastStep={step === "form"}
           onBack={handleBack}
           onConfirm={handleNext}

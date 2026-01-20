@@ -65,7 +65,7 @@ export default function MessagesScreen() {
         setParticipantStatuses(statusMap);
       }
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      
     } finally {
       setLoading(false);
     }

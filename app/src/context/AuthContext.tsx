@@ -16,6 +16,8 @@ interface User {
   email: string;
   photoURL?: string;
   description?: string;
+  profilePicture?: string;
+  profilePicturePublicId?: string;
 }
 
 interface AuthContextType {

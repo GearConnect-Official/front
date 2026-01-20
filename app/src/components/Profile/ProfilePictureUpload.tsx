@@ -88,8 +88,6 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
         allowsEditing: true,
         aspect: [1, 1], // Force un ratio carré pour les photos de profil
         quality: 0.8,
-        // Forcer l'éditeur à présenter un cadre circulaire quand possible
-        presentationStyle: 'automatic',
       });
 
       if (!result.canceled && result.assets[0].uri) {

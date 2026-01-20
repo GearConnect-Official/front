@@ -1,4 +1,5 @@
 import { cloudinaryConfig } from '../config';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export interface CloudinaryUploadResponse {
   public_id: string;
@@ -18,7 +19,7 @@ export interface CloudinaryUploadOptions {
   public_id?: string;
   tags?: string[];
   transformation?: Record<string, any>;
-  resource_type?: 'image' | 'video' | 'auto';
+  resource_type?: 'image' | 'video' | 'raw' | 'auto';
 }
 
 class CloudinaryService {
@@ -44,24 +45,75 @@ class CloudinaryService {
     options: CloudinaryUploadOptions = {}
   ): Promise<CloudinaryUploadResponse> {
     try {
+      // Validate URI
+      if (!uri || uri === 'null' || uri.trim() === '') {
+        throw new Error('Invalid media URI: URI is null or empty');
+      }
+
       const formData = new FormData();
       
       // Déterminer le type de fichier
       const fileType = this.getFileType(uri);
       const resourceType = options.resource_type || (fileType.startsWith('video') ? 'video' : 'image');
       
+      // Use public_id if provided, otherwise generate a unique name
+      // If public_id is provided, use it as-is (it may already include extension)
+      const fileName = options.public_id 
+        ? (options.public_id.includes('.') ? options.public_id : `${options.public_id}.${this.getFileExtension(uri)}`)
+        : `upload_${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${this.getFileExtension(uri)}`;
+      
+      // For raw files, we need to read the file and send it properly
+      // React Native FormData doesn't handle raw file URIs the same way as images/videos
+      if (resourceType === 'raw') {
+        // Verify file exists and get its info
+        const fileInfo = await FileSystem.getInfoAsync(uri);
+        if (!fileInfo.exists) {
+          throw new Error('File does not exist at the provided URI');
+        }
+        
+        // Verify file is not empty
+        if (!fileInfo.size || fileInfo.size === 0) {
+          throw new Error('File is empty (0 bytes)');
+        }
+        
+        console.log('📄 Raw file info:', {
+          uri,
+          size: fileInfo.size,
+          exists: fileInfo.exists,
+        });
+        
+        // For raw files on React Native, we need to ensure the URI is properly formatted
+        // The URI from DocumentPicker should work, but we verify it's accessible
+        // React Native FormData can handle file URIs directly for raw files
+        formData.append('file', {
+          uri: uri,
+          type: fileType,
+          name: fileName,
+        } as any);
+      } else {
+        // For images and videos, use the uri directly (works fine)
       formData.append('file', {
         uri,
         type: fileType,
-        name: options.public_id ? `${options.public_id}.${this.getFileExtension(uri)}` : `upload.${this.getFileExtension(uri)}`,
+          name: fileName,
       } as any);
+      }
       
       formData.append('upload_preset', this.uploadPreset);
       
+      // For raw files, ensure we specify resource_type explicitly
+      if (resourceType === 'raw') {
+        formData.append('resource_type', 'raw');
+        // Note: access_mode cannot be set with unsigned uploads
+        // The upload preset must be configured to upload files as public
+        // For raw files, don't apply any transformations that might corrupt the file
+        // Ensure the file is uploaded as-is
+      } else {
       // Paramètres pour garantir une haute qualité lors de l'upload
       // Ces paramètres peuvent être surchargés par le preset, mais on les spécifie explicitement
       formData.append('quality', 'auto:best'); // Qualité maximale pour les posts
       formData.append('fetch_format', 'auto'); // Format optimal selon le navigateur
+      }
       
       if (options.folder) {
         formData.append('folder', options.folder);

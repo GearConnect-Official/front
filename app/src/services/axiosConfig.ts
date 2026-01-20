@@ -51,6 +51,11 @@ export const configureAxios = async () => {
         console.log(`📤 [${config.method?.toUpperCase()}] ${config.url}`);
 
         // 1. Récupérer le token Clerk (approche officielle)
+        // Skip token for verification routes and messaging routes that don't use Clerk
+        const isVerificationRoute = config.url?.includes('/verification/');
+        const isMessagingRoute = config.url?.includes('/messaging/');
+        
+        if (!isVerificationRoute && !isMessagingRoute) {
         try {
           const clerkInstance = getClerkInstance();
           const token = await clerkInstance.session?.getToken();
@@ -58,11 +63,11 @@ export const configureAxios = async () => {
           if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
             console.log('🔑 Bearer token added to request');
-          } else {
-            console.log('⚠️ No Clerk token available');
-          }
+            }
+            // No log for missing token - it's expected for some routes
         } catch (clerkError) {
-          console.warn('⚠️ Could not get Clerk token:', clerkError);
+            // Silent fail for routes that don't need Clerk
+          }
         }
 
         // 2. Ajouter l'ID utilisateur depuis AsyncStorage (si nécessaire pour votre API)
@@ -113,6 +118,10 @@ export const configureAxios = async () => {
 
       // Vérifier si c'est une requête de health check pour éviter les logs de spam
       const isHealthCheck = url.includes('/api/health');
+      
+      // Ignorer les 404 sur les routes de vérification qui n'existent pas encore (backend not implemented)
+      const isVerificationRoute = url.includes('/verification/');
+      const shouldIgnore404 = isVerificationRoute && error.response?.status === 404;
 
       // Gestion des erreurs réseau
       if (error.code === 'ECONNABORTED') {
@@ -168,8 +177,20 @@ export const configureAxios = async () => {
       }
 
       // Logs conditionnels
-      if (!isHealthCheck && apiError.type !== ErrorType.NETWORK) {
+      // Ignore health checks and 404s on verification routes (backend not implemented yet)
+      if (!isHealthCheck && !shouldIgnore404 && apiError.type !== ErrorType.NETWORK) {
         console.error(`❌ [${method}] ${url} - ${apiError.status || 'Network'}: ${apiError.message}`);
+      }
+      
+      // For verification routes with 404, return a silent error that won't be logged
+      if (shouldIgnore404) {
+        const silentError: ApiError = {
+          type: ErrorType.NOT_FOUND,
+          message: 'Route not implemented',
+          status: 404,
+          originalError: error
+        };
+        return Promise.reject(silentError);
       }
 
       return Promise.reject(apiError);

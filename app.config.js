@@ -19,14 +19,41 @@ export default {
     ],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.gearconnect.app"
+      bundleIdentifier: "com.gearconnect.app",
+      infoPlist: {
+        NSContactsUsageDescription: "We need access to your contacts to share them in conversations.",
+        NSLocationWhenInUseUsageDescription: "We need access to your location to share it in conversations.",
+        NSLocationAlwaysAndWhenInUseUsageDescription: "We need access to your location to share it in conversations.",
+        NSCameraUsageDescription: "We need access to your camera to take photos and videos to share in conversations.",
+        NSPhotoLibraryUsageDescription: "We need access to your photo library to share photos and videos in conversations.",
+        NSPhotoLibraryAddUsageDescription: "We need access to save photos and videos to your library.",
+        NSMicrophoneUsageDescription: "We need access to your microphone to record voice messages.",
+        NSCalendarsUsageDescription: "We need access to your calendar to add appointments shared in conversations.",
+        NSCalendarsWriteOnlyUsageDescription: "We need access to add appointments to your calendar."
+      }
     },
     android: {
       adaptiveIcon: {
         foregroundImage: "./app/assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
-      package: "com.gearconnect.app"
+      package: "com.gearconnect.app",
+      permissions: [
+        "android.permission.READ_CONTACTS",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.AUDIO_RECORD"
+      ]
     },
     web: {
       bundler: "metro",
@@ -45,7 +72,7 @@ export default {
       mixpanelToken: process.env.MIXPANEL_TOKEN,
       mixpanelServerURL: process.env.MIXPANEL_SERVER_URL || 'https://api-eu.mixpanel.com',
       eas: {
-        projectId: "76d9f701-5132-4e95-955c-76578f90d7a6"
+        projectId: "ca893aec-0abe-4342-8ed4-2deb3ba8ff2a"
       }
     },
     scheme: "gearconnect",
@@ -61,7 +88,29 @@ export default {
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          locationAlwaysAndWhenInUsePermission: "We need access to your location to share it in conversations."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          calendarPermission: "We need access to your calendar to add appointments shared in conversations."
+        }
+      ],
+      "expo-document-picker",
+      [
+        "expo-media-library",
+        {
+          photosPermission: "We need access to your photo library to share photos and videos.",
+          savePhotosPermission: "We need access to save photos and videos to your library.",
+          isAccessMediaLocationEnabled: true,
+          granularPermissions: ["photo", "video"]
+        }
+      ]
     ],
     experiments: {
       typedRoutes: true

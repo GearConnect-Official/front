@@ -52,6 +52,7 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
   const optimizedUrl = getOptimizedUrl();
 
   if (!optimizedUrl) {
+    // If no URL and no fallback, return null (parent component should handle placeholder)
     return null;
   }
 
@@ -63,6 +64,12 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
         style,
         width && height ? { width, height } : undefined,
       ]}
+      onError={() => {
+        // If Cloudinary image fails, try fallback
+        if (fallbackUrl) {
+          console.log('Cloudinary image failed, using fallback:', fallbackUrl);
+        }
+      }}
     />
   );
 };
@@ -70,16 +77,54 @@ export const CloudinaryImage: React.FC<CloudinaryImageProps> = ({
 // Composants pré-configurés pour des cas d'usage courants
 export const CloudinaryAvatar: React.FC<Omit<CloudinaryImageProps, 'width' | 'height' | 'crop'> & { size?: number }> = ({
   size = 50,
+  fallbackUrl,
+  publicId,
   ...props
-}) => (
-  <CloudinaryImage
-    {...props}
-    width={size}
-    height={size}
-    crop="fill"
-    style={[cloudinaryImageStyles.avatar, props.style]}
-  />
-);
+}) => {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // If no publicId and no fallback, return null (parent should handle placeholder)
+  if (!publicId && !fallbackUrl) {
+    return null;
+  }
+
+  const cloudinaryImage = publicId ? (
+    <CloudinaryImage
+      {...props}
+      publicId={publicId}
+      width={size}
+      height={size}
+      crop="fill"
+      style={[cloudinaryImageStyles.avatar, props.style]}
+      fallbackUrl={fallbackUrl}
+      onError={() => {
+        setImageError(true);
+      }}
+      onLoad={() => {
+        setImageLoaded(true);
+      }}
+    />
+  ) : null;
+
+  // If CloudinaryImage failed or returned null, use fallback
+  if ((imageError || !cloudinaryImage) && fallbackUrl && typeof fallbackUrl === 'string') {
+    return (
+      <Image
+        source={{ uri: fallbackUrl }}
+        style={[cloudinaryImageStyles.avatar, props.style, { width: size, height: size, borderRadius: size / 2 }]}
+        onError={() => {
+          setImageError(true);
+        }}
+        onLoad={() => {
+          setImageLoaded(true);
+        }}
+      />
+    );
+  }
+
+  return cloudinaryImage;
+};
 
 export const CloudinaryThumbnail: React.FC<Omit<CloudinaryImageProps, 'width' | 'height'> & { size?: number }> = ({
   size = 100,

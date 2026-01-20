@@ -8,179 +8,266 @@ import {
   Image,
   Alert,
   Modal,
-  Switch
+  Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import theme from '../src/styles/config/theme';
 import { newConversationScreenStyles as styles } from '../src/styles/screens';
+import chatService, { MessageUser } from '../src/services/chatService';
+import groupService from '../src/services/groupService';
+import { useAuth } from '../src/context/AuthContext';
 
-// Types pour les utilisateurs
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  profilePicture?: string;
-  isVerify: boolean;
+// User types (using MessageUser from service)
+type User = MessageUser & {
   description?: string;
-}
-
-// Données mockées d'utilisateurs pour la recherche
-const mockUsers: User[] = [
-  {
-    id: 2,
-    name: 'Marc Dubois',
-    username: 'marc.racing',
-    profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-    isVerify: true,
-    description: 'Pilote de karting professionnel'
-  },
-  {
-    id: 3,
-    name: 'Sarah Martin',
-    username: 'sarah.speed',
-    profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b0bd?w=150&h=150&fit=crop&crop=face',
-    isVerify: true,
-    description: 'Championne F3 2023'
-  },
-  {
-    id: 4,
-    name: 'Julien Moreau',
-    username: 'julien.pilot',
-    profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-    isVerify: false,
-    description: 'Passionné de course automobile'
-  },
-  {
-    id: 5,
-    name: 'Antoine Leclerc',
-    username: 'antoine.f1',
-    profilePicture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-    isVerify: true,
-    description: 'Ingénieur mécanique et pilote'
-  },
-  {
-    id: 6,
-    name: 'Camille Rousseau',
-    username: 'camille.drift',
-    profilePicture: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-    isVerify: false,
-    description: 'Spécialiste drift et circuit'
-  },
-  {
-    id: 7,
-    name: 'Thomas Bernard',
-    username: 'thomas.endurance',
-    profilePicture: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
-    isVerify: true,
-    description: 'Pilote d\'endurance Le Mans'
-  }
-];
+  isFollowing?: boolean; // Whether current user follows this user
+  followsBack?: boolean; // Whether this user follows current user
+};
 
 export default function NewConversationScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [allFriends, setAllFriends] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [isGroupChat, setIsGroupChat] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [loading, setLoading] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
+  const [requestMessage, setRequestMessage] = useState('');
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [pendingRequestUser, setPendingRequestUser] = useState<User | null>(null);
   const router = useRouter();
+  const { user } = useAuth() || {};
 
-  // Fonction de recherche d'utilisateurs (mockée)
-  const searchUsers = (query: string) => {
-    if (!query.trim()) {
+  // Load all friends (mutual follows) on mount
+  useEffect(() => {
+    const loadFriends = async () => {
+      setLoading(true);
+      try {
+        const currentUserId = user?.id ? parseInt(user.id.toString()) : null;
+        const friends = currentUserId 
+          ? await chatService.getFriends(currentUserId)
+          : await chatService.getFriends();
+        if (Array.isArray(friends)) {
+          // All friends already have mutual follow, so mark them accordingly
+          const friendsWithStatus = friends.map(friend => ({
+            ...friend,
+            isFollowing: true,
+            followsBack: true,
+          }));
+          setAllFriends(friendsWithStatus);
+          setSearchResults(friendsWithStatus);
+        }
+      } catch (error) {
+        console.error('Error loading friends:', error);
+        setAllFriends([]);
       setSearchResults([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFriends();
+  }, [user?.id]);
+
+  // Filter friends by search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(allFriends);
       return;
     }
 
-    const filtered = mockUsers.filter(user => 
-      user.name.toLowerCase().includes(query.toLowerCase()) ||
-      user.username.toLowerCase().includes(query.toLowerCase())
-    );
+    const filtered = allFriends.filter(friend => {
+      const name = friend.name?.toLowerCase() || '';
+      const username = friend.username?.toLowerCase() || '';
+      const query = searchQuery.toLowerCase();
+      return name.includes(query) || username.includes(query);
+    });
+
     setSearchResults(filtered);
-  };
+  }, [searchQuery, allFriends]);
 
-  // Effet pour la recherche avec délai
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      searchUsers(searchQuery);
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
-
-  // Fonction pour sélectionner/déselectionner un utilisateur
-  const toggleUserSelection = (user: User) => {
+  // Handle user click - start conversation directly or add to group
+  const handleUserClick = async (clickedUser: User) => {
+    if (isGroupChat) {
+      // Group mode: toggle selection
     setSelectedUsers(prev => {
-      const isSelected = prev.some(u => u.id === user.id);
+        const isSelected = prev.some(u => u.id === clickedUser.id);
       if (isSelected) {
-        return prev.filter(u => u.id !== user.id);
+          return prev.filter(u => u.id !== clickedUser.id);
       } else {
-        // Limite pour les groupes
-        if (isGroupChat && prev.length >= 9) { // Max 10 participants avec l'utilisateur actuel
-          Alert.alert('Limite atteinte', 'Un groupe peut contenir maximum 10 participants.');
+          // Group limit
+          if (prev.length >= 9) { // Max 10 participants including current user
+            Alert.alert('Limit reached', 'A group can contain a maximum of 10 participants.');
           return prev;
         }
-        return [...prev, user];
+          return [...prev, clickedUser];
       }
     });
+    } else {
+      // Direct message mode: start conversation immediately
+      const isMutualFollow = clickedUser.isFollowing && clickedUser.followsBack;
+      const isTargetVerified = clickedUser.isVerify;
+
+      // If account is verified or mutual follow, create conversation directly
+      if (isTargetVerified || isMutualFollow) {
+        await createDirectConversation(clickedUser);
+        return;
+      }
+
+      // Otherwise, offer to send a request
+      setPendingRequestUser(clickedUser);
+      setShowRequestModal(true);
+    }
   };
 
-  // Fonction pour démarrer une conversation
-  const startConversation = () => {
-    if (selectedUsers.length === 0) {
-      Alert.alert('Erreur', 'Veuillez sélectionner au moins un participant.');
+  // Start group conversation
+  const startGroupConversation = async () => {
+    if (selectedUsers.length < 1) {
+      Alert.alert('Error', 'Please select at least one participant for the group.');
       return;
     }
+    setShowGroupModal(true);
+  };
 
-    if (selectedUsers.length === 1 && !isGroupChat) {
-      // Conversation privée
-      const user = selectedUsers[0];
+  // Create direct conversation
+  const createDirectConversation = async (targetUser: User) => {
+    setLoading(true);
+    try {
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      const result = await chatService.createConversation([targetUser.id], currentUserId);
+      
+      // Check if result is a request or a conversation
+      if (result.isRequest || result.status === 'PENDING' || result.status === 'pending') {
+        // It's a request, show modal to add message
+        setPendingRequestUser(targetUser);
+        setShowRequestModal(true);
+      } else if (result.id) {
+        // It's a conversation (or commercial conversation)
       router.push({
         pathname: '/(app)/conversation',
         params: { 
-          conversationId: `mock_${user.id}`,
-          conversationName: user.name
-        }
+            conversationId: result.id.toString(),
+            conversationName: targetUser.name,
+          },
       });
+      }
+    } catch (error: any) {
+      console.error('Error creating conversation:', error);
+      // If error suggests creating a request, show request modal
+      if (error.response?.data?.isRequest || error.response?.data?.error?.includes('Mutual follow')) {
+        setPendingRequestUser(targetUser);
+        setShowRequestModal(true);
     } else {
-      // Groupe
-      setShowGroupModal(true);
+        Alert.alert('Error', error.response?.data?.error || 'Unable to create conversation');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fonction pour créer un groupe
-  const createGroup = () => {
+  // Send message request
+  const sendMessageRequest = async () => {
+    if (!pendingRequestUser) return;
+
+    setLoading(true);
+    try {
+      const currentUserId = user?.id ? parseInt(user.id.toString()) : undefined;
+      await chatService.sendMessageRequest(
+        pendingRequestUser.id,
+        currentUserId,
+        requestMessage.trim() || undefined
+      );
+      Alert.alert(
+        'Request sent',
+        'Your message request has been sent. You will be notified when the user accepts it.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowRequestModal(false);
+              setPendingRequestUser(null);
+              setRequestMessage('');
+              setSelectedUsers([]);
+              router.back();
+            },
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.error('Error sending request:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Unable to send request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create a group
+  const createGroup = async () => {
     if (!groupName.trim()) {
-      Alert.alert('Erreur', 'Veuillez donner un nom au groupe.');
+      Alert.alert('Error', 'Please give the group a name.');
       return;
     }
 
     if (selectedUsers.length < 2) {
-      Alert.alert('Erreur', 'Un groupe doit contenir au moins 2 participants.');
+      Alert.alert('Error', 'A group must contain at least 2 participants.');
       return;
     }
 
-    // Simuler la création du groupe
+    if (!user?.id) {
+      Alert.alert('Error', 'You must be logged in to create a group.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userId = parseInt(user.id.toString());
+      
+      // Extract user IDs from selected users
+      const memberIds = selectedUsers.map(u => u.id);
+      
+      // Create the group via API with selected members
+      const newGroup = await groupService.createGroup(
+        groupName.trim(),
+        userId,
+        memberIds
+      );
+
+      // Close modal and navigate to group detail page
     setShowGroupModal(false);
+      setGroupName('');
+      setSelectedUsers([]);
+      setIsGroupChat(false);
+      
+      // Navigate to the group detail page
     router.push({
-      pathname: '/(app)/conversation',
+        pathname: '/(app)/groupDetail',
       params: { 
-        conversationId: `group_${Date.now()}`,
-        conversationName: groupName
-      }
-    });
+          groupId: newGroup.id.toString(),
+          groupName: newGroup.name,
+        },
+      });
+    } catch (error: any) {
+      console.error('Error creating group:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.error || 'Failed to create group. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Rendu d'un utilisateur dans les résultats de recherche
+  // Render user in search results
   const renderUser = ({ item }: { item: User }) => {
     const isSelected = selectedUsers.some(u => u.id === item.id);
 
     return (
       <TouchableOpacity
         style={[styles.userItem, isSelected && styles.selectedUserItem]}
-        onPress={() => toggleUserSelection(item)}
+        onPress={() => handleUserClick(item)}
         activeOpacity={0.7}
       >
         <View style={styles.userInfo}>
@@ -208,6 +295,7 @@ export default function NewConversationScreen() {
           </View>
         </View>
 
+        {isGroupChat ? (
         <View style={styles.selectionIndicator}>
           {isSelected ? (
             <FontAwesome name="check-circle" size={20} color="#E10600" />
@@ -215,27 +303,12 @@ export default function NewConversationScreen() {
             <View style={styles.emptyCircle} />
           )}
         </View>
+        ) : (
+          <FontAwesome name="chevron-right" size={16} color={theme.colors.text.secondary} />
+        )}
       </TouchableOpacity>
     );
   };
-
-  // Rendu d'un utilisateur sélectionné
-  const renderSelectedUser = ({ item }: { item: User }) => (
-    <TouchableOpacity
-      style={styles.selectedUserChip}
-      onPress={() => toggleUserSelection(item)}
-    >
-      {item.profilePicture ? (
-        <Image source={{ uri: item.profilePicture }} style={styles.chipAvatar} />
-      ) : (
-        <View style={[styles.chipAvatar, styles.defaultChipAvatar]}>
-          <FontAwesome name="user" size={12} color={theme.colors.text.secondary} />
-        </View>
-      )}
-      <Text style={styles.chipName} numberOfLines={1}>{item.name}</Text>
-      <FontAwesome name="times" size={12} color={theme.colors.text.secondary} />
-    </TouchableOpacity>
-  );
 
   return (
     <View style={styles.container}>
@@ -248,17 +321,19 @@ export default function NewConversationScreen() {
           <FontAwesome name="arrow-left" size={20} color="#E10600" />
         </TouchableOpacity>
         
-        <Text style={styles.headerTitle}>Nouvelle conversation</Text>
+        <Text style={styles.headerTitle}>New Conversation</Text>
 
+        {isGroupChat && (
         <TouchableOpacity
           style={[styles.nextButton, selectedUsers.length > 0 && styles.nextButtonActive]}
-          onPress={startConversation}
+            onPress={startGroupConversation}
           disabled={selectedUsers.length === 0}
         >
           <Text style={[styles.nextButtonText, selectedUsers.length > 0 && styles.nextButtonTextActive]}>
-            Suivant
+              Next
           </Text>
         </TouchableOpacity>
+        )}
       </View>
 
       {/* Barre de recherche */}
@@ -269,7 +344,7 @@ export default function NewConversationScreen() {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Rechercher des pilotes..."
+            placeholder="Search friends..."
             placeholderTextColor={theme.colors.text.secondary}
           />
         </View>
@@ -279,33 +354,28 @@ export default function NewConversationScreen() {
       <View style={styles.groupOption}>
         <View style={styles.groupOptionLeft}>
           <FontAwesome name="users" size={20} color="#E10600" />
-          <Text style={styles.groupOptionText}>Créer un groupe</Text>
+          <Text style={styles.groupOptionText}>Create a group</Text>
         </View>
         <Switch
           value={isGroupChat}
-          onValueChange={setIsGroupChat}
+          onValueChange={(value) => {
+            setIsGroupChat(value);
+            if (!value) {
+              // Clear selection when switching back to direct message mode
+              setSelectedUsers([]);
+            }
+          }}
           trackColor={{ false: theme.colors.border.light, true: '#E10600' }}
         />
       </View>
 
-      {/* Utilisateurs sélectionnés */}
-      {selectedUsers.length > 0 && (
-        <View style={styles.selectedUsersContainer}>
-          <Text style={styles.selectedUsersTitle}>
-            Sélectionnés ({selectedUsers.length})
-          </Text>
-          <FlatList
-            data={selectedUsers}
-            renderItem={renderSelectedUser}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.selectedUsersList}
-          />
-        </View>
-      )}
-
       {/* Liste des résultats de recherche */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E10600" />
+          <Text style={styles.loadingText}>Loading friends...</Text>
+        </View>
+      ) : (
       <FlatList
         data={searchResults}
         renderItem={renderUser}
@@ -317,19 +387,24 @@ export default function NewConversationScreen() {
             <View style={styles.emptyState}>
               <FontAwesome name="search" size={40} color={theme.colors.text.secondary} />
               <Text style={styles.emptyStateText}>
-                Aucun pilote trouvé pour "{searchQuery}"
+                  No friends found for &quot;{searchQuery}&quot;
               </Text>
             </View>
           ) : (
             <View style={styles.emptyState}>
               <FontAwesome name="users" size={40} color={theme.colors.text.secondary} />
               <Text style={styles.emptyStateText}>
-                Recherchez des pilotes pour démarrer une conversation
+                  {allFriends.length === 0 
+                    ? 'You don\'t have any friends yet. Follow users who follow you back to start conversations.'
+                    : searchQuery.trim() 
+                      ? `No friends found for "${searchQuery}"`
+                      : 'Select a friend to start a conversation'}
               </Text>
             </View>
           )
         }
       />
+      )}
 
       {/* Modal de création de groupe */}
       <Modal
@@ -340,13 +415,13 @@ export default function NewConversationScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Créer un groupe</Text>
+            <Text style={styles.modalTitle}>Create a group</Text>
             
             <TextInput
               style={styles.groupNameInput}
               value={groupName}
               onChangeText={setGroupName}
-              placeholder="Nom du groupe (ex: Équipe Karting Pro)"
+              placeholder="Group name (e.g., Pro Karting Team)"
               placeholderTextColor={theme.colors.text.secondary}
               maxLength={50}
             />
@@ -360,14 +435,86 @@ export default function NewConversationScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowGroupModal(false)}
               >
-                <Text style={styles.cancelButtonText}>Annuler</Text>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.createButton}
                 onPress={createGroup}
+                disabled={loading}
               >
-                <Text style={styles.createButtonText}>Créer</Text>
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.createButtonText}>Create</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de demande de discussion */}
+      <Modal
+        visible={showRequestModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowRequestModal(false);
+          setPendingRequestUser(null);
+          setRequestMessage('');
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Send message request</Text>
+            
+            {pendingRequestUser && (
+              <View style={styles.requestUserInfo}>
+                <Text style={styles.requestUserText}>
+                  You want to contact {pendingRequestUser.name}
+                  {pendingRequestUser.isVerify && ' (verified account)'}
+                </Text>
+                <Text style={styles.requestInfoText}>
+                  This person doesn&apos;t follow you. You can send a message request with an optional message.
+                </Text>
+              </View>
+            )}
+
+            <TextInput
+              style={[styles.groupNameInput, styles.requestMessageInput]}
+              value={requestMessage}
+              onChangeText={setRequestMessage}
+              placeholder="Optional message (e.g., Hello, I would like to discuss with you...)"
+              placeholderTextColor={theme.colors.text.secondary}
+              multiline
+              numberOfLines={4}
+              maxLength={500}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setShowRequestModal(false);
+                  setPendingRequestUser(null);
+                  setRequestMessage('');
+                }}
+                disabled={loading}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={sendMessageRequest}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.createButtonText}>Send</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

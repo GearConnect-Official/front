@@ -280,6 +280,50 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
+  // Styles pour les demandes de discussion
+  requestUserInfo: {
+    marginBottom: theme.spacing.md,
+  },
+  requestUserText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
+  },
+  requestInfoText: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    lineHeight: 20,
+  },
+  requestMessageInput: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  // Styles pour le statut de suivi
+  followStatus: {
+    marginTop: theme.spacing.xs,
+  },
+  canMessageText: {
+    fontSize: 12,
+    color: '#10B981',
+    fontWeight: '500',
+  },
+  requestOnlyText: {
+    fontSize: 12,
+    color: '#F59E0B',
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: theme.spacing.md,
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+  },
 });
 
 export default styles;

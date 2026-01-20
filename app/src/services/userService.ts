@@ -9,6 +9,7 @@ export interface UserProfile {
   description?: string;
   profilePicture?: string;
   profilePicturePublicId?: string;
+  isVerify?: boolean;
   isDeleted?: boolean;
   deletedAt?: string;
   message?: string;

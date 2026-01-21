@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, TextStyle } from "react-native";
 import theme from "../config/theme";
 
 const styles = StyleSheet.create({
@@ -43,13 +43,14 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: theme.colors.background.input,
     borderColor: theme.colors.border.light,
-    ...theme.borders.apply({}, { preset: 'input' }),
+    borderWidth: 1,
+    borderRadius: 8,
     marginTop: theme.spacing.xxxl + 9,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md + 3,
     width: "100%",
     color: theme.colors.text.secondary,
-  },
+  } as TextStyle,
   errorText: {
     color: '#FF4444',
     ...theme.typography.caption,

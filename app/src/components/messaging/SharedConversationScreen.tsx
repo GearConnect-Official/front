@@ -40,6 +40,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { UserStatus, UserStatusDisplay } from '../../types/userStatus';
 import MuteModal, { MuteDuration } from './MuteModal';
 import { useAuth } from '../../context/AuthContext';
+import { cloudinaryService } from '../../services/cloudinary.service';
 
 // Polling interval in milliseconds (3 seconds for near real-time feel)
 const POLLING_INTERVAL = 3000;
@@ -1816,12 +1817,11 @@ export default function SharedConversationScreen({
                 try {
                   setSending(true);
                   
-                  // Upload audio to Cloudinary
-                  const { cloudinaryService } = await import('../../services/cloudinary.service.js');
+                  // Upload audio to Cloudinary en raw pour garder le m4a intact (AVPlayer iOS)
                   const uploadResult = await cloudinaryService.uploadMedia(uri, {
                     folder: 'messages',
                     tags: ['message', 'audio'],
-                    resource_type: 'auto',
+                    resource_type: 'raw',
                   });
 
                   // Send message with audio
@@ -2086,7 +2086,8 @@ export default function SharedConversationScreen({
             }
 
             // Security validation
-            const { validateFileSafety } = await import('../../utils/fileSecurity.js');
+            // @ts-expect-error TS2835 - Metro résout .ts sans extension ; .js provoque "Cannot find module" au runtime
+            const { validateFileSafety } = await import('../../utils/fileSecurity');
             const validation = validateFileSafety(document.name || 'document', document.mimeType);
             
             if (!validation.isValid) {
@@ -2099,9 +2100,9 @@ export default function SharedConversationScreen({
             }
 
             // Verify file exists and has content before uploading (same checks as download)
-            const FileSystemModule = await import('expo-file-system');
-            const FileSystem = FileSystemModule.default || FileSystemModule;
-            const fileInfo = await FileSystem.getInfoAsync(document.uri);
+            // @ts-expect-error TS2307 - expo-file-system/legacy existe à l'exécution (Expo SDK 54) mais les types ne sont pas exportés
+            const { getInfoAsync } = await import('expo-file-system/legacy');
+            const fileInfo = await getInfoAsync(document.uri, { size: true });
             
             if (!fileInfo.exists) {
               Alert.alert('Error', 'File does not exist at the provided location');
@@ -2129,8 +2130,6 @@ export default function SharedConversationScreen({
             setSending(true);
             
             // Upload document to Cloudinary
-            const { cloudinaryService } = await import('../../services/cloudinary.service.js');
-            
             // Clean filename for Cloudinary public_id (remove special chars, keep extension)
             const originalName = document.name || 'document';
             const nameParts = originalName.split('.');
@@ -2371,47 +2370,7 @@ export default function SharedConversationScreen({
             <View style={styles.unifiedActionSheet} onStartShouldSetResponder={() => true}>
               <View style={styles.unifiedSheetHandle} />
               
-              {/* Message preview section */}
-              <View style={styles.unifiedMessagePreview}>
-                <View style={styles.unifiedMessagePreviewContent}>
-                  <View style={styles.unifiedMessagePreviewHeader}>
-                    <VerifiedAvatar
-                      publicId={selectedMessage.sender?.profilePicturePublicId}
-                      fallbackUrl={selectedMessage.sender?.profilePicture}
-                      size={32}
-                      isVerify={selectedMessage.sender?.isVerify || false}
-                      style={styles.unifiedMessagePreviewAvatar}
-                    />
-                    <View style={styles.unifiedMessagePreviewInfo}>
-                      <Text style={styles.unifiedMessagePreviewName}>
-                        {selectedMessage.sender?.name || selectedMessage.sender?.username || 'Unknown'}
-                      </Text>
-                      <Text style={styles.unifiedMessagePreviewTime}>
-                        {formatTime(selectedMessage.createdAt)}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text 
-                    style={styles.unifiedMessagePreviewText}
-                    numberOfLines={3}
-                  >
-                    {selectedMessage.content.startsWith('POLL:') 
-                      ? '📊 Poll' 
-                      : selectedMessage.content.startsWith('CONTACT:')
-                      ? '👤 Contact'
-                      : selectedMessage.messageType === 'IMAGE'
-                      ? '📷 Photo'
-                      : selectedMessage.messageType === 'AUDIO'
-                      ? '🎤 Audio'
-                      : selectedMessage.content}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Divider */}
-              <View style={styles.unifiedDivider} />
-              
-              {/* Reactions section - integrated at top */}
+              {/* Reactions section */}
               <View style={styles.unifiedReactionsSection}>
                 <Text style={styles.unifiedSectionTitle}>React</Text>
                 <ScrollView 

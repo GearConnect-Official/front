@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,7 @@ import {
 } from 'react-native';
 import {
   RouteProp,
-  useNavigation,
   useRoute,
-  NavigationProp,
 } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from '../styles/reviewStyles';

@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
@@ -16,7 +15,6 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import styles from "../styles/auth/forgotPasswordStyles";
 import { useMessage } from '../context/MessageContext';
-import MessageService from '../services/messageService';
 import { QuickMessages } from '../utils/messageUtils';
 
 /**

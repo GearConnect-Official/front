@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import styles from "../styles/reviewStyles";
 import { useAuth } from "../context/AuthContext";
 import eventService from "../services/eventService";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 const CreateReviewScreen: React.FC = () => {
   const auth = useAuth();
   if (!auth) {

@@ -46,9 +46,6 @@ import { cloudinaryService } from '../../services/cloudinary.service';
 // Polling interval in milliseconds (3 seconds for near real-time feel)
 const POLLING_INTERVAL = 3000;
 
-// Polling interval in milliseconds (3 seconds for near real-time feel)
-const POLLING_INTERVAL = 3000;
-
 // Extended Message type with isOwn property for UI
 type Message = ApiMessage & {
   isOwn?: boolean;

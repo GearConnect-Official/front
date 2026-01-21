@@ -9,33 +9,22 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import {
-  RouteProp,
-  useRoute,
-} from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from '../styles/reviewStyles';
 import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type RootStackParamList = {
-  ModifyReview: {
-    eventId: number;
-    userId: number;
-  };
-};
-
-type ModifyReviewScreenRouteProp = RouteProp<
-  RootStackParamList,
-  'ModifyReview'
->;
-
 const ModifyReviewScreen: React.FC = () => {
-  const { user } = useAuth();
-  const route = useRoute<ModifyReviewScreenRouteProp>();
-  const { eventId, userId } = route.params;
+  const authContext = useAuth();
+  const user = authContext?.user;
+  const { eventId: eventIdParam, userId: userIdParam } = useLocalSearchParams<{
+    eventId: string;
+    userId: string;
+  }>();
+  const eventId = eventIdParam ? parseInt(eventIdParam, 10) : 0;
+  const userId = userIdParam ? parseInt(userIdParam, 10) : 0;
 
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(0);

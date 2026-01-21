@@ -1,24 +1,22 @@
-import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native';
-import theme from '../../config/theme';
+import { StyleSheet, Dimensions, Platform } from "react-native";
+import theme from "../../config/theme";
 
-const { width } = Dimensions.get('window');
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
+const { width } = Dimensions.get("window");
 const SCREEN_WIDTH = width;
 
 // Palette de couleurs inspirée du monde automobile et du racing
 const THEME_COLORS = {
-  primary: '#E10600', // Rouge Racing
-  secondary: '#1E1E1E', // Noir Racing
-  tertiary: '#2D9CDB', // Bleu pour accent
-  quaternary: '#F0C419', // Jaune pour accent
-  background: '#FFFFFF',
-  card: '#F2F2F2',
-  cardLight: '#F8F8F8',
-  textPrimary: '#1E1E1E',
-  textSecondary: '#6E6E6E',
-  border: '#E0E0E0',
-  success: '#27AE60', // Vert pour badges positifs
+  primary: "#E10600", // Rouge Racing
+  secondary: "#1E1E1E", // Noir Racing
+  tertiary: "#2D9CDB", // Bleu pour accent
+  quaternary: "#F0C419", // Jaune pour accent
+  background: "#FFFFFF",
+  card: "#F2F2F2",
+  cardLight: "#F8F8F8",
+  textPrimary: "#1E1E1E",
+  textSecondary: "#6E6E6E",
+  border: "#E0E0E0",
+  success: "#27AE60", // Vert pour badges positifs
 };
 
 const styles = StyleSheet.create({
@@ -29,22 +27,22 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingTop: STATUSBAR_HEIGHT,
+    backgroundColor: THEME_COLORS.background,
   },
   contentContainer: {
     flex: 1,
-    paddingTop: HEADER_HEIGHT,
   },
 
   // Header styles
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: THEME_COLORS.background,
+    backgroundColor: "#fff",
     borderBottomWidth: 0,
+    height: 56,
   },
   headerLeft: {
     flex: 1,
@@ -53,13 +51,15 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 15,
     padding: 8,
-    position: 'relative',
+    position: "relative",
     zIndex: 20,
   },
   headerTitle: {
     color: THEME_COLORS.textPrimary,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
+    flex: 1,
+    textAlign: "center",
   },
   placeholderRight: {
     width: 40,
@@ -74,13 +74,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     zIndex: 2,
   },
   nextButtonText: {
     color: THEME_COLORS.primary,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   nextButtonShare: {
     backgroundColor: THEME_COLORS.primary,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   nextButtonShareText: {
     color: THEME_COLORS.background,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   nextButtonDisabled: {
     opacity: 0.5,
@@ -106,29 +106,29 @@ const styles = StyleSheet.create({
   cropConfirmText: {
     color: THEME_COLORS.primary,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // Media Section styles
   mediaSectionContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: THEME_COLORS.cardLight,
     padding: 24,
   },
   mediaSectionTitle: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: "700",
     color: THEME_COLORS.primary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 8,
     letterSpacing: -0.5,
   },
   mediaSectionSubtitle: {
     fontSize: 16,
     color: THEME_COLORS.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 40,
     lineHeight: 22,
     paddingHorizontal: 20,
@@ -143,14 +143,14 @@ const styles = StyleSheet.create({
   mediaSectionProgressText: {
     color: THEME_COLORS.background,
     fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   mediaSectionErrorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFEBEE',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FFEBEE",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -158,19 +158,19 @@ const styles = StyleSheet.create({
   },
   mediaSectionErrorText: {
     flex: 1,
-    color: '#FF3B30',
+    color: "#FF3B30",
     fontSize: 14,
   },
   mediaSectionButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     paddingHorizontal: 20,
     marginBottom: 30,
   },
   mediaSectionOptionButton: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     padding: 24,
     marginHorizontal: 8,
     borderRadius: 16,
@@ -188,15 +188,15 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 12,
   },
   mediaSectionButtonLabel: {
     color: THEME_COLORS.background,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 4,
     letterSpacing: 0.3,
   },
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.background,
     fontSize: 12,
     opacity: 0.9,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 16,
   },
   mediaSectionInfoContainer: {
@@ -213,13 +213,13 @@ const styles = StyleSheet.create({
   mediaSectionInfoText: {
     fontSize: 14,
     color: THEME_COLORS.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 8,
     lineHeight: 20,
   },
   mediaButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 32,
     borderRadius: 16,
     backgroundColor: THEME_COLORS.primary,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.background,
     marginTop: 12,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     letterSpacing: 0.3,
   },
 
@@ -243,9 +243,9 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
   },
   cropperHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     backgroundColor: THEME_COLORS.cardLight,
   },
@@ -255,17 +255,17 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.cardLight,
   },
   cropperTools: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
     padding: 16,
     backgroundColor: THEME_COLORS.cardLight,
   },
   cropperTool: {
     width: 44,
     height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: THEME_COLORS.card,
     borderRadius: 8,
     shadowColor: THEME_COLORS.secondary,
@@ -286,8 +286,8 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
   },
   userInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: THEME_COLORS.border,
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   headerText: {
     color: THEME_COLORS.textPrimary,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   inputContainer: {
     padding: theme.spacing.md,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   titleInput: {
     color: THEME_COLORS.textPrimary,
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: THEME_COLORS.border,
@@ -320,8 +320,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 12,
     minHeight: 100,
-    textAlignVertical: 'top',
-    fontWeight: 'normal',
+    textAlignVertical: "top",
+    fontWeight: "normal",
   },
   formScrollView: {
     flex: 1,
@@ -333,30 +333,30 @@ const styles = StyleSheet.create({
   },
   formContent: {
     padding: theme.spacing.md,
-    paddingBottom: Platform.OS === 'ios' ? 34 : theme.spacing.md,
+    paddingBottom: Platform.OS === "ios" ? 34 : theme.spacing.md,
   },
-  
+
   // Preview Image styles
   previewContainer: {
     flex: 1,
-    width: '100%',
+    width: "100%",
     backgroundColor: THEME_COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   previewImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
-  
+
   // Additional Options styles
   optionsContainer: {
     backgroundColor: THEME_COLORS.background,
   },
   optionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: THEME_COLORS.border,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   // Error styles
   errorContainer: {
     padding: 16,
-    backgroundColor: '#e74c3c',
+    backgroundColor: "#e74c3c",
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 8,
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: THEME_COLORS.background,
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // Image Viewer styles
@@ -390,22 +390,22 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.background,
   },
   imageControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
     padding: 16,
     backgroundColor: THEME_COLORS.cardLight,
   },
-  
+
   // Tag styles
   tagsContainer: {
     marginTop: 16,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   tagItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: THEME_COLORS.cardLight,
     borderRadius: 16,
     paddingHorizontal: 12,
@@ -435,13 +435,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 12,
   },
   addTagButtonText: {
     color: THEME_COLORS.background,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 
-export default styles; 
+export default styles;

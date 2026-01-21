@@ -10,7 +10,7 @@ const getImageSource = (androidResource: string, fallbackRequire: any) => {
 
 export const AppImages = {
   // Main logo - use require() for consistent behavior
-  logoRounded: require('../../assets/images/logo-rounded.png'),
+  logoRounded: require('../../assets/images/logoGearConnect.png'),
   icon: require('../../assets/images/icon.png'),
   splashIcon: require('../../assets/images/splash-icon.png'),
   adaptiveIcon: require('../../assets/images/adaptive-icon.png'),

@@ -16,6 +16,8 @@ interface User {
   email: string;
   photoURL?: string;
   description?: string;
+  profilePicture?: string;
+  profilePicturePublicId?: string;
 }
 
 interface AuthContextType {
@@ -324,22 +326,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         };
       }
 
-      console.log(
-        `Attempting registration with: {"email": "${email}", "password": "***", "username": "${username}"}`
-      );
-
-      // Register with backend only
       const backendResponse = await authSignUp(username, email, password, name);
-      console.log("Registration response:", backendResponse);
 
       if (!backendResponse.success) {
         return {
           success: false,
-          error: backendResponse.error || "Error during registration",
+          error: backendResponse.error || "Registration failed. Please try again.",
         };
       }
 
-      // Définir l'utilisateur et isAuthenticated
       if (backendResponse.user) {
         const userObj = {
           id: String(backendResponse.user.id),
@@ -350,16 +345,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         };
         setUser(userObj);
         setIsAuthenticated(true);
-        console.log("Utilisateur défini après inscription:", userObj);
       }
 
-      // L'utilisateur est déjà créé par le backend, on peut directement retourner un succès
       return { success: true };
     } catch (error: any) {
-      console.error("Registration Error:", error);
+      const msg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message;
+      if (typeof msg === "string" && msg) {
+        return { success: false, error: msg };
+      }
+      if (typeof error?.message === "string" && !/^Request failed|^Network Error|status code/i.test(error.message)) {
+        return { success: false, error: error.message };
+      }
       return {
         success: false,
-        error: error.message || "Registration failed",
+        error: "Registration failed. Please try again.",
       };
     } finally {
       setIsLoading(false);
@@ -392,7 +393,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (signInAttempt.status === "complete") {
-        // Get user details after successful login
         const userDetails = backendResponse.user || await getCurrentUser();
         if (userDetails) {
           const validUser: User = {
@@ -406,21 +406,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setUser(validUser);
           setIsAuthenticated(true);
           await saveUserToStorage(validUser);
-          console.log('✅ Connexion réussie et données sauvegardées');
         }
-        
         return { success: true };
-      } else {
-        return {
-          success: false,
-          error: "Erreur lors de la connexion avec Clerk",
-        };
       }
-    } catch (error: any) {
-      console.error('❌ Erreur de connexion:', error);
       return {
         success: false,
-        error: error.message || "Une erreur est survenue lors de la connexion",
+        error: "Login could not be completed. Please try again.",
+      };
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message;
+      if (typeof msg === "string" && msg) {
+        return { success: false, error: msg };
+      }
+      if (typeof error?.message === "string" && !/^Request failed|^Network Error|status code/i.test(error.message)) {
+        return { success: false, error: error.message };
+      }
+      return {
+        success: false,
+        error: "Login failed. Please try again.",
       };
     } finally {
       setIsLoading(false);

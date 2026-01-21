@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -32,45 +32,50 @@ interface SettingsItemProps {
   isDestructive?: boolean;
 }
 
-const SettingsSection: React.FC<SettingsSectionProps> = ({ title, children }) => (
+const SettingsSection: React.FC<SettingsSectionProps> = ({
+  title,
+  children,
+}) => (
   <View style={styles.sectionContainer}>
     <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={styles.sectionContent}>
-      {children}
-    </View>
+    <View style={styles.sectionContent}>{children}</View>
   </View>
 );
 
-const SettingsItem: React.FC<SettingsItemProps> = ({ 
-  icon, 
-  title, 
-  subtitle, 
-  onPress, 
+const SettingsItem: React.FC<SettingsItemProps> = ({
+  icon,
+  title,
+  subtitle,
+  onPress,
   rightElement,
-  isDestructive = false
+  isDestructive = false,
 }) => (
-  <TouchableOpacity 
-    style={styles.settingsItem} 
+  <TouchableOpacity
+    style={styles.settingsItem}
     onPress={onPress}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
   >
     <View style={styles.settingsItemLeft}>
-      <View style={[
-        styles.iconContainer, 
-        isDestructive ? styles.destructiveIconContainer : null
-      ]}>
-        <FontAwesome 
-          name={icon} 
-          size={20} 
-          color={isDestructive ? colors.iconError : colors.iconPrimary} 
+      <View
+        style={[
+          styles.iconContainer,
+          isDestructive ? styles.destructiveIconContainer : null,
+        ]}
+      >
+        <FontAwesome
+          name={icon}
+          size={20}
+          color={isDestructive ? colors.iconError : colors.iconPrimary}
         />
       </View>
       <View style={styles.settingsItemTextContainer}>
-        <Text style={[
-          styles.settingsItemTitle,
-          isDestructive ? styles.destructiveText : null
-        ]}>
+        <Text
+          style={[
+            styles.settingsItemTitle,
+            isDestructive ? styles.destructiveText : null,
+          ]}
+        >
           {title}
         </Text>
         {subtitle && (
@@ -79,9 +84,14 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
       </View>
     </View>
     <View style={styles.settingsItemRight}>
-      {rightElement || (
-        onPress && <FontAwesome name="chevron-right" size={16} color={colors.iconChevron} />
-      )}
+      {rightElement ||
+        (onPress && (
+          <FontAwesome
+            name="chevron-right"
+            size={16}
+            color={colors.iconChevron}
+          />
+        ))}
     </View>
   </TouchableOpacity>
 );
@@ -91,8 +101,8 @@ const SettingsScreen: React.FC = () => {
   const auth = useAuth();
   const { showMessage, showConfirmation } = useMessage();
   const [isFetchingUser, setIsFetchingUser] = useState(true);
-  const [appVersion] = useState('1.0.0');
-  
+  const [appVersion] = useState("1.0.0");
+
   // Initial load of user preferences
   useEffect(() => {
     const loadUserPreferences = async () => {
@@ -102,11 +112,11 @@ const SettingsScreen: React.FC = () => {
           setIsFetchingUser(false);
         }, 500);
       } catch (error) {
-        console.error('Error loading user preferences:', error);
+        console.error("Error loading user preferences:", error);
         setIsFetchingUser(false);
       }
     };
-    
+
     loadUserPreferences();
   }, []);
 
@@ -158,14 +168,21 @@ const SettingsScreen: React.FC = () => {
           console.error("Error during logout:", error);
           showMessage(MessageService.ERROR.LOGOUT_FAILED);
         }
-      }
+      },
     });
   };
 
   if (isFetchingUser) {
     return (
-      <SafeAreaView style={styles.loadingContainer} edges={['top', 'left', 'right']}>
-        <StatusBar barStyle="dark-content" backgroundColor={colors.statusBarBackground} translucent={true} />
+      <SafeAreaView
+        style={styles.loadingContainer}
+        edges={["top", "left", "right"]}
+      >
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={colors.statusBarBackground}
+          translucent={true}
+        />
         <ActivityIndicator size="large" color={colors.activityIndicator} />
         <Text style={styles.loadingText}>Loading settings...</Text>
       </SafeAreaView>

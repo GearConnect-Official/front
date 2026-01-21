@@ -41,10 +41,12 @@ export const useCloudinary = (): UseCloudinaryReturn => {
 
       await requestPermissions();
 
+      const allowsEditing = options?.allowsEditing !== false;
+      const aspect = allowsEditing ? (options?.aspect || [4, 3]) : undefined;
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing,
+        ...(aspect ? { aspect } : {}),
         quality: 1.0, // Qualité maximale pour préserver la résolution originale
       });
 
@@ -112,10 +114,12 @@ export const useCloudinary = (): UseCloudinaryReturn => {
 
       await requestCameraPermissions();
 
+      const allowsEditing = options?.allowsEditing !== false;
+      const aspect = allowsEditing ? (options?.aspect || [4, 3]) : undefined;
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing,
+        ...(aspect ? { aspect } : {}),
         quality: 1.0, // Qualité maximale pour préserver la résolution originale
       });
 

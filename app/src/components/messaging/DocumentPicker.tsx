@@ -163,6 +163,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
   },
   closeButton: {
     padding: theme.spacing.xs,

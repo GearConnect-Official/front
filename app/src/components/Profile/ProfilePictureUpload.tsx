@@ -88,8 +88,6 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
         allowsEditing: true,
         aspect: [1, 1], // Force un ratio carré pour les photos de profil
         quality: 0.8,
-        // Forcer l'éditeur à présenter un cadre circulaire quand possible
-        presentationStyle: 'automatic',
       });
 
       if (!result.canceled && result.assets[0].uri) {
@@ -257,7 +255,7 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
           position: 'absolute',
           bottom: 0,
           right: 0,
-          backgroundColor: '#007AFF',
+          backgroundColor: '#E10600',
           borderRadius: 18,
           width: 36,
           height: 36,

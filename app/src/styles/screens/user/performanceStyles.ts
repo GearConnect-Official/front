@@ -15,12 +15,13 @@ export const THEME_COLORS = {
 
   // UI colors
   PRIMARY: "#E10600",
-  BACKGROUND: "#F8F9FA",
+  BACKGROUND: "#FFFFFF",
   CARD_BACKGROUND: "#FFFFFF",
   BORDER: "#E1E8ED",
   TEXT_PRIMARY: "#14171A",
   TEXT_SECONDARY: "#657786",
   TEXT_MUTED: "#AAB8C2",
+  TEXT_WHITE: "#FFFFFF",
 
   // Status colors
   SUCCESS: "#10B981",
@@ -34,6 +35,8 @@ export const THEME_COLORS = {
   RACING_GRADIENT_START: "#FF6B1A",
   RACING_GRADIENT_END: "#E10600",
 };
+
+
 
 // Animation and layout constants
 export const LAYOUT = {
@@ -79,11 +82,11 @@ export const performanceStyles = StyleSheet.create({
   // Container styles
   container: {
     flex: 1,
-    backgroundColor: THEME_COLORS.BACKGROUND,
+    backgroundColor: "#fff",
   },
   safeArea: {
     flex: 1,
-    backgroundColor: THEME_COLORS.CARD_BACKGROUND,
+    backgroundColor: "#fff",
   },
   scrollContainer: {
     flex: 1,
@@ -98,20 +101,17 @@ export const performanceStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: LAYOUT.SPACING_MD,
-    paddingVertical: LAYOUT.SPACING_MD,
-    backgroundColor: THEME_COLORS.CARD_BACKGROUND,
-    borderBottomWidth: 1,
-    borderBottomColor: THEME_COLORS.BORDER,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderBottomWidth: 0,
+    height: 56,
   },
   headerTitle: {
     fontSize: TYPOGRAPHY.SECTION_TITLE,
     fontWeight: TYPOGRAPHY.WEIGHT_BOLD,
     color: THEME_COLORS.TEXT_PRIMARY,
+    flex: 1,
+    textAlign: "center",
   },
   headerButton: {
     width: 40,
@@ -233,11 +233,10 @@ export const performanceStyles = StyleSheet.create({
   },
   filterChipActive: {
     backgroundColor: THEME_COLORS.PRIMARY,
-    borderColor: THEME_COLORS.PRIMARY,
   },
   filterChipText: {
     fontSize: TYPOGRAPHY.BODY,
-    color: THEME_COLORS.TEXT_SECONDARY,
+    color: THEME_COLORS.TEXT_WHITE,
     fontWeight: TYPOGRAPHY.WEIGHT_MEDIUM,
   },
   filterChipTextActive: {

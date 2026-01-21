@@ -54,11 +54,11 @@ const GroupsScreen: React.FC = () => {
 
   const openGroup = (group: Group) => {
     router.push({
-      pathname: '/(app)/groupDetail',
-      params: { 
+      pathname: "/(app)/groupDetail",
+      params: {
         groupId: group.id.toString(),
-        groupName: group.name 
-      }
+        groupName: group.name,
+      },
     });
   };
 
@@ -193,7 +193,7 @@ const GroupsScreen: React.FC = () => {
           <FontAwesome name="arrow-left" size={20} color="#6A707C" />
         </TouchableOpacity>
         <Text style={styles.headerTitle as StyleProp<TextStyle>}>Groups</Text>
-        <View style={styles.headerActions as StyleProp<ViewStyle>}>
+        {/* <View style={styles.headerActions as StyleProp<ViewStyle>}>
           <TouchableOpacity
             style={styles.headerButton as StyleProp<ViewStyle>}
             onPress={() => router.push('/(app)/eventGroups')}
@@ -201,7 +201,7 @@ const GroupsScreen: React.FC = () => {
           >
             <FontAwesome name="trophy" size={20} color="#E10600" />
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
 
       {/* Groups list */}
@@ -228,4 +228,4 @@ const GroupsScreen: React.FC = () => {
   );
 };
 
-export default GroupsScreen; 
+export default GroupsScreen;

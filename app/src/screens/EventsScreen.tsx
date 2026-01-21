@@ -1,23 +1,20 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   RefreshControl,
-  Image,
-  Animated,
   Dimensions,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/screens/events/eventsStyles";
 import EventItem from "../components/items/EventItem";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Event } from "../services/eventService";
-import { LinearGradient } from "expo-linear-gradient";
 import { API_URL_EVENTS, API_URL_USERS } from '../config';
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
@@ -26,12 +23,11 @@ import eventService from "../services/eventService";
 import { countEventsWithMissingInfo } from "../utils/eventMissingInfo";
 import { trackScreenView } from "../utils/mixpanelTracking";
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.8;
+const { width } = Dimensions.get("window");
 
 const EventsScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [events, setEvents] = useState<{ [key: string]: Event[] }>({
     all: [],
     upcoming: [],
@@ -53,7 +49,6 @@ const EventsScreen: React.FC = () => {
   const [eventWinners, setEventWinners] = useState<Map<number, { userName: string; lapTime: string }>>(new Map());
   const [createdEvents, setCreatedEvents] = useState<Event[]>([]);
   const [missingInfoCount, setMissingInfoCount] = useState(0);
-  const scrollX = React.useRef(new Animated.Value(0)).current;
   const router = useRouter();
   const auth = useAuth();
   const currentUserId = auth?.user?.id ? Number(auth.user.id) : undefined;
@@ -65,9 +60,9 @@ const EventsScreen: React.FC = () => {
   }
 
   const tabs: TabItem[] = [
-    { key: 'all', label: 'All Events', icon: 'calendar' },
-    { key: 'upcoming', label: 'Upcoming Events', icon: 'star' },
-    { key: 'passed', label: 'Passed Events', icon: 'history' },
+    { key: "all", label: "All Events", icon: "calendar" },
+    { key: "upcoming", label: "Upcoming Events", icon: "star" },
+    { key: "passed", label: "Passed Events", icon: "history" },
   ];
 
   // Charger les événements rejoints par l'utilisateur
@@ -259,10 +254,40 @@ const EventsScreen: React.FC = () => {
         (event: Event) => new Date(event.date) < now
       );
 
-      // Define featured events (first 5 upcoming events)
-      const featuredEvents = upcomingEvents.slice(0, 5);
+      // Calculate Best Events based on:
+      // 1. Participants count (engagement)
+      // 2. Fill ratio (participants / expectedParticipants if available)
+      const calculateBestEventScore = (event: Event): number => {
+        const participantsCount = event.participantsCount || 0;
+        const expectedParticipants = (event.meteo as any)?.expectedParticipants;
+        
+        // Base score from participants (weight: 10 points per participant - shows engagement)
+        let score = participantsCount * 10;
+        
+        // Bonus for fill ratio if expectedParticipants exists
+        // Events that are closer to capacity get higher scores
+        if (expectedParticipants && expectedParticipants > 0) {
+          const fillRatio = participantsCount / expectedParticipants;
+          // Bonus up to 100 points for high fill ratio (closer to 1.0 = more points)
+          score += fillRatio * 100;
+        }
+        
+        return score;
+      };
 
-      setFeatured(featuredEvents);
+      // Calculate scores and sort by best event score (descending)
+      const eventsWithScores = upcomingEvents.map((event: Event) => ({
+        event,
+        score: calculateBestEventScore(event),
+      }));
+
+      // Sort by score descending and take top 5
+      const bestEvents = eventsWithScores
+        .sort((a: { event: Event; score: number }, b: { event: Event; score: number }) => b.score - a.score)
+        .slice(0, 5)
+        .map((item: { event: Event; score: number }) => item.event);
+
+      setFeatured(bestEvents);
       setEvents({
         all: eventsWithOrganizers,
         upcoming: upcomingEvents,
@@ -279,9 +304,15 @@ const EventsScreen: React.FC = () => {
       await fetchEventWinners(eventsWithOrganizers);
     } catch (err) {
       // Check if it's a network error (fetch API throws TypeError for network issues)
-      if (err instanceof TypeError && (err.message.includes('Network request failed') || err.message.includes('Failed to fetch'))) {
+      if (
+        err instanceof TypeError &&
+        (err.message.includes("Network request failed") ||
+          err.message.includes("Failed to fetch"))
+      ) {
         setIsNetworkError(true);
-        setError("Your WiFi connection might not be working properly. Please check your internet connection and try again.");
+        setError(
+          "Your WiFi connection might not be working properly. Please check your internet connection and try again."
+        );
       } else {
         setError("Unable to load events. Please try again later.");
       }
@@ -315,7 +346,7 @@ const EventsScreen: React.FC = () => {
         ),
       };
       setFilteredEvents(filtered);
-    } else if (searchQuery === '') {
+    } else if (searchQuery === "") {
       setFilteredEvents(events);
     }
   };
@@ -350,13 +381,13 @@ const EventsScreen: React.FC = () => {
     
     // Sinon, aller à la page de détail normale
     router.push({
-      pathname: '/(app)/eventDetail',
+      pathname: "/(app)/eventDetail",
       params: { eventId: event.id },
     });
   };
 
   const handleCreateEvent = () => {
-    router.push('/(app)/createEvent');
+    router.push("/(app)/createEvent");
   };
 
   const renderFeaturedItem = ({
@@ -366,74 +397,56 @@ const EventsScreen: React.FC = () => {
     item: Event;
     index: number;
   }) => {
-    const date = new Date(item.date);
-    const formattedDate = date.toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-
-    const inputRange = [
-      (index - 1) * CARD_WIDTH,
-      index * CARD_WIDTH,
-      (index + 1) * CARD_WIDTH,
-    ];
-
-    const scale = scrollX.interpolate({
-      inputRange,
-      outputRange: [0.9, 1, 0.9],
-      extrapolate: 'clamp',
-    });
-
-    const opacity = scrollX.interpolate({
-      inputRange,
-      outputRange: [0.7, 1, 0.7],
-      extrapolate: 'clamp',
-    });
+    const eventId = typeof item.id === 'string' ? parseInt(item.id) : item.id;
+    const isJoined = eventId ? joinedEventIds.has(eventId) : false;
+    const participantsCount = item.participantsCount || 0;
+    const winner = eventId ? eventWinners.get(eventId) : null;
 
     return (
-      <TouchableOpacity
-        onPress={() => handleEventPress(item)}
-        activeOpacity={0.9}
-      >
-        <Animated.View
-          style={{
-            width: CARD_WIDTH,
-            transform: [{ scale }],
-            opacity,
-            marginHorizontal: 10,
+      <View style={{ width: width - 32, marginHorizontal: 16 }}>
+        <EventItem
+          title={item.name}
+          subtitle={`By: ${item.creators}`}
+          date={new Date(item.date).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+          })}
+          icon={item.logo}
+          logoPublicId={item.logoPublicId}
+          images={item.images}
+          imagePublicIds={item.imagePublicIds}
+          location={item.location}
+          attendees={participantsCount}
+          onPress={() => handleEventPress(item)}
+          eventId={eventId}
+          creatorId={item.creatorId}
+          currentUserId={currentUserId}
+          isJoined={isJoined}
+          winner={winner || undefined}
+          eventDate={item.date}
+          meteo={item.meteo}
+          finished={item.finished}
+          participationTagText={item.participationTagText}
+          participationTagColor={item.participationTagColor}
+          organizers={(item as any).organizers || []}
+          onJoinSuccess={() => {
+            if (currentUserId && eventId) {
+              setJoinedEventIds((prev) => new Set(prev).add(eventId));
+              fetchEvents();
+            }
           }}
-        >
-          <View style={styles.featuredCard}>
-            <Image
-              source={{
-                uri:
-                  item.logo || 'https://via.placeholder.com/300x200?text=Event',
-              }}
-              style={styles.featuredImage}
-            />
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.8)']}
-              style={styles.featuredGradient}
-            >
-              <Text style={styles.featuredDate}>{formattedDate}</Text>
-              <Text style={styles.featuredTitle}>{item.name}</Text>
-              <Text style={styles.featuredLocation}>
-                <FontAwesome name="map-marker" size={14} color="#fff" />
-                {item.location}
-              </Text>
-              <View style={styles.featuredActions}>
-                <TouchableOpacity style={styles.featuredButton}>
-                  <Text style={styles.featuredButtonText}>Join</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.featuredIconButton}>
-                  <FontAwesome name="share" size={16} color="#fff" />
-                </TouchableOpacity>
-              </View>
-            </LinearGradient>
-          </View>
-        </Animated.View>
-      </TouchableOpacity>
+          onLeaveSuccess={() => {
+            if (currentUserId && eventId) {
+              setJoinedEventIds((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(eventId);
+                return newSet;
+              });
+              fetchEvents();
+            }
+          }}
+        />
+      </View>
     );
   };
 
@@ -495,95 +508,91 @@ const EventsScreen: React.FC = () => {
           </View>
         </View>
       </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Hero section */}
-        <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>Discover Amazing Events</Text>
-          <Text style={styles.heroSubtitle}>
-            Join the community and share your passions
-          </Text>
-        </View>
-
-        {/* Featured events carousel */}
-        {featured.length > 0 && (
-          <View style={styles.featuredSection}>
-            <Text style={styles.sectionTitle}>Featured Events</Text>
-            <Animated.FlatList
-              data={featured}
-              keyExtractor={(item: Event) =>
-                item.id?.toString() || Math.random().toString()
-              }
-              renderItem={renderFeaturedItem}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              pagingEnabled
-              snapToInterval={CARD_WIDTH + 20}
-              decelerationRate="fast"
-              contentContainerStyle={{ paddingHorizontal: 10 }}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                { useNativeDriver: true }
-              )}
-            />
+      <View style={styles.contentContainer}>
+        <ScrollView
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {/* Hero section */}
+          <View style={styles.heroSection}>
+            <Text style={styles.heroTitle}>Discover Amazing Events</Text>
+            <Text style={styles.heroSubtitle}>
+              Join the community and share your passions
+            </Text>
           </View>
-        )}
 
-        <View style={styles.searchSection}>
-          <View style={styles.searchBar}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search for an event"
-              value={searchQuery}
-              onChangeText={(text: string) => {
-                setSearchQuery(text);
-                if (text === '') {
-                  setFilteredEvents(events);
-                }
-              }}
-              onSubmitEditing={handleSearch}
-            />
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={handleSearch}
-            >
-              <FontAwesome name="search" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
+          {/* Best Events - using same card style as list */}
+          {featured.length > 0 && (
+            <View style={styles.featuredSection}>
+              <Text style={styles.sectionTitle}>Best Events</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 0 }}
+              >
+                {featured.map((item: Event, index: number) => (
+                  <View key={item.id?.toString() || index.toString()}>
+                    {renderFeaturedItem({ item, index })}
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
-        <View style={styles.tabGroup}>
-          {tabs.map((tab: TabItem) => (
-            <TouchableOpacity
-              key={tab.key}
-              onPress={() => setActiveTab(tab.key)}
-              style={[
-                styles.tab,
-                activeTab === tab.key ? styles.activeTab : {},
-              ]}
-            >
-              <FontAwesome
-                name={tab.icon}
-                size={20}
-                color={activeTab === tab.key ? '#FFFFFF' : '#1E232C'}
-                style={styles.tabIcon}
+          
+
+          <View style={styles.searchSection}>
+            <View style={styles.searchBar}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search for an event"
+                value={searchQuery}
+                onChangeText={(text: string) => {
+                  setSearchQuery(text);
+                  if (text === "") {
+                    setFilteredEvents(events);
+                  }
+                }}
+                onSubmitEditing={handleSearch}
               />
-              <Text
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={handleSearch}
+              >
+                <FontAwesome name="search" size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.tabGroup}>
+            {tabs.map((tab: TabItem) => (
+              <TouchableOpacity
+                key={tab.key}
+                onPress={() => setActiveTab(tab.key)}
                 style={[
-                  styles.tabText,
-                  activeTab === tab.key ? styles.activeTabText : {},
+                  styles.tab,
+                  activeTab === tab.key ? styles.activeTab : {},
                 ]}
               >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <FontAwesome
+                  name={tab.icon}
+                  size={20}
+                  color={activeTab === tab.key ? "#FFFFFF" : "#1E232C"}
+                  style={styles.tabIcon}
+                />
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab.key ? styles.activeTabText : {},
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -633,7 +642,10 @@ const EventsScreen: React.FC = () => {
                     day: 'numeric',
                     month: 'short',
                   })}
-                  emoji="🎉"
+                  icon={event.logo}
+                  logoPublicId={event.logoPublicId}
+                  images={event.images}
+                  imagePublicIds={event.imagePublicIds}
                   location={event.location}
                   attendees={participantsCount}
                   onPress={() => handleEventPress(event)}
@@ -674,28 +686,11 @@ const EventsScreen: React.FC = () => {
           </View>
         )}
 
-        {/* CTA Section */}
-        <View style={styles.ctaSection}>
-          <LinearGradient
-            colors={['#3a86ff', '#5e60ce']}
-            style={styles.ctaGradient}
-          >
-            <Text style={styles.ctaTitle}>Organize Your Own Event</Text>
-            <Text style={styles.ctaText}>
-              Share your passion and meet new people
-            </Text>
-            <TouchableOpacity
-              style={styles.ctaButton}
-              onPress={handleCreateEvent}
-            >
-              <Text style={styles.ctaButtonText}>Create Now</Text>
-              <FontAwesome name="arrow-right" size={16} color="#3a86ff" />
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
 
-        <View style={{ height: 60 }} />
-      </ScrollView>
+
+          <View style={{ height: 60 }} />
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };

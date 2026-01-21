@@ -5,18 +5,13 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
-  SafeAreaView,
-  Image,
   StatusBar,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from "expo-router";
 import userService from "../services/userService";
 import styles from "../styles/Profile/editProfileStyles";
-import * as ImagePicker from "expo-image-picker";
-import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useMessage } from "../context/MessageContext";
 import MessageService from "../services/messageService";
@@ -232,7 +227,7 @@ const EditProfileScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor="#FFFFFF"

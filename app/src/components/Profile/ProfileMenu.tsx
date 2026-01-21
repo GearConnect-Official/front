@@ -56,14 +56,14 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
         <View style={styles.menuContainer}>
           <View>
             <MenuItem icon="cog" label="Settings" onPress={onSettingsPress} />
-            <MenuItem
+            {/* <MenuItem
               icon="user-edit"
               label="Edit Profile"
               onPress={() => {
                 onClose();
                 onEditProfilePress();
               }}
-            />
+            /> */}
             <View style={styles.separator} />
             <MenuItem
               icon="sign-out-alt"

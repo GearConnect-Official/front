@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import theme from '../../config/theme';
+import { StyleSheet } from "react-native";
+import theme from "../../config/theme";
 
 const styles = StyleSheet.create({
   container: {
@@ -17,9 +17,10 @@ const styles = StyleSheet.create({
   header: {
     ...theme.common.spaceBetween,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    paddingVertical: 10,
+    borderBottomWidth: 0,
+    backgroundColor: '#fff',
+    height: 56,
   },
   backButton: {
     padding: theme.spacing.xs,
@@ -28,7 +29,7 @@ const styles = StyleSheet.create({
     ...theme.typography.h2,
     color: theme.colors.text.primary,
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
   },
   headerActions: {
     ...theme.common.row,
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   groupIconContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: theme.spacing.sm,
   },
   groupIcon: {
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
     ...theme.common.centerContent,
   },
   publicBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -2,
     right: -2,
     width: 20,
@@ -126,12 +127,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 10,
     minWidth: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   moreChannels: {
     ...theme.typography.caption,
     color: theme.colors.grey[400],
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   emptyContainer: {
     ...theme.common.centerContent,
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   emptyDescription: {
     ...theme.typography.body2,
     color: theme.colors.grey[400],
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
   },
   modalContainer: {
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
   },
   textArea: {
     height: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   inputHint: {
     ...theme.typography.caption,
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
   },
   checkboxGroup: {
     ...theme.common.row,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
     gap: theme.spacing.sm,
   },
   checkbox: {
@@ -232,4 +233,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles; 
+export default styles;

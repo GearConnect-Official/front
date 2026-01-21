@@ -5,10 +5,8 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  Modal,
   RefreshControl,
   ActivityIndicator,
-  StatusBar,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,12 +14,12 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import styles from "../styles/Profile/profileStyles";
 import { useAuth } from "../context/AuthContext";
-import ProfilePost from "../components/Feed/ProfilePost";
 import favoritesService from "../services/favoritesService";
 import postService from "../services/postService";
 import { API_URL_USERS } from "../config";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from "../components/media";
+import EventItem from "../components/items/EventItem";
 import { VerifiedAvatar } from "../components/media/VerifiedAvatar";
 import { detectMediaType } from "../utils/mediaUtils";
 import { defaultImages } from "../config/defaultImages";
@@ -110,8 +108,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     averagePosition: 0,
   });
   const [isLoadingDriverStats, setIsLoadingDriverStats] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [postModalVisible, setPostModalVisible] = useState(false);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -132,7 +128,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [createdEvents, setCreatedEvents] = useState<any[]>([]);
   const [isLoadingCreatedEvents, setIsLoadingCreatedEvents] = useState(false);
   const [missingInfoCount, setMissingInfoCount] = useState(0);
-  const [nextEventTag, setNextEventTag] = useState<{ text: string; color: string; isOrganizer?: boolean; eventId?: number } | null>(null);
+  const [nextEventTag, setNextEventTag] = useState<{ text: string; color: string; isOrganizer?: boolean; eventId?: number; eventName?: string } | null>(null);
 
   // Get user from auth context and determine which user ID to use
   const { user } = auth || {};
@@ -223,6 +219,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         setNextEventTag({
           ...response.data.tag,
           eventId: response.data.event.id,
+          eventName: response.data.event.name,
         });
       }
     } catch (error) {
@@ -571,42 +568,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }
   };
 
-  const handlePostPress = (post: Post) => {
-    setSelectedPost(post);
-    setPostModalVisible(true);
-  };
-
-  const handleClosePostModal = () => {
-    setPostModalVisible(false);
-    setSelectedPost(null);
-  };
-
-  const handleLikePost = (postId: string) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            likes: post.likes + 1,
-          };
-        }
-        return post;
-      })
-    );
-  };
-
-  const handleCommentPost = (postId: string) => {
-    console.log(`Open comments for post ${postId}`);
-  };
-
-  const handleSharePost = (postId: string) => {
-    console.log(`Share post ${postId}`);
-  };
-
-  const handleProfilePress = (username: string) => {
-    console.log(`Navigate to profile of ${username}`);
-  };
-
   const handleEventPress = (eventId: string) => {
     router.push({
       pathname: "/(app)/eventDetail",
@@ -726,7 +687,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               key={item.id}
               style={styles.postTile}
               activeOpacity={0.8}
-              onPress={() => handlePostPress(item)}
+              onPress={() => {
+                router.push({
+                  pathname: "/(app)/postDetail",
+                  params: { postId: item.id },
+                });
+              }}
             >
               {item.isVideo ? (
                 <CloudinaryMedia
@@ -800,54 +766,39 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingVertical: 16 }}
       >
-        {joinedEvents.map((event: any) => (
-          <TouchableOpacity
-            key={event.id}
-            style={{
-              marginHorizontal: 16,
-              marginBottom: 16,
-              backgroundColor: '#fff',
-              borderRadius: 12,
-              padding: 16,
-              elevation: 2,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-            }}
-            onPress={() => handleEventPress(event.id.toString())}
-          >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333', flex: 1 }}>
-                {event.name}
-              </Text>
-              <View style={{ backgroundColor: '#f0f7ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: '#3a86ff' }}>
-                  {new Date(event.date).toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'short',
-                  })}
-                </Text>
-              </View>
-            </View>
-            {event.location && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                <FontAwesome name="map-marker" size={14} color="#666" />
-                <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
-                  {event.location}
-                </Text>
-              </View>
-            )}
-            {event.creator && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                <FontAwesome name="user" size={14} color="#666" />
-                <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
-                  {event.creator.name || event.creator.username}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
+        {joinedEvents.map((event: any, index: number) => {
+          const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+          return (
+            <EventItem
+              key={event.id ?? index}
+              title={event.name}
+              subtitle={`By: ${event.creators || event.creator?.name || event.creator?.username || 'Unknown'}`}
+              date={new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+              icon={event.logo}
+              logoPublicId={event.logoPublicId}
+              images={event.images}
+              imagePublicIds={event.imagePublicIds}
+              location={event.location}
+              attendees={event.participantsCount ?? 0}
+              onPress={() => handleEventPress(event.id.toString())}
+              eventId={eventId}
+              creatorId={event.creatorId}
+              currentUserId={user?.id != null ? Number(user.id) : undefined}
+              isJoined
+              eventDate={event.date}
+              meteo={event.meteo}
+              finished={event.finished}
+              participationTagText={event.participationTagText}
+              participationTagColor={event.participationTagColor}
+              organizers={(event as any).organizers || []}
+              onLeaveSuccess={async () => {
+                if (!effectiveUserId) return;
+                const r = await userService.getJoinedEvents(effectiveUserId, 1, 20);
+                if (r.success && r.data) setJoinedEvents(r.data.events || []);
+              }}
+            />
+          );
+        })}
       </ScrollView>
     );
   };
@@ -886,7 +837,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             style={{
               marginTop: 16,
               padding: 12,
-              backgroundColor: '#3a86ff',
+              backgroundColor: '#E10600',
               borderRadius: 8,
             }}
             onPress={() => router.push('/(app)/createEvent')}
@@ -922,100 +873,38 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </Text>
           </View>
         )}
-        {createdEvents.map((event: any) => {
+        {createdEvents.map((event: any, index: number) => {
           const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
           const missingInfo = checkMissingEventInfo(event);
-          
           return (
-            <TouchableOpacity
-              key={event.id}
-              style={{
-                marginHorizontal: 16,
-                marginBottom: 16,
-                backgroundColor: '#fff',
-                borderRadius: 12,
-                padding: 16,
-                elevation: 2,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                borderWidth: missingInfo.hasMissingInfo ? 2 : 0,
-                borderColor: missingInfo.hasMissingInfo ? '#F59E0B' : 'transparent',
-              }}
+            <EventItem
+              key={event.id ?? index}
+              title={event.name}
+              subtitle={`By: ${event.creators || 'Unknown'}`}
+              date={new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+              icon={event.logo}
+              logoPublicId={event.logoPublicId}
+              images={event.images}
+              imagePublicIds={event.imagePublicIds}
+              location={event.location}
+              attendees={event.participantsCount ?? 0}
               onPress={() => {
-                // Si des infos manquent, aller au formulaire post-event
                 if (missingInfo.hasMissingInfo && eventId) {
-                  router.push({
-                    pathname: '/(app)/postEventInfo',
-                    params: { eventId: eventId.toString() },
-                  });
+                  router.push({ pathname: '/(app)/postEventInfo', params: { eventId: eventId.toString() } });
                 } else {
-                  router.push({
-                    pathname: '/(app)/eventDetail',
-                    params: { eventId: event.id },
-                  });
+                  router.push({ pathname: '/(app)/eventDetail', params: { eventId: event.id } });
                 }
               }}
-            >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>
-                    {event.name}
-                  </Text>
-                </View>
-                {missingInfo.hasMissingInfo && (
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: '#FEF3C7',
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 12,
-                    marginLeft: 8,
-                  }}>
-                    <FontAwesome name="exclamation-triangle" size={12} color="#F59E0B" />
-                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#F59E0B', marginLeft: 4 }}>
-                      {missingInfo.missingCount}
-                    </Text>
-                  </View>
-                )}
-                <View style={{ backgroundColor: '#f0f7ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginLeft: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#3a86ff' }}>
-                    {new Date(event.date).toLocaleDateString('en-US', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
-                  </Text>
-                </View>
-              </View>
-              {event.location && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                  <FontAwesome name="map-marker" size={14} color="#666" />
-                  <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
-                    {event.location}
-                  </Text>
-                </View>
-              )}
-              {missingInfo.hasMissingInfo && (
-                <View style={{
-                  marginTop: 8,
-                  padding: 8,
-                  backgroundColor: '#FEF3C7',
-                  borderRadius: 8,
-                }}>
-                  <Text style={{ fontSize: 12, color: '#92400E', fontWeight: '500' }}>
-                    ⚠️ Missing: {
-                      [
-                        missingInfo.trackCondition && 'Track condition',
-                        missingInfo.eventResultsLink && 'Event results link',
-                        missingInfo.seasonResultsLink && 'Season results link',
-                      ].filter(Boolean).join(' • ')
-                    }
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+              eventId={eventId}
+              creatorId={event.creatorId}
+              currentUserId={user?.id != null ? Number(user.id) : undefined}
+              eventDate={event.date}
+              meteo={event.meteo}
+              finished={event.finished}
+              participationTagText={event.participationTagText}
+              participationTagColor={event.participationTagColor}
+              organizers={(event as any).organizers || []}
+            />
           );
         })}
       </ScrollView>
@@ -1050,7 +939,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               key={item.id}
               style={styles.postTile}
               activeOpacity={0.8}
-              onPress={() => handlePostPress(item)}
+              onPress={() => {
+                router.push({
+                  pathname: "/(app)/postDetail",
+                  params: { postId: item.id },
+                });
+              }}
             >
               <CloudinaryMedia
                 publicId={item.cloudinaryPublicId || ""}
@@ -1210,7 +1104,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               key={item.id}
               style={styles.postTile}
               activeOpacity={0.8}
-              onPress={() => handlePostPress(item)}
+              onPress={() => {
+                router.push({
+                  pathname: "/(app)/postDetail",
+                  params: { postId: item.id },
+                });
+              }}
             >
               {item.isVideo ? (
                 <CloudinaryMedia
@@ -1455,7 +1354,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                             fontWeight: '600',
                           }}
                         >
-                          {nextEventTag.isOrganizer ? `Organizer of ${nextEventTag.text}` : nextEventTag.text}
+                          {nextEventTag.isOrganizer ? `Organizer of ${nextEventTag.eventName || nextEventTag.text}` : (nextEventTag.eventName || nextEventTag.text)}
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -1826,31 +1725,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         onPerformancesPress={handlePerformancesPress}
         userId={effectiveUserId || 0}
       />
-
-      <Modal
-        visible={postModalVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={handleClosePostModal}      >
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
-          {selectedPost && (
-            <ProfilePost
-              post={{
-                ...selectedPost,
-                username: "esteban_dardillac",
-                userAvatar:
-                  "https://images.pexels.com/photos/3482523/pexels-photo-3482523.jpeg",
-              }}
-              onClose={handleClosePostModal}
-              onLike={handleLikePost}
-              onComment={handleCommentPost}
-              onShare={handleSharePost}
-              onProfilePress={handleProfilePress}
-            />
-          )}
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 };

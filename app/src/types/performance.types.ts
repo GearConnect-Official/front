@@ -22,18 +22,18 @@ export type RaceCategory =
 /**
  * Racing categories with fun labels and emojis
  */
-export const RACE_CATEGORIES: { value: RaceCategory; label: string; emoji: string; color: string }[] = [
-  { value: 'karting', label: 'Karting', emoji: '🏎️', color: '#FF6B1A' },
-  { value: 'formula-3', label: 'Formula 3', emoji: '🏁', color: '#E10600' },
-  { value: 'formula-2', label: 'Formula 2', emoji: '🏎️', color: '#003DA5' },
-  { value: 'formula-1', label: 'Formula 1', emoji: '🏆', color: '#FFD700' },
-  { value: 'gt-sports', label: 'GT Sports', emoji: '🚗', color: '#10B981' },
-  { value: 'endurance', label: 'Endurance', emoji: '⏱️', color: '#8B5CF6' },
-  { value: 'rally', label: 'Rally', emoji: '🛣️', color: '#F59E0B' },
-  { value: 'drift', label: 'Drift', emoji: '💨', color: '#EC4899' },
-  { value: 'drag-racing', label: 'Drag Racing', emoji: '⚡', color: '#EF4444' },
-  { value: 'motocross', label: 'Motocross', emoji: '🏍️', color: '#84CC16' },
-  { value: 'other', label: 'Other', emoji: '🏁', color: '#6B7280' },
+export const RACE_CATEGORIES: { value: RaceCategory; label: string;color: string }[] = [
+  { value: 'karting', label: 'Karting', color: "#E10600" },
+  { value: 'formula-3', label: 'Formula 3', color: "#E10600" },
+  { value: 'formula-2', label: 'Formula 2', color: "#E10600" },
+  { value: 'formula-1', label: 'Formula 1', color: "#E10600" },
+  { value: 'gt-sports', label: 'GT Sports', color: "#E10600" },
+  { value: 'endurance', label: 'Endurance', color: "#E10600" },
+  { value: 'rally', label: 'Rally', color: "#E10600" },
+  { value: 'drift', label: 'Drift', color: "#E10600" },
+  { value: 'drag-racing', label: 'Drag Racing', color: "#E10600" },
+  { value: 'motocross', label: 'Motocross', color: "#E10600" },
+  { value: 'other', label: 'Other', color: "#E10600" },
 ];
 
 /**

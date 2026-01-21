@@ -1,13 +1,19 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
   Image,
   ScrollView,
   TouchableOpacity,
+  StatusBar,
   Linking,
   ActivityIndicator,
+  Dimensions,
+  Share,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { EventInterface } from '../services/EventInterface';
@@ -21,8 +27,6 @@ import {
 } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import RelatedProductsSection from '../components/EventDetail/RelatedProductsSection';
-import relatedProductService from '../services/relatedProductService';
 import EventDetailReview from '../components/EventDetailReview';
 import EventResultsGrid from '../components/EventResults/EventResultsGrid';
 import PerformanceService from '../services/performanceService';
@@ -30,18 +34,69 @@ import { Performance } from '../types/performance.types';
 import EventTag from '../components/EventTag';
 import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
 import { trackEvent, trackScreenView } from '../utils/mixpanelTracking';
-
-type RootStackParamList = {
-  EventDetail: { eventId: string };
-  // Add other routes as needed
-};
-
-type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
+import { addAppointmentToCalendar } from '../utils/calendarHelper';
 
 interface MeteoInfo {
-  condition: string;
-  temperature: number | string;
+  trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
+  circuitName?: string;
+  expectedParticipants?: number;
 }
+
+/** Slide du carousel dont la hauteur suit le ratio de l'image (comme les cards) — meilleure présentation de l'original. */
+const EventDetailImageSlide: React.FC<{
+  uri: string;
+  slideWidth: number;
+  minHeight?: number;
+  maxHeight?: number;
+  fallbackHeight?: number;
+}> = ({ uri, slideWidth, minHeight = 200, maxHeight = 420, fallbackHeight = 240 }) => {
+  const [aspect, setAspect] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!uri || typeof uri !== "string" || !uri.trim()) {
+      setAspect(null);
+      return;
+    }
+    Image.getSize(uri, (w, h) => setAspect(h / w), () => setAspect(9 / 16));
+  }, [uri]);
+
+  const height =
+    aspect != null
+      ? Math.max(minHeight, Math.min(maxHeight, slideWidth * aspect))
+      : fallbackHeight;
+
+  return (
+    <View
+      style={{
+        width: slideWidth,
+        height,
+        borderRadius: 8,
+        overflow: "hidden",
+        backgroundColor: "#f0f0f0",
+      }}
+    >
+      <Image source={{ uri }} style={styles.mainEventImage} resizeMode="contain" />
+    </View>
+  );
+};
+
+const EventDetailImagesCarousel: React.FC<{ images: string[]; slideWidth: number }> = ({ images, slideWidth }) => {
+  const w = Math.max(slideWidth, 200);
+  return (
+    <ScrollView
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      decelerationRate="fast"
+      style={{ width: w }}
+      contentContainerStyle={{ alignItems: "flex-start" }}
+    >
+      {images.map((url: string, i: number) => (
+        <EventDetailImageSlide key={i} uri={url} slideWidth={w} />
+      ))}
+    </ScrollView>
+  );
+};
 
 const EventDetailScreen: React.FC = () => {
   const params = useLocalSearchParams();
@@ -53,7 +108,7 @@ const EventDetailScreen: React.FC = () => {
   const auth = useAuth();
   const user = auth?.user || null;
   const [userReview, setUserReview] = useState<
-    EventInterface['reviews'][0] | null
+    EventInterface["reviews"][0] | null
   >(null);
   const [isOrganizer, setIsOrganizer] = useState<boolean>(false);
   const [eventPerformances, setEventPerformances] = useState<Performance[]>([]);
@@ -66,19 +121,19 @@ const EventDetailScreen: React.FC = () => {
   }[]>([]);
 
   function formatDate(data: string | number | Date) {
-    if (!data) return 'Date not available';
+    if (!data) return "Date not available";
     try {
       const currentDate = new Date(data);
-      if (isNaN(currentDate.getTime())) return 'Invalid date';
+      if (isNaN(currentDate.getTime())) return "Invalid date";
 
-      const day = currentDate.getDate().toString().padStart(2, '0');
-      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+      const day = currentDate.getDate().toString().padStart(2, "0");
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, "0");
       const year = currentDate.getFullYear();
       const formattedDate = `${day}/${month}/${year}`;
       return formattedDate;
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Date not available';
+      console.error("Error formatting date:", error);
+      return "Date not available";
     }
   }
   const checkIfOrganizer = async (fetchedEvent: EventInterface) => {
@@ -121,7 +176,6 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
-
   const checkIfReviewCreator = async (fetchedEvent: EventInterface) => {
     try {
       if (!user || !user.id) {
@@ -141,19 +195,15 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
-  const checkIfUserHasReviewed = (reviews: EventInterface['reviews']) => {
+  const checkIfUserHasReviewed = (reviews: EventInterface["reviews"]) => {
     if (!user || !user.id || !reviews || reviews.length === 0) {
       setUserReview(null);
       return false;
     }
-    const currentUserId =
-      typeof user.id === 'object' && user.id !== null
-        ? String(user.id)
-        : String(user.id);
     const existingReview = reviews.find((review) => {
       if (!review.userId) return false;
       const reviewUserId = String(review.userId);
-      return reviewUserId === currentUserId;
+      return reviewUserId === String(user.id);
     });
 
     setUserReview(existingReview || null);
@@ -167,14 +217,14 @@ const EventDetailScreen: React.FC = () => {
     try {
       // Main event data fetch
       const response = await fetchWithRetry(
-        API_URL_EVENTS + '/' + eventId,
+        API_URL_EVENTS + "/" + eventId,
         3, // number of retries
         1000 // delay between retries in ms
       );
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error('Event not found. It may have been removed.');
+          throw new Error("Event not found. It may have been removed.");
         } else {
           throw new Error(
             `Server error: ${response.status} ${response.statusText}`
@@ -194,7 +244,7 @@ const EventDetailScreen: React.FC = () => {
       const enhancedEvent = await Promise.all([
         enhanceEventWithTags(fetchedEvent),
         enhanceEventWithReviews(fetchedEvent),
-        enhanceEventWithProducts(fetchedEvent),
+        // enhanceEventWithProducts removed - RelatedProduct no longer linked to events
       ]).then(() => fetchedEvent);
 
       // User-specific checks
@@ -215,19 +265,19 @@ const EventDetailScreen: React.FC = () => {
       // Track event view
       trackEvent.viewed(eventId, enhancedEvent.name);
     } catch (error: any) {
-      console.error('Error in fetchData:', error);
+      console.error("Error in fetchData:", error);
 
       // Provide user-friendly error messages based on error type
-      if (error.message?.includes('Network request failed')) {
+      if (error.message?.includes("Network request failed")) {
         setError(
-          'Network connection error. Please check your internet connection.'
+          "Network connection error. Please check your internet connection."
         );
-      } else if (error.message?.includes('Event not found')) {
+      } else if (error.message?.includes("Event not found")) {
         setError(error.message);
-      } else if (error.message?.includes('Server error')) {
-        setError('Server error occurred. Please try again later.');
+      } else if (error.message?.includes("Server error")) {
+        setError("Server error occurred. Please try again later.");
       } else {
-        setError('Failed to fetch event data. Please try again.');
+        setError("Failed to fetch event data. Please try again.");
       }
 
       setEvent(null);
@@ -260,7 +310,7 @@ const EventDetailScreen: React.FC = () => {
   ): Promise<void> => {
     try {
       const fetchEventTags = await fetch(
-        API_URL_EVENTTAGS + '/event/' + eventData.id
+        API_URL_EVENTTAGS + "/event/" + eventData.id
       );
       if (!fetchEventTags.ok) {
         console.warn(`Could not fetch tags: ${fetchEventTags.status}`);
@@ -270,14 +320,14 @@ const EventDetailScreen: React.FC = () => {
 
       const eventTags = await fetchEventTags.json();
       if (!Array.isArray(eventTags)) {
-        console.warn('Event tags response is not an array');
+        console.warn("Event tags response is not an array");
         eventData.tags = [];
         return;
       }
 
       const tagPromises = eventTags.map(async (tag) => {
         try {
-          const tagResponse = await fetch(API_URL_TAGS + '/' + tag.tagId);
+          const tagResponse = await fetch(API_URL_TAGS + "/" + tag.tagId);
           if (tagResponse.ok) {
             return tagResponse.json();
           }
@@ -291,7 +341,7 @@ const EventDetailScreen: React.FC = () => {
       const tags = await Promise.all(tagPromises);
       eventData.tags = tags.filter((tag) => tag !== null);
     } catch (error) {
-      console.error('Error processing tags:', error);
+      console.error("Error processing tags:", error);
       eventData.tags = [];
     }
   };
@@ -301,7 +351,7 @@ const EventDetailScreen: React.FC = () => {
   ): Promise<void> => {
     try {
       const fetchEventReviews = await fetch(
-        API_URL_EVENTREVIEWS + '/event/' + eventData.id
+        API_URL_EVENTREVIEWS + "/event/" + eventData.id
       );
       if (!fetchEventReviews.ok) {
         console.warn(`Could not fetch reviews: ${fetchEventReviews.status}`);
@@ -311,18 +361,18 @@ const EventDetailScreen: React.FC = () => {
 
       const eventReviews = await fetchEventReviews.json();
       if (!Array.isArray(eventReviews)) {
-        console.warn('Event reviews response is not an array');
+        console.warn("Event reviews response is not an array");
         eventData.reviews = [];
         return;
       }
 
       const reviewPromises = eventReviews.map(async (review) => {
         if (!review.userId) {
-          return { ...review, username: 'Unknown User' };
+          return { ...review, username: "Unknown User" };
         }
 
         try {
-          const userResponse = await fetch(API_URL_USERS + '/' + review.userId);
+          const userResponse = await fetch(API_URL_USERS + "/" + review.userId);
           if (userResponse.ok) {
             const userData = await userResponse.json();
 
@@ -330,20 +380,20 @@ const EventDetailScreen: React.FC = () => {
               userData.username ||
               userData.name ||
               (userData.user ? userData.user.username : null) ||
-              'Anonymous';
+              "Anonymous";
 
             const avatarUrl =
               userData.additionalData?.avatar ||
               userData.avatar ||
-              'https://via.placeholder.com/30';
+              "https://via.placeholder.com/30";
 
             return { ...review, username: username, avatar: avatarUrl };
           } else {
-            return { ...review, username: 'User #' + review.userId };
+            return { ...review, username: "User #" + review.userId };
           }
         } catch (userError) {
           console.warn(`Failed to fetch user ${review.userId}`, userError);
-          return { ...review, username: 'Unknown User' };
+          return { ...review, username: "Unknown User" };
         }
       });
 
@@ -352,30 +402,12 @@ const EventDetailScreen: React.FC = () => {
         (review) => review !== null
       );
     } catch (error) {
-      console.error('Error processing reviews:', error);
+      console.error("Error processing reviews:", error);
       eventData.reviews = [];
     }
   };
 
-  const enhanceEventWithProducts = async (
-    eventData: EventInterface
-  ): Promise<void> => {
-    try {
-        const relatedProducts =
-          await relatedProductService.getProductsByEventId(eventId);
-        eventData.relatedProducts = relatedProducts;
-        if (!Array.isArray(eventData.relatedProducts)) {
-          console.warn('Related products response is not an array');
-          eventData.relatedProducts = [];
-        }
-        if (eventData.relatedProducts.length === 0) {
-          console.warn('No related products found for this event');
-        }
-    } catch (error) {
-      console.error('Error processing related products:', error);
-      eventData.relatedProducts = [];
-    }
-  };
+  // enhanceEventWithProducts removed - RelatedProduct no longer linked to events
 
   const loadOrganizersWithDetails = async (event: EventInterface) => {
     try {
@@ -490,6 +522,93 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
+  // Handle share event using native Share API
+  const handleShareEvent = async () => {
+    if (!event) return;
+
+    try {
+      console.log('Sharing event:', event.id);
+      // Track event share (using viewed as fallback since shared doesn't exist)
+      trackEvent.viewed(String(event.id), event.name);
+
+      // Create the event link
+      const eventLink = `https://gearconnect.app/event/${event.id}`;
+
+      // Format date
+      const eventDate = event.date ? formatDate(event.date) : '';
+      const dateInfo = eventDate ? `📅 ${eventDate}` : '';
+
+      // Create the share message
+      const shareMessage = `🏎️ ${event.name || 'Check out this event!'}\n\n${event.description ? event.description.substring(0, 150) + (event.description.length > 150 ? '...' : '') : ''}\n\n${dateInfo}\n📍 ${event.location || 'Location TBD'}\n\n${eventLink}`;
+
+      // Use native Share API
+      const result = await Share.share({
+        message: shareMessage,
+        title: event.name || 'Share this event',
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log('✅ Event shared successfully');
+        if (result.activityType) {
+          console.log('📱 Shared via:', result.activityType);
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('❌ Share dismissed');
+      }
+    } catch (error) {
+      console.error('❌ Error sharing event:', error);
+      // Fallback: copy link to clipboard
+      if (event?.id) {
+        const eventLink = `https://gearconnect.app/event/${event.id}`;
+        await Clipboard.setStringAsync(eventLink);
+        // Alert as fallback since we may not have MessageContext here
+        console.log('📋 Event link copied to clipboard');
+      }
+    }
+  };
+
+  // Handle buy ticket - open the event's website URL
+  const handleBuyTicket = async () => {
+    if (!event?.website) {
+      console.log('No website URL available for this event');
+      return;
+    }
+
+    try {
+      const url = event.website;
+      await Linking.openURL(url);
+      console.log('✅ Website URL opened:', url);
+    } catch (error) {
+      // L'erreur peut survenir même si l'URL s'ouvre correctement
+      console.log('Website URL opened (error can be ignored):', error);
+    }
+  };
+
+  // Handle add to calendar - add event to user's calendar
+  const handleAddToCalendar = async () => {
+    if (!event) return;
+
+    try {
+      const eventDate = event.date ? new Date(event.date) : new Date();
+      
+      // Create an appointment data object compatible with calendarHelper
+      const appointmentData = {
+        title: event.name || 'GearConnect Event',
+        description: event.description || '',
+        date: eventDate,
+        location: event.location || '',
+        reminder: '1 hour before',
+      };
+
+      const success = await addAppointmentToCalendar(appointmentData);
+      if (success) {
+        console.log('✅ Event added to calendar:', event.name);
+      }
+    } catch (error) {
+      console.error('❌ Error adding event to calendar:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (eventId) {
@@ -507,7 +626,7 @@ const EventDetailScreen: React.FC = () => {
   // Keep the initial useEffect for first load
   useEffect(() => {
     if (!eventId) {
-      setError('Invalid event ID.');
+      setError("Invalid event ID.");
       return;
     }
 
@@ -515,8 +634,8 @@ const EventDetailScreen: React.FC = () => {
     fetchData();
 
     // If we returned from managing products with a successful update, show a message
-    if (params.updated === 'true') {
-      console.log('Products updated successfully!');
+    if (params.updated === "true") {
+      console.log("Products updated successfully!");
     }
   }, [eventId, params.updated, fetchData]);
 
@@ -531,36 +650,23 @@ const EventDetailScreen: React.FC = () => {
     );
   }
   if (event !== null) {
-    const meteoInfo = event.meteo as any;
+    const meteoInfo = event.meteo as MeteoInfo | undefined;
 
     // Helper function to safely get track condition information
     const getTrackConditionInfo = () => {
-      if (!meteoInfo || typeof meteoInfo !== 'object') {
+      if (!meteoInfo || typeof meteoInfo !== 'object' || !meteoInfo.trackCondition) {
         return 'Track condition unavailable';
       }
 
-      // Track condition
-      if (meteoInfo.trackCondition) {
-        const trackConditions: { [key: string]: string } = {
-          'dry': '☀️ Dry',
-          'damp': '💧 Damp',
-          'wet': '🌧️ Wet',
-          'mixed': '🌦️ Mixed',
-          'slippery': '⚠️ Slippery',
-          'drying': '🌤️ Drying'
-        };
-        return trackConditions[meteoInfo.trackCondition] || meteoInfo.trackCondition;
-      }
-
-      // Fallback to old format for backward compatibility
-      if (meteoInfo.condition) {
-        return meteoInfo.condition;
-      }
-      if (meteoInfo.temperature !== undefined) {
-        return `${meteoInfo.temperature}°`;
-      }
-
-      return 'Track condition unavailable';
+      const trackConditions: { [key: string]: string } = {
+        'dry': '☀️ Dry',
+        'damp': '💧 Damp',
+        'wet': '🌧️ Wet',
+        'mixed': '🌦️ Mixed',
+        'slippery': '⚠️ Slippery',
+        'drying': '🌤️ Drying'
+      };
+      return trackConditions[meteoInfo.trackCondition] || meteoInfo.trackCondition;
     };
 
     function handleReviewPress(): void {
@@ -568,13 +674,13 @@ const EventDetailScreen: React.FC = () => {
         if (user?.id !== undefined && user?.id !== null) {
           const userId = Number(user.id);
           router.push({
-            pathname: '/(app)/modifyEventReview',
+            pathname: "/(app)/modifyEventReview",
             params: { eventId, userId },
           });
         }
       } else {
         router.push({
-          pathname: '/(app)/createEventReview',
+          pathname: "/(app)/createEventReview",
           params: { eventId },
         });
       }
@@ -582,22 +688,25 @@ const EventDetailScreen: React.FC = () => {
 
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.topBar}>
-          <View style={styles.topBarContent}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={styles.container}>
+          <View style={styles.header}>
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <FontAwesome name="arrow-left" size={24} color="#1E232C" />
+              <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Event Details</Text>
             {isOrganizer ? (
               <TouchableOpacity
                 style={styles.reviewButton}
-                onPress={() => router.push({
-                  pathname: '/(app)/editEvent',
-                  params: { eventId }
-                })}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/editEvent",
+                    params: { eventId },
+                  })
+                }
               >
                 <Text style={styles.reviewText}>Modify</Text>
               </TouchableOpacity>
@@ -607,13 +716,11 @@ const EventDetailScreen: React.FC = () => {
                 onPress={handleReviewPress}
               >
                 <Text style={styles.reviewText}>
-                  {userReview ? 'Edit Review' : 'Review'}
+                  {userReview ? "Edit Review" : "Review"}
                 </Text>
               </TouchableOpacity>
             )}
           </View>
-        </View>
-
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.eventInfo}>
@@ -785,19 +892,20 @@ const EventDetailScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* 
-         <Text style={styles.sectionTitle}>Best of Images</Text>
-         {event.images[0] ? (
-          <Image
-            source={{ uri: event?.images[0] }}
-            style={styles.mainEventImage}
-          />
-        ) : (
-          <View style={styles.placeholderMainImage}>
-            <Text>No Image Available</Text>
-          </View>
-        )}
-        */}
+          <Text style={styles.sectionTitle}>Images</Text>
+          {(() => {
+            const imgs = (event as any).images || [];
+            if (imgs.length === 0) {
+              return (
+                <View style={styles.placeholderMainImage}>
+                  <Text>No Image Available</Text>
+                </View>
+              );
+            }
+            return (
+              <EventDetailImagesCarousel images={imgs} slideWidth={SCREEN_WIDTH - 32} />
+            );
+          })()}
           <Text style={styles.sectionTitle}>Event Details</Text>
           <View style={styles.detailRow}>
             <Ionicons name="location-outline" size={20} color="gray" />
@@ -818,15 +926,23 @@ const EventDetailScreen: React.FC = () => {
             />
             <Text style={styles.detailText}>{getTrackConditionInfo()}</Text>
           </View>
-           <RelatedProductsSection
-          eventId={eventId}
-          products={(event.relatedProducts || []).map((product: any) => ({
-            ...product,
-            price: typeof product.price === 'string' ? parseFloat(product.price) || 0 : product.price,
-          }))}
-          isOrganizer={isOrganizer}
-          onRefresh={fetchData}
-        />
+          {meteoInfo && typeof meteoInfo === 'object' && meteoInfo.circuitName && (
+            <View style={styles.detailRow}>
+              <Ionicons name="location-outline" size={20} color="gray" />
+              <Text style={styles.detailText}>
+                Circuit: {meteoInfo.circuitName}
+              </Text>
+            </View>
+          )}
+          {meteoInfo && typeof meteoInfo === 'object' && meteoInfo.expectedParticipants !== undefined && (
+            <View style={styles.detailRow}>
+              <Ionicons name="people-outline" size={20} color="gray" />
+              <Text style={styles.detailText}>
+                Expected Participants: {meteoInfo.expectedParticipants}
+              </Text>
+            </View>
+          )}
+          {/* RelatedProductsSection removed - RelatedProduct no longer linked to events */}
           <EventDetailReview
             eventId={eventId}
             reviews={event.reviews || []}
@@ -905,19 +1021,22 @@ const EventDetailScreen: React.FC = () => {
           ) : null}
           
           {/* Buttons */}
-          <TouchableOpacity style={styles.shareButton}>
+          <TouchableOpacity style={styles.shareButton} onPress={handleShareEvent}>
             <Text style={styles.shareText}>Share</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addCalendarButton}>
+          <TouchableOpacity style={styles.addCalendarButton} onPress={handleAddToCalendar}>
             <Text style={styles.addCalendarText}>Add to Calendar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buyButton}>
+          <TouchableOpacity style={styles.buyButton} onPress={handleBuyTicket}>
             <Text style={styles.buyButtonText}>Buy a Ticket</Text>
           </TouchableOpacity>
         </ScrollView>
+        </View>
       </SafeAreaView>
+
     );
   }
+
 
   // Add a loading state when event is null but there's no error
   if (loading) {
@@ -939,6 +1058,8 @@ const EventDetailScreen: React.FC = () => {
       </TouchableOpacity>
     </View>
   );
+
 };
+
 
 export default EventDetailScreen;

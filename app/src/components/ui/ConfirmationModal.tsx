@@ -71,8 +71,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       default: // info
         return {
           iconName: 'information-circle' as const,
-          iconColor: '#3B82F6',
-          buttonColor: '#3B82F6',
+          iconColor: "#E10600",
+          buttonColor: "#E10600",
         };
     }
   };
@@ -353,6 +353,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 25,
     elevation: 25,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   iconSection: {
     alignItems: 'center',

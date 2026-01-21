@@ -6,6 +6,8 @@ export const hierarchicalCommentsStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   header: {
     flexDirection: 'row',
@@ -24,6 +26,8 @@ export const hierarchicalCommentsStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#262626',
+    flex: 1,
+    textAlign: 'center',
   },
   headerSpacer: {
     width: 40,
@@ -85,7 +89,7 @@ export const hierarchicalCommentsStyles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   sendButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#E10600',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,

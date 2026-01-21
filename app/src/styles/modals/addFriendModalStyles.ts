@@ -13,6 +13,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: borders.radius.lg,
     paddingBottom: 30, // Extra padding for bottom to handle notch phones
     height: "80%",
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
   },
   modalHeader: {
     flexDirection: "row",

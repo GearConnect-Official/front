@@ -44,13 +44,6 @@ export const signUp = async (
   name: string
 ): Promise<AuthResponse> => {
   try {
-    console.log("Tentative d'inscription avec:", {
-      username,
-      email,
-      name,
-      password: "***",
-    });
-
     const response = await api.post<AuthResponse>("/signup", {
       username,
       email,
@@ -58,38 +51,30 @@ export const signUp = async (
       name,
     });
 
-    console.log("Réponse d'inscription:", response.data);
     return {
       ...response.data,
       success: true,
     };
   } catch (error: any) {
-    console.error("Signup Error:", error);
-
-    // Gestion détaillée des erreurs
     if (error.response) {
-      // Le serveur a répondu avec un code d'erreur
-      console.error("Status:", error.response.status);
-      console.error("Data:", error.response.data);
+      const msg =
+        error.response.data?.error ||
+        error.response.data?.message;
       return {
         success: false,
-        error: error.response.data.error || "Erreur lors de l'inscription",
-      };
-    } else if (error.request) {
-      // La requête a été faite mais pas de réponse
-      console.error("Request error:", error.request);
-      return {
-        success: false,
-        error: "Impossible de contacter le serveur. Vérifiez votre connexion.",
-      };
-    } else {
-      // Erreur lors de la configuration de la requête
-      console.error("Error setting up request:", error.message);
-      return {
-        success: false,
-        error: "Erreur lors de la configuration de la requête",
+        error: typeof msg === "string" && msg ? msg : "Registration failed. Please try again.",
       };
     }
+    if (error.request) {
+      return {
+        success: false,
+        error: "Unable to connect to the server. Please check your connection.",
+      };
+    }
+    return {
+      success: false,
+      error: "Registration failed. Please try again.",
+    };
   }
 };
 
@@ -101,72 +86,53 @@ export const signIn = async (
   password: string
 ): Promise<AuthResponse> => {
   try {
-    console.log("Tentative de connexion avec:", { email, password: "***" });
-
     const response = await api.post<AuthResponse>("/login", {
       email,
       password,
     });
 
-    console.log("Réponse de connexion:", response.data);
     return {
       ...response.data,
       success: true,
     };
   } catch (error: any) {
     if (error.response) {
-      console.log("Login error response:", error.response.data);
+      const data = error.response.data;
 
-      // Si l'utilisateur n'existe pas dans Clerk
-      if (
-        error.response.data &&
-        error.response.data.error === "User not found in Clerk"
-      ) {
+      if (data?.error === "User not found in Clerk") {
         return {
           success: false,
           error: "Your account has been deleted or deactivated",
         };
       }
 
-      // Vérifier le message d'erreur spécifique du backend
-      if (error.response.data && error.response.data.error) {
-        return {
-          success: false,
-          error: error.response.data.error,
-        };
+      const msg = data?.error || data?.message;
+      if (typeof msg === "string" && msg) {
+        return { success: false, error: msg };
       }
 
-      // Si pas de message spécifique, utiliser le code de statut
       if (error.response.status === 401) {
-        return {
-          success: false,
-          error: "Incorrect password",
-        };
+        return { success: false, error: "Incorrect password" };
       }
-
       if (error.response.status === 404) {
-        return {
-          success: false,
-          error: "Account not found",
-        };
+        return { success: false, error: "Account not found" };
+      }
+      if (error.response.status >= 500) {
+        return { success: false, error: "A server error occurred. Please try again later." };
       }
 
+      return { success: false, error: "Login failed. Please try again." };
+    }
+    if (error.request) {
       return {
         success: false,
-        error: "An error occurred during login",
-      };
-    } else if (error.request) {
-      return {
-        success: false,
-        error: "Unable to connect to server",
-      };
-    } else {
-      console.error("Error setting up request:", error.message);
-      return {
-        success: false,
-        error: "Error configuring the request",
+        error: "Unable to connect to the server. Please check your connection.",
       };
     }
+    return {
+      success: false,
+      error: "Login failed. Please try again.",
+    };
   }
 };
 

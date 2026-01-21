@@ -25,13 +25,14 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({ children }) => {
       
       {/* Message de feedback */}
       <FeedbackMessage
-        message={feedbackState.message}
-        type={feedbackState.type}
-        duration={feedbackState.duration}
-        visible={feedbackState.visible}
-        onDismiss={hideFeedback}
-        errorType={feedbackState.errorType}
-      />
+          message={feedbackState.message}
+          type={feedbackState.type}
+          duration={feedbackState.duration}
+          visible={feedbackState.visible}
+          onDismiss={hideFeedback}
+          errorType={feedbackState.errorType}
+          customBackgroundColor={feedbackState.customBackgroundColor}
+         />
       
       {/* Modal de confirmation */}
       <ConfirmationModal

@@ -1,47 +1,56 @@
-import { StyleSheet } from 'react-native';
-import theme from '../../config/theme';
+import { StyleSheet } from "react-native";
+import theme from "../../config/theme";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.default,
+    backgroundColor: "#fff",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: 60,
-    paddingBottom: theme.spacing.md,
-    backgroundColor: theme.colors.background.paper,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderBottomWidth: 0,
+    height: 56,
   },
   backButton: {
-    padding: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text.primary,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
   },
   headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
   },
   groupsButton: {
-    padding: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   newMessageButton: {
-    padding: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     paddingVertical: theme.spacing.sm,
   },
   conversationItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
     backgroundColor: theme.colors.background.paper,
@@ -49,7 +58,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border.light,
   },
   avatarContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: theme.spacing.md,
   },
   avatar: {
@@ -59,32 +68,32 @@ const styles = StyleSheet.create({
   },
   defaultAvatar: {
     backgroundColor: theme.colors.background.input,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   groupIndicator: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -2,
     right: -2,
-    backgroundColor: '#E10600',
+    backgroundColor: "#E10600",
     borderRadius: 10,
     width: 20,
     height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   conversationInfo: {
     flex: 1,
   },
   conversationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 4,
   },
   conversationName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.text.primary,
     flex: 1,
   },
@@ -94,8 +103,8 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.sm,
   },
   messagePreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   lastMessage: {
     fontSize: 14,
@@ -103,14 +112,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
   },
   // Onglets
   tabsContainer: {
@@ -318,4 +327,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles; 
+export default styles;

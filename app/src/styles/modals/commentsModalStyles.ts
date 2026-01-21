@@ -4,6 +4,8 @@ export const commentsModalStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   header: {
     flexDirection: 'row',
@@ -22,6 +24,8 @@ export const commentsModalStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#262626',
+    flex: 1,
+    textAlign: 'center',
   },
   commentsList: {
     paddingHorizontal: 16,

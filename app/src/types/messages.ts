@@ -12,6 +12,7 @@ export interface MessageConfig {
   type: MessageType;
   duration?: number;
   actions?: MessageAction[];
+  customBackgroundColor?: string;
 }
 
 export interface MessageAction {

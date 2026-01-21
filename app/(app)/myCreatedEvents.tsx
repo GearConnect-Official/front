@@ -4,10 +4,10 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
@@ -192,7 +192,10 @@ const MyCreatedEventsScreen: React.FC = () => {
                       day: 'numeric',
                       month: 'short',
                     })}
-                    emoji="🎉"
+                    icon={event.logo}
+                    logoPublicId={event.logoPublicId}
+                    images={event.images}
+                    imagePublicIds={event.imagePublicIds}
                     location={event.location}
                     attendees={event.participantsCount || 0}
                     onPress={() => handleEventPress(event)}

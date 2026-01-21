@@ -14,7 +14,9 @@ export default StyleSheet.create({
     borderTopRightRadius: 20,
     paddingTop: 16,
     paddingBottom: 40,
-    minHeight: '45%'
+    minHeight: '45%',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   header: {
     borderBottomWidth: 1,

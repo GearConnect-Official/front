@@ -1,40 +1,55 @@
-import { StyleSheet } from 'react-native';
-import theme from '../../config/theme';
+import { StyleSheet, Dimensions } from "react-native";
+import theme from "../../config/theme";
 
-const styles = StyleSheet.create({  container: {
+const { width } = Dimensions.get("window");
+
+// Hauteur responsive pour la progress bar : proportionnelle à la largeur, clampée
+const progressBarHeight = Math.round(Math.max(6, Math.min(12, width * 0.02)));
+
+export default StyleSheet.create({
+  container: {
     ...theme.common.container,
     backgroundColor: theme.colors.background.paper,
   },
 
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+
+  topBarSafeArea: {
+    backgroundColor: "#fff",
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 6,
+    backgroundColor: "#fff",
+    height: 48,
+  },
+
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
+  },
+
+  scrollView: {
+    flex: 1,
+  },
+
   scrollViewContent: {
     padding: theme.spacing.md,
-    paddingBottom: theme.spacing.lg * 2,
+    paddingBottom: theme.spacing.md,
     flexGrow: 1,
   },
-  contentContainer: {
-    padding: theme.spacing.md,
-  },
-  spacer: {
-    height: theme.spacing.xl,
-  },
-  // TopBar styles
-  topBar: {
-    backgroundColor: theme.colors.background.paper,
-  },
-  statusBar: {
-    ...theme.common.spaceBetween,
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.multiply(5), // 40/8
-    paddingBottom: theme.spacing.xs,
-  },
-  titleBar: {
-    ...theme.common.row,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs + 4,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.grey[200],
-  },
-  backButton: {
+
+  stepsContainer: {
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
@@ -42,10 +57,11 @@ const styles = StyleSheet.create({  container: {
     gap: 8,
   },
   deleteButton: {
-    position: 'absolute',
-    right: 15,
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: theme.typography.h4.fontSize,
@@ -92,152 +108,122 @@ const styles = StyleSheet.create({  container: {
     marginBottom: theme.spacing.xs,
     color: theme.colors.text.primary,
   },
-  imageUploadButton: {
-    backgroundColor: theme.colors.background.input,
-    borderRadius: theme.borders.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.grey[100],
-    borderStyle: 'dashed',
-    padding: theme.spacing.md,
-    ...theme.common.centerContent,
-    height: 150,
-  },
   imageUploadButtonText: {
     color: theme.colors.text.primary,
     marginTop: theme.spacing.xs,
     fontSize: theme.typography.caption.fontSize,
     fontWeight: theme.typography.caption.fontWeight,
   },
-  uploadedImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: theme.borders.radius.md,
+
+  placeholderRight: {
+    width: 40,
+    height: 36,
   },
-  // Section styles
-  section: {
-    marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.xl,
+
+  backButton: {
+    padding: 8,
+    borderRadius: 10,
   },
-  sectionTitle: {
-    fontSize: theme.typography.h5.fontSize,
-    fontWeight: theme.typography.h5.fontWeight,
-    marginBottom: theme.spacing.xs,
-  },
-  // Step indicator styles
-  stepsContainer: {
-    flexDirection: "row",
+
+  stepIndicatorRow: {
+    flex: 1,
+    marginHorizontal: 6,
     justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
-  stepDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#e0e0e0",
-    marginHorizontal: 4,
+
+  progressBarBackground: {
+    height: progressBarHeight,
+    backgroundColor: theme.colors.grey[200],
+    borderRadius: 999,
+    overflow: "hidden",
   },
-  activeStep: {
-    backgroundColor: "#3a86ff",
+  progressBarFill: {
+    height: progressBarHeight,
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: 999,
   },
-  stepWithLine: {
-    marginRight: 20,
-    position: "relative",
-  },
-  // Step content styles
+
+  // Step content
   stepContainer: {
-    padding: 20,
-    minHeight: 400,
+    backgroundColor: "#fff",
+    marginHorizontal: 0,
+    marginTop: theme.spacing.xs,
+    padding: 18,
+    borderRadius: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    minHeight: 360,
   },
   stepTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#222",
+    marginBottom: 6,
   },
   stepDescription: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666",
-    marginBottom: 24,
+    marginBottom: 14,
   },
+
+  // Inputs
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 14,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: "600",
     color: "#333",
     marginBottom: 8,
   },
   textArea: {
-    height: 120,
+    height: 140,
     textAlignVertical: "top",
   },
+    // Date picker
   datePicker: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: "#FAFAFB",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: theme.colors.grey[200],
   },
-  // Media section styles
-  mediaSection: {
-    marginBottom: 24,
-  },
-  imagesRow: {
-    marginTop: 8,
-    height: 100,
-  },
-  logoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  logoPreview: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
+  imageUploadButton: {
+    backgroundColor: "#F7F8FA",
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: theme.colors.grey[200],
     borderStyle: "dashed",
+    padding: theme.spacing.md,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 140,
   },
   imagePreview: {
     width: 100,
     height: 100,
-    borderRadius: 8,
+    borderRadius: 10,
     marginRight: 8,
   },
-  uploadButton: {
-    backgroundColor: "#3a86ff",
-    flexDirection: "row",
+  addImageButton: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    backgroundColor: "#F2F5F9",
     alignItems: "center",
-    padding: 10,
-    borderRadius: 8,
-    gap: 8,
+    justifyContent: "center",
   },
-  uploadButtonText: {
-    color: "#fff",
-    fontWeight: "500",
-  },
-  // Preview section styles
+
+  // Preview card
   previewSection: {
-    marginTop: 20,
+    marginTop: 8,
   },
   previewCard: {
     backgroundColor: "#fff",
@@ -245,10 +231,29 @@ const styles = StyleSheet.create({  container: {
     padding: 16,
     alignItems: "center",
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+  previewBanner: {
+    width: "100%",
+    height: 80,
+    borderRadius: 8,
+    overflow: "hidden",
+    marginBottom: 12,
+    backgroundColor: "#f0f0f0",
+  },
+  previewBannerImage: {
+    width: "100%",
+    height: "100%",
+  },
+  previewBannerPlaceholder: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#E10600",
+    justifyContent: "center",
+    alignItems: "center",
   },
   previewLogo: {
     width: 64,
@@ -260,75 +265,100 @@ const styles = StyleSheet.create({  container: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F2F2F5",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
   },
   previewTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#222",
     marginBottom: 8,
     textAlign: "center",
   },
   previewInfo: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#666",
-    marginBottom: 4,
-    flexDirection: "row",
-    alignItems: "center",
+    marginBottom: 6,
   },
   previewBadge: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 14,
     marginTop: 12,
+    backgroundColor: theme.colors.primary.main,
   },
   previewBadgeText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "700",
   },
-  // Navigation buttons styles
+
+  // Buttons area (fixé en bas visuellement)
   buttonsContainer: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    gap: 12,
+    borderTopWidth: 0,
+    backgroundColor: "transparent",
+    marginBottom: 30,
+  },
+  // pour occuper la place du bouton Back à la première étape
+  navSpacer: {
+    width: 110,
+    height: 48,
   },
   backButtonText: {
     color: "#666",
-    fontWeight: "500",
+    fontWeight: "600",
+    marginLeft: 8,
   },
-  nextButton: {
-    backgroundColor: theme.colors.primary.main,
+  backSmall: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    justifyContent: "center",
+    height: 48,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: theme.colors.grey[200],
+  },
+
+  nextButton: {
+    height: 48,
+    minWidth: 160,
+    backgroundColor: theme.colors.primary.main,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
   },
   nextButtonText: {
     color: "#fff",
-    fontWeight: "500",
+    fontWeight: "700",
+    fontSize: 15,
   },
-  // Action buttons styles
+
+  // Action buttons (submit/cancel)
   actionButtonsContainer: {
-    ...theme.common.spaceBetween,
-    marginTop: theme.spacing.xl,
     marginBottom: theme.spacing.md,
+    flexDirection: "row",
+    gap: 8,
   },
   actionButton: {
     flex: 1,
-    paddingVertical: theme.spacing.xs + 4,
-    borderRadius: theme.borders.radius.md,
-    alignItems: 'center',
+    paddingVertical: theme.spacing.xs + 6,
+    borderRadius: 12,
+    alignItems: "center",
   },
   cancelButton: {
-    backgroundColor: theme.colors.grey[200],
+    backgroundColor: theme.colors.grey[100],
     marginRight: theme.spacing.xs,
   },
   submitButton: {
@@ -336,91 +366,20 @@ const styles = StyleSheet.create({  container: {
     marginLeft: theme.spacing.xs,
   },
   cancelButtonText: {
-    color: theme.colors.grey[800],
-    fontWeight: '500',
+    color: "#444",
+    fontWeight: "600",
   },
   submitButtonText: {
-    color: theme.colors.common.white,
-    fontWeight: '500',
+    color: "#fff",
+    fontWeight: "700",
   },
-  disabledButton: {
-    backgroundColor: theme.colors.grey[400],
-    opacity: 0.7,
-  },
-  disabledButtonText: {
-    color: theme.colors.common.white,
-    opacity: 0.7,
-  },
-  // Error message
+
+  // Errors
   errorText: {
-    color: "red",
+    color: "#D32F2F",
     textAlign: "center",
-    margin: 10,
-  },
-  // ScrollView
-  scrollView: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  // Nouveaux styles pour l'intégration Cloudinary
-  uploadInfoContainer: {
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: "#e8f5e8",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#4caf50",
-  },
-  uploadInfoText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2e7d32",
-    marginBottom: 4,
-  },
-  uploadInfoDetails: {
-    fontSize: 12,
-    color: "#388e3c",
-  },
-  addImageButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderStyle: "dashed",
-  },
-  // Loading styles
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
     marginTop: 8,
-  },
-  // Info note styles
-  infoNote: {
-    backgroundColor: '#e1f5fe',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: '#29b6f6',
-  },
-  infoNoteText: {
-    fontSize: 14,
-    color: '#01579b',
-    lineHeight: 20,
-  },
-  infoNoteBold: {
-    fontWeight: 'bold',
+    marginBottom: 12,
+    fontWeight: "600",
   },
 });
-
-export default styles;

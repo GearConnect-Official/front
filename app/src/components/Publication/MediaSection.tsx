@@ -159,18 +159,6 @@ const MediaSection: React.FC<MediaSectionProps> = ({ onImageSelected }) => {
           </Text>
         </TouchableOpacity>
       </View>
-      
-      <View style={styles.mediaSectionInfoContainer}>
-        <Text style={styles.mediaSectionInfoText}>
-          📷 Images & videos are automatically optimized and stored securely
-        </Text>
-        <Text style={styles.mediaSectionInfoText}>
-          ⚡ Fast loading with automatic format conversion
-        </Text>
-        <Text style={styles.mediaSectionInfoText}>
-          🎬 Support for photos and videos up to 100MB
-        </Text>
-      </View>
     </View>
   );
 };

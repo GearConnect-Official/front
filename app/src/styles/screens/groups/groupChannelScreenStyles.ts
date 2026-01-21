@@ -18,10 +18,10 @@ const styles = StyleSheet.create({
   header: {
     ...theme.common.spaceBetween,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    backgroundColor: theme.colors.background.paper,
+    paddingVertical: 10,
+    borderBottomWidth: 0,
+    backgroundColor: '#fff',
+    height: 56,
   },
   backButton: {
     padding: theme.spacing.xs,

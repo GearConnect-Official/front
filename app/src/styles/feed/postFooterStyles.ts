@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 import theme from "../config/theme";
 
 const styles = StyleSheet.create({
@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
   },
-  
+
   // Likes Section
   likesCount: {
     ...theme.typography.body2,
@@ -14,63 +14,63 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.xxs,
   },
-  
+
   // Title Section
   titleContainer: {
     marginBottom: 6,
   },
   titleText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#262626',
+    fontWeight: "700",
+    color: "#262626",
     lineHeight: 20,
   },
-  
+
   // Description Section
   descriptionContainer: {
     marginBottom: 8,
   },
   descriptionText: {
     fontSize: 14,
-    fontWeight: '400',
-    color: '#262626',
+    fontWeight: "400",
+    color: "#262626",
     lineHeight: 18,
   },
   seeMoreText: {
     fontSize: 14,
-    color: '#8E8E8E',
-    fontWeight: '500',
+    color: "#8E8E8E",
+    fontWeight: "500",
   },
-  
+
   // Tags Section
   tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   tagPill: {
-    backgroundColor: '#F0F2F5',
+    backgroundColor: "#f0f2f5",
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
     marginRight: 6,
     marginBottom: 4,
-    borderWidth: 1,
-    borderColor: '#E4E6EA',
+    // borderWidth: 1,
+    // borderColor: "#E4E6EA",
   },
   tagText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#1877F2',
+    fontWeight: "500",
+    color: "#e10600",
   },
   moreTagsText: {
     fontSize: 12,
-    color: '#8E8E8E',
-    fontWeight: '500',
+    color: "#8E8E8E",
+    fontWeight: "500",
     marginLeft: 4,
   },
-  
+
   // Comments Section
   commentsLink: {
     marginBottom: theme.spacing.xxs,
@@ -79,18 +79,18 @@ const styles = StyleSheet.create({
     ...theme.typography.body2,
     color: theme.colors.text.secondary,
   },
-  
+
   // Time Section
   timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: theme.spacing.xxs,
   },
   timeAgo: {
     ...theme.typography.body2,
     color: theme.colors.text.secondary,
   },
-  
+
   caption: {
     marginBottom: theme.spacing.xxs,
   },
@@ -148,4 +148,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles; 
+export default styles;

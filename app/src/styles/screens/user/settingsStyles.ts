@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import theme from '../../config/theme';
+import { StyleSheet } from "react-native";
+import theme from "../../config/theme";
 
 // Color constants extracted from theme for direct use in the component
 export const colors = {
@@ -10,40 +10,49 @@ export const colors = {
   switchTrackActive: `${theme.colors.primary.main}80`,
   switchThumbActive: theme.colors.primary.main,
   switchThumbInactive: theme.colors.grey[50],
-  statusBarBackground: theme.colors.background.paper,
+  statusBarBackground: "#FFFFFF",
   activityIndicator: theme.colors.primary.main,
   textPrimary: theme.colors.text.primary,
 };
 
 export default StyleSheet.create({
   container: {
-    ...theme.common.container,
-    backgroundColor: theme.colors.background.paper,
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
   header: {
-    ...theme.common.spaceBetween,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    ...theme.shadows.apply({}, 'xs'),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderBottomWidth: 0,
+    height: 56,
   },
   backButton: {
-    padding: theme.spacing.xs,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginRight: 15,
+    padding: 8,
+    position: "relative",
+    zIndex: 20,
   },
   headerTitle: {
-    ...theme.typography.h4,
-    color: theme.colors.text.primary,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
   },
   placeholderRight: {
     width: 40,
     height: 40,
-    borderRadius: theme.borders.radius.round / 2,
+  },
+  contentContainer: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
@@ -66,10 +75,10 @@ export default StyleSheet.create({
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
     backgroundColor: theme.colors.background.input,
-    ...theme.borders.apply({}, { radius: 'md' }),
+    ...theme.borders.apply({}, { radius: "md" }),
     marginBottom: theme.spacing.xs,
     marginHorizontal: theme.spacing.md,
-    ...theme.shadows.apply({}, 'xs'),
+    ...theme.shadows.apply({}, "xs"),
   },
   settingsItemLeft: {
     ...theme.common.row,
@@ -83,7 +92,7 @@ export default StyleSheet.create({
     height: 40,
     ...theme.common.centerContent,
     backgroundColor: theme.colors.background.paper,
-    ...theme.borders.apply({}, { radius: 'sm' }),
+    ...theme.borders.apply({}, { radius: "sm" }),
     marginRight: theme.spacing.sm,
   },
   destructiveIconContainer: {

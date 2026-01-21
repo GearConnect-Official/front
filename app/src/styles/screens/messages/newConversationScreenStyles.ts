@@ -1,38 +1,39 @@
-import { StyleSheet } from 'react-native';
-import theme from '../../config/theme';
+import { StyleSheet } from "react-native";
+import theme from "../../config/theme";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.default,
+    backgroundColor: "#fff",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: 60,
-    paddingBottom: theme.spacing.md,
-    backgroundColor: theme.colors.background.paper,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    height: 56,
   },
   backButton: {
-    padding: theme.spacing.sm,
-    marginRight: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     flex: 1,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.text.primary,
+    textAlign: "center",
   },
   nextButton: {
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
   },
   nextButtonActive: {
-    backgroundColor: '#E10600',
+    backgroundColor: "#E10600",
     borderRadius: 20,
   },
   nextButtonText: {
@@ -40,7 +41,11 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   nextButtonTextActive: {
-    color: 'white',
+    color: "white",
+  },
+  placeholderRight: {
+    width: 40,
+    height: 40,
   },
   searchContainer: {
     paddingHorizontal: theme.spacing.md,
@@ -48,8 +53,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.paper,
   },
   searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: theme.colors.background.input,
     borderRadius: 25,
     paddingHorizontal: theme.spacing.md,
@@ -64,9 +69,9 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   groupOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
     backgroundColor: theme.colors.background.paper,
@@ -74,8 +79,8 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border.light,
   },
   groupOptionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   groupOptionText: {
     fontSize: 16,
@@ -90,7 +95,7 @@ const styles = StyleSheet.create({
   },
   selectedUsersTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.text.primary,
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.sm,
@@ -99,8 +104,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   selectedUserChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: theme.colors.background.input,
     borderRadius: 20,
     paddingHorizontal: theme.spacing.sm,
@@ -116,8 +121,8 @@ const styles = StyleSheet.create({
   },
   defaultChipAvatar: {
     backgroundColor: theme.colors.background.default,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   chipName: {
     flex: 1,
@@ -129,19 +134,19 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
   },
   userItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
     backgroundColor: theme.colors.background.paper,
   },
   selectedUserItem: {
-    backgroundColor: '#FFF5F5',
+    backgroundColor: "#FFF5F5",
   },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   userAvatar: {
@@ -152,19 +157,19 @@ const styles = StyleSheet.create({
   },
   defaultAvatar: {
     backgroundColor: theme.colors.background.input,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   userDetails: {
     flex: 1,
   },
   userNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   userName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.text.primary,
   },
   verifyIcon: {
@@ -183,8 +188,8 @@ const styles = StyleSheet.create({
   selectionIndicator: {
     width: 24,
     height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyCircle: {
     width: 20,
@@ -195,22 +200,22 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 60,
   },
   emptyStateText: {
     fontSize: 16,
     color: theme.colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
   },
   modalContent: {
@@ -219,12 +224,14 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     width: '100%',
     maxWidth: 400,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: theme.colors.text.primary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: theme.spacing.lg,
   },
   groupNameInput: {
@@ -240,12 +247,12 @@ const styles = StyleSheet.create({
   participantsText: {
     fontSize: 14,
     color: theme.colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: theme.spacing.lg,
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   cancelButton: {
     flex: 1,
@@ -258,20 +265,20 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     color: theme.colors.text.primary,
-    textAlign: 'center',
+    textAlign: "center",
   },
   createButton: {
     flex: 1,
     paddingVertical: theme.spacing.md,
     marginLeft: theme.spacing.sm,
     borderRadius: 8,
-    backgroundColor: '#E10600',
+    backgroundColor: "#E10600",
   },
   createButtonText: {
     fontSize: 16,
-    color: 'white',
-    fontWeight: '600',
-    textAlign: 'center',
+    color: "white",
+    fontWeight: "600",
+    textAlign: "center",
   },
   // Styles pour les demandes de discussion
   requestUserInfo: {
@@ -319,4 +326,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles; 
+export default styles;

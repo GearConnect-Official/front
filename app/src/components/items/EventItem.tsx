@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
+import theme from "../../styles/config";
 import eventService from "../../services/eventService";
 import { checkMissingEventInfo } from "../../utils/eventMissingInfo";
-import { eventItemStyles } from "../../styles/components/items";
 import EventTag from "../EventTag";
 import { trackEvent } from "../../utils/mixpanelTracking";
-
-const itemStyles = eventItemStyles;
+import { AspectBannerImage } from "../media/AspectBannerImage";
 
 interface EventItemProps {
   title: string;
   subtitle: string;
   date: string;
   icon?: string;
+  logoPublicId?: string;
+  images?: string[];
+  imagePublicIds?: string[];
   emoji?: string;
   location?: string;
   attendees?: number;
@@ -44,6 +46,9 @@ const EventItem: React.FC<EventItemProps> = ({
   subtitle,
   date,
   icon,
+  logoPublicId,
+  images,
+  imagePublicIds,
   emoji,
   location,
   attendees = 0,
@@ -159,25 +164,30 @@ const EventItem: React.FC<EventItemProps> = ({
   const showFinished = isEventFinished;
   const showJoined = !showFinished && (isJoined || isOrganizer);
 
+  const imgList = images && Array.isArray(images) ? images : [];
+  const mainUrl = icon || imgList[0];
+
   return (
     <TouchableOpacity style={itemStyles.container} onPress={onPress}>
-      <View style={itemStyles.headerRow}>
-        {icon ? (
-          <Image source={{ uri: icon }} style={itemStyles.eventIcon} />
-        ) : emoji ? (
-          <View style={itemStyles.emojiContainer}>
-            <Text style={itemStyles.emojiText}>{emoji}</Text>
+      {/* Bannière carrée: logo (pp) ou 1re image, adaptée au format carré — badge carrousel retiré (on voit les photos dans le détail) */}
+      <AspectBannerImage
+        sourceUri={mainUrl || null}
+        placeholder={
+          <View style={itemStyles.bannerPlaceholder}>
+            {emoji ? (
+              <Text style={itemStyles.bannerPlaceholderEmoji}>{emoji}</Text>
+            ) : (
+              <FontAwesome name="calendar" size={36} color="rgba(255,255,255,0.7)" />
+            )}
           </View>
-        ) : (
-          <View style={itemStyles.emojiContainer}>
-            <FontAwesome name="calendar" size={20} color="#666" />
-          </View>
-        )}
-
-        <View style={itemStyles.dateContainer}>
-          <Text style={itemStyles.dateText}>{date}</Text>
+        }
+        fallbackHeight={120}
+        forceSquare
+      >
+        <View style={itemStyles.bannerDateBadge} pointerEvents="none">
+          <Text style={itemStyles.bannerDateText}>{date}</Text>
         </View>
-      </View>
+      </AspectBannerImage>
 
       <View style={itemStyles.contentContainer}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -240,7 +250,7 @@ const EventItem: React.FC<EventItemProps> = ({
         {/* Priorité : afficher "End" si l'événement est terminé, sinon "Joined" si rejoint */}
         {isEventFinished ? (
           <View style={itemStyles.finishedBadge}>
-            <FontAwesome name="flag-checkered" size={14} color="#E10600" />
+            <FontAwesome name="flag-checkered" size={14} color={theme.colors.primary.main} />
             <Text style={itemStyles.finishedBadgeText}>End</Text>
           </View>
         ) : showJoined ? (
@@ -277,5 +287,166 @@ const EventItem: React.FC<EventItemProps> = ({
     </TouchableOpacity>
   );
 };
+
+const itemStyles = StyleSheet.create({
+  container: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    overflow: "hidden",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  bannerPlaceholder: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#E10600",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bannerPlaceholderEmoji: {
+    fontSize: 48,
+  },
+  bannerDateBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  bannerDateText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  contentContainer: {
+    padding: 16,
+  },
+  titleText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  subtitleText: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 8,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    gap: 6,
+  },
+  locationText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f5f5f5",
+    paddingTop: 12,
+  },
+  attendeesContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  attendeesText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  joinButton: {
+    backgroundColor: theme.colors.primary.main,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  joinButtonDisabled: {
+    opacity: 0.6,
+  },
+  joinButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  joinedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#d1fae5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  joinedBadgeText: {
+    color: '#10b981',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  missingInfoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  missingInfoText: {
+    color: '#F59E0B',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  winnerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  winnerText: {
+    fontSize: 14,
+    color: '#FFD700',
+    fontWeight: '600',
+  },
+  finishedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  finishedBadgeText: {
+    color: theme.colors.primary.main,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  shimmer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: 20,
+    height: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    transform: [{ skewX: "-20deg" }],
+  },
+});
 
 export default EventItem;

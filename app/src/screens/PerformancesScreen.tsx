@@ -1,23 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   RefreshControl,
   Alert,
   Animated,
   Switch,
   Vibration,
-} from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+} from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 
-import { useAuth } from '../context/AuthContext';
-import PerformanceService from '../services/performanceService';
+import { useAuth } from "../context/AuthContext";
+import PerformanceService from "../services/performanceService";
 import {
   Performance,
   UserPerformanceStats,
@@ -26,34 +26,39 @@ import {
   getPositionColor,
   getPositionEmoji,
   getPositionLabel,
-} from '../types/performance.types';
+} from "../types/performance.types";
 import {
   performanceStyles,
   THEME_COLORS,
   LAYOUT,
-} from '../styles/screens/user/performanceStyles';
+} from "../styles/screens/user/performanceStyles";
 
 const PerformancesScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAuth() || {};
 
   // State management
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [stats, setStats] = useState<UserPerformanceStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<RaceCategory | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<
+    RaceCategory | "all"
+  >("all");
   const [fadeAnim] = useState(new Animated.Value(0));
 
   // ISOLATED: Performance preferences state
-  const [performanceNotifications, setPerformanceNotifications] = useState(true);
+  const [performanceNotifications, setPerformanceNotifications] =
+    useState(true);
   const [autoSync, setAutoSync] = useState(true);
   const [detailedAnalytics, setDetailedAnalytics] = useState(false);
   const [personalRecordAlerts, setPersonalRecordAlerts] = useState(true);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
 
   // ISOLATED: Separate timeout refs for each performance switch
-  const performanceNotificationsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const performanceNotificationsTimeoutRef = useRef<NodeJS.Timeout | null>(
+    null
+  );
   const autoSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const detailedAnalyticsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const personalRecordAlertsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -81,81 +86,103 @@ const PerformancesScreen: React.FC = () => {
   // ISOLATED: Success notification for performance settings
   const showPerformanceNotification = useCallback((message: string) => {
     if (!isMountedRef.current) return;
-    Alert.alert('Performance Settings', message, [{ text: 'OK' }]);
+    Alert.alert("Performance Settings", message, [{ text: "OK" }]);
   }, []);
 
   // ISOLATED: Completely separate toggle handlers for each performance switch
-  const handlePerformanceNotificationsToggle = useCallback((value: boolean) => {
-    if (!isMountedRef.current) return;
-    
-    if (performanceNotificationsTimeoutRef.current) {
-      clearTimeout(performanceNotificationsTimeoutRef.current);
-    }
-    
-    setPerformanceNotifications(value);
-    Vibration.vibrate(30);
-    
-    performanceNotificationsTimeoutRef.current = setTimeout(() => {
-      if (isMountedRef.current) {
-        showPerformanceNotification(`Performance notifications ${value ? 'enabled' : 'disabled'}! 🏁`);
-      }
-    }, 100);
-  }, [showPerformanceNotification]);
+  const handlePerformanceNotificationsToggle = useCallback(
+    (value: boolean) => {
+      if (!isMountedRef.current) return;
 
-  const handleAutoSyncToggle = useCallback((value: boolean) => {
-    if (!isMountedRef.current) return;
-    
-    if (autoSyncTimeoutRef.current) {
-      clearTimeout(autoSyncTimeoutRef.current);
-    }
-    
-    setAutoSync(value);
-    Vibration.vibrate(30);
-    
-    autoSyncTimeoutRef.current = setTimeout(() => {
-      if (isMountedRef.current) {
-        showPerformanceNotification(`Auto sync ${value ? 'enabled' : 'disabled'}! 🔄`);
+      if (performanceNotificationsTimeoutRef.current) {
+        clearTimeout(performanceNotificationsTimeoutRef.current);
       }
-    }, 100);
-  }, [showPerformanceNotification]);
 
-  const handleDetailedAnalyticsToggle = useCallback((value: boolean) => {
-    if (!isMountedRef.current) return;
-    
-    if (detailedAnalyticsTimeoutRef.current) {
-      clearTimeout(detailedAnalyticsTimeoutRef.current);
-    }
-    
-    setDetailedAnalytics(value);
-    Vibration.vibrate(30);
-    
-    detailedAnalyticsTimeoutRef.current = setTimeout(() => {
-      if (isMountedRef.current) {
-        showPerformanceNotification(`Detailed analytics ${value ? 'enabled' : 'disabled'}! 📊`);
-      }
-    }, 100);
-  }, [showPerformanceNotification]);
+      setPerformanceNotifications(value);
+      Vibration.vibrate(30);
 
-  const handlePersonalRecordAlertsToggle = useCallback((value: boolean) => {
-    if (!isMountedRef.current) return;
-    
-    if (personalRecordAlertsTimeoutRef.current) {
-      clearTimeout(personalRecordAlertsTimeoutRef.current);
-    }
-    
-    setPersonalRecordAlerts(value);
-    Vibration.vibrate(30);
-    
-    personalRecordAlertsTimeoutRef.current = setTimeout(() => {
-      if (isMountedRef.current) {
-        showPerformanceNotification(`Personal record alerts ${value ? 'enabled' : 'disabled'}! 🏆`);
+      performanceNotificationsTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          showPerformanceNotification(
+            `Performance notifications ${value ? "enabled" : "disabled"}! 🏁`
+          );
+        }
+      }, 100);
+    },
+    [showPerformanceNotification]
+  );
+
+  const handleAutoSyncToggle = useCallback(
+    (value: boolean) => {
+      if (!isMountedRef.current) return;
+
+      if (autoSyncTimeoutRef.current) {
+        clearTimeout(autoSyncTimeoutRef.current);
       }
-    }, 100);
-  }, [showPerformanceNotification]);
+
+      setAutoSync(value);
+      Vibration.vibrate(30);
+
+      autoSyncTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          showPerformanceNotification(
+            `Auto sync ${value ? "enabled" : "disabled"}! 🔄`
+          );
+        }
+      }, 100);
+    },
+    [showPerformanceNotification]
+  );
+
+  const handleDetailedAnalyticsToggle = useCallback(
+    (value: boolean) => {
+      if (!isMountedRef.current) return;
+
+      if (detailedAnalyticsTimeoutRef.current) {
+        clearTimeout(detailedAnalyticsTimeoutRef.current);
+      }
+
+      setDetailedAnalytics(value);
+      Vibration.vibrate(30);
+
+      detailedAnalyticsTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          showPerformanceNotification(
+            `Detailed analytics ${value ? "enabled" : "disabled"}! 📊`
+          );
+        }
+      }, 100);
+    },
+    [showPerformanceNotification]
+  );
+
+  const handlePersonalRecordAlertsToggle = useCallback(
+    (value: boolean) => {
+      if (!isMountedRef.current) return;
+
+      if (personalRecordAlertsTimeoutRef.current) {
+        clearTimeout(personalRecordAlertsTimeoutRef.current);
+      }
+
+      setPersonalRecordAlerts(value);
+      Vibration.vibrate(30);
+
+      personalRecordAlertsTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          showPerformanceNotification(
+            `Personal record alerts ${value ? "enabled" : "disabled"}! 🏆`
+          );
+        }
+      }, 100);
+    },
+    [showPerformanceNotification]
+  );
 
   // ISOLATED: Individual switch components for performance settings
   const PerformanceNotificationsSwitch = React.memo(() => {
-    const switchAnim = useRef(new Animated.Value(performanceNotifications ? 1 : 0)).current;
+    const switchAnim = useRef(
+      new Animated.Value(performanceNotifications ? 1 : 0)
+    ).current;
     const switchMountedRef = useRef(true);
 
     useEffect(() => {
@@ -182,8 +209,8 @@ const PerformancesScreen: React.FC = () => {
       <Switch
         value={performanceNotifications}
         onValueChange={handlePerformanceNotificationsToggle}
-        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.SUCCESS }}
-        thumbColor={performanceNotifications ? '#FFFFFF' : '#9CA3AF'}
+        trackColor={{ false: "#E5E7EB", true: THEME_COLORS.SUCCESS }}
+        thumbColor={performanceNotifications ? "#FFFFFF" : "#9CA3AF"}
         style={{ transform: [{ scale: 0.9 }] }}
       />
     );
@@ -217,15 +244,17 @@ const PerformancesScreen: React.FC = () => {
       <Switch
         value={autoSync}
         onValueChange={handleAutoSyncToggle}
-        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.INFO }}
-        thumbColor={autoSync ? '#FFFFFF' : '#9CA3AF'}
+        trackColor={{ false: "#E5E7EB", true: THEME_COLORS.INFO }}
+        thumbColor={autoSync ? "#FFFFFF" : "#9CA3AF"}
         style={{ transform: [{ scale: 0.9 }] }}
       />
     );
   });
 
   const DetailedAnalyticsSwitch = React.memo(() => {
-    const switchAnim = useRef(new Animated.Value(detailedAnalytics ? 1 : 0)).current;
+    const switchAnim = useRef(
+      new Animated.Value(detailedAnalytics ? 1 : 0)
+    ).current;
     const switchMountedRef = useRef(true);
 
     useEffect(() => {
@@ -252,15 +281,17 @@ const PerformancesScreen: React.FC = () => {
       <Switch
         value={detailedAnalytics}
         onValueChange={handleDetailedAnalyticsToggle}
-        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.WARNING }}
-        thumbColor={detailedAnalytics ? '#FFFFFF' : '#9CA3AF'}
+        trackColor={{ false: "#E5E7EB", true: THEME_COLORS.WARNING }}
+        thumbColor={detailedAnalytics ? "#FFFFFF" : "#9CA3AF"}
         style={{ transform: [{ scale: 0.9 }] }}
       />
     );
   });
 
   const PersonalRecordAlertsSwitch = React.memo(() => {
-    const switchAnim = useRef(new Animated.Value(personalRecordAlerts ? 1 : 0)).current;
+    const switchAnim = useRef(
+      new Animated.Value(personalRecordAlerts ? 1 : 0)
+    ).current;
     const switchMountedRef = useRef(true);
 
     useEffect(() => {
@@ -287,17 +318,17 @@ const PerformancesScreen: React.FC = () => {
       <Switch
         value={personalRecordAlerts}
         onValueChange={handlePersonalRecordAlertsToggle}
-        trackColor={{ false: '#E5E7EB', true: THEME_COLORS.VICTORY_GOLD }}
-        thumbColor={personalRecordAlerts ? '#FFFFFF' : '#9CA3AF'}
+        trackColor={{ false: "#E5E7EB", true: THEME_COLORS.VICTORY_GOLD }}
+        thumbColor={personalRecordAlerts ? "#FFFFFF" : "#9CA3AF"}
         style={{ transform: [{ scale: 0.9 }] }}
       />
     );
   });
 
-  PerformanceNotificationsSwitch.displayName = 'PerformanceNotificationsSwitch';
-  AutoSyncSwitch.displayName = 'AutoSyncSwitch';
-  DetailedAnalyticsSwitch.displayName = 'DetailedAnalyticsSwitch';
-  PersonalRecordAlertsSwitch.displayName = 'PersonalRecordAlertsSwitch';
+  PerformanceNotificationsSwitch.displayName = "PerformanceNotificationsSwitch";
+  AutoSyncSwitch.displayName = "AutoSyncSwitch";
+  DetailedAnalyticsSwitch.displayName = "DetailedAnalyticsSwitch";
+  PersonalRecordAlertsSwitch.displayName = "PersonalRecordAlertsSwitch";
 
   /**
    * Load performances and statistics
@@ -311,7 +342,7 @@ const PerformancesScreen: React.FC = () => {
       const [performancesResponse, statsResponse] = await Promise.all([
         PerformanceService.getUserPerformances(
           user.id,
-          selectedCategory !== 'all' ? { category: selectedCategory } : {}
+          selectedCategory !== "all" ? { category: selectedCategory } : {}
         ),
         PerformanceService.getUserStats(user.id),
       ]);
@@ -319,16 +350,16 @@ const PerformancesScreen: React.FC = () => {
       if (performancesResponse.success && performancesResponse.data) {
         setPerformances(performancesResponse.data);
       } else {
-        showError('Failed to load your race data');
+        showError("Failed to load your race data");
       }
 
       if (statsResponse.success && statsResponse.data) {
         setStats(statsResponse.data);
       } else {
-        showError('Failed to load your statistics');
+        showError("Failed to load your statistics");
       }
     } catch {
-      showError('Unable to load your racing data');
+      showError("Unable to load your racing data");
     } finally {
       setIsLoading(false);
     }
@@ -343,7 +374,7 @@ const PerformancesScreen: React.FC = () => {
     try {
       const response = await PerformanceService.getUserPerformances(
         user.id,
-        selectedCategory !== 'all' ? { category: selectedCategory } : {}
+        selectedCategory !== "all" ? { category: selectedCategory } : {}
       );
 
       if (response.success && response.data) {
@@ -386,7 +417,7 @@ const PerformancesScreen: React.FC = () => {
   /**
    * Handle category filter change
    */
-  const handleCategoryChange = (category: RaceCategory | 'all') => {
+  const handleCategoryChange = (category: RaceCategory | "all") => {
     if (category === selectedCategory) return;
     setSelectedCategory(category);
   };
@@ -395,14 +426,14 @@ const PerformancesScreen: React.FC = () => {
    * Navigate to add performance screen
    */
   const handleAddPerformance = () => {
-    router.push('/addPerformance');
+    router.push("/addPerformance");
   };
 
   /**
    * Show error alert
    */
   const showError = (message: string) => {
-    Alert.alert('Error', message);
+    Alert.alert("Error", message);
   };
 
   /**
@@ -410,10 +441,10 @@ const PerformancesScreen: React.FC = () => {
    */
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -424,9 +455,14 @@ const PerformancesScreen: React.FC = () => {
     if (!stats) return null;
 
     return (
-      <Animated.View style={[performanceStyles.heroSection, { opacity: fadeAnim }]}>
+      <Animated.View
+        style={[performanceStyles.heroSection, { opacity: fadeAnim }]}
+      >
         <LinearGradient
-          colors={[THEME_COLORS.RACING_GRADIENT_START, THEME_COLORS.RACING_GRADIENT_END]}
+          colors={[
+            THEME_COLORS.RACING_GRADIENT_START,
+            THEME_COLORS.RACING_GRADIENT_END,
+          ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={performanceStyles.heroGradient}
@@ -435,21 +471,29 @@ const PerformancesScreen: React.FC = () => {
           <Text style={performanceStyles.heroSubtitle}>
             Track your progress and celebrate your achievements on the track
           </Text>
-          
+
           <View style={performanceStyles.heroStats}>
             <View style={performanceStyles.heroStatItem}>
-              <Text style={performanceStyles.heroStatValue}>{stats.totalRaces}</Text>
+              <Text style={performanceStyles.heroStatValue}>
+                {stats.totalRaces}
+              </Text>
               <Text style={performanceStyles.heroStatLabel}>Total Races</Text>
             </View>
             <View style={performanceStyles.heroStatItem}>
               <Text style={performanceStyles.heroStatValue}>
-                {stats.bestPosition > 0 ? `${stats.bestPosition}${getOrdinalSuffix(stats.bestPosition)}` : '-'}
+                {stats.bestPosition > 0
+                  ? `${stats.bestPosition}${getOrdinalSuffix(
+                      stats.bestPosition
+                    )}`
+                  : "-"}
               </Text>
               <Text style={performanceStyles.heroStatLabel}>Best Finish</Text>
             </View>
             <View style={performanceStyles.heroStatItem}>
               <Text style={performanceStyles.heroStatValue}>
-                {stats.averagePosition > 0 ? stats.averagePosition.toFixed(1) : '-'}
+                {stats.averagePosition > 0
+                  ? stats.averagePosition.toFixed(1)
+                  : "-"}
               </Text>
               <Text style={performanceStyles.heroStatLabel}>Avg Position</Text>
             </View>
@@ -465,52 +509,60 @@ const PerformancesScreen: React.FC = () => {
   const renderStatsCards = () => {
     if (!stats || stats.totalRaces === 0) return null;
 
-    const podiumRate = stats.totalRaces > 0 ? ((stats.podiumFinishes || 0) / stats.totalRaces * 100).toFixed(0) : '0';
-    const winRate = stats.totalRaces > 0 ? ((stats.wins || 0) / stats.totalRaces * 100).toFixed(0) : '0';
+    const podiumRate =
+      stats.totalRaces > 0
+        ? (((stats.podiumFinishes || 0) / stats.totalRaces) * 100).toFixed(0)
+        : "0";
+    const winRate =
+      stats.totalRaces > 0
+        ? (((stats.wins || 0) / stats.totalRaces) * 100).toFixed(0)
+        : "0";
 
     return (
       <View style={performanceStyles.statsContainer}>
         <View style={performanceStyles.statsGrid}>
           <View style={performanceStyles.statsCard}>
-            <FontAwesome 
-              name="trophy" 
-              size={20} 
-              color={THEME_COLORS.VICTORY_GOLD} 
+            <FontAwesome
+              name="trophy"
+              size={20}
+              color={THEME_COLORS.VICTORY_GOLD}
               style={performanceStyles.statsIcon}
             />
             <Text style={performanceStyles.statsValue}>{stats.wins || 0}</Text>
             <Text style={performanceStyles.statsLabel}>Victories</Text>
           </View>
-          
+
           <View style={performanceStyles.statsCard}>
-            <FontAwesome 
-              name="certificate" 
-              size={20} 
-              color={THEME_COLORS.PODIUM_BRONZE} 
+            <FontAwesome
+              name="certificate"
+              size={20}
+              color={THEME_COLORS.PODIUM_BRONZE}
               style={performanceStyles.statsIcon}
             />
-            <Text style={performanceStyles.statsValue}>{stats.podiumFinishes || 0}</Text>
+            <Text style={performanceStyles.statsValue}>
+              {stats.podiumFinishes || 0}
+            </Text>
             <Text style={performanceStyles.statsLabel}>Podiums</Text>
           </View>
         </View>
-        
+
         <View style={performanceStyles.statsGrid}>
           <View style={performanceStyles.statsCard}>
-            <FontAwesome 
-              name="percent" 
-              size={20} 
-              color={THEME_COLORS.SUCCESS} 
+            <FontAwesome
+              name="percent"
+              size={20}
+              color={THEME_COLORS.SUCCESS}
               style={performanceStyles.statsIcon}
             />
             <Text style={performanceStyles.statsValue}>{winRate}%</Text>
             <Text style={performanceStyles.statsLabel}>Win Rate</Text>
           </View>
-          
+
           <View style={performanceStyles.statsCard}>
-            <FontAwesome 
-              name="line-chart" 
-              size={20} 
-              color={THEME_COLORS.INFO} 
+            <FontAwesome
+              name="line-chart"
+              size={20}
+              color={THEME_COLORS.INFO}
               style={performanceStyles.statsIcon}
             />
             <Text style={performanceStyles.statsValue}>{podiumRate}%</Text>
@@ -525,20 +577,28 @@ const PerformancesScreen: React.FC = () => {
    * Render category filters
    */
   const renderFilters = () => {
-    const categories: (RaceCategory | 'all')[] = ['all', ...RACE_CATEGORIES.map(cat => cat.value)];
+    const categories: (RaceCategory | "all")[] = [
+      "all",
+      ...RACE_CATEGORIES.map((cat) => cat.value),
+    ];
 
     return (
       <View style={performanceStyles.filtersContainer}>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={performanceStyles.filtersList}
         >
           {categories.map((category) => {
-            const categoryData = category === 'all' 
-              ? { label: 'All Races', emoji: '🏁', color: THEME_COLORS.PRIMARY }
-              : RACE_CATEGORIES.find(cat => cat.value === category);
-            
+            const categoryData =
+              category === "all"
+                ? {
+                    label: "All Races",
+                    color: THEME_COLORS.PRIMARY,
+
+                  }
+                : RACE_CATEGORIES.find((cat) => cat.value === category);
+
             if (!categoryData) return null;
 
             const isActive = selectedCategory === category;
@@ -554,7 +614,7 @@ const PerformancesScreen: React.FC = () => {
                 onPress={() => handleCategoryChange(category)}
               >
                 <Text style={performanceStyles.filterChipText}>
-                  {categoryData.emoji} {categoryData.label}
+                  {categoryData.label}
                 </Text>
               </TouchableOpacity>
             );
@@ -570,9 +630,14 @@ const PerformancesScreen: React.FC = () => {
   const renderPerformanceCard = (performance: Performance, index: number) => {
     const positionColor = getPositionColor(performance.racePosition);
     const positionEmoji = getPositionEmoji(performance.racePosition);
-    const positionLabel = getPositionLabel(performance.racePosition, performance.totalParticipants);
-    
-    const categoryData = RACE_CATEGORIES.find(cat => cat.value === performance.category);
+    const positionLabel = getPositionLabel(
+      performance.racePosition,
+      performance.totalParticipants
+    );
+
+    const categoryData = RACE_CATEGORIES.find(
+      (cat) => cat.value === performance.category
+    );
 
     return (
       <Animated.View
@@ -581,12 +646,14 @@ const PerformancesScreen: React.FC = () => {
           performanceStyles.performanceCard,
           {
             opacity: fadeAnim,
-            transform: [{
-              translateY: fadeAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [50, 0],
-              }),
-            }],
+            transform: [
+              {
+                translateY: fadeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [50, 0],
+                }),
+              },
+            ],
           },
         ]}
       >
@@ -608,10 +675,12 @@ const PerformancesScreen: React.FC = () => {
                 <Text style={{ fontSize: 20 }}>{positionEmoji}</Text>
               </View>
               <Text style={performanceStyles.metricLabel}>Position</Text>
-              <Text style={[
-                performanceStyles.positionValue,
-                { color: positionColor }
-              ]}>
+              <Text
+                style={[
+                  performanceStyles.positionValue,
+                  { color: positionColor },
+                ]}
+              >
                 {positionLabel}
               </Text>
             </View>
@@ -620,7 +689,11 @@ const PerformancesScreen: React.FC = () => {
           <View style={performanceStyles.performanceRow}>
             <View style={performanceStyles.performanceMetric}>
               <View style={performanceStyles.metricIcon}>
-                <FontAwesome name="clock-o" size={16} color={THEME_COLORS.PRIMARY} />
+                <FontAwesome
+                  name="clock-o"
+                  size={16}
+                  color={THEME_COLORS.PRIMARY}
+                />
               </View>
               <Text style={performanceStyles.metricLabel}>Lap Time</Text>
               <Text style={performanceStyles.lapTimeValue}>
@@ -632,7 +705,9 @@ const PerformancesScreen: React.FC = () => {
           <View style={performanceStyles.performanceRow}>
             <View style={performanceStyles.performanceMetric}>
               <View style={performanceStyles.metricIcon}>
-                <Text style={{ fontSize: 16 }}>{categoryData?.emoji || '🏁'}</Text>
+                <Text style={{ fontSize: 16 }}>
+                  {categoryData?.emoji || "🏁"}
+                </Text>
               </View>
               <Text style={performanceStyles.metricLabel}>Category</Text>
               <Text style={performanceStyles.metricValue}>
@@ -659,23 +734,25 @@ const PerformancesScreen: React.FC = () => {
   const renderEmptyState = () => {
     return (
       <View style={performanceStyles.emptyContainer}>
-        <FontAwesome 
-          name="trophy" 
-          size={80} 
+        <FontAwesome
+          name="trophy"
+          size={80}
           color={THEME_COLORS.TEXT_MUTED}
           style={performanceStyles.emptyIcon}
         />
         <Text style={performanceStyles.emptyTitle}>No Race Data Yet</Text>
         <Text style={performanceStyles.emptySubtitle}>
-          Start tracking your racing performance and see your progress over time. 
-          Every lap counts on your journey to the podium!
+          Start tracking your racing performance and see your progress over
+          time. Every lap counts on your journey to the podium!
         </Text>
         <TouchableOpacity
           style={performanceStyles.primaryButton}
           onPress={handleAddPerformance}
         >
           <FontAwesome name="plus" size={16} color="#FFFFFF" />
-          <Text style={performanceStyles.primaryButtonText}>Add First Race</Text>
+          <Text style={performanceStyles.primaryButtonText}>
+            Add First Race
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -685,7 +762,8 @@ const PerformancesScreen: React.FC = () => {
    * Helper function for ordinal suffixes
    */
   const getOrdinalSuffix = (num: number): string => {
-    const suffix = num === 1 ? 'st' : num === 2 ? 'nd' : num === 3 ? 'rd' : 'th';
+    const suffix =
+      num === 1 ? "st" : num === 2 ? "nd" : num === 3 ? "rd" : "th";
     return suffix;
   };
 
@@ -696,41 +774,65 @@ const PerformancesScreen: React.FC = () => {
     if (!showSettingsPanel) return null;
 
     return (
-      <Animated.View style={{
-        backgroundColor: '#F9FAFB',
-        marginHorizontal: LAYOUT.SPACING_MD,
-        marginBottom: LAYOUT.SPACING_MD,
-        borderRadius: 12,
-        padding: LAYOUT.SPACING_MD,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-      }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: LAYOUT.SPACING_MD }}>
+      <Animated.View
+        style={{
+          backgroundColor: "#F9FAFB",
+          marginHorizontal: LAYOUT.SPACING_MD,
+          marginBottom: LAYOUT.SPACING_MD,
+          borderRadius: 12,
+          padding: LAYOUT.SPACING_MD,
+          borderWidth: 1,
+          borderColor: "#E5E7EB",
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: LAYOUT.SPACING_MD,
+          }}
+        >
           <FontAwesome name="cog" size={20} color={THEME_COLORS.PRIMARY} />
-          <Text style={{ 
-            fontSize: 18, 
-            fontWeight: '600', 
-            color: THEME_COLORS.TEXT_PRIMARY,
-            marginLeft: 8
-          }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+              color: THEME_COLORS.TEXT_PRIMARY,
+              marginLeft: 8,
+            }}
+          >
             Performance Settings
           </Text>
         </View>
 
         {/* Performance Notifications */}
-        <View style={{ 
-          flexDirection: 'row', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          paddingVertical: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: '#E5E7EB'
-        }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingVertical: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: "#E5E7EB",
+          }}
+        >
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 16, color: THEME_COLORS.TEXT_PRIMARY, fontWeight: '500' }}>
+            <Text
+              style={{
+                fontSize: 16,
+                color: THEME_COLORS.TEXT_PRIMARY,
+                fontWeight: "500",
+              }}
+            >
               🏁 Performance Notifications
             </Text>
-            <Text style={{ fontSize: 12, color: THEME_COLORS.TEXT_SECONDARY, marginTop: 2 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: THEME_COLORS.TEXT_SECONDARY,
+                marginTop: 2,
+              }}
+            >
               Get notified about race updates
             </Text>
           </View>
@@ -738,19 +840,33 @@ const PerformancesScreen: React.FC = () => {
         </View>
 
         {/* Auto Sync */}
-        <View style={{ 
-          flexDirection: 'row', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          paddingVertical: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: '#E5E7EB'
-        }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingVertical: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: "#E5E7EB",
+          }}
+        >
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 16, color: THEME_COLORS.TEXT_PRIMARY, fontWeight: '500' }}>
+            <Text
+              style={{
+                fontSize: 16,
+                color: THEME_COLORS.TEXT_PRIMARY,
+                fontWeight: "500",
+              }}
+            >
               🔄 Auto Sync
             </Text>
-            <Text style={{ fontSize: 12, color: THEME_COLORS.TEXT_SECONDARY, marginTop: 2 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: THEME_COLORS.TEXT_SECONDARY,
+                marginTop: 2,
+              }}
+            >
               Automatically sync race data
             </Text>
           </View>
@@ -758,19 +874,33 @@ const PerformancesScreen: React.FC = () => {
         </View>
 
         {/* Detailed Analytics */}
-        <View style={{ 
-          flexDirection: 'row', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          paddingVertical: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: '#E5E7EB'
-        }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingVertical: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: "#E5E7EB",
+          }}
+        >
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 16, color: THEME_COLORS.TEXT_PRIMARY, fontWeight: '500' }}>
+            <Text
+              style={{
+                fontSize: 16,
+                color: THEME_COLORS.TEXT_PRIMARY,
+                fontWeight: "500",
+              }}
+            >
               📊 Detailed Analytics
             </Text>
-            <Text style={{ fontSize: 12, color: THEME_COLORS.TEXT_SECONDARY, marginTop: 2 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: THEME_COLORS.TEXT_SECONDARY,
+                marginTop: 2,
+              }}
+            >
               Show advanced performance metrics
             </Text>
           </View>
@@ -778,17 +908,31 @@ const PerformancesScreen: React.FC = () => {
         </View>
 
         {/* Personal Record Alerts */}
-        <View style={{ 
-          flexDirection: 'row', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          paddingVertical: 12
-        }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingVertical: 12,
+          }}
+        >
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 16, color: THEME_COLORS.TEXT_PRIMARY, fontWeight: '500' }}>
+            <Text
+              style={{
+                fontSize: 16,
+                color: THEME_COLORS.TEXT_PRIMARY,
+                fontWeight: "500",
+              }}
+            >
               🏆 Personal Record Alerts
             </Text>
-            <Text style={{ fontSize: 12, color: THEME_COLORS.TEXT_SECONDARY, marginTop: 2 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: THEME_COLORS.TEXT_SECONDARY,
+                marginTop: 2,
+              }}
+            >
               Get notified when you set new records
             </Text>
           </View>
@@ -804,7 +948,9 @@ const PerformancesScreen: React.FC = () => {
       <SafeAreaView style={performanceStyles.safeArea}>
         <View style={performanceStyles.loadingContainer}>
           <ActivityIndicator size="large" color={THEME_COLORS.PRIMARY} />
-          <Text style={performanceStyles.loadingText}>Loading your racing data...</Text>
+          <Text style={performanceStyles.loadingText}>
+            Loading your racing data...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -814,27 +960,35 @@ const PerformancesScreen: React.FC = () => {
     <SafeAreaView style={performanceStyles.container}>
       {/* Header */}
       <View style={performanceStyles.header}>
-        <TouchableOpacity 
-          style={performanceStyles.headerButton} 
+        <TouchableOpacity
+          style={performanceStyles.headerButton}
           onPress={() => router.back()}
         >
-          <FontAwesome name="arrow-left" size={20} color={THEME_COLORS.TEXT_PRIMARY} />
+          <FontAwesome
+            name="arrow-left"
+            size={20}
+            color={THEME_COLORS.TEXT_PRIMARY}
+          />
         </TouchableOpacity>
-        
+
         <Text style={performanceStyles.headerTitle}>Performance Tracker</Text>
-        
-        <View style={{ flexDirection: 'row' }}>
-          <TouchableOpacity
+
+        <View style={{ flexDirection: "row" }}>
+          {/* <TouchableOpacity
             style={[performanceStyles.headerButton, { marginRight: 8 }]}
             onPress={() => setShowSettingsPanel(!showSettingsPanel)}
           >
-            <FontAwesome 
-              name="cog" 
-              size={20} 
-              color={showSettingsPanel ? THEME_COLORS.PRIMARY : THEME_COLORS.TEXT_SECONDARY} 
+            <FontAwesome
+              name="cog"
+              size={20}
+              color={
+                showSettingsPanel
+                  ? THEME_COLORS.PRIMARY
+                  : THEME_COLORS.TEXT_SECONDARY
+              }
             />
-          </TouchableOpacity>
-          
+          </TouchableOpacity> */}
+
           <TouchableOpacity
             style={performanceStyles.headerButton}
             onPress={handleAddPerformance}
@@ -849,8 +1003,8 @@ const PerformancesScreen: React.FC = () => {
         contentContainerStyle={performanceStyles.contentContainer}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl 
-            refreshing={isRefreshing} 
+          <RefreshControl
+            refreshing={isRefreshing}
             onRefresh={handleRefresh}
             colors={[THEME_COLORS.PRIMARY]}
             tintColor={THEME_COLORS.PRIMARY}
@@ -872,15 +1026,23 @@ const PerformancesScreen: React.FC = () => {
             renderEmptyState()
           ) : (
             <>
-              <View style={{ paddingHorizontal: LAYOUT.SPACING_MD, marginBottom: LAYOUT.SPACING_MD }}>
+              <View
+                style={{
+                  paddingHorizontal: LAYOUT.SPACING_MD,
+                  marginBottom: LAYOUT.SPACING_MD,
+                }}
+              >
                 <Text style={performanceStyles.headerTitle}>
-                  {selectedCategory === 'all' 
+                  {selectedCategory === "all"
                     ? `All Races (${performances.length})`
-                    : `${RACE_CATEGORIES.find(cat => cat.value === selectedCategory)?.label || selectedCategory} (${performances.length})`
-                  }
+                    : `${
+                        RACE_CATEGORIES.find(
+                          (cat) => cat.value === selectedCategory
+                        )?.label || selectedCategory
+                      } (${performances.length})`}
                 </Text>
               </View>
-              {performances.map((performance, index) => 
+              {performances.map((performance, index) =>
                 renderPerformanceCard(performance, index)
               )}
             </>
@@ -894,4 +1056,4 @@ const PerformancesScreen: React.FC = () => {
   );
 };
 
-export default PerformancesScreen; 
+export default PerformancesScreen;

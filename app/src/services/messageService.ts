@@ -58,8 +58,9 @@ export class MessageService {
     
     CONTENT_COPIED: {
       type: MessageType.SUCCESS,
-      message: "Contenu copié dans le presse-papiers",
-      duration: 2000
+      message: "Content copied to clipboard",
+      duration: 2000,
+      customBackgroundColor: '#E10600',
     } as MessageConfig,
   };
 

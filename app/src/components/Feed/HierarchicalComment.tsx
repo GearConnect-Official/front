@@ -158,20 +158,6 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
           <Text style={styles.content}>{comment.content}</Text>
 
           <View style={styles.actions}>
-            <TouchableOpacity 
-              style={styles.actionButton} 
-              onPress={handleReply}
-              disabled={level >= maxLevel}
-            >
-              <FontAwesome 
-                name="reply" 
-                size={14} 
-                color={level >= maxLevel ? "#ccc" : "#666"} 
-              />
-              <Text style={[styles.actionText, level >= maxLevel && styles.disabledText]}>
-                RÃ©pondre
-              </Text>
-            </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.actionButton} 
@@ -192,6 +178,21 @@ const HierarchicalComment: React.FC<HierarchicalCommentProps> = ({
                   {likesCount}
                 </Text>
               )}
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={handleReply}
+              disabled={level >= maxLevel}
+            >
+              <FontAwesome 
+                name="reply" 
+                size={14} 
+                color={level >= maxLevel ? "#ccc" : "#666"} 
+              />
+              <Text style={[styles.actionText, level >= maxLevel && styles.disabledText]}>
+                Répondre
+              </Text>
             </TouchableOpacity>
 
             {isOwnComment && (

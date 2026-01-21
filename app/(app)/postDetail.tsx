@@ -4,14 +4,14 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import { useAuth } from '../src/context/AuthContext';
 import PostItem, { Post } from '../src/components/Feed/PostItem';
@@ -21,6 +21,7 @@ import favoritesService from '../src/services/favoritesService';
 import { formatPostDate } from '../src/utils/dateUtils';
 import { detectMediaType } from '../src/utils/mediaUtils';
 import { postDetailStyles as styles } from '../src/styles/screens';
+
 
 const PostDetailScreen: React.FC = () => {
   const router = useRouter();
@@ -44,7 +45,11 @@ const PostDetailScreen: React.FC = () => {
         const uiPost: Post = {
           id: response.id.toString(),
           username: response.user?.username || response.user?.name || 'Unknown User',
-          avatar: response.user?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user?.username || 'User')}&background=E10600&color=fff`,
+          avatar: (response.user as any)?.profilePicturePublicId ? 
+            '' : 
+            (response.user?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user?.username || 'User')}&background=E10600&color=fff`),
+          profilePicturePublicId: (response.user as any)?.profilePicturePublicId,
+          userId: response.userId,
           images: response.cloudinaryUrl ? [response.cloudinaryUrl] : [],
           imagePublicIds: response.cloudinaryPublicId ? [response.cloudinaryPublicId] : [],
           mediaTypes,
@@ -193,27 +198,17 @@ const PostDetailScreen: React.FC = () => {
   };
 
   const shareTextContent = async (content: string) => {
-    // Pour le texte, on peut utiliser l'API Web Share ou créer un fichier temporaire
+    // Utiliser le Share natif de React Native
     try {
-      // Créer un fichier temporaire avec le contenu
-      const tempFile = `${FileSystem.documentDirectory}temp_share.txt`;
-      await FileSystem.writeAsStringAsync(tempFile, content);
-      
-      await Sharing.shareAsync(tempFile, {
-        mimeType: 'text/plain',
-        dialogTitle: 'Partager ce post',
+      await Share.share({
+        message: content,
+        title: 'Partager ce post',
       });
-      
-      // Nettoyer le fichier temporaire
-      await FileSystem.deleteAsync(tempFile, { idempotent: true });
     } catch (error) {
-      console.log('⚠️ Text file sharing failed:', error);
-      Alert.alert('Info', 'Contenu copié dans le presse-papiers', [
-        { text: 'OK', onPress: () => {
-          // Fallback: copier dans le presse-papiers
-          Clipboard.setStringAsync(content);
-        }}
-      ]);
+      console.log('⚠️ Text sharing failed:', error);
+      // Fallback: copier dans le presse-papiers
+      await Clipboard.setStringAsync(content);
+      Alert.alert('Info', 'Contenu copié dans le presse-papiers');
     }
   };
 

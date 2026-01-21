@@ -43,8 +43,11 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
     website: initialData.website || '',
     rankings: initialData.rankings || '',
     logo: initialData.logo || '',
+    logoPublicId: initialData.logoPublicId || '',
     images: initialData.images || [],
+    imagePublicIds: initialData.imagePublicIds || [],
     description: initialData.description || '',
+    meteo: initialData.meteo || {},
     organizers: [],
   });
 
@@ -115,7 +118,10 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
         description: formData.description ? formData.description.trim() : '',
         // Les images sont traitées par eventService
         logo: formData.logo || '',
+        logoPublicId: formData.logoPublicId || undefined,
         images: formData.images || [],
+        imagePublicIds: formData.imagePublicIds || [],
+        meteo: formData.meteo || {},
         participationTagText: formData.participationTagText?.trim() || undefined,
         participationTagColor: formData.participationTagColor?.trim() || undefined,
         organizers: finalOrganizers,
@@ -130,7 +136,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
       // Track event creation
       if (createdEvent && createdEvent.id) {
         const eventId = createdEvent.id.toString();
-        const hasImage = formData.logo ? true : (formData.images && formData.images.length > 0);
+        const hasImage: boolean = !!(formData.logo || (formData.images && formData.images.length > 0));
         trackEvent.created(eventId, formData.name, hasImage);
       }
 
@@ -181,10 +187,11 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
     }
   };
 
-  const handleAddImage = (uri: string) => {
+  const handleAddImage = (url: string, publicId: string) => {
     setFormData((prev) => ({
       ...prev,
-      images: [...(prev.images || []), uri],
+      images: [...(prev.images || []), url],
+      imagePublicIds: [...(prev.imagePublicIds || []), publicId],
     }));
   };
 
@@ -205,22 +212,29 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
         return (
           <MediaInfo
             logo={formData.logo || ''}
+            logoPublicId={formData.logoPublicId}
             images={formData.images || []}
+            imagePublicIds={formData.imagePublicIds || []}
             description={formData.description || ''}
             onInputChange={handleInputChange}
             onAddImage={handleAddImage}
-            onLogoChange={(logo: string) => handleInputChange('logo', logo)}
+            onLogoChange={(url: string, publicId: string) => {
+              handleInputChange('logo', url);
+              handleInputChange('logoPublicId', publicId);
+            }}
           />
         );
       case 3:
         return (
           <AdditionalInfo
             logo={formData.logo || ''}
+            images={formData.images || []}
             name={formData.name}
             location={formData.location}
             date={formData.date}
             website={formData.website}
             sponsors={formData.sponsors}
+            meteo={formData.meteo as any}
             participationTagText={formData.participationTagText}
             participationTagColor={formData.participationTagColor}
             onInputChange={handleInputChange}
@@ -247,7 +261,7 @@ const CreateEventForm: React.FC<CreateEventProps> = ({
           <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
           <ScrollView 
             style={styles.scrollView}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
             nestedScrollEnabled={true}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={true}

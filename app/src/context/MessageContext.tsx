@@ -9,6 +9,7 @@ interface FeedbackState {
   type: FeedbackType;
   errorType?: ErrorType;
   duration?: number;
+  customBackgroundColor?: string;
 }
 
 interface ConfirmationState extends ConfirmationConfig {
@@ -112,6 +113,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       message: messageConfig.message,
       type: feedbackType,
       duration: messageConfig.duration || 5000,
+      customBackgroundColor: messageConfig.customBackgroundColor,
     });
   }, []);
 

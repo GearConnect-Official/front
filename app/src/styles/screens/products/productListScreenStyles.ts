@@ -9,10 +9,11 @@ export const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomWidth: 0,
+    backgroundColor: '#fff',
+    height: 56,
   },
   emptyContainer: {
     flex: 1,
@@ -44,7 +45,8 @@ export const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 16,
+    flex: 1,
+    textAlign: 'center',
   },
   listContainer: {
     flex: 1,

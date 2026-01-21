@@ -43,11 +43,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: THEME_COLORS.background,
+    backgroundColor: "#fff",
     borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   headerLeft: {
     flex: 1,
@@ -63,6 +61,8 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.textPrimary,
     fontSize: 18,
     fontWeight: "700",
+    flex: 1,
+    textAlign: "center",
   },
   placeholderRight: {
     width: 40,

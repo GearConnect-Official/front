@@ -47,9 +47,10 @@ const postEventInfoStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingVertical: 10,
+    borderBottomWidth: 0,
+    backgroundColor: '#fff',
+    height: 56,
   },
   headerSpacer: {
     width: 24,
@@ -58,6 +59,8 @@ const postEventInfoStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#1E232C',
+    flex: 1,
+    textAlign: 'center',
   },
   scrollView: {
     flex: 1,

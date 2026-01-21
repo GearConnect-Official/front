@@ -36,9 +36,7 @@ export default StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#fff",
     borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: -STATUSBAR_HEIGHT,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   backButton: {
     marginRight: 15,
@@ -50,6 +48,8 @@ export default StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
   },
   placeholderRight: {
     width: 40,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Alert, SafeAreaView, StatusBar } from "react-native";
+import { View, Alert, StatusBar } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
 import styles from "../styles/screens/social/publicationStyles";
 import postService from "../services/postService";

@@ -3,7 +3,7 @@ import theme from "../../config/theme";
 import { THEME_COLORS } from "../user/performanceStyles";
 
 const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
+  Platform.OS === "ios" ? 44 : (StatusBar.currentHeight || 24) + 16;
 const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 const styles = StyleSheet.create({
@@ -49,9 +49,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    backgroundColor: theme.colors.background.paper,
-    ...theme.shadows.apply({}, "topBar"),
+    backgroundColor: "#fff",
     minHeight: theme.spacing.height.toolbar,
+    paddingTop: Platform.OS === "android" ? 8 : 0,
   },
   topBarContent: {
     ...theme.common.spaceBetween,

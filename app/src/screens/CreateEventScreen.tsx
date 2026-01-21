@@ -1,5 +1,6 @@
 import * as React from "react";
 import { View, ScrollView } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CreateEventForm from "../components/CreateEventForm";
 import { createEventStyles as styles } from "../styles/screens";
 import { useRouter } from "expo-router";
@@ -22,12 +23,12 @@ const CreateEventScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView style={styles.container}>
         <CreateEventForm onCancel={handleCancel} onSuccess={handleSuccess} />
         <View />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

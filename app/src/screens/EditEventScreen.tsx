@@ -154,14 +154,13 @@ const EditEventScreen: React.FC = () => {
         showDeleteButton={true}
         onDeletePress={handleDeletePress}
       />
-      <ScrollView style={styles.contentContainer}>
+      <ScrollView style={styles.scrollView}>
         <ModifyEvent 
           onCancel={handleCancel} 
           onSuccess={handleSuccess}
           eventData={eventData}
           eventId={eventId}
         />
-        <View style={styles.spacer} />
       </ScrollView>
     </View>
   );

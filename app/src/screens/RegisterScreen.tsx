@@ -8,9 +8,9 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/auth/registerStyles";

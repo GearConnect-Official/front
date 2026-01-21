@@ -18,10 +18,10 @@ export default StyleSheet.create({
   header: {
     ...theme.common.spaceBetween,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    ...theme.shadows.apply({}, 'xs'),
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderBottomWidth: 0,
+    height: 56,
   },
   backButton: {
     padding: theme.spacing.xs,
@@ -34,6 +34,8 @@ export default StyleSheet.create({
   headerTitle: {
     ...theme.typography.h4,
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
   },
   placeholderRight: {
     width: 40,

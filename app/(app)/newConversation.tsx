@@ -11,6 +11,7 @@ import {
   Switch,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import theme from '../src/styles/config/theme';
@@ -311,28 +312,30 @@ export default function NewConversationScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton} 
           onPress={() => router.back()}
         >
-          <FontAwesome name="arrow-left" size={20} color="#E10600" />
+          <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
         </TouchableOpacity>
         
         <Text style={styles.headerTitle}>New Conversation</Text>
 
-        {isGroupChat && (
-        <TouchableOpacity
-          style={[styles.nextButton, selectedUsers.length > 0 && styles.nextButtonActive]}
+        {isGroupChat ? (
+          <TouchableOpacity
+            style={[styles.nextButton, selectedUsers.length > 0 && styles.nextButtonActive]}
             onPress={startGroupConversation}
-          disabled={selectedUsers.length === 0}
-        >
-          <Text style={[styles.nextButtonText, selectedUsers.length > 0 && styles.nextButtonTextActive]}>
+            disabled={selectedUsers.length === 0}
+          >
+            <Text style={[styles.nextButtonText, selectedUsers.length > 0 && styles.nextButtonTextActive]}>
               Next
-          </Text>
-        </TouchableOpacity>
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.placeholderRight} />
         )}
       </View>
 
@@ -520,6 +523,6 @@ export default function NewConversationScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 } 

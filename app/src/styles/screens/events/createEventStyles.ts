@@ -14,7 +14,29 @@ export default StyleSheet.create({
 
   safeArea: {
     flex: 1,
-    backgroundColor: theme.colors.background.paper,
+    backgroundColor: "#fff",
+  },
+
+  topBarSafeArea: {
+    backgroundColor: "#fff",
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 6,
+    backgroundColor: "#fff",
+    height: 48,
+  },
+
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
   },
 
   scrollView: {
@@ -35,10 +57,11 @@ export default StyleSheet.create({
     gap: 8,
   },
   deleteButton: {
-    position: 'absolute',
-    right: 15,
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: theme.typography.h4.fontSize,

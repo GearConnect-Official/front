@@ -24,6 +24,8 @@ export const commentsModalStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#262626',
+    flex: 1,
+    textAlign: 'center',
   },
   commentsList: {
     paddingHorizontal: 16,

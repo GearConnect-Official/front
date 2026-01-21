@@ -274,6 +274,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
   },
   sendButton: {
     padding: theme.spacing.xs,

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import theme from '../../config/theme';
 
 const myCreatedEventsStyles = StyleSheet.create({
@@ -11,10 +11,10 @@ const myCreatedEventsStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: 10,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    borderBottomWidth: 0,
+    height: 56,
   },
   headerButton: {
     width: 40,
@@ -26,6 +26,8 @@ const myCreatedEventsStyles = StyleSheet.create({
     ...theme.typography.h5,
     fontWeight: 'bold',
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
   },
   content: {
     flex: 1,

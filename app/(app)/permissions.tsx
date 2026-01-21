@@ -359,24 +359,30 @@ export default function PermissionsScreen() {
 const styles = {
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.default,
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomWidth: 0,
+    backgroundColor: '#fff',
+    height: 56,
   },
   backButton: {
-    padding: theme.spacing.xs,
+    width: 40,
+    height: 40,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center' as const,
   },
   placeholderRight: {
     width: 40,

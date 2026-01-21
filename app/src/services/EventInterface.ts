@@ -28,6 +28,7 @@ export interface EventInterface {
       }
     | string;
   urlTIcket: string;
+  website?: string;
   finished: boolean;
   createdAt: string;
   participationTagText?: string;

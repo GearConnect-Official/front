@@ -23,7 +23,7 @@ const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME_COLORS.background,
+    backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
@@ -32,10 +32,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: "#fff",
-    borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   backButton: {
     width: 40,
@@ -56,7 +53,9 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: THEME_COLORS.secondary,
+    color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
   },
   content: {
     flex: 1,

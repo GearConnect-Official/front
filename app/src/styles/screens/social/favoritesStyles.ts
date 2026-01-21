@@ -12,11 +12,10 @@ const styles = StyleSheet.create({
   header: {
     ...theme.common.spaceBetween,
     paddingHorizontal: theme.spacing.md,
-    paddingTop: 50,
-    paddingBottom: theme.spacing.sm,
-    backgroundColor: theme.colors.background.paper,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderBottomWidth: 0,
+    height: 56,
   },
   
   backButton: {
@@ -27,6 +26,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...theme.typography.h5,
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
   },
   
   headerSpacer: {

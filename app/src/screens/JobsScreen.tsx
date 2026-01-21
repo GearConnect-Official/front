@@ -5,9 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from "@expo/vector-icons";
 import styles from "../styles/screens/jobs/jobsStyles";
 import { jobsScreenStyles, RACING_COLORS } from "../styles/screens/jobs/jobsScreenStyles";

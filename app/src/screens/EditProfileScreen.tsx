@@ -12,8 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from "expo-router";
 import userService from "../services/userService";
 import styles from "../styles/Profile/editProfileStyles";
-import * as ImagePicker from "expo-image-picker";
-import { FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useMessage } from "../context/MessageContext";
 import MessageService from "../services/messageService";

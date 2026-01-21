@@ -11,14 +11,11 @@ import {
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from '../styles/reviewStyles';
-import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ModifyReviewScreen: React.FC = () => {
-  const authContext = useAuth();
-  const user = authContext?.user;
   const { eventId: eventIdParam, userId: userIdParam } = useLocalSearchParams<{
     eventId: string;
     userId: string;

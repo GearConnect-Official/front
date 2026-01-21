@@ -246,6 +246,7 @@ const AppointmentCreator: React.FC<AppointmentCreatorProps> = ({ visible, onSend
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.overlay}>
           <View style={styles.modal}>
@@ -265,7 +266,11 @@ const AppointmentCreator: React.FC<AppointmentCreatorProps> = ({ visible, onSend
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={styles.content} 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               <View style={styles.inputGroup}>
                 <TextInput
                   style={styles.input}

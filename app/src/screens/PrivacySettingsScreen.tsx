@@ -68,7 +68,8 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
 
 const PrivacySettingsScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const authContext = useAuth();
+  const user = authContext?.user;
   const { showMessage } = useMessage();
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [showEmail, setShowEmail] = useState(false);
@@ -88,7 +89,7 @@ const PrivacySettingsScreen: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const result = await privacySettingsService.getPrivacySettings(user.id);
+      const result = await privacySettingsService.getPrivacySettings(Number(user.id));
       
       if (result.success && result.data) {
         setProfileVisibility(result.data.profileVisibility);
@@ -149,7 +150,7 @@ const PrivacySettingsScreen: React.FC = () => {
       }
 
       // Update on server
-      const result = await privacySettingsService.updateSingleSetting(user.id, setting, value);
+      const result = await privacySettingsService.updateSingleSetting(Number(user.id), setting, value);
       
       if (!result.success) {
         // Revert on error

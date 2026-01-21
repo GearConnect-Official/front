@@ -16,6 +16,7 @@ import {
   ScrollView,
   AppState,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import theme from '../../styles/config/theme';
@@ -1539,6 +1540,7 @@ export default function SharedConversationScreen({
   };
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -2602,5 +2604,6 @@ export default function SharedConversationScreen({
       {renderAdditionalModals && renderAdditionalModals()}
 
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 } 

@@ -22,7 +22,9 @@ export type RaceCategory =
 /**
  * Racing categories with fun labels and emojis
  */
-export const RACE_CATEGORIES: { value: RaceCategory; label: string;color: string }[] = [
+export const RACE_CATEGORIES: {
+  emoji: ReactNode; value: RaceCategory; label: string;color: string 
+}[] = [
   { value: 'karting', label: 'Karting', color: "#E10600" },
   { value: 'formula-3', label: 'Formula 3', color: "#E10600" },
   { value: 'formula-2', label: 'Formula 2', color: "#E10600" },

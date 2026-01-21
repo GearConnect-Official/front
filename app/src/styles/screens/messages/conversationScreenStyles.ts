@@ -18,7 +18,10 @@ const styles = StyleSheet.create({
     height: 56,
   },
   backButton: {
-    padding: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: theme.spacing.sm,
   },
   headerInfo: {
@@ -42,9 +45,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerActionButton: {
-    padding: theme.spacing.xs,
-    marginLeft: theme.spacing.sm,
-    position: 'relative',
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: theme.spacing.xs,
   },
   callMenuOverlay: {
     position: 'absolute',

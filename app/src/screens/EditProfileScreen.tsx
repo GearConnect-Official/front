@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
   StatusBar,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -32,6 +34,7 @@ const EditProfileScreen: React.FC = () => {
   const { showMessage, showError } = useMessage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const [formData, setFormData] = useState<FormData>({
     username: "",
@@ -250,7 +253,18 @@ const EditProfileScreen: React.FC = () => {
         </View>
       )}
 
-      <ScrollView style={styles.scrollView}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 40}
+      >
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         <View style={styles.form}>
           <ProfilePictureUpload
             currentProfilePicture={formData.profilePicture}
@@ -270,6 +284,7 @@ const EditProfileScreen: React.FC = () => {
                 setFormData((prev) => ({ ...prev, username: text }))
               }
               placeholder="Enter your username"
+              onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 400, animated: true }), 100)}
             />
 
             <Text style={styles.label}>Name</Text>
@@ -280,6 +295,7 @@ const EditProfileScreen: React.FC = () => {
                 setFormData((prev) => ({ ...prev, name: text }))
               }
               placeholder="Enter your name"
+              onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 500, animated: true }), 100)}
             />
 
             <Text style={styles.label}>Bio</Text>
@@ -294,10 +310,12 @@ const EditProfileScreen: React.FC = () => {
               multiline
               numberOfLines={4}
               textAlignVertical="top"
+              onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 600, animated: true }), 100)}
             />
           </View>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

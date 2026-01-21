@@ -6,6 +6,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
@@ -13,6 +14,7 @@ import styles from "../styles/reviewStyles";
 import { useAuth } from "../context/AuthContext";
 import eventService from "../services/eventService";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 const CreateReviewScreen: React.FC = () => {
   const auth = useAuth();
   if (!auth) {
@@ -122,9 +124,13 @@ const CreateReviewScreen: React.FC = () => {
 
       <KeyboardAvoidingView
         style={styles.reviewContainer}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={100}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 20}
       >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1}}
+          keyboardShouldPersistTaps="handled"
+        >
         <View>
           <RatingSelector />
           <View style={styles.textAreaContainer}>
@@ -170,6 +176,7 @@ const CreateReviewScreen: React.FC = () => {
             />
           )}
         </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

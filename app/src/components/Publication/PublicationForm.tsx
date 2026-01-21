@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   TextInput,
@@ -52,6 +52,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   mediaType,
   publicId,
 }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
   const [tagInput, setTagInput] = useState("");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
@@ -210,10 +211,15 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={100}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 20}
     >
-      <ScrollView style={styles.formContainer}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.formContainer}
+        contentContainerStyle={{ paddingBottom: (50) }}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.formImagePreview}>
           {publicId ? (
             <CloudinaryMedia
@@ -273,6 +279,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 onChangeText={setTitle}
                 editable={!isLoading}
                 maxLength={100}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 550, animated: true }), 100)}
               />
             </View>
 
@@ -301,6 +308,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 }
                 multiline
                 editable={!isLoading}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 650, animated: true }), 100)}
               />
               <Text style={publicationFormStyles.helperText}>
                 Share details about your photo, the circuit, the event...

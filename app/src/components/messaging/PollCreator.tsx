@@ -133,6 +133,7 @@ const PollCreator: React.FC<PollCreatorProps> = ({ visible, onSend, onCancel, in
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -145,7 +146,11 @@ const PollCreator: React.FC<PollCreatorProps> = ({ visible, onSend, onCancel, in
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Question Input */}
           <View style={styles.section}>
             <Text style={styles.label}>Question</Text>

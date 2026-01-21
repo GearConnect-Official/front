@@ -114,12 +114,14 @@ const AuthScreen: React.FC = () => {
 
       <KeyboardAvoidingView
         style={authStyles.keyboardAvoidingView as ViewStyle}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 20}
       >
         <ScrollView
           style={authStyles.container as ViewStyle}
           contentContainerStyle={authStyles.scrollViewContainer as ViewStyle}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={authStyles.contentContainer as ViewStyle}>
             <Image

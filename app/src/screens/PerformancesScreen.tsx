@@ -56,12 +56,12 @@ const PerformancesScreen: React.FC = () => {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
 
   // ISOLATED: Separate timeout refs for each performance switch
-  const performanceNotificationsTimeoutRef = useRef<NodeJS.Timeout | null>(
+  const performanceNotificationsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
-  const autoSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const detailedAnalyticsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const personalRecordAlertsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const detailedAnalyticsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const personalRecordAlertsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
 
   // Cleanup function for performance switches

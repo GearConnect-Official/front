@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
@@ -16,7 +15,6 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import styles from "../styles/auth/forgotPasswordStyles";
 import { useMessage } from '../context/MessageContext';
-import MessageService from '../services/messageService';
 import { QuickMessages } from '../utils/messageUtils';
 
 /**
@@ -194,10 +192,12 @@ const ForgotPasswordScreen: React.FC = () => {
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 20}
       >
         <ScrollView 
           contentContainerStyle={{ flexGrow: 1 }}
           style={styles.container}
+          keyboardShouldPersistTaps="handled"
         >
           {!successfulCreation ? (
             // Step 1: Enter email to receive reset code

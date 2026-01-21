@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import styles from '../styles/auth/verifyStyles';
 
 const VerifyScreen: React.FC = () => {
-  const { user } = useAuth();
+  const authContext = useAuth();
+  const user = authContext?.user;
   const router = useRouter();
   
   useEffect(() => {

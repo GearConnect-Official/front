@@ -226,7 +226,7 @@ const AddPerformanceScreen: React.FC = () => {
           const creator = event.creator;
           
           // Build creator info string
-          const creatorInfo = [];
+          const creatorInfo: string[] = [];
           if (creator.name) {
             creatorInfo.push(`Event: ${event.name || 'Untitled Event'}`);
             creatorInfo.push(`Organized by: ${creator.name}`);
@@ -418,7 +418,7 @@ const AddPerformanceScreen: React.FC = () => {
   /**
    * Get condition data
    */
-  const getConditionData = (condition: "dry" | "wet" | "mixed") => {
+  const getConditionData = (condition: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying') => {
     return (
       TRACK_CONDITIONS.find((cond) => cond.value === condition) ||
       TRACK_CONDITIONS[0]
@@ -851,7 +851,7 @@ const AddPerformanceScreen: React.FC = () => {
               <TouchableOpacity
                 style={[
                   performanceStyles.textInput,
-                  formData.eventId && autoFilledFields.date && {
+                  !!(formData.eventId && autoFilledFields.date) && {
                     backgroundColor: '#f5f5f5',
                     opacity: 0.7,
                   },

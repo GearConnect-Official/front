@@ -40,6 +40,13 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
   const [waveformWidth, setWaveformWidth] = useState(0);
   const positionUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const waveformRef = useRef<View | null>(null);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const onDurationLoadedRef = useRef(onDurationLoaded);
+  const onPositionUpdateRef = useRef(onPositionUpdate);
+  const isSeekingRef = useRef(isSeeking);
+  onDurationLoadedRef.current = onDurationLoaded;
+  onPositionUpdateRef.current = onPositionUpdate;
+  isSeekingRef.current = isSeeking;
 
   const generateWaveformData = (durationSeconds: number) => {
     // Calculate responsive number of bars based on duration and available width
@@ -75,96 +82,90 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
   };
 
   const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
-    if (!status.isLoaded) {
-      return;
-    }
-
+    if (!status.isLoaded) return;
     if (status.didJustFinish) {
       setIsPlaying(false);
-      const finalPosition = 0;
-      setPosition(finalPosition);
-      if (onPositionUpdate) {
-        onPositionUpdate(finalPosition);
+      setPosition(0);
+      onPositionUpdateRef.current?.(0);
+      if (positionUpdateInterval.current) {
+        clearInterval(positionUpdateInterval.current);
+        positionUpdateInterval.current = null;
+      }
+    } else if (!isSeekingRef.current) {
+      const newPosition = status.positionMillis / 1000;
+      setPosition(newPosition);
+      onPositionUpdateRef.current?.(newPosition);
+    }
+  }, []);
+
+  useEffect(() => {
+    isSeekingRef.current = isSeeking;
+  }, [isSeeking]);
+
+  useEffect(() => {
+    if (!audioUrl) {
+      setIsLoading(false);
+      return;
+    }
+    let cancelled = false;
+
+    const doLoad = async () => {
+      try {
+        setIsLoading(true);
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri: audioUrl },
+          { shouldPlay: false },
+          onPlaybackStatusUpdate
+        );
+
+        if (cancelled) {
+          newSound.unloadAsync().catch(() => {});
+          return;
+        }
+
+        soundRef.current = newSound;
+        setSound(newSound);
+
+        const status = await newSound.getStatusAsync();
+        if (status.isLoaded && status.durationMillis && !cancelled) {
+          const durationSeconds = status.durationMillis / 1000;
+          setDuration(durationSeconds);
+          onDurationLoadedRef.current?.(durationSeconds);
+          generateWaveformData(durationSeconds);
+        }
+
+        if (!cancelled) setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading audio:', error);
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    if (initialDuration && initialDuration > 0) {
+      generateWaveformData(initialDuration);
+    }
+    doLoad();
+
+    return () => {
+      cancelled = true;
+      if (soundRef.current) {
+        soundRef.current.unloadAsync().catch(() => {});
+        soundRef.current = null;
       }
       if (positionUpdateInterval.current) {
         clearInterval(positionUpdateInterval.current);
         positionUpdateInterval.current = null;
       }
-    } else if (!isSeeking) {
-      const newPosition = status.positionMillis / 1000;
-      setPosition(newPosition);
-      if (onPositionUpdate) {
-        onPositionUpdate(newPosition);
-      }
-    }
-  }, [isSeeking, onPositionUpdate]);
-
-  const loadAudio = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      // Unload previous sound if exists
-      if (sound) {
-        await sound.unloadAsync();
-      }
-
-      // Configure audio mode
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-      });
-
-      // Load the audio
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        { shouldPlay: false },
-        onPlaybackStatusUpdate
-      );
-
-      setSound(newSound);
-      
-      // Get duration
-      const status = await newSound.getStatusAsync();
-      if (status.isLoaded && status.durationMillis) {
-        const durationSeconds = status.durationMillis / 1000;
-        setDuration(durationSeconds);
-        
-        // Expose duration to parent component
-        if (onDurationLoaded) {
-          onDurationLoaded(durationSeconds);
-        }
-        
-        // Generate static waveform data based on duration (Discord-style)
-        generateWaveformData(durationSeconds);
-      }
-      
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error loading audio:', error);
-      setIsLoading(false);
-    }
-  }, [audioUrl, onDurationLoaded, sound, onPlaybackStatusUpdate]);
-
-  useEffect(() => {
-    // Generate waveform if initial duration is provided
-    if (initialDuration && initialDuration > 0) {
-      generateWaveformData(initialDuration);
-    }
-    
-    loadAudio();
-
-    return () => {
-      if (sound) {
-        sound.unloadAsync().catch(console.error);
-      }
-      if (positionUpdateInterval.current) {
-        clearInterval(positionUpdateInterval.current);
-      }
     };
-  }, [audioUrl, initialDuration, loadAudio, sound]);
+  }, [audioUrl]);
 
   const togglePlayPause = async () => {
     if (!sound) return;

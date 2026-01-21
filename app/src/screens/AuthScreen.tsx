@@ -118,9 +118,8 @@ const AuthScreen: React.FC = () => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 20}
       >
         <ScrollView
-          ref={scrollViewRef}
-          style={authStyles.container}
-          contentContainerStyle={authStyles.scrollViewContainer}
+          style={authStyles.container as ViewStyle}
+          contentContainerStyle={authStyles.scrollViewContainer as ViewStyle}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -150,8 +149,7 @@ const AuthScreen: React.FC = () => {
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                placeholderTextColor={authStyles.placeholderColor.color}
-                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 330, animated: true }), 100)}
+                placeholderTextColor="#8391A1"
               />
               {errors.email && !isDeletedAccount && errors.email.trim() && (
                 <Text style={authStyles.fieldError as TextStyle}>{errors.email}</Text>
@@ -177,8 +175,7 @@ const AuthScreen: React.FC = () => {
                     }
                   }}
                   secureTextEntry={!showPassword}
-                  placeholderTextColor={authStyles.placeholderColor.color}
-                  onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 430, animated: true }), 100)}
+                  placeholderTextColor="#8391A1"
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}

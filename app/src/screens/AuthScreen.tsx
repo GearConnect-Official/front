@@ -113,7 +113,7 @@ const AuthScreen: React.FC = () => {
       </TouchableOpacity>
 
       <KeyboardAvoidingView
-        style={authStyles.keyboardAvoidingView}
+        style={authStyles.keyboardAvoidingView as ViewStyle}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 20}
       >

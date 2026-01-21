@@ -73,8 +73,8 @@ const convertApiPostToUiPost = (
         likes: 0,
       })) || [];
 
-  const images = [
-    apiPost.image || apiPost.cloudinaryUrl || "https://via.placeholder.com/300",
+  const images: string[] = [
+    String(apiPost.image || apiPost.cloudinaryUrl || "https://via.placeholder.com/300"),
   ];
   const imagePublicIds = apiPost.cloudinaryPublicId
     ? [apiPost.cloudinaryPublicId]
@@ -123,7 +123,8 @@ const convertApiPostToUiPost = (
 
 const FavoritesScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const authContext = useAuth();
+  const user = authContext?.user;
   const [favorites, setFavorites] = useState<UIPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -144,7 +145,7 @@ const FavoritesScreen: React.FC = () => {
 
       try {
         setLoadingError(null);
-        const currentUserId = parseInt(user.id);
+        const currentUserId = Number(user.id);
 
         const response = await favoritesService.getUserFavorites(
           currentUserId,
@@ -206,7 +207,7 @@ const FavoritesScreen: React.FC = () => {
     if (!user?.id) return;
 
     try {
-      await favoritesService.removeFavorite(postId, parseInt(user.id));
+      await favoritesService.toggleFavorite(postId, Number(user.id));
       
       // Update UI optimistically
       setFavorites(prevFavorites => 

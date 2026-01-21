@@ -36,7 +36,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   onClose,
   onAddComment,
 }) => {
-  const { user } = useAuth();
+  const authContext = useAuth();
+  const user = authContext?.user;
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -92,7 +93,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
 
     try {
       setIsLoading(true);
-      await postService.addComment(postId, parseInt(user.id), newComment.trim());
+      await postService.addComment(postId, Number(user.id), newComment.trim());
       
       // Track comment
       trackPost.commented(String(postId), newComment.trim().length);

@@ -108,12 +108,10 @@ const RegisterScreen: React.FC = () => {
         setErrors({ username: result.error });
       } else if (result.error?.toLowerCase().includes("password")) {
         setErrors({ password: result.error });
-      } else if (result.error?.toLowerCase().includes("server")) {
-        // Afficher l'erreur serveur uniquement en haut du formulaire
-        setErrors({ general: "Unable to connect to server" });
+      } else if (result.error && /server|serveur|unable to connect|connexion|connection|vérifiez|check your connection/i.test(result.error)) {
+        setErrors({ general: "Unable to connect to the server. Please check your connection." });
       } else {
-        // Si l'erreur n'est pas spécifique à un champ, l'afficher en haut du formulaire
-        setErrors({ general: result.error || "An error occurred" });
+        setErrors({ general: result.error || "An error occurred. Please try again." });
       }
     }
   };

@@ -9,7 +9,10 @@ export interface EventInterface {
   date: Date;
   // category: string;
   description: string;
-  // images: string[];
+  logo?: string;
+  logoPublicId?: string;
+  images?: string[];
+  imagePublicIds?: string[];
   tags: Array<string | {id: string; name: string; createdAt?: string}>;
   location: string;
   meteo?:

@@ -8,4 +8,5 @@ export {
 } from './CloudinaryImage';
 export { default as CloudinaryMedia } from './CloudinaryMedia';
 export { CloudinaryVideoUpload } from './CloudinaryVideoUpload';
-export { CloudinaryImageUpload } from './CloudinaryImageUpload'; 
+export { CloudinaryImageUpload } from './CloudinaryImageUpload';
+export { AspectBannerImage } from './AspectBannerImage'; 

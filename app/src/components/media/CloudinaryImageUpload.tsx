@@ -26,6 +26,10 @@ export interface CloudinaryImageUploadProps {
   style?: any;
   buttonText?: string;
   showPreview?: boolean;
+  /** Si false, pas de crop au choix (galerie/caméra) — dimensions originales conservées. Défaut true. */
+  allowsEditing?: boolean;
+  /** Ratio de crop [largeur, hauteur] quand allowsEditing=true. Ex: [4,3], [1,1]. */
+  aspect?: [number, number];
 }
 
 export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
@@ -38,6 +42,8 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
   style,
   buttonText = "Ajouter une image",
   showPreview = true,
+  allowsEditing,
+  aspect,
 }) => {
   const {
     uploading,
@@ -95,6 +101,8 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
         const result = await uploadImage({
           folder,
           tags,
+          allowsEditing,
+          aspect,
         });
 
         if (result) {
@@ -121,6 +129,8 @@ export const CloudinaryImageUpload: React.FC<CloudinaryImageUploadProps> = ({
       const result = await uploadFromCamera({
         folder,
         tags,
+        allowsEditing,
+        aspect,
       });
 
       if (result) {

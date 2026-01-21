@@ -365,7 +365,10 @@ const SelectEventScreen: React.FC = () => {
                       day: 'numeric',
                       month: 'short',
                     })}
-                    emoji="🎉"
+                    icon={event.logo}
+                    logoPublicId={event.logoPublicId}
+                    images={event.images}
+                    imagePublicIds={event.imagePublicIds}
                     location={event.location}
                     attendees={event.participantsCount || 0}
                     onPress={() => handleEventSelect(event)}

@@ -20,6 +20,10 @@ export interface CloudinaryUploadOptions {
   tags?: string[];
   transformation?: Record<string, any>;
   resource_type?: 'image' | 'video' | 'raw' | 'auto';
+  /** Désactive le crop dans le sélecteur (galerie/caméra). Si false, les dimensions originales sont conservées. */
+  allowsEditing?: boolean;
+  /** Ratio de découpe [largeur, hauteur] quand allowsEditing=true. Ex: [4,3], [1,1]. */
+  aspect?: [number, number];
 }
 
 class CloudinaryService {

@@ -63,37 +63,25 @@ const eventService = {
     }
   },
 
-  // Create a new event
+  // Create a new event (images : URLs Cloudinary + publicIds)
   createEvent: async (eventData: Event) => {
     console.log('Données envoyées au backend:', eventData);
     
     try {
-      // Extraire le nom du fichier d'une URL d'image locale
-      const extractFilename = (uri: string): string => {
-        if (!uri) return '';
-        // Extraire le nom du fichier après le dernier /
-        const parts = uri.split('/');
-        return parts[parts.length - 1];
-      };
-
-      // Formater les données avant envoi
       const processedData = {
         ...eventData,
-        // Renommer creators en creatorId pour le backend
         creatorId: eventData.creators
           ? parseInt(eventData.creators)
           : undefined,
-        // Ne pas envoyer le champ creators au backend
         creators: undefined,
         date: eventData.date
           ? new Date(eventData.date).toISOString()
           : new Date().toISOString(),
-        // Extraire seulement les noms de fichiers des URLs d'images
-        logo: eventData.logo ? extractFilename(eventData.logo) : '',
-        images:
-          eventData.images && Array.isArray(eventData.images)
-            ? eventData.images.map((img) => extractFilename(img))
-            : [],      };      
+        logo: eventData.logo || '',
+        logoPublicId: eventData.logoPublicId || undefined,
+        images: eventData.images && Array.isArray(eventData.images) ? eventData.images : [],
+        imagePublicIds: eventData.imagePublicIds && Array.isArray(eventData.imagePublicIds) ? eventData.imagePublicIds : [],
+      };
       try {
         const response = await axios.post(API_URL_EVENTS, processedData);
         return response.data;
@@ -118,7 +106,10 @@ const eventService = {
         date: eventData.date
           ? new Date(eventData.date).toISOString()
           : undefined,
-        // Add any other necessary transformations
+        logo: eventData.logo,
+        logoPublicId: eventData.logoPublicId,
+        images: eventData.images,
+        imagePublicIds: eventData.imagePublicIds,
       };
       
       console.log('📤 Formatted event data:', formattedEvent);

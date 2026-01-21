@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import theme from "../../styles/config";
 import eventService from "../../services/eventService";
 import { checkMissingEventInfo } from "../../utils/eventMissingInfo";
 import EventTag from "../EventTag";
 import { trackEvent } from "../../utils/mixpanelTracking";
+import { AspectBannerImage } from "../media/AspectBannerImage";
 
 interface EventItemProps {
   title: string;
   subtitle: string;
   date: string;
   icon?: string;
+  logoPublicId?: string;
+  images?: string[];
+  imagePublicIds?: string[];
   emoji?: string;
   location?: string;
   attendees?: number;
@@ -42,6 +46,9 @@ const EventItem: React.FC<EventItemProps> = ({
   subtitle,
   date,
   icon,
+  logoPublicId,
+  images,
+  imagePublicIds,
   emoji,
   location,
   attendees = 0,
@@ -157,25 +164,30 @@ const EventItem: React.FC<EventItemProps> = ({
   const showFinished = isEventFinished;
   const showJoined = !showFinished && (isJoined || isOrganizer);
 
+  const imgList = images && Array.isArray(images) ? images : [];
+  const mainUrl = icon || imgList[0];
+
   return (
     <TouchableOpacity style={itemStyles.container} onPress={onPress}>
-      <View style={itemStyles.headerRow}>
-        {icon ? (
-          <Image source={{ uri: icon }} style={itemStyles.eventIcon} />
-        ) : emoji ? (
-          <View style={itemStyles.emojiContainer}>
-            <Text style={itemStyles.emojiText}>{emoji}</Text>
+      {/* Bannière carrée: logo (pp) ou 1re image, adaptée au format carré — badge carrousel retiré (on voit les photos dans le détail) */}
+      <AspectBannerImage
+        sourceUri={mainUrl || null}
+        placeholder={
+          <View style={itemStyles.bannerPlaceholder}>
+            {emoji ? (
+              <Text style={itemStyles.bannerPlaceholderEmoji}>{emoji}</Text>
+            ) : (
+              <FontAwesome name="calendar" size={36} color="rgba(255,255,255,0.7)" />
+            )}
           </View>
-        ) : (
-          <View style={itemStyles.emojiContainer}>
-            <FontAwesome name="calendar" size={20} color="#666" />
-          </View>
-        )}
-
-        <View style={itemStyles.dateContainer}>
-          <Text style={itemStyles.dateText}>{date}</Text>
+        }
+        fallbackHeight={120}
+        forceSquare
+      >
+        <View style={itemStyles.bannerDateBadge} pointerEvents="none">
+          <Text style={itemStyles.bannerDateText}>{date}</Text>
         </View>
-      </View>
+      </AspectBannerImage>
 
       <View style={itemStyles.contentContainer}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -289,39 +301,32 @@ const itemStyles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  eventIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  emojiContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#f5f5f5",
+  bannerPlaceholder: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#E10600",
     alignItems: "center",
     justifyContent: "center",
   },
-  emojiText: {
-    fontSize: 24,
+  bannerPlaceholderEmoji: {
+    fontSize: 48,
   },
-  dateContainer: {
-    backgroundColor: "#ffeaea", // redish background
-    paddingHorizontal: 12,
+  bannerDateBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 14,
   },
-  dateText: {
-    fontSize: 14,
+  bannerDateText: {
+    fontSize: 13,
     fontWeight: "600",
-    color: theme.colors.primary.main,
+    color: "#fff",
   },
   contentContainer: {
     padding: 16,

@@ -46,10 +46,11 @@ const useEventForm = (initialData: Event) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAddImage = (uri: string) => {
+  const handleAddImage = (url: string, publicId: string) => {
     setFormData((prev) => ({
       ...prev,
-      images: [...(prev.images || []), uri],
+      images: [...(prev.images || []), url],
+      imagePublicIds: [...(prev.imagePublicIds || []), publicId],
     }));
   };
 
@@ -166,7 +167,9 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
         date: formattedDate,
         description: formData.description ? formData.description.trim() : '',
         logo: formData.logo || '',
+        logoPublicId: formData.logoPublicId || undefined,
         images: formData.images || [],
+        imagePublicIds: formData.imagePublicIds || [],
         meteo: formData.meteo || {},
         // Always include tag fields (even if empty) so they can be updated
         participationTagText: formData.participationTagText || '',
@@ -237,19 +240,23 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
         return (
           <MediaInfo
             logo={formData.logo || ''}
-            logoPublicId={eventData?.logoPublicId}
+            logoPublicId={formData.logoPublicId}
             images={formData.images || []}
-            imagePublicIds={eventData?.imagePublicIds}
+            imagePublicIds={formData.imagePublicIds || []}
             description={formData.description || ''}
             onInputChange={handleInputChange}
-            onAddImage={(uri: string, publicId: string) => handleAddImage(uri)}
-            onLogoChange={(url: string) => handleInputChange('logo', url)}
+            onAddImage={handleAddImage}
+            onLogoChange={(url: string, publicId: string) => {
+              handleInputChange('logo', url);
+              handleInputChange('logoPublicId', publicId);
+            }}
           />
         );
       case 3:
         return (
           <AdditionalInfo
             logo={formData.logo || ''}
+            images={formData.images || []}
             name={formData.name}
             location={formData.location}
             date={formData.date}

@@ -19,6 +19,7 @@ import postService from "../services/postService";
 import { API_URL_USERS } from "../config";
 import ProfileMenu from "../components/Profile/ProfileMenu";
 import { CloudinaryMedia } from "../components/media";
+import EventItem from "../components/items/EventItem";
 import { VerifiedAvatar } from "../components/media/VerifiedAvatar";
 import { detectMediaType } from "../utils/mediaUtils";
 import { defaultImages } from "../config/defaultImages";
@@ -765,54 +766,39 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingVertical: 16 }}
       >
-        {joinedEvents.map((event: any) => (
-          <TouchableOpacity
-            key={event.id}
-            style={{
-              marginHorizontal: 16,
-              marginBottom: 16,
-              backgroundColor: '#fff',
-              borderRadius: 12,
-              padding: 16,
-              elevation: 2,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-            }}
-            onPress={() => handleEventPress(event.id.toString())}
-          >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333', flex: 1 }}>
-                {event.name}
-              </Text>
-              <View style={{ backgroundColor: '#ffeaea', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: '#E10600' }}>
-                  {new Date(event.date).toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'short',
-                  })}
-                </Text>
-              </View>
-            </View>
-            {event.location && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                <FontAwesome name="map-marker" size={14} color="#666" />
-                <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
-                  {event.location}
-                </Text>
-              </View>
-            )}
-            {event.creator && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                <FontAwesome name="user" size={14} color="#666" />
-                <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
-                  {event.creator.name || event.creator.username}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
+        {joinedEvents.map((event: any, index: number) => {
+          const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+          return (
+            <EventItem
+              key={event.id ?? index}
+              title={event.name}
+              subtitle={`By: ${event.creators || event.creator?.name || event.creator?.username || 'Unknown'}`}
+              date={new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+              icon={event.logo}
+              logoPublicId={event.logoPublicId}
+              images={event.images}
+              imagePublicIds={event.imagePublicIds}
+              location={event.location}
+              attendees={event.participantsCount ?? 0}
+              onPress={() => handleEventPress(event.id.toString())}
+              eventId={eventId}
+              creatorId={event.creatorId}
+              currentUserId={user?.id != null ? Number(user.id) : undefined}
+              isJoined
+              eventDate={event.date}
+              meteo={event.meteo}
+              finished={event.finished}
+              participationTagText={event.participationTagText}
+              participationTagColor={event.participationTagColor}
+              organizers={(event as any).organizers || []}
+              onLeaveSuccess={async () => {
+                if (!effectiveUserId) return;
+                const r = await userService.getJoinedEvents(effectiveUserId, 1, 20);
+                if (r.success && r.data) setJoinedEvents(r.data.events || []);
+              }}
+            />
+          );
+        })}
       </ScrollView>
     );
   };
@@ -887,100 +873,38 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </Text>
           </View>
         )}
-        {createdEvents.map((event: any) => {
+        {createdEvents.map((event: any, index: number) => {
           const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
           const missingInfo = checkMissingEventInfo(event);
-          
           return (
-            <TouchableOpacity
-              key={event.id}
-              style={{
-                marginHorizontal: 16,
-                marginBottom: 16,
-                backgroundColor: '#fff',
-                borderRadius: 12,
-                padding: 16,
-                elevation: 2,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                borderWidth: missingInfo.hasMissingInfo ? 2 : 0,
-                borderColor: missingInfo.hasMissingInfo ? '#F59E0B' : 'transparent',
-              }}
+            <EventItem
+              key={event.id ?? index}
+              title={event.name}
+              subtitle={`By: ${event.creators || 'Unknown'}`}
+              date={new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+              icon={event.logo}
+              logoPublicId={event.logoPublicId}
+              images={event.images}
+              imagePublicIds={event.imagePublicIds}
+              location={event.location}
+              attendees={event.participantsCount ?? 0}
               onPress={() => {
-                // Si des infos manquent, aller au formulaire post-event
                 if (missingInfo.hasMissingInfo && eventId) {
-                  router.push({
-                    pathname: '/(app)/postEventInfo',
-                    params: { eventId: eventId.toString() },
-                  });
+                  router.push({ pathname: '/(app)/postEventInfo', params: { eventId: eventId.toString() } });
                 } else {
-                  router.push({
-                    pathname: '/(app)/eventDetail',
-                    params: { eventId: event.id },
-                  });
+                  router.push({ pathname: '/(app)/eventDetail', params: { eventId: event.id } });
                 }
               }}
-            >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>
-                    {event.name}
-                  </Text>
-                </View>
-                {missingInfo.hasMissingInfo && (
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: '#FEF3C7',
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 12,
-                    marginLeft: 8,
-                  }}>
-                    <FontAwesome name="exclamation-triangle" size={12} color="#F59E0B" />
-                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#F59E0B', marginLeft: 4 }}>
-                      {missingInfo.missingCount}
-                    </Text>
-                  </View>
-                )}
-                <View style={{ backgroundColor: '#ffeaea', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginLeft: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#E10600' }}>
-                    {new Date(event.date).toLocaleDateString('en-US', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
-                  </Text>
-                </View>
-              </View>
-              {event.location && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                  <FontAwesome name="map-marker" size={14} color="#666" />
-                  <Text style={{ fontSize: 14, color: '#666', marginLeft: 6 }}>
-                    {event.location}
-                  </Text>
-                </View>
-              )}
-              {missingInfo.hasMissingInfo && (
-                <View style={{
-                  marginTop: 8,
-                  padding: 8,
-                  backgroundColor: '#FEF3C7',
-                  borderRadius: 8,
-                }}>
-                  <Text style={{ fontSize: 12, color: '#92400E', fontWeight: '500' }}>
-                    ⚠️ Missing: {
-                      [
-                        missingInfo.trackCondition && 'Track condition',
-                        missingInfo.eventResultsLink && 'Event results link',
-                        missingInfo.seasonResultsLink && 'Season results link',
-                      ].filter(Boolean).join(' • ')
-                    }
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+              eventId={eventId}
+              creatorId={event.creatorId}
+              currentUserId={user?.id != null ? Number(user.id) : undefined}
+              eventDate={event.date}
+              meteo={event.meteo}
+              finished={event.finished}
+              participationTagText={event.participationTagText}
+              participationTagColor={event.participationTagColor}
+              organizers={(event as any).organizers || []}
+            />
           );
         })}
       </ScrollView>

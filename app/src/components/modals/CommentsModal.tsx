@@ -250,7 +250,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 40}
           style={commentsModalStyles.inputContainer}
         >
           <View style={commentsModalStyles.inputRow}>

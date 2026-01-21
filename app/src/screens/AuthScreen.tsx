@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import { trackAuth, trackScreenView } from "../utils/mixpanelTracking";
 const AuthScreen: React.FC = () => {
   const router = useRouter();
   const { login, isLoading } = useAuth();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -109,12 +110,15 @@ const AuthScreen: React.FC = () => {
 
       <KeyboardAvoidingView
         style={authStyles.keyboardAvoidingView}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 20}
       >
         <ScrollView
+          ref={scrollViewRef}
           style={authStyles.container}
           contentContainerStyle={authStyles.scrollViewContainer}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={authStyles.contentContainer}>
             <Image
@@ -143,6 +147,7 @@ const AuthScreen: React.FC = () => {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor={authStyles.placeholderColor.color}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 330, animated: true }), 100)}
               />
               {errors.email && !isDeletedAccount && errors.email.trim() && (
                 <Text style={authStyles.fieldError}>{errors.email}</Text>
@@ -169,6 +174,7 @@ const AuthScreen: React.FC = () => {
                   }}
                   secureTextEntry={!showPassword}
                   placeholderTextColor={authStyles.placeholderColor.color}
+                  onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 430, animated: true }), 100)}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}

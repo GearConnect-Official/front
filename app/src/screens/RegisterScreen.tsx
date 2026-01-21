@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ const RegisterScreen: React.FC = () => {
   const auth = useAuth();
   const register = auth?.register;
   const isLoading = auth?.isLoading ?? false;
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Input states
   const [username, setUsername] = useState("");
@@ -133,8 +134,13 @@ const RegisterScreen: React.FC = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={componentStyles.flexContainer}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 20}
       >
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ScrollView 
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.container}>
             {/* Title */}
             <Text style={styles.title}>Welcome! Glad to see you!</Text>
@@ -160,6 +166,7 @@ const RegisterScreen: React.FC = () => {
                     setErrors({ ...errors, username: "" });
                   }
                 }}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 300, animated: true }), 100)}
               />
               {errors.username ? (
                 <Text style={styles.errorText}>{errors.username}</Text>
@@ -178,6 +185,7 @@ const RegisterScreen: React.FC = () => {
                     setErrors({ ...errors, name: "" });
                   }
                 }}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 380, animated: true }), 100)}
               />
               {errors.name ? (
                 <Text style={styles.errorText}>{errors.name}</Text>
@@ -197,6 +205,7 @@ const RegisterScreen: React.FC = () => {
                     setErrors({ ...errors, email: "" });
                   }
                 }}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 460, animated: true }), 100)}
               />
               {errors.email ? (
                 <Text style={styles.errorText}>{errors.email}</Text>
@@ -219,6 +228,7 @@ const RegisterScreen: React.FC = () => {
                     setErrors({ ...errors, password: "" });
                   }
                 }}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 540, animated: true }), 100)}
               />
               {errors.password ? (
                 <Text style={styles.errorText}>{errors.password}</Text>
@@ -241,6 +251,7 @@ const RegisterScreen: React.FC = () => {
                     setErrors({ ...errors, confirmPassword: "" });
                   }
                 }}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 620, animated: true }), 100)}
               />
               {errors.confirmPassword ? (
                 <Text style={styles.errorText}>{errors.confirmPassword}</Text>

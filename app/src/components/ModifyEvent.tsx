@@ -274,9 +274,9 @@ const ModifyEvent: React.FC<ModifyEventProps> = ({
   };  
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 20}
       enabled
     >
       <View style={[styles.container, { flex: 1 }]}>

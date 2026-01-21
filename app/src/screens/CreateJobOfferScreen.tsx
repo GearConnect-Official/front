@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Platform,
   StyleSheet,
   Modal,
+  KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from "@expo/vector-icons";
@@ -146,6 +147,7 @@ const localStyles = StyleSheet.create({
 
 const CreateJobOfferScreen: React.FC = () => {
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -264,7 +266,16 @@ const CreateJobOfferScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView style={styles.content}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 20}
+      >
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Hero section */}
         <View style={localStyles.heroSection}>
           <Text style={localStyles.heroTitle}>Create Your Dream Team</Text>
@@ -286,6 +297,7 @@ const CreateJobOfferScreen: React.FC = () => {
             placeholder="Enter the job offer title"
             value={formData.title}
             onChangeText={(text) => setFormData({ ...formData, title: text })}
+            onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 350, animated: true }), 100)}
           />
           <Text style={styles.inputInfo}>
             Make it descriptive and appealing to candidates
@@ -303,6 +315,7 @@ const CreateJobOfferScreen: React.FC = () => {
             placeholder="Enter the company name"
             value={formData.company}
             onChangeText={(text) => setFormData({ ...formData, company: text })}
+            onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 450, animated: true }), 100)}
           />
         </View>
 
@@ -319,6 +332,7 @@ const CreateJobOfferScreen: React.FC = () => {
             onChangeText={(text) =>
               setFormData({ ...formData, location: text })
             }
+            onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 550, animated: true }), 100)}
           />
         </View>
 
@@ -370,6 +384,7 @@ const CreateJobOfferScreen: React.FC = () => {
             onChangeText={(text) =>
               setFormData({ ...formData, description: text })
             }
+            onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 800, animated: true }), 100)}
           />
           <Text style={styles.inputInfo}>
             Be specific and engaging to attract qualified candidates
@@ -455,6 +470,7 @@ const CreateJobOfferScreen: React.FC = () => {
             keyboardType="default"
             value={formData.price}
             onChangeText={(text) => setFormData({ ...formData, price: text })}
+            onFocus={() => setTimeout(() => scrollViewRef.current?.scrollTo({ y: 1100, animated: true }), 100)}
           />
           <Text style={styles.inputInfo}>
             Be clear about compensation to attract the right candidates
@@ -490,6 +506,7 @@ const CreateJobOfferScreen: React.FC = () => {
 
         <View style={{ height: 60 }} />
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Modal for start date selector (Android) */}
       <Modal

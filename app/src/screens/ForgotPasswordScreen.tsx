@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -194,10 +194,12 @@ const ForgotPasswordScreen: React.FC = () => {
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 20}
       >
         <ScrollView 
           contentContainerStyle={{ flexGrow: 1 }}
           style={styles.container}
+          keyboardShouldPersistTaps="handled"
         >
           {!successfulCreation ? (
             // Step 1: Enter email to receive reset code

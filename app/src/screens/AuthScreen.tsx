@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
-  Alert,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  type ViewStyle,
+  type TextStyle,
+  type ImageStyle,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
@@ -22,7 +24,9 @@ import { trackAuth, trackScreenView } from "../utils/mixpanelTracking";
 
 const AuthScreen: React.FC = () => {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
+  const auth = useAuth();
+  const login = auth?.login;
+  const isLoading = auth?.isLoading ?? false;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -64,14 +68,15 @@ const AuthScreen: React.FC = () => {
       return;
     }
 
+    if (!login) return;
     const result = await login(email, password);
     if (result.success) {
       trackAuth.login('email');
     } else {
-      if (result.error === "Your account has been deleted or desactivated") {
+      if (result.error && /account has been deleted|deactivated|desactivated/i.test(result.error)) {
         setIsDeletedAccount(true);
         setErrors({
-          general: result.error,
+          general: "Your account has been deleted or deactivated.",
           email: " ",
           password: " ",
         });
@@ -82,10 +87,10 @@ const AuthScreen: React.FC = () => {
         });
       } else if (result.error === "Incorrect password") {
         setErrors({ password: "Incorrect password" });
-      } else if (result.error === "Unable to connect to server") {
-        setErrors({ general: "Unable to connect to server" });
+      } else if (result.error?.toLowerCase().includes("unable to connect") || result.error?.toLowerCase().includes("check your connection")) {
+        setErrors({ general: result.error || "Unable to connect to the server. Please check your connection." });
       } else {
-        setErrors({ general: result.error || "An error occurred" });
+        setErrors({ general: result.error || "An error occurred. Please try again." });
       }
     }
   };
@@ -96,11 +101,11 @@ const AuthScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={authStyles.container}>
+    <SafeAreaView style={authStyles.container as ViewStyle}>
       <StatusBar barStyle="dark-content" />
 
       <TouchableOpacity
-        style={authStyles.backButton}
+        style={authStyles.backButton as ViewStyle}
         onPress={() => router.push("/(auth)/welcome")}
         activeOpacity={0.7}
       >
@@ -108,29 +113,29 @@ const AuthScreen: React.FC = () => {
       </TouchableOpacity>
 
       <KeyboardAvoidingView
-        style={authStyles.keyboardAvoidingView}
+        style={authStyles.keyboardAvoidingView as ViewStyle}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          style={authStyles.container}
-          contentContainerStyle={authStyles.scrollViewContainer}
+          style={authStyles.container as ViewStyle}
+          contentContainerStyle={authStyles.scrollViewContainer as ViewStyle}
           showsVerticalScrollIndicator={false}
         >
-          <View style={authStyles.contentContainer}>
+          <View style={authStyles.contentContainer as ViewStyle}>
             <Image
               source={AppImages.logoRounded}
-              style={authStyles.logo}
+              style={authStyles.logo as ImageStyle}
             />
 
-            <Text style={authStyles.title}>
+            <Text style={authStyles.title as TextStyle}>
               Welcome back! Glad to see you again!
             </Text>
 
-            <View style={authStyles.inputContainer}>
+            <View style={authStyles.inputContainer as ViewStyle}>
               <TextInput
                 style={[
-                  authStyles.input,
-                  (errors.email || isDeletedAccount) && authStyles.inputError,
+                  authStyles.input as TextStyle,
+                  (errors.email || isDeletedAccount) && (authStyles.inputError as TextStyle),
                 ]}
                 placeholder="Enter your email"
                 value={email}
@@ -142,23 +147,23 @@ const AuthScreen: React.FC = () => {
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                placeholderTextColor={authStyles.placeholderColor.color}
+                placeholderTextColor="#8391A1"
               />
               {errors.email && !isDeletedAccount && errors.email.trim() && (
-                <Text style={authStyles.fieldError}>{errors.email}</Text>
+                <Text style={authStyles.fieldError as TextStyle}>{errors.email}</Text>
               )}
             </View>
 
-            <View style={authStyles.inputContainer}>
+            <View style={authStyles.inputContainer as ViewStyle}>
               <View
                 style={[
-                  authStyles.passwordContainer,
+                  authStyles.passwordContainer as ViewStyle,
                   (errors.password || isDeletedAccount) &&
-                    authStyles.inputError,
+                    (authStyles.inputError as ViewStyle),
                 ]}
               >
                 <TextInput
-                  style={authStyles.passwordInput}
+                  style={authStyles.passwordInput as TextStyle}
                   placeholder="Enter your password"
                   value={password}
                   onChangeText={(text) => {
@@ -168,11 +173,11 @@ const AuthScreen: React.FC = () => {
                     }
                   }}
                   secureTextEntry={!showPassword}
-                  placeholderTextColor={authStyles.placeholderColor.color}
+                  placeholderTextColor="#8391A1"
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
-                  style={authStyles.eyeIcon}
+                  style={authStyles.eyeIcon as ViewStyle}
                 >
                   <FontAwesome
                     name={showPassword ? "eye" : "eye-slash"}
@@ -184,68 +189,68 @@ const AuthScreen: React.FC = () => {
               {errors.password &&
                 !isDeletedAccount &&
                 errors.password.trim() && (
-                  <Text style={authStyles.fieldError}>{errors.password}</Text>
+                  <Text style={authStyles.fieldError as TextStyle}>{errors.password}</Text>
                 )}
             </View>
 
             <TouchableOpacity
-              style={authStyles.forgotPassword}
+              style={authStyles.forgotPassword as ViewStyle}
               onPress={() => router.push("/(auth)/forgotPassword")}
             >
-              <Text style={authStyles.forgotPasswordText}>
+              <Text style={authStyles.forgotPasswordText as TextStyle}>
                 Forgot Password?
               </Text>
             </TouchableOpacity>
 
-            <View style={authStyles.errorContainer}>
+            <View style={authStyles.errorContainer as ViewStyle}>
               {isDeletedAccount && errors.general ? (
-                <Text style={authStyles.deletedAccountError}>
+                <Text style={authStyles.deletedAccountError as TextStyle}>
                   {errors.general}
                 </Text>
               ) : null}
 
               {!isDeletedAccount && errors.general ? (
-                <Text style={authStyles.generalError}>{errors.general}</Text>
+                <Text style={authStyles.generalError as TextStyle}>{errors.general}</Text>
               ) : null}
             </View>
 
             <TouchableOpacity
-              style={authStyles.loginButton}
+              style={authStyles.loginButton as ViewStyle}
               onPress={handleLogin}
               disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={authStyles.loginButtonText}>Login</Text>
+                <Text style={authStyles.loginButtonText as TextStyle}>Login</Text>
               )}
             </TouchableOpacity>
 
-            <View style={authStyles.dividerContainer}>
-              <View style={authStyles.dividerLine} />
-              <Text style={authStyles.dividerText}>Or Login with</Text>
-              <View style={authStyles.dividerLine} />
+            <View style={authStyles.dividerContainer as ViewStyle}>
+              <View style={authStyles.dividerLine as ViewStyle} />
+              <Text style={authStyles.dividerText as TextStyle}>Or Login with</Text>
+              <View style={authStyles.dividerLine as ViewStyle} />
             </View>
 
-            <View style={authStyles.socialButtonsContainer}>
-              <TouchableOpacity style={authStyles.socialButton}>
+            <View style={authStyles.socialButtonsContainer as ViewStyle}>
+              <TouchableOpacity style={authStyles.socialButton as ViewStyle}>
                 <FontAwesome name="facebook" size={24} color="#3b5998" />
               </TouchableOpacity>
-              <TouchableOpacity style={authStyles.socialButton}>
+              <TouchableOpacity style={authStyles.socialButton as ViewStyle}>
                 <FontAwesome name="google" size={24} color="#db4437" />
               </TouchableOpacity>
-              <TouchableOpacity style={authStyles.socialButton}>
+              <TouchableOpacity style={authStyles.socialButton as ViewStyle}>
                 <FontAwesome name="apple" size={24} color="#000000" />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              style={authStyles.registerContainer}
+              style={authStyles.registerContainer as ViewStyle}
               onPress={() => router.push("/(auth)/register")}
             >
-              <Text style={authStyles.registerText}>
+              <Text style={authStyles.registerText as TextStyle}>
                 Don&apos;t have an account?{" "}
-                <Text style={authStyles.registerLink}>Register Now</Text>
+                <Text style={authStyles.registerLink as TextStyle}>Register Now</Text>
               </Text>
             </TouchableOpacity>
           </View>

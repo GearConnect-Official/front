@@ -1,5 +1,4 @@
-import { Platform, StatusBar, StyleSheet } from "react-native";
-import theme from "./config";
+import { StyleSheet } from "react-native";
 
 // Racing color palette inspired by automotive and racing world
 const THEME_COLORS = {
@@ -16,9 +15,6 @@ const THEME_COLORS = {
   success: "#27AE60", // Green for positive badges
 };
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 28 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 const styles = StyleSheet.create({
   container: {

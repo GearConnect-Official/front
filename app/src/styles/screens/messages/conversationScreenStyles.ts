@@ -184,7 +184,6 @@ const styles = StyleSheet.create({
     padding: 4,
     marginHorizontal: -4,
     marginVertical: 2,
-    animation: 'fadeOut 1s ease-out',
   },
   highlightedMessageBubble: {
     borderWidth: 3,

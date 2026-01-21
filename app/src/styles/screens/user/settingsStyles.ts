@@ -1,10 +1,6 @@
 import { StyleSheet, Platform, StatusBar } from "react-native";
 import theme from "../../config/theme";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
-
 // Color constants extracted from theme for direct use in the component
 export const colors = {
   iconPrimary: theme.colors.primary.main,

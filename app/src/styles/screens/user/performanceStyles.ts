@@ -35,9 +35,8 @@ export const THEME_COLORS = {
   RACING_GRADIENT_START: "#FF6B1A",
   RACING_GRADIENT_END: "#E10600",
 };
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
+
+
 
 // Animation and layout constants
 export const LAYOUT = {

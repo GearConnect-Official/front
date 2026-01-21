@@ -1,15 +1,10 @@
-import { Platform, StatusBar, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import theme from "../../config/theme";
-import { THEME_COLORS } from "../user/performanceStyles";
-
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 26 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.default,
+    backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
@@ -17,30 +12,38 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: THEME_COLORS.BACKGROUND,
+    backgroundColor: "#fff",
     borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: Platform.OS === "ios" ? STATUSBAR_HEIGHT : 0,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   backButton: {
-    padding: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: theme.colors.text.primary,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
   },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.sm,
   },
   groupsButton: {
-    padding: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   newMessageButton: {
-    padding: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     paddingVertical: theme.spacing.sm,

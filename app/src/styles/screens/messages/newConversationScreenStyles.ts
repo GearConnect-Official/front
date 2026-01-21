@@ -1,14 +1,10 @@
-import { Platform, StatusBar, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import theme from "../../config/theme";
-
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 28 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.default,
+    backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
@@ -17,20 +13,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: "#fff",
-    borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: Platform.OS === "ios" ? STATUSBAR_HEIGHT : 0,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   backButton: {
-    padding: theme.spacing.sm,
-    marginRight: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: "600",
     color: theme.colors.text.primary,
+    textAlign: "center",
   },
   nextButton: {
     paddingHorizontal: theme.spacing.md,
@@ -46,6 +42,10 @@ const styles = StyleSheet.create({
   },
   nextButtonTextActive: {
     color: "white",
+  },
+  placeholderRight: {
+    width: 40,
+    height: 40,
   },
   searchContainer: {
     paddingHorizontal: theme.spacing.md,

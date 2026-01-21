@@ -10,6 +10,7 @@ import {
   Alert,
   Animated,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -551,14 +552,14 @@ export default function MessagesScreen() {
   }).length;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <FontAwesome name="arrow-left" size={20} color="#6A707C" />
+          <FontAwesome name="arrow-left" size={20} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Chats</Text>
         <View style={styles.headerActions}>
@@ -703,6 +704,6 @@ export default function MessagesScreen() {
           <ActivityIndicator size="large" color="#E10600" />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 } 

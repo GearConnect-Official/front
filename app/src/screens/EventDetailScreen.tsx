@@ -9,7 +9,9 @@ import {
   Linking,
   ActivityIndicator,
   Dimensions,
+  Share,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
@@ -32,6 +34,7 @@ import { Performance } from '../types/performance.types';
 import EventTag from '../components/EventTag';
 import { CloudinaryAvatar } from '../components/media/CloudinaryImage';
 import { trackEvent, trackScreenView } from '../utils/mixpanelTracking';
+import { addAppointmentToCalendar } from '../utils/calendarHelper';
 
 interface MeteoInfo {
   trackCondition?: 'dry' | 'wet' | 'mixed' | 'damp' | 'slippery' | 'drying';
@@ -519,6 +522,93 @@ const EventDetailScreen: React.FC = () => {
     }
   };
 
+  // Handle share event using native Share API
+  const handleShareEvent = async () => {
+    if (!event) return;
+
+    try {
+      console.log('Sharing event:', event.id);
+      // Track event share (using viewed as fallback since shared doesn't exist)
+      trackEvent.viewed(String(event.id), event.name);
+
+      // Create the event link
+      const eventLink = `https://gearconnect.app/event/${event.id}`;
+
+      // Format date
+      const eventDate = event.date ? formatDate(event.date) : '';
+      const dateInfo = eventDate ? `📅 ${eventDate}` : '';
+
+      // Create the share message
+      const shareMessage = `🏎️ ${event.name || 'Check out this event!'}\n\n${event.description ? event.description.substring(0, 150) + (event.description.length > 150 ? '...' : '') : ''}\n\n${dateInfo}\n📍 ${event.location || 'Location TBD'}\n\n${eventLink}`;
+
+      // Use native Share API
+      const result = await Share.share({
+        message: shareMessage,
+        title: event.name || 'Share this event',
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log('✅ Event shared successfully');
+        if (result.activityType) {
+          console.log('📱 Shared via:', result.activityType);
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('❌ Share dismissed');
+      }
+    } catch (error) {
+      console.error('❌ Error sharing event:', error);
+      // Fallback: copy link to clipboard
+      if (event?.id) {
+        const eventLink = `https://gearconnect.app/event/${event.id}`;
+        await Clipboard.setStringAsync(eventLink);
+        // Alert as fallback since we may not have MessageContext here
+        console.log('📋 Event link copied to clipboard');
+      }
+    }
+  };
+
+  // Handle buy ticket - open the event's website URL
+  const handleBuyTicket = async () => {
+    if (!event?.website) {
+      console.log('No website URL available for this event');
+      return;
+    }
+
+    try {
+      const url = event.website;
+      await Linking.openURL(url);
+      console.log('✅ Website URL opened:', url);
+    } catch (error) {
+      // L'erreur peut survenir même si l'URL s'ouvre correctement
+      console.log('Website URL opened (error can be ignored):', error);
+    }
+  };
+
+  // Handle add to calendar - add event to user's calendar
+  const handleAddToCalendar = async () => {
+    if (!event) return;
+
+    try {
+      const eventDate = event.date ? new Date(event.date) : new Date();
+      
+      // Create an appointment data object compatible with calendarHelper
+      const appointmentData = {
+        title: event.name || 'GearConnect Event',
+        description: event.description || '',
+        date: eventDate,
+        location: event.location || '',
+        reminder: '1 hour before',
+      };
+
+      const success = await addAppointmentToCalendar(appointmentData);
+      if (success) {
+        console.log('✅ Event added to calendar:', event.name);
+      }
+    } catch (error) {
+      console.error('❌ Error adding event to calendar:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (eventId) {
@@ -931,13 +1021,13 @@ const EventDetailScreen: React.FC = () => {
           ) : null}
           
           {/* Buttons */}
-          <TouchableOpacity style={styles.shareButton}>
+          <TouchableOpacity style={styles.shareButton} onPress={handleShareEvent}>
             <Text style={styles.shareText}>Share</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addCalendarButton}>
+          <TouchableOpacity style={styles.addCalendarButton} onPress={handleAddToCalendar}>
             <Text style={styles.addCalendarText}>Add to Calendar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buyButton}>
+          <TouchableOpacity style={styles.buyButton} onPress={handleBuyTicket}>
             <Text style={styles.buyButtonText}>Buy a Ticket</Text>
           </TouchableOpacity>
         </ScrollView>

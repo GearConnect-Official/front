@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginLeft: 'auto',
     marginRight: 'auto',
+    backgroundColor: '#fff',
   },
   centered: {
     flex: 1,
@@ -23,18 +24,26 @@ const styles = StyleSheet.create({
 
   // Header Styles
   topBar: {
-    backgroundColor: theme.colors.background.paper,
-    ...theme.shadows.apply({}, 'topBar'),
+    backgroundColor: '#fff',
     minHeight: theme.spacing.height.toolbar,
   },
   titleBar: {
-    ...theme.common.spaceBetween,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.xs,
   },
   title: {
-    fontSize: theme.typography.h4.fontSize,
-    fontWeight: theme.typography.h4.fontWeight,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    flex: 1,
+    textAlign: 'center',
+  },
+  placeholderRight: {
+    width: 40,
+    height: 40,
   },
   backButton: {
     width: 40,

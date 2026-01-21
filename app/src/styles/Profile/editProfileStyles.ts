@@ -4,8 +4,7 @@ import theme from "../config";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.paper,
-    paddingTop: 50,
+    backgroundColor: "#fff",
   },
   scrollView: {
     flex: 1,
@@ -37,6 +36,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: "center",
   },
   saveButton: {
     padding: theme.spacing.sm,

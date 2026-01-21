@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Image,
   Animated,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import AddFriendModal from "../components/modals/AddFriendModal";
@@ -67,10 +67,10 @@ const FriendsScreen: React.FC = () => {
           <FontAwesome
             name="arrow-left"
             size={20}
-            color={THEME_COLORS.secondary}
+            color="#1A1A1A"
           />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: THEME_COLORS.secondary }]}>
+        <Text style={styles.headerTitle}>
           Friends
         </Text>
         <View style={styles.placeholderRight}></View>

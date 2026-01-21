@@ -1,10 +1,7 @@
-import { StyleSheet, Dimensions, Platform, StatusBar } from "react-native";
+import { StyleSheet, Dimensions, Platform } from "react-native";
 import theme from "../../config/theme";
 
 const { width } = Dimensions.get("window");
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 const SCREEN_WIDTH = width;
 
 // Palette de couleurs inspirée du monde automobile et du racing
@@ -43,11 +40,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: THEME_COLORS.background,
+    backgroundColor: "#fff",
     borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   headerLeft: {
     flex: 1,
@@ -63,6 +58,8 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.textPrimary,
     fontSize: 18,
     fontWeight: "700",
+    flex: 1,
+    textAlign: "center",
   },
   placeholderRight: {
     width: 40,

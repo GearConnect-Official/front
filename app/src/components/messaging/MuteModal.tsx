@@ -134,6 +134,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
   },
   closeButton: {
     padding: 4,

@@ -115,14 +115,8 @@ const CreateReviewScreen: React.FC = () => {
           >
             <FontAwesome name="arrow-left" size={24} color="#1E232C" />
           </TouchableOpacity>
-          <Text
-            style={[
-              styles.title,
-              { flex: 1, textAlign: "center", marginRight: 85 },
-            ]}
-          >
-            Create Review
-          </Text>
+          <Text style={styles.title}>Create Review</Text>
+          <View style={styles.placeholderRight} />
         </View>
       </View>
 

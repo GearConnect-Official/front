@@ -340,17 +340,23 @@ const styles = StyleSheet.create({
   },
   header: {
     ...theme.common.spaceBetween,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomWidth: 0,
+    backgroundColor: '#fff',
+    height: 56,
   },
   backButton: {
-    padding: theme.spacing.xs,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     ...theme.typography.h5,
     color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
   },
   headerRight: {
     width: 40,

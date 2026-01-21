@@ -1,4 +1,4 @@
-import { Platform, StatusBar, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 // Racing theme colors
 export const THEME_COLORS = {
   // Primary racing colors
@@ -15,7 +15,7 @@ export const THEME_COLORS = {
 
   // UI colors
   PRIMARY: "#E10600",
-  BACKGROUND: "#FFFFFFF",
+  BACKGROUND: "#FFFFFF",
   CARD_BACKGROUND: "#FFFFFF",
   BORDER: "#E1E8ED",
   TEXT_PRIMARY: "#14171A",
@@ -35,9 +35,8 @@ export const THEME_COLORS = {
   RACING_GRADIENT_START: "#FF6B1A",
   RACING_GRADIENT_END: "#E10600",
 };
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
+
+
 
 // Animation and layout constants
 export const LAYOUT = {
@@ -83,11 +82,11 @@ export const performanceStyles = StyleSheet.create({
   // Container styles
   container: {
     flex: 1,
-    backgroundColor: THEME_COLORS.BACKGROUND,
+    backgroundColor: "#fff",
   },
   safeArea: {
     flex: 1,
-    backgroundColor: THEME_COLORS.CARD_BACKGROUND,
+    backgroundColor: "#fff",
   },
   scrollContainer: {
     flex: 1,
@@ -102,18 +101,17 @@ export const performanceStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: LAYOUT.SPACING_MD,
-    paddingVertical: LAYOUT.SPACING_MD,
-    backgroundColor: THEME_COLORS.BACKGROUND,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
     borderBottomWidth: 0,
-    borderBottomColor: THEME_COLORS.BORDER,
-    height: HEADER_HEIGHT,
-    marginTop: Platform.OS === "ios" ? -STATUSBAR_HEIGHT : 0,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   headerTitle: {
     fontSize: TYPOGRAPHY.SECTION_TITLE,
     fontWeight: TYPOGRAPHY.WEIGHT_BOLD,
     color: THEME_COLORS.TEXT_PRIMARY,
+    flex: 1,
+    textAlign: "center",
   },
   headerButton: {
     width: 40,

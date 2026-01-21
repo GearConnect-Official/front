@@ -1,9 +1,6 @@
-import { StyleSheet, Platform, StatusBar } from "react-native";
+import { StyleSheet } from "react-native";
 import theme from "../../config/theme";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 export const styles = StyleSheet.create({
   // Layout containers
@@ -33,14 +30,14 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#fff",
     borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: -STATUSBAR_HEIGHT,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
   },
   backButton: {
     marginRight: 15,

@@ -1,9 +1,5 @@
-import { StyleSheet, Platform, StatusBar } from "react-native";
+import { StyleSheet } from "react-native";
 import theme from "../../config/theme";
-
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
-const HEADER_HEIGHT = 56 + STATUSBAR_HEIGHT;
 
 // Color constants extracted from theme for direct use in the component
 export const colors = {
@@ -36,9 +32,7 @@ export default StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#fff",
     borderBottomWidth: 0,
-    height: HEADER_HEIGHT,
-    marginTop: -STATUSBAR_HEIGHT,
-    paddingTop: STATUSBAR_HEIGHT,
+    height: 56,
   },
   backButton: {
     marginRight: 15,
@@ -50,6 +44,8 @@ export default StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: "#1A1A1A",
+    flex: 1,
+    textAlign: "center",
   },
   placeholderRight: {
     width: 40,

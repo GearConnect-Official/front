@@ -275,3 +275,5 @@ ios/
 app/**/dist/
 app/**/*.js
 !app/__tests__/**/*.js
+
+gen-lang-client-0131127497-3aa4b5ac7e5e.json

@@ -276,4 +276,12 @@ app/**/dist/
 app/**/*.js
 !app/__tests__/**/*.js
 
-gen-lang-client-0131127497-3aa4b5ac7e5e.json
+# Google service account keys
+gen-lang-client-*.json
+*.json.bak
+
+# Build outputs
+*.aab
+*.apk
+app-release.apk
+app-debug.apk

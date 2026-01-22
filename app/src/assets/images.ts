@@ -25,11 +25,6 @@ export const AppImages = {
   error: require('../../assets/images/error.png'),
   favicon: require('../../assets/images/favicon.png'),
   
-  // Motorsport images
-  motorsportHighlights: require('../../assets/images/motorsport-images-highlights.png'),
-  superbike: require('../../assets/images/superbike-930715_640.png'),
-  thierryNeuville: require('../../assets/images/thierry-neuville-2024-wrc-world-champion.png'),
-  
   // React logos (dev)
   reactLogo: require('../../assets/images/react-logo.png'),
   partialReactLogo: require('../../assets/images/partial-react-logo.png'),

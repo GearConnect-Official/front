@@ -1,8 +1,5 @@
-import { StyleSheet, Platform, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import theme from '../../config/theme';
-
-const { width } = Dimensions.get('window');
-const BOTTOM_CARD_HEIGHT = 220;
 
 const styles = StyleSheet.create({
   container: {
@@ -22,7 +19,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-    paddingTop: Platform.OS === 'ios' ? 54 : 40,
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.sm,
   },
@@ -58,36 +54,118 @@ const styles = StyleSheet.create({
     height: 44,
   },
 
-  // Category filters
-  categoryContainer: {
-    marginTop: theme.spacing.sm,
+  // Filter button (replaces category carousel)
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.md,
   },
-  categoryScroll: {
-    paddingRight: theme.spacing.md,
+  filterButtonActive: {
+    backgroundColor: theme.colors.primary.main,
   },
-  categoryChip: {
+  filterBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: theme.colors.primary.main,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  filterBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+
+  // Filter modal / panel
+  filterOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20,
+    justifyContent: 'flex-end',
+  },
+  filterOverlayBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  filterPanel: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: theme.spacing.lg,
+    maxHeight: '80%',
+  },
+  filterPanelDragZone: {
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.xs,
+  },
+  filterPanelHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: theme.colors.grey[200],
+    alignSelf: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  filterPanelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  filterPanelTitle: {
+    ...theme.typography.h4,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+  },
+  filterResetText: {
+    ...theme.typography.body2,
+    color: theme.colors.primary.main,
+    fontWeight: '600',
+  },
+  filterSectionTitle: {
+    ...theme.typography.subtitle2,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+  },
+  filterChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.xs,
+  },
+  filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    marginRight: theme.spacing.xs,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: theme.colors.grey[50],
+    borderWidth: 1.5,
+    borderColor: theme.colors.grey[200],
     gap: 6,
-    ...theme.shadows.sm,
   },
-  categoryChipActive: {
-    // backgroundColor set dynamically
+  filterChipSelected: {
+    backgroundColor: theme.colors.primary.main,
+    borderColor: theme.colors.primary.main,
   },
-  categoryChipText: {
-    ...theme.typography.caption,
+  filterChipText: {
+    ...theme.typography.body2,
     fontWeight: '600',
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.primary,
   },
-  categoryChipTextActive: {
+  filterChipTextSelected: {
     color: '#fff',
   },
-
   // Custom marker
   markerContainer: {
     alignItems: 'center',
@@ -106,6 +184,11 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.status.success,
     borderWidth: 3,
   },
+  markerBubbleSelected: {
+    borderColor: theme.colors.grey[900],
+    borderWidth: 3.5,
+    ...theme.shadows.lg,
+  },
   markerArrow: {
     width: 0,
     height: 0,
@@ -121,7 +204,7 @@ const styles = StyleSheet.create({
   locateButton: {
     position: 'absolute',
     right: theme.spacing.md,
-    bottom: BOTTOM_CARD_HEIGHT + 24,
+    bottom: 32,
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -144,7 +227,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: theme.spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 36 : theme.spacing.lg,
     ...theme.shadows.lg,
   },
   bottomCardHandle: {
@@ -246,121 +328,15 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  // Bottom events carousel (when no event selected)
-  carouselContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    paddingBottom: Platform.OS === 'ios' ? 32 : theme.spacing.md,
-  },
-  carouselScroll: {
-    paddingHorizontal: theme.spacing.md,
-  },
-  carouselCard: {
-    width: width * 0.72,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginRight: theme.spacing.sm,
-    overflow: 'hidden',
-    ...theme.shadows.md,
-  },
-  carouselCardContent: {
-    padding: theme.spacing.sm + 2,
-  },
-  carouselCardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 6,
-  },
-  carouselCardCategory: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  carouselCardCategoryText: {
-    ...theme.typography.caption,
-    fontWeight: '700',
-    color: '#fff',
-    fontSize: 10,
-    textTransform: 'uppercase',
-  },
-  carouselCardPrice: {
-    ...theme.typography.subtitle2,
-    fontWeight: '700',
-    color: theme.colors.primary.main,
-  },
-  carouselCardTitle: {
-    ...theme.typography.subtitle1,
-    fontWeight: '700',
-    color: theme.colors.text.primary,
-    marginBottom: 4,
-  },
-  carouselCardInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 3,
-  },
-  carouselCardInfoText: {
-    ...theme.typography.caption,
-    color: theme.colors.text.secondary,
-    flex: 1,
-  },
-  carouselCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  carouselCardParticipants: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  carouselCardParticipantsText: {
-    ...theme.typography.caption,
-    color: theme.colors.text.secondary,
-  },
-  carouselCardProgressBar: {
-    height: 3,
-    backgroundColor: theme.colors.grey[100],
-    borderRadius: 2,
-    width: 50,
-    marginLeft: 6,
-  },
-  carouselCardProgressFill: {
-    height: 3,
-    borderRadius: 2,
-  },
-  carouselCardJoinedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(52, 199, 89, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    gap: 4,
-  },
-  carouselCardJoinedText: {
-    ...theme.typography.caption,
-    color: theme.colors.status.success,
-    fontWeight: '600',
-    fontSize: 10,
-  },
-
   // Events count badge
   eventCountBadge: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 114 : 100,
     alignSelf: 'center',
     backgroundColor: 'rgba(30, 35, 44, 0.85)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 6,
     borderRadius: 20,
-    zIndex: 10,
+    zIndex: 5,
   },
   eventCountText: {
     ...theme.typography.caption,
@@ -368,23 +344,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Empty state
-  emptyCarouselCard: {
-    width: width - 32,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: theme.spacing.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...theme.shadows.md,
-    minHeight: 120,
-  },
-  emptyText: {
-    ...theme.typography.subtitle1,
-    color: theme.colors.text.secondary,
-    marginTop: theme.spacing.sm,
-    textAlign: 'center',
-  },
 });
 
 export default styles;
